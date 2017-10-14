@@ -11,6 +11,7 @@ haven't dealt with React Native before, you should walk through the
 brew install node
 brew install watchman
 npm install -g react-native-cli
+npm install -g yarn
 ```
 
 #### iOS
@@ -44,6 +45,8 @@ First, clone this repository.
 
 ```bash
 git clone git@github.com:zachkirsch/JumboSmash.git
+cd JumboSmash
+yarn install
 ```
 
 Running the app will:
@@ -56,7 +59,7 @@ Running the app will:
 For iOS, the simulator does not have to already be running.
 
 ```bash
-npm run ios
+yarn run ios
 ```
 
 #### Android
@@ -64,11 +67,11 @@ npm run ios
 For Android, the simulator must already be running.
 
 ```bash
-npm run android
+yarn run android
 ```
 
 ### Run Tests
 
 ```bash
-npm run test
+yarn run test
 ```
