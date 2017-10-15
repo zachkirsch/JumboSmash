@@ -11,15 +11,16 @@ haven't dealt with React Native before, you should walk through the
 brew install node
 brew install watchman
 npm install -g react-native-cli
+npm install -g yarn
 ```
 
-###### iOS
+#### iOS
 
 - Download Xcode and Xcode command line tools. Please follow the directions on
  the [RN
  docs](https://facebook.github.io/react-native/releases/next/docs/getting-started.html#command-line-tools).
 
-###### Android
+#### Android
 
  - [Download JDK 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
  - Download Android Studio and relevant SDKs. Please follow the directions on
@@ -29,15 +30,14 @@ npm install -g react-native-cli
  Android Studio to be able to see the virtual devices icon in the toolbar.
  You'll also probably have to install [HAXM](https://software.intel.com/en-us/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x).
  - Set up environment:
-
-  ```bash
-  cat <<-"EOT" >> $HOME/.bash_profile
-  export ANDROID_HOME=$HOME/Library/Android/sdk
-  export PATH=$PATH:$ANDROID_HOME/tools
-  export PATH=$PATH:$ANDROID_HOME/platform-tools
-  EOT
-  source $HOME/.bash_profile
-  ```
+   ```bash
+   cat <<-"EOT" >> $HOME/.bash_profile
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/tools
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   EOT
+   source $HOME/.bash_profile
+   ```
 
 ### Run the App
 
@@ -45,6 +45,8 @@ First, clone this repository.
 
 ```bash
 git clone git@github.com:zachkirsch/JumboSmash.git
+cd JumboSmash
+yarn install
 ```
 
 Running the app will:
@@ -52,24 +54,24 @@ Running the app will:
   2. Keep the current window watching for changes to the typescript, and it will
      automatically compile to javascript when necessary
 
-###### iOS
+#### iOS
 
 For iOS, the simulator does not have to already be running.
 
 ```bash
-npm run ios
+yarn run ios
 ```
 
-###### Android
+#### Android
 
 For Android, the simulator must already be running.
 
 ```bash
-npm run android
+yarn run android
 ```
 
 ### Run Tests
 
 ```bash
-npm run test
+yarn run test
 ```
