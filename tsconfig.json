@@ -7,7 +7,7 @@
     "outDir": "build",
     "rootDir": "src",
     "allowSyntheticDefaultImports": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "preserveConstEnums": true,
     "allowJs": false,
     "sourceMap": true,

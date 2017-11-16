@@ -1,13 +1,19 @@
 import React, { PureComponent } from 'react'
-import { connect } from 'react-redux'
+import { connect, Dispatch } from 'react-redux'
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
 import { login, Credentials } from '../services/auth'
+import { RootState } from '../services'
 
-interface Props {
-  onLogin: (credentials: Credentials) => void
+interface StateProps {
   username: string
   errorMessage: string
 }
+
+interface DispatchProps {
+  onLogin: (credentials: Credentials) => void
+}
+
+type Props = StateProps & DispatchProps
 
 interface State {
   credentials: Credentials
@@ -15,7 +21,7 @@ interface State {
 
 class Login extends PureComponent<Props, State> {
 
-  constructor (props) {
+  constructor (props: Props) {
     super(props)
     this.state = {
       credentials: {
@@ -35,9 +41,12 @@ class Login extends PureComponent<Props, State> {
     })
   }
 
+  onChangeUsername = (username: string) => this.onChangeCredentials({username})
+  onChangPassword = (password: string) => this.onChangeCredentials({password})
+
   render() {
     return (
-      <View style={styles.center}>
+      <View style={[styles.container, styles.center]}>
 
         <View style={styles.errorMessageContainer}>
           <Text style={styles.errorMessage}>{this.props.errorMessage}</Text>
@@ -46,14 +55,14 @@ class Login extends PureComponent<Props, State> {
         <TextInput
           style={styles.input}
           placeholder='fakeuser'
-          onChangeText={(username) => this.onChangeCredentials({username})}
+          onChangeText={this.onChangeUsername}
           value={this.state.credentials.username}
           autoCapitalize='none'
         />
         <TextInput
           style={styles.input}
           placeholder='password'
-          onChangeText={(password) => this.onChangeCredentials({password})}
+          onChangeText={this.onChangPassword}
           value={this.state.credentials.password}
           autoCapitalize='none'
           secureTextEntry={true}
@@ -64,14 +73,14 @@ class Login extends PureComponent<Props, State> {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state: RootState): StateProps => {
   return {
     username: state.auth.username,
     errorMessage: state.auth.errorMessage
   }
 }
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   return {
     onLogin: (credentials: Credentials) => dispatch(login(credentials)),
   }
@@ -80,10 +89,12 @@ const mapDispatchToProps = (dispatch) => {
 export default connect(mapStateToProps, mapDispatchToProps)(Login)
 
 const styles = StyleSheet.create({
-  center: {
+  container: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
+    flexDirection: 'column'
+  },
+  center: {
+    justifyContent: 'center'
   },
   input: {
     height: 40,

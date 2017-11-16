@@ -3,10 +3,9 @@ import { AppRegistry } from 'react-native'
 import { Provider } from 'react-redux'
 import { applyMiddleware, createStore } from 'redux'
 import createSagaMiddleware from 'redux-saga'
-import { rootReducer } from './services/rootReducer'
-import { rootSaga } from './services/rootSaga'
 import logger from 'redux-logger'
-import App from './App'
+import { rootReducer, rootSaga } from './services'
+import { Main } from './components'
 
 const sagaMiddleware = createSagaMiddleware()
 const store = createStore(
@@ -19,7 +18,7 @@ export default class JumboSmash extends Component {
   render() {
     return (
       <Provider store={store}>
-        <App />
+        <Main />
       </Provider>
     )
   }

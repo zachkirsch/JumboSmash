@@ -1,13 +1,14 @@
-import { AuthActionType, AuthAction, SessionState } from './types'
+import { AuthActionType, AuthAction } from './actions'
+import { AuthState } from './types'
 
-const initialState: SessionState = {
+const initialState: AuthState = {
   isLoggedIn: false,
   username: '',
   session: '',
   errorMessage: ''
 }
 
-export function authReducer(state: SessionState, action: AuthAction) {
+export function authReducer(state: AuthState, action: AuthAction) {
     switch (action.type) {
 
       case AuthActionType.ATTEMPT_LOGIN:

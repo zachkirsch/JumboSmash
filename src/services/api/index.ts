@@ -1,4 +1,4 @@
-import { Credentials } from '../services/auth'
+import { Credentials } from '../auth'
 
 export interface ApiLoginSuccessResponse {
   sessionKey: string

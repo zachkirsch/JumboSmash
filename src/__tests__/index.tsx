@@ -2,7 +2,7 @@ import 'react-native'
 import React from 'react'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
-import App from '../App'
+import Main from '../components/Main'
 import { rootReducer } from '../services/rootReducer'
 
 const store = createStore(rootReducer)
@@ -13,7 +13,7 @@ import renderer from 'react-test-renderer'
 it('renders correctly', () => {
   const tree = renderer.create(
     <Provider store={store}>
-      <App />
+      <Main />
     </Provider>  )
   expect(tree).toBeDefined()
 })
