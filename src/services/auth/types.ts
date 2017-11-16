@@ -1,6 +1,24 @@
-import { LoginSuccessAction, LoginFailureAction, LogoutAction } from './auth'
+import {
+  AttemptLoginAction,
+  LoginSuccessAction,
+  LoginFailureAction,
+  LogoutAction
+} from './actions'
 
-export enum TypeKey {
+export interface Credentials {
+  username: string
+  password: string
+}
+
+export interface SessionState {
+  isLoggedIn: boolean
+  username: string
+  session: string
+  errorMessage: string
+}
+
+export enum AuthActionType {
+  ATTEMPT_LOGIN = 'ATTEMPT_LOGIN',
   LOGIN_SUCCESS = 'LOGIN_SUCCESS',
   LOGIN_FAILURE = 'LOGIN_FAILURE',
   LOGOUT = 'LOGOUT',
@@ -15,10 +33,11 @@ export enum TypeKey {
 */
 
 export interface OtherAction {
-  type: TypeKey.OTHER_ACTION
+  type: AuthActionType.OTHER_ACTION
 }
 
-export type ActionType =
+export type AuthAction =
+  AttemptLoginAction
 | LoginSuccessAction
 | LoginFailureAction
 | LogoutAction

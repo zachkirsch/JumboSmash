@@ -1,10 +1,12 @@
 import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
-import { View, TextInput, Button, StyleSheet } from 'react-native'
-import { login, Credentials } from '../actions/auth'
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
+import { login, Credentials } from '../services/auth'
 
 interface Props {
   onLogin: (credentials: Credentials) => void
+  username: string
+  errorMessage: string
 }
 
 interface State {
@@ -17,7 +19,7 @@ class Login extends PureComponent<Props, State> {
     super(props)
     this.state = {
       credentials: {
-        username: '',
+        username: this.props.username,
         password: ''
       }
     }
@@ -36,6 +38,11 @@ class Login extends PureComponent<Props, State> {
   render() {
     return (
       <View style={styles.center}>
+
+        <View style={styles.errorMessageContainer}>
+          <Text style={styles.errorMessage}>{this.props.errorMessage}</Text>
+        </View>
+
         <TextInput
           style={styles.input}
           placeholder='fakeuser'
@@ -57,13 +64,20 @@ class Login extends PureComponent<Props, State> {
   }
 }
 
+const mapStateToProps = (state) => {
+  return {
+    username: state.auth.username,
+    errorMessage: state.auth.errorMessage
+  }
+}
+
 const mapDispatchToProps = (dispatch) => {
   return {
     onLogin: (credentials: Credentials) => dispatch(login(credentials)),
   }
 }
 
-export default connect(undefined, mapDispatchToProps)(Login)
+export default connect(mapStateToProps, mapDispatchToProps)(Login)
 
 const styles = StyleSheet.create({
   center: {
@@ -77,5 +91,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     margin: 5,
     padding: 5
+  },
+  errorMessageContainer: {
+    alignItems: 'center'
+  },
+  errorMessage: {
+    color: 'red',
+    fontWeight: 'bold',
   }
 })
