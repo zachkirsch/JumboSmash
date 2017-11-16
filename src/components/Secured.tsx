@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { View, Text, Button, StyleSheet } from 'react-native'
 import { logout } from '../services/auth'
-import { RootState } from '../services'
+import { RootState } from '../redux'
 
 interface DispatchProps {
   onLogout: () => void

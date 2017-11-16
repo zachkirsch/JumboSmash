@@ -1,4 +1,4 @@
-import { AuthState } from './auth'
+import { AuthState } from '../services/auth'
 
 export interface RootState {
   auth: AuthState

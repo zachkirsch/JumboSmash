@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
 import Login from './Login'
 import Secured from './Secured'
-import { RootState } from '../services'
+import { RootState } from '../redux'
 
 interface StateProps {
   isLoggedIn: boolean

@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
 import { login, Credentials } from '../services/auth'
-import { RootState } from '../services'
+import { RootState } from '../redux'
 
 interface StateProps {
   username: string

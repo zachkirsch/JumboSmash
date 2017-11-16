@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import { applyMiddleware, createStore } from 'redux'
 import createSagaMiddleware from 'redux-saga'
 import logger from 'redux-logger'
-import { rootReducer, rootSaga } from './services'
+import { rootReducer, rootSaga } from './redux'
 import { Main } from './components'
 
 const sagaMiddleware = createSagaMiddleware()
