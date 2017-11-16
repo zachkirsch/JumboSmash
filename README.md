@@ -7,7 +7,7 @@ haven't dealt with React Native before, you should walk through the
 
 ### Initial Setup (for Mac)
 
-```bash
+```
 brew install node
 brew install watchman
 npm install -g react-native-cli
@@ -30,7 +30,7 @@ npm install -g yarn
  Android Studio to be able to see the virtual devices icon in the toolbar.
  You'll also probably have to install [HAXM](https://software.intel.com/en-us/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x).
  - Set up environment:
-   ```bash
+   ```
    cat <<-"EOT" >> $HOME/.bash_profile
    export ANDROID_HOME=$HOME/Library/Android/sdk
    export PATH=$PATH:$ANDROID_HOME/tools
@@ -43,7 +43,7 @@ npm install -g yarn
 
 First, clone this repository.
 
-```bash
+```
 git clone git@github.com:zachkirsch/JumboSmash.git
 cd JumboSmash
 yarn install
@@ -58,7 +58,7 @@ Running the app will:
 
 For iOS, the simulator does not have to already be running.
 
-```bash
+```
 yarn run ios
 ```
 
@@ -66,12 +66,12 @@ yarn run ios
 
 For Android, the simulator must already be running.
 
-```bash
+```
 yarn run android
 ```
 
 ### Run Tests
 
-```bash
-yarn run test
+```
+yarn test
 ```
