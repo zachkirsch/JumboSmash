@@ -14,6 +14,7 @@
 				"test": "npm run build && npm run lint && jest --coverage"
 		},
 		"dependencies": {
+				"babel-core": "^6.26.0",
 				"react": "16.0.0-beta.5",
 				"react-native": "0.49.3",
 				"react-redux": "^5.0.6",
