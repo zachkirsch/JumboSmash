@@ -1,3 +1,5 @@
-export { default as Main } from './Main'
-export { default as Login } from './Login'
-export { default as Secured } from './Secured'
+export { default as MainScreen } from './MainScreen'
+export { default as LoginScreen } from './LoginScreen'
+export { default as ProfileScreen } from './ProfileScreen'
+export { default as SwipeScreen } from './SwipeScreen'
+export { default as MatchesScreen } from './MatchesScreen'

@@ -9,20 +9,25 @@ import {
 } from 'react-native-tab-view'
 import { logout } from '../services/auth'
 import { RootState } from '../redux'
-import Profile from './Profile'
+import LoginScreen from './LoginScreen'
+import ProfileScreen from './ProfileScreen'
 import SwipeScreen from './SwipeScreen'
-import Matches from './Matches'
+import MatchesScreen from './MatchesScreen'
 
 const initialLayout = {
   height: 0,
   width: Dimensions.get('window').width,
 }
 
+interface StateProps {
+  isLoggedIn: boolean
+}
+
 interface DispatchProps {
   onLogout: () => void
 }
 
-type Props = DispatchProps
+type Props = StateProps & DispatchProps
 
 interface Route {
   key: string
@@ -34,12 +39,12 @@ interface State {
   routes: Route[]
 }
 
-class Secured extends PureComponent<Props, State> {
+class MainScreen extends PureComponent<Props, State> {
 
   private _renderScene = SceneMap({
-    profile: () => (<Profile />),
+    profile: () => (<ProfileScreen />),
     swipe: () => <SwipeScreen />,
-    matches: () => <Matches />
+    matches: () => <MatchesScreen />
   })
 
   constructor(props: Props) {
@@ -68,6 +73,9 @@ class Secured extends PureComponent<Props, State> {
     }
 
   render() {
+    if (!this.props.isLoggedIn) {
+      return <LoginScreen />
+    }
     return (
       <TabViewAnimated
         style={styles.container}
@@ -84,13 +92,19 @@ class Secured extends PureComponent<Props, State> {
 
 }
 
+const mapStateToProps = (state: RootState): StateProps => {
+    return {
+        isLoggedIn: state.auth.isLoggedIn
+    }
+}
+
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     onLogout: () => dispatch(logout()),
   }
 }
 
-export default connect(undefined, mapDispatchToProps)(Secured)
+export default connect(mapStateToProps, mapDispatchToProps)(MainScreen)
 
 const styles = StyleSheet.create({
   container: {

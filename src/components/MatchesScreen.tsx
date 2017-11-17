@@ -10,7 +10,7 @@ interface DispatchProps {
 
 type Props = DispatchProps
 
-class Matches extends PureComponent<Props, {}> {
+class MatchesScreen extends PureComponent<Props, {}> {
   render() {
     return (
       <View style={[styles.container, styles.center]}>
@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   }
 }
 
-export default connect(undefined, mapDispatchToProps)(Matches)
+export default connect(undefined, mapDispatchToProps)(MatchesScreen)
 
 const styles = StyleSheet.create({
   container: {

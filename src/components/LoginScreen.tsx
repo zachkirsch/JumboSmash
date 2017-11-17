@@ -19,7 +19,7 @@ interface State {
   credentials: Credentials
 }
 
-class Login extends PureComponent<Props, State> {
+class LoginScreen extends PureComponent<Props, State> {
 
   constructor (props: Props) {
     super(props)
@@ -88,7 +88,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login)
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
 
 const styles = StyleSheet.create({
   container: {
