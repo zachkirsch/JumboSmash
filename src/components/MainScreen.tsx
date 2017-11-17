@@ -14,6 +14,7 @@ import ProfileScreen from './ProfileScreen'
 import SwipeScreen from './SwipeScreen'
 import MatchesScreen from './MatchesScreen'
 
+// for tab view
 const initialLayout = {
   height: 0,
   width: Dimensions.get('window').width,
@@ -35,8 +36,10 @@ interface Route {
 }
 
 interface State {
-  index: number
-  routes: Route[]
+  navState: {
+    index: number
+    routes: Route[]
+  }
 }
 
 class MainScreen extends PureComponent<Props, State> {
@@ -50,27 +53,16 @@ class MainScreen extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      index: 0,
-      routes: [
-        { key: 'profile', title: 'Profile' },
-        { key: 'swipe', title: 'Swipe' },
-        { key: 'matches', title: 'Matches' },
-      ]
+      navState: {
+        index: 0,
+        routes: [
+          { key: 'profile', title: 'Profile' },
+          { key: 'swipe', title: 'Swipe' },
+          { key: 'matches', title: 'Matches' },
+        ]
+      }
     }
   }
-
-  _handleIndexChange = (index: number) => this.setState({ index })
-
-  _renderHeader = (props: TabBarProps) => {
-    return (
-      <TabBar
-        {...props}
-        tabStyle={{paddingTop: 15}}
-        style={{backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'lightgray'}}
-        indicatorStyle={{height: 5, backgroundColor: 'navy'}}
-        labelStyle={{color: 'navy'}}
-      />)
-    }
 
   render() {
     if (!this.props.isLoggedIn) {
@@ -79,7 +71,7 @@ class MainScreen extends PureComponent<Props, State> {
     return (
       <TabViewAnimated
         style={styles.container}
-        navigationState={this.state}
+        navigationState={this.state.navState}
         renderScene={this._renderScene}
         renderHeader={this._renderHeader}
         onIndexChange={this._handleIndexChange}
@@ -90,6 +82,25 @@ class MainScreen extends PureComponent<Props, State> {
     )
   }
 
+  private _handleIndexChange = (index: number) => {
+    this.setState({
+      navState: {
+        ...this.state.navState,
+        index
+      }
+    })
+  }
+
+  private _renderHeader = (props: TabBarProps) => {
+    return (
+      <TabBar
+        {...props}
+        tabStyle={styles.tab}
+        style={styles.tabBar}
+        indicatorStyle={styles.indicator}
+        labelStyle={styles.label}
+      />)
+    }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
@@ -107,6 +118,21 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
 export default connect(mapStateToProps, mapDispatchToProps)(MainScreen)
 
 const styles = StyleSheet.create({
+  tab: {
+    paddingTop: 15
+  },
+  tabBar: {
+    backgroundColor: 'transparent',
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray'
+  },
+  indicator: {
+    height: 5,
+    backgroundColor: 'navy'
+  },
+  label: {
+    color: 'navy'
+  },
   container: {
     flex: 1
   },
