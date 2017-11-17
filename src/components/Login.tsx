@@ -25,8 +25,8 @@ class Login extends PureComponent<Props, State> {
     super(props)
     this.state = {
       credentials: {
-        username: this.props.username,
-        password: ''
+        username: 'fakeuser', // this.props.username,
+        password: 'password'
       }
     }
   }
@@ -58,6 +58,7 @@ class Login extends PureComponent<Props, State> {
           onChangeText={this.onChangeUsername}
           value={this.state.credentials.username}
           autoCapitalize='none'
+          autoCorrect={false}
         />
         <TextInput
           style={styles.input}
@@ -65,6 +66,7 @@ class Login extends PureComponent<Props, State> {
           onChangeText={this.onChangPassword}
           value={this.state.credentials.password}
           autoCapitalize='none'
+          autoCorrect={false}
           secureTextEntry={true}
         />
         <Button onPress={this.onLogin} title='Login'/>
