@@ -36,7 +36,7 @@ interface Route {
 }
 
 interface State {
-  navState: {
+  navigation: {
     index: number
     routes: Route[]
   }
@@ -53,7 +53,7 @@ class MainScreen extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      navState: {
+      navigation: {
         index: 0,
         routes: [
           { key: 'profile', title: 'Profile' },
@@ -71,7 +71,7 @@ class MainScreen extends PureComponent<Props, State> {
     return (
       <TabViewAnimated
         style={styles.container}
-        navigationState={this.state.navState}
+        navigationState={this.state.navigation}
         renderScene={this._renderScene}
         renderHeader={this._renderHeader}
         onIndexChange={this._handleIndexChange}
@@ -84,8 +84,8 @@ class MainScreen extends PureComponent<Props, State> {
 
   private _handleIndexChange = (index: number) => {
     this.setState({
-      navState: {
-        ...this.state.navState,
+      navigation: {
+        ...this.state.navigation,
         index
       }
     })
