@@ -5,7 +5,7 @@ import { applyMiddleware, createStore } from 'redux'
 import createSagaMiddleware from 'redux-saga'
 import logger from 'redux-logger'
 import { rootReducer, rootSaga } from './redux'
-import { MainScreen } from './components'
+import App from './App'
 
 const sagaMiddleware = createSagaMiddleware()
 const store = createStore(
@@ -18,7 +18,7 @@ export default class JumboSmash extends Component {
   render() {
     return (
       <Provider store={store}>
-        <MainScreen />
+        <App />
       </Provider>
     )
   }

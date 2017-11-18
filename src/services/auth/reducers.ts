@@ -12,26 +12,30 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
 
     case AuthActionType.ATTEMPT_LOGIN:
-      return Object.assign(initialState, {
+      return {
+        ...initialState,
         username: action.credentials.username,
-      })
+      }
 
     case AuthActionType.LOGIN_SUCCESS:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         isLoggedIn: true,
         session: action.sessionKey,
-      })
+      }
 
     case AuthActionType.LOGIN_FAILURE:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         errorMessage: action.errorMessage,
-      })
+      }
 
     case AuthActionType.LOGOUT:
-      return Object.assign({}, state, {
+      return {
+        ...state,
         isLoggedIn: false,
         session: ''
-      })
+      }
 
     default:
       return initialState

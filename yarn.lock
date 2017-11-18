@@ -6,11 +6,25 @@
   version "21.1.6"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-21.1.6.tgz#9467945ce33261e4fdd14276576951aa130515aa"
 
-"@types/react-native@^0.49.2":
-  version "0.49.5"
-  resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.49.5.tgz#9941519a97c92ff2c1305a44303558568cee6296"
+"@types/react-native-vector-icons@^4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@types/react-native-vector-icons/-/react-native-vector-icons-4.4.2.tgz#dd6b6a4d9dee7c85e3246f6c67905dbc1faee3d5"
   dependencies:
     "@types/react" "*"
+    "@types/react-native" "*"
+
+"@types/react-native@*", "@types/react-native@^0.50.7":
+  version "0.50.7"
+  resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.50.7.tgz#4c18bb14aa08f11934f539d2b8dcb2f1a6b88bd8"
+  dependencies:
+    "@types/react" "*"
+
+"@types/react-navigation@^1.0.22":
+  version "1.0.22"
+  resolved "https://registry.yarnpkg.com/@types/react-navigation/-/react-navigation-1.0.22.tgz#5bd83c2d173f07c147dbe5d11a21e6e9d9f5243a"
+  dependencies:
+    "@types/react" "*"
+    "@types/react-native" "*"
 
 "@types/react-redux@^5.0.13":
   version "5.0.13"
@@ -25,9 +39,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^16.0.10":
-  version "16.0.24"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.0.24.tgz#a6fd8015892fe8ae3c17453615f7ebdd2301d818"
+"@types/react@*", "@types/react@^16.0.25":
+  version "16.0.25"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.0.25.tgz#bf696b83fe480c5e0eff4335ee39ebc95884a1ed"
 
 "@types/redux-logger@^3.0.5":
   version "3.0.5"
@@ -2717,7 +2731,7 @@ lodash.templatesettings@^3.0.0:
     lodash._reinterpolate "^3.0.0"
     lodash.escape "^3.0.0"
 
-lodash@4.17.4, lodash@^4.14.0, lodash@^4.16.6, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.5.1, lodash@^4.6.1:
+lodash@4.17.4, lodash@^4.0.0, lodash@^4.14.0, lodash@^4.16.6, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.5.1, lodash@^4.6.1:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -3424,6 +3438,14 @@ react-native-tab-view@^0.0.70:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-0.0.70.tgz#1dd2ded32acd0cb6bfef38d26e53675db733b37b"
   dependencies:
     prop-types "^15.5.10"
+
+react-native-vector-icons@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-4.4.2.tgz#090f42ee0396c4cc4eae0ddaa518028ba8df40c7"
+  dependencies:
+    lodash "^4.0.0"
+    prop-types "^15.5.10"
+    yargs "^8.0.2"
 
 react-native@0.50.3:
   version "0.50.3"
@@ -4568,6 +4590,24 @@ yargs-parser@^7.0.0:
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-7.0.0.tgz#8d0ac42f16ea55debd332caf4c4038b3e3f5dfd9"
   dependencies:
     camelcase "^4.1.0"
+
+yargs@^8.0.2:
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/yargs/-/yargs-8.0.2.tgz#6299a9055b1cefc969ff7e79c1d918dceb22c360"
+  dependencies:
+    camelcase "^4.1.0"
+    cliui "^3.2.0"
+    decamelize "^1.1.1"
+    get-caller-file "^1.0.1"
+    os-locale "^2.0.0"
+    read-pkg-up "^2.0.0"
+    require-directory "^2.1.1"
+    require-main-filename "^1.0.1"
+    set-blocking "^2.0.0"
+    string-width "^2.0.0"
+    which-module "^2.0.0"
+    y18n "^3.2.1"
+    yargs-parser "^7.0.0"
 
 yargs@^9.0.0:
   version "9.0.1"

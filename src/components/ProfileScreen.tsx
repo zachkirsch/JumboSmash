@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { View, Text, Button, StyleSheet } from 'react-native'
+import { NavigationTabScreenOptions } from 'react-navigation'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import { logout } from '../services/auth'
 import { RootState } from '../redux'
 
@@ -11,6 +13,17 @@ interface DispatchProps {
 type Props = DispatchProps
 
 class ProfileScreen extends PureComponent<Props, {}> {
+
+  static navigationOptions: NavigationTabScreenOptions = {
+    tabBarIcon: ({focused, tintColor}) => (
+      <Ionicons
+        name={focused ? 'ios-person' : 'ios-person-outline'}
+        size={35}
+        style={{ color: tintColor }}
+      />
+    ),
+  }
+
   render() {
     return (
       <View style={[styles.container, styles.center]}>
