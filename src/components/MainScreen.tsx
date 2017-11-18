@@ -44,7 +44,7 @@ interface State {
 
 class MainScreen extends PureComponent<Props, State> {
 
-  private _renderScene = SceneMap({
+  private renderScene = SceneMap({
     profile: () => (<ProfileScreen />),
     swipe: () => <SwipeScreen />,
     matches: () => <MatchesScreen />
@@ -64,7 +64,7 @@ class MainScreen extends PureComponent<Props, State> {
     }
   }
 
-  render() {
+  public render() {
     if (!this.props.isLoggedIn) {
       return <LoginScreen />
     }
@@ -72,9 +72,9 @@ class MainScreen extends PureComponent<Props, State> {
       <TabViewAnimated
         style={styles.container}
         navigationState={this.state.navigation}
-        renderScene={this._renderScene}
-        renderHeader={this._renderHeader}
-        onIndexChange={this._handleIndexChange}
+        renderScene={this.renderScene}
+        renderHeader={this.renderHeader}
+        onIndexChange={this.handleIndexChange}
         initialLayout={initialLayout}
         swipeEnabled={false}
         animationEnabled={false}
@@ -82,7 +82,7 @@ class MainScreen extends PureComponent<Props, State> {
     )
   }
 
-  private _handleIndexChange = (index: number) => {
+  private handleIndexChange = (index: number) => {
     this.setState({
       navigation: {
         ...this.state.navigation,
@@ -91,7 +91,7 @@ class MainScreen extends PureComponent<Props, State> {
     })
   }
 
-  private _renderHeader = (props: TabBarProps) => {
+  private renderHeader = (props: TabBarProps) => {
     return (
       <TabBar
         {...props}
