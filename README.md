@@ -49,14 +49,15 @@ cd JumboSmash
 yarn install
 ```
 
-Running the app will:
-  1. Open a new window to run the packager (if it's not already running)
-  2. Keep the current window watching for changes to the typescript, and it will
-     automatically compile to javascript when necessary
+Running the app will open a new window to run the packager (if it's not already
+running)
+
+In a separate window, you can run `yarn watch` to watch for changes to the
+typescript, and automatically compile to javascript when necessary
 
 #### iOS
 
-For iOS, the simulator does not have to already be running.
+For iOS, the simulator does not have to already be running. If it's not, running this command will launch the simulator.
 
 ```
 yarn run ios
