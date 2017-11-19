@@ -6,7 +6,7 @@ haven't dealt with React Native before, you should walk through the
 (React knowledge is not a prerequisite).
 
 Other important things to check out:
-  - [Typescript](https://www.typescriptlang.org/docs/home.html)
+  - [Typescript](https://www.typescriptlang.org/docs/home.html) and [ES6](https://babeljs.io/learn-es2015/)
   - [Redux](https://redux.js.org)
   - [Redux-Saga](https://redux-saga.js.org)
 
