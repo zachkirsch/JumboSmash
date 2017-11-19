@@ -1,5 +1,6 @@
-export { default as MainTabNavigator } from './MainTabNavigator'
+export { default as Navigator } from './Navigator'
 export { default as LoginScreen } from './LoginScreen'
 export { default as ProfileScreen } from './ProfileScreen'
 export { default as SwipeScreen } from './SwipeScreen'
-export { default as MatchesScreen } from './MatchesScreen'
+export { default as MatchesList } from './MatchesList'
+export { default as ChatScreen } from './ChatScreen'

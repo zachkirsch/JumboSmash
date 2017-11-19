@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
-import { LoginScreen, MainTabNavigator } from './components'
+import { LoginScreen, Navigator } from './components'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -13,7 +13,7 @@ class App extends PureComponent<Props, {}> {
 
   public render() {
     if (this.props.isLoggedIn) {
-      return <MainTabNavigator />
+      return <Navigator />
     } else {
       return <LoginScreen />
     }
