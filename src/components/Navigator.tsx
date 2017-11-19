@@ -12,8 +12,8 @@ import MatchesList from './MatchesList'
 import ChatScreen from './ChatScreen'
 
 const styles = StyleSheet.create({
-  tabBar: {
-    paddingTop: 15
+  iOSTabBar: {
+    paddingTop: 15 // extra padding iOS because of status bar
   },
   stackCard: {
     backgroundColor: 'white'
@@ -54,6 +54,6 @@ export default TabNavigator({
   tabBarOptions: {
     showLabel: false,
     showIcon: true,
-    style: Platform.OS === 'ios' ? styles.tabBar : undefined,
+    style: Platform.OS === 'ios' ? styles.iOSTabBar : undefined,
   }
 })
