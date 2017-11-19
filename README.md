@@ -5,6 +5,11 @@ haven't dealt with React Native before, you should walk through the
 [tutorial](https://facebook.github.io/react-native/releases/next/docs/tutorial.html)
 (React knowledge is not a prerequisite).
 
+Other important things to check out:
+  - [Typescript](https://www.typescriptlang.org/docs/home.html)
+  - [Redux](https://redux.js.org)
+  - [Redux-Saga](https://redux-saga.js.org)
+
 ### Initial Setup (for Mac)
 
 ```
