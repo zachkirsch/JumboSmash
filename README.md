@@ -54,11 +54,12 @@ cd JumboSmash
 yarn install
 ```
 
-Running the app will open a new window to run the packager (if it's not already
-running)
+The app needs to be compiled to Javascript (from Typescript) to function. You can do this
+by running `yarn build`. You can instead run `yarn watch` to build and watch for changes to the
+typescript, and automatically compile to javascript when necessary.
 
-In a separate window, you can run `yarn watch` to watch for changes to the
-typescript, and automatically compile to javascript when necessary
+Running the app via one of the commands below will open a new window to run the packager
+(if it's not already running)
 
 #### iOS
 
