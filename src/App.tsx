@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
-import { LoginScreen, Navigator } from './components'
+import { CodeofConductScreen, Navigator } from './components'//LoginScreen
 
 interface StateProps {
   isLoggedIn: boolean
@@ -15,7 +15,7 @@ class App extends PureComponent<Props, {}> {
     if (this.props.isLoggedIn) {
       return <Navigator />
     } else {
-      return <LoginScreen />
+      return <CodeofConductScreen />
     }
   }
 
