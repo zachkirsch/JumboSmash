@@ -8,13 +8,14 @@ export interface ApiLoginFailureResponse {
   errorMessage: string
 }
 
-export default {
+const api = {
   login: (credentials: Credentials) => {
-    if (credentials.username.toLowerCase() === 'fakeuser' &&
-        credentials.password === 'password') {
+    if (credentials.email.toLowerCase() === 'fakeuser@tufts.edu') {
       return Promise.resolve({sessionKey: '143'})
     } else {
       return Promise.reject({errorMessage: 'Error logging in'})
     }
   }
 }
+
+export default api

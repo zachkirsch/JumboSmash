@@ -15,7 +15,7 @@ const store = createStore(
 sagaMiddleware.run(rootSaga)
 
 export default class JumboSmash extends Component {
-  render() {
+  public render() {
     return (
       <Provider store={store}>
         <App />

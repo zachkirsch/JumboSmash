@@ -5,7 +5,7 @@ import { login, Credentials } from '../services/auth'
 import { RootState } from '../redux'
 
 interface StateProps {
-  username: string
+  email: string
   errorMessage: string
 }
 
@@ -25,8 +25,7 @@ class LoginScreen extends PureComponent<Props, State> {
     super(props)
     this.state = {
       credentials: {
-        username: 'fakeuser', // this.props.username,
-        password: 'password'
+        email: this.props.email,
       }
     }
   }
@@ -37,14 +36,16 @@ class LoginScreen extends PureComponent<Props, State> {
 
   onChangeCredentials = (credentials: Partial<Credentials>) => {
     this.setState({
-      credentials: Object.assign({}, this.state.credentials, credentials)
+      credentials: {
+        ...this.state.credentials,
+        ...credentials
+      }
     })
   }
 
-  onChangeUsername = (username: string) => this.onChangeCredentials({username})
-  onChangPassword = (password: string) => this.onChangeCredentials({password})
+  onChangeEmail = (email: string) => this.onChangeCredentials({email})
 
-  render() {
+  public render() {
     return (
       <View style={[styles.container, styles.center]}>
 
@@ -54,20 +55,11 @@ class LoginScreen extends PureComponent<Props, State> {
 
         <TextInput
           style={styles.input}
-          placeholder='fakeuser'
-          onChangeText={this.onChangeUsername}
-          value={this.state.credentials.username}
+          placeholder='E-mail Address'
+          onChangeText={this.onChangeEmail}
+          value={this.state.credentials.email}
           autoCapitalize='none'
           autoCorrect={false}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder='password'
-          onChangeText={this.onChangPassword}
-          value={this.state.credentials.password}
-          autoCapitalize='none'
-          autoCorrect={false}
-          secureTextEntry={true}
         />
         <Button onPress={this.onLogin} title='Login'/>
       </View>
@@ -77,7 +69,7 @@ class LoginScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    username: state.auth.username,
+    email: state.auth.email,
     errorMessage: state.auth.errorMessage
   }
 }

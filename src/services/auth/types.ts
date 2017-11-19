@@ -1,11 +1,10 @@
 export interface Credentials {
-  username: string
-  password: string
+  email: string
 }
 
 export interface AuthState {
   isLoggedIn: boolean
-  username: string
+  email: string
   session: string
   errorMessage: string
 }

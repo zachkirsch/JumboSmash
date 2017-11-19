@@ -3,7 +3,7 @@ import { AuthState } from './types'
 
 const initialState: AuthState = {
   isLoggedIn: false,
-  username: '',
+  email: 'fakeuser@tufts.edu',
   session: '',
   errorMessage: ''
 }
@@ -14,7 +14,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
     case AuthActionType.ATTEMPT_LOGIN:
       return {
         ...initialState,
-        username: action.credentials.username,
+        email: action.credentials.email,
       }
 
     case AuthActionType.LOGIN_SUCCESS:
