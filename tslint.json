@@ -55,7 +55,7 @@
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "radix": true,
-    "switch-default": true,
+    "switch-default": false,
     "triple-equals": [
       true,
       "allow-undefined-check"

@@ -1,28 +1,27 @@
 import { call, put, takeLatest } from 'redux-saga/effects'
-import api, {
-  ApiLoginSuccessResponse,
-  ApiLoginFailureResponse
-} from '../api'
-import { AttemptLoginAction, AuthActionType } from './actions'
+import api, { ApiFailureResponse } from '../api'
+import {
+  AttemptLoginAction,
+  AttemptVerifyEmailAction,
+  AuthActionType
+} from './actions'
 import { Credentials } from './types'
 
 function* login(credentials: Credentials) {
-  const response: ApiLoginSuccessResponse = yield call(api.login, credentials)
+  yield call(api.login, credentials)
   yield put({
     type: AuthActionType.LOGIN_SUCCESS,
-    sessionKey: response.sessionKey
   })
 }
 
-function* handleLoginError(error: ApiLoginFailureResponse) {
-  const errorResponse: ApiLoginFailureResponse = error
+function* handleLoginError(error: ApiFailureResponse) {
   yield put({
     type: AuthActionType.LOGIN_FAILURE,
-    errorMessage: errorResponse.errorMessage
+    errorMessage: error.errorMessage
   })
 }
 
-function* fetchUser(payload: AttemptLoginAction) {
+function* attemptLogin(payload: AttemptLoginAction) {
   try {
     yield login(payload.credentials)
   } catch (error) {
@@ -30,6 +29,30 @@ function* fetchUser(payload: AttemptLoginAction) {
   }
 }
 
+function* verifyEmail(verificationCode: string) {
+  const response = yield call(api.verifyEmail, verificationCode)
+  yield put({
+    type: AuthActionType.VERIFY_EMAIL_SUCCESS,
+    sessionKey: response.sessionKey
+  })
+}
+
+function* handleEmailVerificationError(error: ApiFailureResponse) {
+  yield put({
+    type: AuthActionType.VERIFY_EMAIL_FAILURE,
+    errorMessage: error.errorMessage
+  })
+}
+
+function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
+  try {
+    yield verifyEmail(payload.verificationCode)
+  } catch (error) {
+    yield handleEmailVerificationError(error)
+  }
+}
+
 export function* authSaga() {
-  yield takeLatest(AuthActionType.ATTEMPT_LOGIN, fetchUser)
+  yield takeLatest(AuthActionType.ATTEMPT_LOGIN, attemptLogin)
+  yield takeLatest(AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
 }

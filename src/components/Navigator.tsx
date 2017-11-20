@@ -51,7 +51,7 @@ export default TabNavigator({
   },
 }, {
   tabBarPosition: 'top',
-  swipeEnabled: true, //allows for swipes between users. Can be disabled.
+  swipeEnabled: true, // allows for swipes between users. Can be disabled.
   tabBarOptions: {
     showLabel: false,
     showIcon: true,

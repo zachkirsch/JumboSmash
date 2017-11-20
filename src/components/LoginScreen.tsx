@@ -1,40 +1,74 @@
 import React, { PureComponent } from 'react'
-import { connect, Dispatch } from 'react-redux'
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
-import { login, Credentials } from '../services/auth'
-import { RootState } from '../redux'
+import { Credentials } from '../services/auth'
 
-interface StateProps {
-  email: string
-  errorMessage: string
+interface OwnProps {
+  onSubmitCredentials: (credentials: Credentials) => void
+  initialCredentials?: Credentials
+  authErrorMessage?: string
 }
 
-interface DispatchProps {
-  onLogin: (credentials: Credentials) => void
-}
-
-type Props = StateProps & DispatchProps
+type Props = OwnProps
 
 interface State {
-  credentials: Credentials
+  credentials: Credentials,
+  inputErrorMessage: string
 }
+
+enum EmailInputError {
+  NotEmailAddress,
+  NotTuftsEmail,
+  None
+}
+
+/* tslint:disable-next-line:max-line-length */
+const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 class LoginScreen extends PureComponent<Props, State> {
 
   constructor (props: Props) {
     super(props)
+
+    const initialCredentials: Credentials = this.props.initialCredentials || {
+      email: ''
+    }
+
     this.state = {
-      credentials: {
-        email: this.props.email,
-      }
+      credentials: initialCredentials,
+      inputErrorMessage: ''
     }
   }
 
-  onLogin = () => {
-    this.props.onLogin(this.state.credentials)
+  public render() {
+
+    const errorMsg = this.state.inputErrorMessage || this.props.authErrorMessage
+
+    return (
+      <View style={[styles.container, styles.center]}>
+        <View style={styles.errorMessageContainer}>
+          <Text style={styles.errorMessage}>
+            {errorMsg}
+          </Text>
+        </View>
+        <TextInput
+          style={styles.input}
+          placeholder='E-mail Address'
+          onChangeText={this.onChangeEmail}
+          value={this.state.credentials.email}
+          autoCapitalize='none'
+          autoCorrect={false}
+          keyboardType={'email-address'}
+          enablesReturnKeyAutomatically={true}
+          onSubmitEditing={this.onSubmitCredentials}
+          returnKeyType={'next'}
+          autoFocus={true}
+        />
+        <Button onPress={this.onSubmitCredentials} title='Get Code'/>
+      </View>
+    )
   }
 
-  onChangeCredentials = (credentials: Partial<Credentials>) => {
+  private onChangeCredentials = (credentials: Partial<Credentials>) => {
     this.setState({
       credentials: {
         ...this.state.credentials,
@@ -43,44 +77,43 @@ class LoginScreen extends PureComponent<Props, State> {
     })
   }
 
-  onChangeEmail = (email: string) => this.onChangeCredentials({email})
+  private onChangeEmail = (email: string) => this.onChangeCredentials({email})
 
-  public render() {
-    return (
-      <View style={[styles.container, styles.center]}>
+  private getEmailInputError = (email: string): EmailInputError => {
+    email = this.state.credentials.email.trim().toLowerCase()
+    if (!EMAIL_REGEX.test(email)) {
+      return EmailInputError.NotEmailAddress
+    }
+    if (!email.endsWith('@tufts.edu')) {
+      return EmailInputError.NotTuftsEmail
+    }
+    return EmailInputError.None
+  }
 
-        <View style={styles.errorMessageContainer}>
-          <Text style={styles.errorMessage}>{this.props.errorMessage}</Text>
-        </View>
+  private getErrorMessage = (): string => {
+    switch (this.getEmailInputError(this.state.credentials.email)) {
+      case EmailInputError.NotTuftsEmail:
+        return 'You must use a Tufts e-mail address'
+      case EmailInputError.NotEmailAddress:
+        return 'You must enter an e-mail address'
+      case EmailInputError.None:
+        return ''
+    }
+  }
 
-        <TextInput
-          style={styles.input}
-          placeholder='E-mail Address'
-          onChangeText={this.onChangeEmail}
-          value={this.state.credentials.email}
-          autoCapitalize='none'
-          autoCorrect={false}
-        />
-        <Button onPress={this.onLogin} title='Login'/>
-      </View>
-    )
+  private onSubmitCredentials = () => {
+    const errorMessage: string = this.getErrorMessage()
+    this.setState({
+      inputErrorMessage: errorMessage
+    }, () => {
+      if (!errorMessage) {
+        this.props.onSubmitCredentials(this.state.credentials)
+      }
+    })
   }
 }
 
-const mapStateToProps = (state: RootState): StateProps => {
-  return {
-    email: state.auth.email,
-    errorMessage: state.auth.errorMessage
-  }
-}
-
-const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
-  return {
-    onLogin: (credentials: Credentials) => dispatch(login(credentials)),
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
+export default LoginScreen
 
 const styles = StyleSheet.create({
   container: {
