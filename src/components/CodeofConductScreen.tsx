@@ -16,7 +16,7 @@ class CodeofConductScreen extends PureComponent<{},{}> {
               <Text style={styles.Emojitext}>{"\n"}🚫🍆</Text>
               <Text style={styles.conducttext}>No nude pictures, sent, uploaded or otherwise. </Text>
               <Text style={styles.Emojitext}>{"\n"}🚫👯</Text>
-              <Text style={styles.conducttext}>No identity theft: we can to boot you from the app if you sell/give your account to someone else, or pretend to be another Tufts student.</Text>
+              <Text style={styles.conducttext}>No identity theft: we can boot you from the app if you sell/give your account to someone else, or pretend to be another Tufts student.</Text>
               <Text style={styles.Emojitext}>{"\n"}🚫🖕</Text>
               <Text style={styles.conducttext}>This app is for smashing, not harassing - hate speech/harassment of any kind will not be tolerated.</Text>
               <Text style={styles.Emojitext}>{"\n"}✅🙋🏽</Text>
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     margin: 10,
     padding: 10
   },
-  buttoncontainer{
+  buttoncontainer: {
     // height:80,
     margin: 2,
     padding: 5,
