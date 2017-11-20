@@ -1,104 +1,190 @@
 import React, { PureComponent } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native'
 
-class CodeofConductScreen extends PureComponent<{},{}> {
+interface CoCRule {
+  emojiTitle: string
+  description: string
+}
 
-  onPressLearnMore = () => { //
-  }
+const COC_RULES: CoCRule[] = [
+  {
+    emojiTitle: '🚫🍆',
+    description: 'No nude pictures, sent, uploaded or otherwise.',
+  },
+  {
+    emojiTitle: '🚫👯',
+    description: 'No identity theft: we can boot you from the app if you' +
+    'sell/give your account to someone else, or pretend to be another Tufts' +
+    'student.',
+  },
+  {
+    emojiTitle: '🚫🖕',
+    description: 'This app is for smashing, not harassing - hate' +
+    'speech/harassment of any kind will not be tolerated.',
+  },
+  {
+    emojiTitle: '✅🙋🏽',
+    description: 'To report an individual, _________. Individuals who get' +
+    'reported may be booted from the app permanently.',
+  },
+  {
+    emojiTitle: '📱❓',
+    description: 'Technical concerns or questions? Please reach us at ______.',
+  },
+]
+
+class CodeofConductScreen extends PureComponent<{}, {}> {
 
   public render() {
     return (
-        <ScrollView>
-          <View style={[styles.container, styles.center]}>
-            <View style={styles.CodeofConductContainer}>
-            <Text style={styles.bold}>{"\n"}{"\n"}Code of Conduct</Text>
-              <Text style={styles.undertext}>{"\n"}Hello! In order to be a JumboSmash user, we ask that you agree to follow a few simple rules: {"\n"}</Text>
-              <Text style={styles.Emojitext}>{"\n"}🚫🍆</Text>
-              <Text style={styles.conducttext}>No nude pictures, sent, uploaded or otherwise. </Text>
-              <Text style={styles.Emojitext}>{"\n"}🚫👯</Text>
-              <Text style={styles.conducttext}>No identity theft: we can boot you from the app if you sell/give your account to someone else, or pretend to be another Tufts student.</Text>
-              <Text style={styles.Emojitext}>{"\n"}🚫🖕</Text>
-              <Text style={styles.conducttext}>This app is for smashing, not harassing - hate speech/harassment of any kind will not be tolerated.</Text>
-              <Text style={styles.Emojitext}>{"\n"}✅🙋🏽</Text>
-              <Text style={styles.conducttext}>To report an individual, _________. Individuals who get reported may be booted from the app permanently.
-  </Text>
-              <Text style={styles.Emojitext}>{"\n"}📱❓</Text>
-              <Text style={styles.conducttext}>Technical concerns or questions? Please reach us at ______.</Text>
-              <Text style={styles.conducttext}>{"\n"}{"\n"}Happy smashing 💕</Text>
-              <Text style={styles.conducttext}>The Jumbosmash Team 🐘 {"\n"}</Text>
-            </View>
-
-
-          <TouchableOpacity
-            style={styles.buttoncontainer}
-            onPress={this.onPressLearnMore}
-          >
-            <Text style={styles.buttontext}>I agree with the Code of Conduct, let’s smash</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.buttoncontainer}
-            onPress={this.onPressLearnMore} //TODO: change this into a real function
-          >
-            <Text style={styles.buttontext}>I don’t treat people with respect, no thanks</Text>
-          </TouchableOpacity>
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.rulesContainer}>
+            {this.renderTitle()}
+            {this.renderDescription()}
+            {this.renderRules()}
+            {this.renderSignoff()}
+          </View>
+          <View style={styles.buttonsContainer}>
+            {this.renderButtons()}
+          </View>
         </View>
       </ScrollView>
     )
   }
+
+  // TODO: open app
+  private onPressAccept = () => { } /* tslint:disable-line:no-empty */
+
+  // TODO: behavior?
+  private onPressDecline = () => { } /* tslint:disable-line:no-empty */
+
+  private renderTitle = () => {
+    return <Text style={styles.title}>Code of Conduct</Text>
+  }
+
+  private renderDescription = () => {
+    return (
+      <Text style={styles.description}>
+        Hello! In order to be a JumboSmash user, we ask that you agree to follow
+        a few simple rules:
+      </Text>
+    )
+  }
+
+  private renderRules = () => {
+    return COC_RULES.map((rule, index) => (
+      <View style={styles.rule} key={index}>
+        <Text style={styles.emoji}>{rule.emojiTitle}</Text>
+        <Text style={styles.text}>{rule.description}</Text>
+      </View>
+    ))
+  }
+
+  private renderSignoff = () => {
+    return (
+      <View style={styles.signoff}>
+        <Text style={styles.text}>Happy smashing 💕</Text>
+        <Text style={styles.text}>The Jumbosmash Team 🐘</Text>
+      </View>
+    )
+  }
+
+  private renderButton = (key: string, text: string, onPress: () => void) => {
+    return (
+      <TouchableOpacity
+        key={key}
+        style={styles.buttonContainer}
+        onPress={onPress}
+      >
+        <Text style={styles.buttonText}>{text}</Text>
+      </TouchableOpacity>
+    )
+  }
+
+  private renderButtons = () => {
+
+    const acceptButton = this.renderButton(
+      'accept',
+      'I agree with the Code of Conduct, let’s smash',
+      this.onPressAccept
+    )
+
+    const declineButton = this.renderButton(
+      'decline',
+      'I don’t treat people with respect, no thanks',
+      this.onPressDecline
+    )
+
+    return [acceptButton, declineButton]
+  }
 }
 
 const styles = StyleSheet.create({
-  buttontext: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    color: "#330f53",
-    fontSize: 15,
-    fontWeight: 'bold'
-  },
   container: {
     flex: 1,
-    flexDirection: 'column'
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
-  center: {
-    justifyContent: 'center'
-  },
-  bold: {
+
+  /* heading */
+
+  title: {
     fontWeight: 'bold',
-    fontSize: 30
+    fontSize: 30,
+    marginTop: 20,
   },
-  conducttext:{
-    fontSize: 19,
-    color: "#3f3f3f"
-  },
-  Emojitext:{
-    fontSize: 25
-  },
-  undertext:{
+  description: {
     fontSize: 17,
-    color: '#7e7e7e'
+    color: '#7e7e7e',
+    marginTop: 15,
   },
-  middle: {
-    height: 30,
-    borderColor: 'gray',
-    borderWidth: 1,
-    margin: 5,
-    padding: 5
+
+  /* rules */
+
+  rulesContainer: {
+    padding: 20,
   },
-  CodeofConductContainer: {
-    alignItems: 'flex-start',
-    margin: 10,
-    padding: 10
+  rule: {
+    marginTop: 20,
   },
-  buttoncontainer: {
-    // height:80,
+  text: {
+    fontSize: 19,
+    color: '#3f3f3f',
+  },
+  emoji: {
+    fontSize: 25,
+  },
+
+  /* bottom */
+
+  signoff: {
+    marginTop: 20,
+  },
+
+  /* buttons */
+
+  buttonsContainer: {
+    marginBottom: 30,
+  },
+  buttonContainer: {
     margin: 2,
     padding: 5,
-    alignItems: 'center'
+    alignItems: 'center',
   },
-  errorMessage: {
-    color: 'red',
+  buttonText: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: '#330f53',
+    fontSize: 15,
     fontWeight: 'bold',
-  }
+  },
 })
 
 export default CodeofConductScreen

@@ -17,7 +17,7 @@ function* login(credentials: Credentials) {
 function* handleLoginError(error: ApiFailureResponse) {
   yield put({
     type: AuthActionType.LOGIN_FAILURE,
-    errorMessage: error.errorMessage
+    errorMessage: error.errorMessage,
   })
 }
 
@@ -33,14 +33,14 @@ function* verifyEmail(verificationCode: string) {
   const response = yield call(api.verifyEmail, verificationCode)
   yield put({
     type: AuthActionType.VERIFY_EMAIL_SUCCESS,
-    sessionKey: response.sessionKey
+    sessionKey: response.sessionKey,
   })
 }
 
 function* handleEmailVerificationError(error: ApiFailureResponse) {
   yield put({
     type: AuthActionType.VERIFY_EMAIL_FAILURE,
-    errorMessage: error.errorMessage
+    errorMessage: error.errorMessage,
   })
 }
 

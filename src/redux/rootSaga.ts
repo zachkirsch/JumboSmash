@@ -3,6 +3,6 @@ import { authSaga } from '../services/auth'
 
 export function* rootSaga () {
     yield all([
-        fork(authSaga)
+        fork(authSaga),
     ])
 }

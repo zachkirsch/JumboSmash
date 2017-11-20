@@ -13,7 +13,7 @@ class MatchesList extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      userToChat: 'Tony'
+      userToChat: 'Tony',
     }
   }
 
@@ -49,7 +49,7 @@ export default MatchesList
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
   },
   center: {
     flexDirection: 'column',
@@ -64,6 +64,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     padding: 5,
-    marginTop: 15
-  }
+    marginTop: 15,
+  },
 })

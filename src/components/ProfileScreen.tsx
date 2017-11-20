@@ -44,11 +44,11 @@ export default connect(undefined, mapDispatchToProps)(ProfileScreen)
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
   },
   center: {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
 })

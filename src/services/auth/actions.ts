@@ -10,7 +10,7 @@ export enum AuthActionType {
   VERIFY_EMAIL_SUCCESS = 'VERIFY_EMAIL_SUCCESS',
   VERIFY_EMAIL_FAILURE = 'VERIFY_EMAIL_FAILURE',
   LOGOUT = 'LOGOUT',
-  OTHER_ACTION = '__any_other_action_type__'
+  OTHER_ACTION = '__any_other_action_type__',
 }
 
 export interface AttemptLoginAction {
@@ -73,19 +73,19 @@ export type AuthAction =
 export const login = (credentials: Credentials): AttemptLoginAction => {
   return {
     type: AuthActionType.ATTEMPT_LOGIN,
-    credentials
+    credentials,
   }
 }
 
 export const verifyEmail = (code: string): AttemptVerifyEmailAction => {
   return {
     type: AuthActionType.ATTEMPT_VERIFY_EMAIL,
-    verificationCode: code
+    verificationCode: code,
   }
 }
 
 export const logout = (): LogoutAction => {
   return {
-    type: AuthActionType.LOGOUT
+    type: AuthActionType.LOGOUT,
   }
 }

@@ -20,7 +20,7 @@ class VerificationCodeScreen extends PureComponent<Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      verificationCode: ''
+      verificationCode: '',
     }
   }
 
@@ -72,23 +72,23 @@ export default VerificationCodeScreen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   center: {
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
     margin: 5,
-    padding: 5
+    padding: 5,
   },
   centerText: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   errorMessage: {
     color: 'red',
     fontWeight: 'bold',
-  }
+  },
 })

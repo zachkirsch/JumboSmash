@@ -18,7 +18,7 @@ const api = {
     } else {
       return Promise.reject({errorMessage: 'Bad code'})
     }
-  }
+  },
 }
 
 export default api

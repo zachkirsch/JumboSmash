@@ -50,14 +50,14 @@ const mapStateToProps = (state: RootState): StateProps => {
     email: state.auth.email,
     authErrorMessage: state.auth.errorMessage,
     validEmail: state.auth.validEmail,
-    validVerificationCode: state.auth.validVerificationCode
+    validVerificationCode: state.auth.validVerificationCode,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   return {
     login: (credentials: Credentials) => dispatch(login(credentials)),
-    verifyEmail: (code: string) => dispatch(verifyEmail(code))
+    verifyEmail: (code: string) => dispatch(verifyEmail(code)),
   }
 }
 

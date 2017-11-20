@@ -13,11 +13,11 @@ import ChatScreen from './ChatScreen'
 
 const styles = StyleSheet.create({
   iOSTabBar: {
-    paddingTop: 15 // extra padding iOS because of status bar
+    paddingTop: 15, // extra padding iOS because of status bar
   },
   stackCard: {
-    backgroundColor: 'white'
-  }
+    backgroundColor: 'white',
+  },
 })
 
 const matchesScreen = StackNavigator({
@@ -25,7 +25,7 @@ const matchesScreen = StackNavigator({
   Chat: { screen: ChatScreen },
 }, {
   headerMode: 'none',
-  cardStyle: styles.stackCard
+  cardStyle: styles.stackCard,
 })
 
 const matchesScreenNavigationOptions: NavigationTabScreenOptions = {
@@ -40,14 +40,14 @@ const matchesScreenNavigationOptions: NavigationTabScreenOptions = {
 
 export default TabNavigator({
   Profile: {
-    screen: ProfileScreen
+    screen: ProfileScreen,
   },
   Swipe: {
-    screen: SwipeScreen
+    screen: SwipeScreen,
   },
   Matches: {
     screen: matchesScreen,
-    navigationOptions: matchesScreenNavigationOptions
+    navigationOptions: matchesScreenNavigationOptions,
   },
 }, {
   tabBarPosition: 'top',
@@ -56,5 +56,5 @@ export default TabNavigator({
     showLabel: false,
     showIcon: true,
     style: Platform.OS === 'ios' ? styles.iOSTabBar : undefined,
-  }
+  },
 })

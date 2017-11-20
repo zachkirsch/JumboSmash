@@ -8,7 +8,7 @@ const initialState: AuthState = {
   errorMessage: '',
   validEmail: false,
   validVerificationCode: false,
-  codeOfConductAccepted: false
+  codeOfConductAccepted: false,
 }
 
 export function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -24,7 +24,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         validEmail: true,
-        errorMessage: ''
+        errorMessage: '',
       }
 
     case AuthActionType.LOGIN_FAILURE:
@@ -43,14 +43,14 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
         validVerificationCode: true,
         codeOfConductAccepted: action.codeOfConductAccepted,
         isLoggedIn: true,
-        errorMessage: ''
+        errorMessage: '',
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
       return {
         ...state,
         validVerificationCode: false,
-        errorMessage: action.errorMessage
+        errorMessage: action.errorMessage,
       }
 
     case AuthActionType.LOGOUT:
@@ -59,7 +59,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
         isLoggedIn: false,
         session: '',
         validEmail: false,
-        validVerificationCode: false
+        validVerificationCode: false,
       }
 
     default:

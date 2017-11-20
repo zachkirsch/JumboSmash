@@ -18,7 +18,7 @@ interface State {
 enum EmailInputError {
   NotEmailAddress,
   NotTuftsEmail,
-  None
+  None,
 }
 
 /* tslint:disable-next-line:max-line-length */
@@ -30,12 +30,12 @@ class LoginScreen extends PureComponent<Props, State> {
     super(props)
 
     const initialCredentials: Credentials = this.props.initialCredentials || {
-      email: ''
+      email: '',
     }
 
     this.state = {
       credentials: initialCredentials,
-      inputErrorMessage: ''
+      inputErrorMessage: '',
     }
   }
 
@@ -72,8 +72,8 @@ class LoginScreen extends PureComponent<Props, State> {
     this.setState({
       credentials: {
         ...this.state.credentials,
-        ...credentials
-      }
+        ...credentials,
+      },
     })
   }
 
@@ -104,7 +104,7 @@ class LoginScreen extends PureComponent<Props, State> {
   private onSubmitCredentials = () => {
     const errorMessage: string = this.getErrorMessage()
     this.setState({
-      inputErrorMessage: errorMessage
+      inputErrorMessage: errorMessage,
     }, () => {
       if (!errorMessage) {
         this.props.onSubmitCredentials(this.state.credentials)
@@ -118,23 +118,23 @@ export default LoginScreen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   center: {
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
     margin: 5,
-    padding: 5
+    padding: 5,
   },
   errorMessageContainer: {
-    alignItems: 'center'
+    alignItems: 'center',
   },
   errorMessage: {
     color: 'red',
     fontWeight: 'bold',
-  }
+  },
 })
