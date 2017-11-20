@@ -1,5 +1,7 @@
 ## JumboSmash
 
+[![Build Status](https://travis-ci.com/zachkirsch/JumboSmash.svg?token=xAap1Kz9FJ82yigUmRZS&branch=develop)](https://travis-ci.com/zachkirsch/JumboSmash)
+
 This is the repository for the 2017-2018 JumboSmash React Native App. If you
 haven't dealt with React Native before, you should walk through the
 [tutorial](https://facebook.github.io/react-native/releases/next/docs/tutorial.html)
