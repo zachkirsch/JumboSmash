@@ -12,10 +12,10 @@ type Props = StateProps
 class App extends PureComponent<Props, {}> {
 
   public render() {
-    if (this.props.isLoggedIn) {
-      return <Navigator />
-    } else {
+    if (!this.props.isLoggedIn) {
       return <WelcomeScreen />
+    } else {
+      return <Navigator />
     }
   }
 
