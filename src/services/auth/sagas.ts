@@ -5,6 +5,8 @@ import {
   AttemptVerifyEmailAction,
   AuthActionType
 } from './actions'
+
+import { CoCActionType } from '../coc'
 import { Credentials } from './types'
 
 function* login(credentials: Credentials) {
@@ -31,6 +33,11 @@ function* attemptLogin(payload: AttemptLoginAction) {
 
 function* verifyEmail(verificationCode: string) {
   const response = yield call(api.verifyEmail, verificationCode)
+  if (response.acceptedCoC === true) {
+    yield put({
+      type: CoCActionType.ACCEPT_COC,
+    })
+  }
   yield put({
     type: AuthActionType.VERIFY_EMAIL_SUCCESS,
     sessionKey: response.sessionKey,

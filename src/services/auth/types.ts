@@ -9,5 +9,4 @@ export interface AuthState {
   validEmail: boolean
   validVerificationCode: boolean
   errorMessage: string
-  codeOfConductAccepted: boolean
 }

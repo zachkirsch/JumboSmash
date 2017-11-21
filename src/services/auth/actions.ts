@@ -34,8 +34,7 @@ export interface AttemptVerifyEmailAction {
 
 export interface VerifyEmailSuccessAction {
   type: AuthActionType.VERIFY_EMAIL_SUCCESS
-  sessionKey: string,
-  codeOfConductAccepted: boolean
+  sessionKey: string
 }
 
 export interface VerifyEmailFailureAction {

@@ -8,7 +8,6 @@ const initialState: AuthState = {
   errorMessage: '',
   validEmail: false,
   validVerificationCode: false,
-  codeOfConductAccepted: false,
 }
 
 export function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -41,7 +40,6 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         session: action.sessionKey,
         validVerificationCode: true,
-        codeOfConductAccepted: action.codeOfConductAccepted,
         isLoggedIn: true,
         errorMessage: '',
       }
@@ -63,6 +61,6 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
       }
 
     default:
-      return initialState
+      return state || initialState
   }
 }

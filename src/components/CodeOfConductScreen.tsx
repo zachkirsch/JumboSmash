@@ -1,4 +1,7 @@
 import React, { PureComponent } from 'react'
+import { connect, Dispatch } from 'react-redux'
+import { acceptCoC } from '../services/coc'
+import { RootState } from '../redux'
 import {
   View,
   Text,
@@ -39,7 +42,13 @@ const COC_RULES: CoCRule[] = [
   },
 ]
 
-class CodeOfConductScreen extends PureComponent<{}, {}> {
+interface DispatchProps {
+  acceptCoC: () => void
+}
+
+type Props = DispatchProps
+
+class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
@@ -58,12 +67,6 @@ class CodeOfConductScreen extends PureComponent<{}, {}> {
       </ScrollView>
     )
   }
-
-  // TODO: open app
-  private onPressAccept = () => { } /* tslint:disable-line:no-empty */
-
-  // TODO: behavior?
-  private onPressDecline = () => { } /* tslint:disable-line:no-empty */
 
   private renderTitle = () => {
     return <Text style={styles.title}>Code of Conduct</Text>
@@ -113,16 +116,10 @@ class CodeOfConductScreen extends PureComponent<{}, {}> {
     const acceptButton = this.renderButton(
       'accept',
       'I agree with the Code of Conduct, let’s smash',
-      this.onPressAccept
+      this.props.acceptCoC
     )
 
-    const declineButton = this.renderButton(
-      'decline',
-      'I don’t treat people with respect, no thanks',
-      this.onPressDecline
-    )
-
-    return [acceptButton, declineButton]
+    return [acceptButton]
   }
 }
 
@@ -187,4 +184,10 @@ const styles = StyleSheet.create({
   },
 })
 
-export default CodeOfConductScreen
+const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+  return {
+    acceptCoC: () => dispatch(acceptCoC()),
+  }
+}
+
+export default connect(undefined, mapDispatchToProps)(CodeOfConductScreen)

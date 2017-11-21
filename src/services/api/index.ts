@@ -14,10 +14,14 @@ const api = {
   },
   verifyEmail: (verificationCode: string) => {
     if (verificationCode === '123456') {
-      return Promise.resolve({sessionKey: '143'})
+      return Promise.resolve({sessionKey: '143', acceptedCoC: false})
     } else {
       return Promise.reject({errorMessage: 'Bad code'})
     }
+  },
+  acceptCoC: () => {
+    // TODO: check actual email
+    return Promise.resolve() // update user's code of conduct bool here
   },
 }
 
