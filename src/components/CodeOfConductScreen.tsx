@@ -19,18 +19,18 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🚫👯',
-    description: 'No identity theft: we can boot you from the app if you' +
-    'sell/give your account to someone else, or pretend to be another Tufts' +
+    description: 'No identity theft: we can boot you from the app if you ' +
+    'sell/give your account to someone else, or pretend to be another Tufts ' +
     'student.',
   },
   {
     emojiTitle: '🚫🖕',
-    description: 'This app is for smashing, not harassing - hate' +
+    description: 'This app is for smashing, not harassing - hate ' +
     'speech/harassment of any kind will not be tolerated.',
   },
   {
     emojiTitle: '✅🙋🏽',
-    description: 'To report an individual, _________. Individuals who get' +
+    description: 'To report an individual, _________. Individuals who get ' +
     'reported may be booted from the app permanently.',
   },
   {
@@ -39,7 +39,7 @@ const COC_RULES: CoCRule[] = [
   },
 ]
 
-class CodeofConductScreen extends PureComponent<{}, {}> {
+class CodeOfConductScreen extends PureComponent<{}, {}> {
 
   public render() {
     return (
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default CodeofConductScreen
+export default CodeOfConductScreen
