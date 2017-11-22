@@ -1,59 +1,66 @@
 import { call, put, takeLatest } from 'redux-saga/effects'
-import api, { ApiFailureResponse } from '../api'
+import api, { ApiFailureResponse, ApiVerifyEmailSuccessResponse } from '../api'
 import {
   AttemptLoginAction,
   AttemptVerifyEmailAction,
-  AuthActionType
+  AuthActionType,
+  LoginSuccessAction,
+  LoginFailureAction,
+  VerifyEmailSuccessAction,
+  VerifyEmailFailureAction,
 } from './actions'
+import { acceptCoC } from '../coc'
 
-import { CoCActionType } from '../coc'
-import { Credentials } from './types'
-
-function* login(credentials: Credentials) {
-  yield call(api.login, credentials)
-  yield put({
+function* login() {
+  const loginSuccessAction: LoginSuccessAction = {
     type: AuthActionType.LOGIN_SUCCESS,
-  })
+  }
+  yield put(loginSuccessAction)
 }
 
 function* handleLoginError(error: ApiFailureResponse) {
-  yield put({
+  const loginFailureAction: LoginFailureAction = {
     type: AuthActionType.LOGIN_FAILURE,
     errorMessage: error.errorMessage,
-  })
+  }
+  yield put(loginFailureAction)
 }
 
 function* attemptLogin(payload: AttemptLoginAction) {
   try {
-    yield login(payload.credentials)
+    yield call(api.login, payload.credentials)
+    // if here, then network call was successful
+    yield login()
   } catch (error) {
     yield handleLoginError(error)
   }
 }
 
-function* verifyEmail(verificationCode: string) {
-  const response = yield call(api.verifyEmail, verificationCode)
-  if (response.acceptedCoC === true) {
-    yield put({
-      type: CoCActionType.ACCEPT_COC,
-    })
-  }
-  yield put({
+function* verifyEmail(response: ApiVerifyEmailSuccessResponse) {
+  const verifyEmailSuccessAction: VerifyEmailSuccessAction = {
     type: AuthActionType.VERIFY_EMAIL_SUCCESS,
     sessionKey: response.sessionKey,
-  })
+  }
+  yield put(verifyEmailSuccessAction)
 }
 
 function* handleEmailVerificationError(error: ApiFailureResponse) {
-  yield put({
+  const verifyEmailFailureAction: VerifyEmailFailureAction = {
     type: AuthActionType.VERIFY_EMAIL_FAILURE,
     errorMessage: error.errorMessage,
-  })
+  }
+  yield put(verifyEmailFailureAction)
 }
 
 function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
   try {
-    yield verifyEmail(payload.verificationCode)
+    const code = payload.verificationCode
+    const response = yield call(api.verifyEmail, code)
+    // if here, then network call was successful
+    yield verifyEmail(response)
+    if (response.acceptedCoC === true) {
+      yield put(acceptCoC())
+    }
   } catch (error) {
     yield handleEmailVerificationError(error)
   }
