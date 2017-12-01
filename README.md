@@ -1,9 +1,16 @@
 ## JumboSmash
 
+[![Build Status](https://travis-ci.com/zachkirsch/JumboSmash.svg?token=xAap1Kz9FJ82yigUmRZS&branch=develop)](https://travis-ci.com/zachkirsch/JumboSmash)
+
 This is the repository for the 2017-2018 JumboSmash React Native App. If you
 haven't dealt with React Native before, you should walk through the
 [tutorial](https://facebook.github.io/react-native/releases/next/docs/tutorial.html)
 (React knowledge is not a prerequisite).
+
+Other important things to check out:
+  - [Typescript](https://www.Typescriptlang.org/docs/home.html) and [ES6](https://babeljs.io/learn-es2015/)
+  - [Redux](https://redux.js.org)
+  - [Redux-Saga](https://redux-saga.js.org)
 
 ### Initial Setup (for Mac)
 
@@ -39,7 +46,7 @@ npm install -g yarn
    source $HOME/.bash_profile
    ```
 
-### Run the App
+### Setup
 
 First, clone this repository.
 
@@ -49,20 +56,46 @@ cd JumboSmash
 yarn install
 ```
 
-Running the app will:
-  1. Open a new window to run the packager (if it's not already running)
-  2. Keep the current window watching for changes to the typescript, and it will
-     automatically compile to javascript when necessary
+### Run the App
 
-#### iOS
+#### Step 1: Ensure the server is running
 
-For iOS, the simulator does not have to already be running.
+See the [server repo](https://github.com/tekknolagi/jumbosmash-api) for instructions.
+
+#### Step 2: Compile Typescript to JavaScript
+
+The app needs to be compiled to JavaScript (from Typescript) to function:
+
+```
+yarn build
+```
+
+Instead, you can build _and watch for changes_ to the
+Typescript, and automatically compile to JavaScript when necessary:
+
+```
+yarn watch
+```
+
+#### Step 3: Run the React Native packager
+
+This step should happen automatically when you run step 4, but it doesn't hurt to start up the packager manually:
+
+```
+yarn start
+```
+
+#### Step 4: Run the app on the simulator
+
+##### iOS
+
+For iOS, the simulator does not have to already be running. If it's not, running this command will first launch the simulator.
 
 ```
 yarn run ios
 ```
 
-#### Android
+##### Android
 
 For Android, the simulator must already be running.
 
@@ -70,7 +103,7 @@ For Android, the simulator must already be running.
 yarn run android
 ```
 
-### Run Tests
+### Lint and Test
 
 ```
 yarn test

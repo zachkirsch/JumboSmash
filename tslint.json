@@ -7,7 +7,7 @@
       "static-before-instance",
       "variables-before-functions"
     ],
-    "no-any": false,
+    "no-any": true,
     "no-inferrable-types": [false],
     "no-internal-module": true,
     "no-var-requires": true,
@@ -52,10 +52,10 @@
     "no-string-literal": true,
     "no-switch-case-fall-through": true,
     "no-unused-expression": true,
-    "no-use-before-declare": true,
+    "no-use-before-declare": false,
     "no-var-keyword": true,
     "radix": true,
-    "switch-default": true,
+    "switch-default": false,
     "triple-equals": [
       true,
       "allow-undefined-check"
@@ -72,7 +72,18 @@
     "no-require-imports": false,
     "no-trailing-whitespace": true,
     "object-literal-sort-keys": false,
-    "trailing-comma": false,
+    "trailing-comma": [
+      true,
+      {
+        "multiline": {
+          "objects": "always",
+          "arrays": "always",
+          "functions": "never",
+          "typeLiterals": "ignore"
+        },
+        "esSpecCompliant": true
+      }
+    ],
     "align": [true],
     "class-name": true,
     "comment-format": [
@@ -103,7 +114,6 @@
     "variable-name": [
       true,
       "check-format",
-      "allow-leading-underscore",
       "ban-keywords"
     ],
     "whitespace": [
