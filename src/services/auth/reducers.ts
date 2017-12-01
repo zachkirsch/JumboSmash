@@ -34,9 +34,6 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
         errorMessage: action.errorMessage,
       }
 
-    case AuthActionType.ATTEMPT_VERIFY_EMAIL:
-      return state
-
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
       return {
         ...state,
@@ -63,6 +60,6 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
       }
 
     default:
-      return state || initialState
+      return {...state} || initialState
   }
 }

@@ -22,6 +22,6 @@ export function cocReducer(state: CoCState, action: CoCAction): CoCState {
       }
 
     default:
-      return state || initialState
+      return {...state} || initialState
   }
 }
