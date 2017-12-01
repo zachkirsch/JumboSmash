@@ -5,7 +5,7 @@ export interface Credentials {
 export interface AuthState {
   isLoggedIn: boolean
   email: string
-  session: string
+  sessionKey: string
   validEmail: boolean
   validVerificationCode: boolean
   errorMessage: string

@@ -42,11 +42,15 @@ const COC_RULES: CoCRule[] = [
   },
 ]
 
+interface StateProps {
+  errorMessage?: string
+}
+
 interface DispatchProps {
   acceptCoC: () => void
 }
 
-type Props = DispatchProps
+type Props = StateProps & DispatchProps
 
 class CodeOfConductScreen extends PureComponent<Props, {}> {
 
@@ -59,6 +63,11 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
             {this.renderDescription()}
             {this.renderRules()}
             {this.renderSignoff()}
+          </View>
+          <View style={styles.errorMessageContainer}>
+            <Text style={styles.errorMessage}>
+              {this.props.errorMessage}
+            </Text>
           </View>
           <View style={styles.buttonsContainer}>
             {this.renderButtons()}
@@ -182,7 +191,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
   },
+
+  /* error message */
+
+  errorMessageContainer: {
+    alignItems: 'center',
+  },
+  errorMessage: {
+    color: 'red',
+    fontWeight: 'bold',
+  },
 })
+
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    errorMessage: state.coc.errorMessage,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   return {
@@ -190,4 +215,4 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   }
 }
 
-export default connect(undefined, mapDispatchToProps)(CodeOfConductScreen)
+export default connect(mapStateToProps, mapDispatchToProps)(CodeOfConductScreen)

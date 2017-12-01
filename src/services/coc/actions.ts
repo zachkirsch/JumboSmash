@@ -1,12 +1,23 @@
 /* Actions */
 
 export enum CoCActionType {
-  ACCEPT_COC = 'ACCEPT_COC',
+  ATTEMPT_ACCEPT_COC = 'ATTEMPT_ACCEPT_COC',
+  ACCEPT_COC_SUCCESS = 'ACCEPT_COC_SUCCESS',
+  ACCEPT_COC_FAILURE = 'ACCEPT_COC_FAILURE',
   OTHER_ACTION = '__any_other_action_type__',
 }
 
-export interface AcceptCoCAction {
-  type: CoCActionType.ACCEPT_COC
+export interface AttemptAcceptCoCAction {
+  type: CoCActionType.ATTEMPT_ACCEPT_COC
+}
+
+export interface AcceptCoCSuccessAction {
+  type: CoCActionType.ACCEPT_COC_SUCCESS
+}
+
+export interface AcceptCoCFailureAction {
+  type: CoCActionType.ACCEPT_COC_FAILURE
+  errorMessage: string
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
@@ -21,13 +32,15 @@ export interface OtherAction {
 }
 
 export type CoCAction =
-  AcceptCoCAction
+  AttemptAcceptCoCAction
+| AcceptCoCSuccessAction
+| AcceptCoCFailureAction
 | OtherAction
 
 /* Action Creators */
 
-export const acceptCoC = (): AcceptCoCAction => {
+export const acceptCoC = (): AttemptAcceptCoCAction => {
   return {
-    type: CoCActionType.ACCEPT_COC,
+    type: CoCActionType.ATTEMPT_ACCEPT_COC,
   }
 }

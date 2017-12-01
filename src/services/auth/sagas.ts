@@ -1,53 +1,53 @@
 import { call, put, takeLatest } from 'redux-saga/effects'
-import api, { ApiFailureResponse, ApiVerifyEmailSuccessResponse } from '../api'
+import { api, VerifyEmailSuccessResponse } from '../api'
 import {
-  AttemptLoginAction,
+  AttemptRequestVerificationAction,
   AttemptVerifyEmailAction,
   AuthActionType,
-  LoginSuccessAction,
-  LoginFailureAction,
+  RequestVerificationSuccessAction,
+  RequestVerificationFailureAction,
   VerifyEmailSuccessAction,
   VerifyEmailFailureAction,
 } from './actions'
 import { acceptCoC } from '../coc'
 
-function* login() {
-  const loginSuccessAction: LoginSuccessAction = {
-    type: AuthActionType.LOGIN_SUCCESS,
+function* requestVerification() {
+  const requestVerificationSuccessAction: RequestVerificationSuccessAction = {
+    type: AuthActionType.REQUEST_VERIFICATION_SUCCESS,
   }
-  yield put(loginSuccessAction)
+  yield put(requestVerificationSuccessAction)
 }
 
-function* handleLoginError(error: ApiFailureResponse) {
-  const loginFailureAction: LoginFailureAction = {
-    type: AuthActionType.LOGIN_FAILURE,
-    errorMessage: error.errorMessage,
+function* handleRequestVerificationError(error: Error) {
+  const requestVerificationFailureAction: RequestVerificationFailureAction = {
+    type: AuthActionType.REQUEST_VERIFICATION_FAILURE,
+    errorMessage: error.message,
   }
-  yield put(loginFailureAction)
+  yield put(requestVerificationFailureAction)
 }
 
-function* attemptLogin(payload: AttemptLoginAction) {
+function* attemptRequestVerification(payload: AttemptRequestVerificationAction) {
   try {
-    yield call(api.login, payload.credentials)
+    yield call(api.requestVerification, payload.credentials)
     // if here, then network call was successful
-    yield login()
+    yield requestVerification()
   } catch (error) {
-    yield handleLoginError(error)
+    yield handleRequestVerificationError(error)
   }
 }
 
-function* verifyEmail(response: ApiVerifyEmailSuccessResponse) {
+function* verifyEmail(response: VerifyEmailSuccessResponse) {
   const verifyEmailSuccessAction: VerifyEmailSuccessAction = {
     type: AuthActionType.VERIFY_EMAIL_SUCCESS,
-    sessionKey: response.sessionKey,
+    sessionKey: response.session_key,
   }
   yield put(verifyEmailSuccessAction)
 }
 
-function* handleEmailVerificationError(error: ApiFailureResponse) {
+function* handleEmailVerificationError(error: Error) {
   const verifyEmailFailureAction: VerifyEmailFailureAction = {
     type: AuthActionType.VERIFY_EMAIL_FAILURE,
-    errorMessage: error.errorMessage,
+    errorMessage: error.message,
   }
   yield put(verifyEmailFailureAction)
 }
@@ -56,7 +56,6 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
   try {
     const code = payload.verificationCode
     const response = yield call(api.verifyEmail, code)
-    // if here, then network call was successful
     yield verifyEmail(response)
     if (response.acceptedCoC === true) {
       yield put(acceptCoC())
@@ -67,6 +66,6 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
 }
 
 export function* authSaga() {
-  yield takeLatest(AuthActionType.ATTEMPT_LOGIN, attemptLogin)
+  yield takeLatest(AuthActionType.ATTEMPT_REQUEST_VERIFICATION, attemptRequestVerification)
   yield takeLatest(AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
 }

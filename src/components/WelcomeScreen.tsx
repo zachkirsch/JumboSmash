@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
-import { login, verifyEmail, Credentials } from '../services/auth'
+import { requestVerification, verifyEmail, Credentials } from '../services/auth'
 import { RootState } from '../redux'
 import LoginScreen from './LoginScreen'
 import VerificationCodeScreen from './VerificationCodeScreen'
@@ -13,7 +13,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  login: (credentials: Credentials) => void
+  requestVerification: (credentials: Credentials) => void
   verifyEmail: (code: string) => void
 }
 
@@ -25,7 +25,7 @@ class WelcomeScreen extends PureComponent<Props, {}> {
     if (!this.props.validEmail) {
       return (
         <LoginScreen
-          onSubmitCredentials={this.props.login}
+          onSubmitCredentials={this.props.requestVerification}
           initialCredentials={{email: this.props.email}}
           authErrorMessage={this.props.authErrorMessage}
         />
@@ -56,7 +56,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   return {
-    login: (credentials: Credentials) => dispatch(login(credentials)),
+    requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
     verifyEmail: (code: string) => dispatch(verifyEmail(code)),
   }
 }

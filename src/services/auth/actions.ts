@@ -3,9 +3,9 @@ import { Credentials } from './types'
 /* Actions */
 
 export enum AuthActionType {
-  ATTEMPT_LOGIN = 'ATTEMPT_LOGIN',
-  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
-  LOGIN_FAILURE = 'LOGIN_FAILURE',
+  ATTEMPT_REQUEST_VERIFICATION = 'ATTEMPT_REQUEST_VERIFICATION',
+  REQUEST_VERIFICATION_SUCCESS = 'REQUEST_VERIFICATION_SUCCESS',
+  REQUEST_VERIFICATION_FAILURE = 'REQUEST_VERIFICATION_FAILURE',
   ATTEMPT_VERIFY_EMAIL = 'ATTEMPT_VERIFY_EMAIL',
   VERIFY_EMAIL_SUCCESS = 'VERIFY_EMAIL_SUCCESS',
   VERIFY_EMAIL_FAILURE = 'VERIFY_EMAIL_FAILURE',
@@ -13,17 +13,17 @@ export enum AuthActionType {
   OTHER_ACTION = '__any_other_action_type__',
 }
 
-export interface AttemptLoginAction {
-  type: AuthActionType.ATTEMPT_LOGIN
+export interface AttemptRequestVerificationAction {
+  type: AuthActionType.ATTEMPT_REQUEST_VERIFICATION
   credentials: Credentials
 }
 
-export interface LoginSuccessAction {
-  type: AuthActionType.LOGIN_SUCCESS
+export interface RequestVerificationSuccessAction {
+  type: AuthActionType.REQUEST_VERIFICATION_SUCCESS
 }
 
-export interface LoginFailureAction {
-  type: AuthActionType.LOGIN_FAILURE
+export interface RequestVerificationFailureAction {
+  type: AuthActionType.REQUEST_VERIFICATION_FAILURE
   errorMessage: string
 }
 
@@ -58,9 +58,9 @@ export interface OtherAction {
 }
 
 export type AuthAction =
-  AttemptLoginAction
-| LoginSuccessAction
-| LoginFailureAction
+  AttemptRequestVerificationAction
+| RequestVerificationSuccessAction
+| RequestVerificationFailureAction
 | AttemptVerifyEmailAction
 | VerifyEmailSuccessAction
 | VerifyEmailFailureAction
@@ -69,9 +69,9 @@ export type AuthAction =
 
 /* Action Creators */
 
-export const login = (credentials: Credentials): AttemptLoginAction => {
+export const requestVerification = (credentials: Credentials): AttemptRequestVerificationAction => {
   return {
-    type: AuthActionType.ATTEMPT_LOGIN,
+    type: AuthActionType.ATTEMPT_REQUEST_VERIFICATION,
     credentials,
   }
 }

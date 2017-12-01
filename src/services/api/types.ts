@@ -1,21 +1,27 @@
-export interface ApiFailureResponse {
-  errorMessage: string
+/* Requests */
+
+export interface ErrorResponse {
+  message: string
 }
 
-export interface ApiLoginSuccessResponse { }
-
-export type ApiLoginResponse =
-  Promise<ApiLoginSuccessResponse | ApiFailureResponse>
-
-export interface ApiVerifyEmailSuccessResponse {
-  sessionKey: string
-  acceptedCoC: boolean
+export interface RequestVerificationRequest {
+  email: string
 }
 
-export type ApiVerifyEmailResponse =
-  Promise<ApiVerifyEmailSuccessResponse | ApiFailureResponse>
+export interface VerifyEmailRequest { }
 
-export interface ApiAcceptCoCSuccessResponse { }
+export interface AcceptCoCRequest {
+  email: string
+  session_key: string
+}
 
-export type ApiAcceptCoCResponse =
-  Promise<ApiAcceptCoCSuccessResponse | ApiFailureResponse>
+/* Responses */
+
+export interface RequestVerificationSuccessResponse { }
+
+export interface VerifyEmailSuccessResponse {
+  session_key: string
+  accepted_coc: boolean
+}
+
+export interface AcceptCoCSuccessResponse { }

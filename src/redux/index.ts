@@ -1,10 +1,4 @@
-import { AuthState } from '../services/auth'
-import { CoCState } from '../services/coc'
-
-export interface RootState {
-  auth: AuthState
-  coc: CoCState
-}
-
+export * from './types'
+export * from './store'
 export * from './rootReducer'
 export * from './rootSaga'
