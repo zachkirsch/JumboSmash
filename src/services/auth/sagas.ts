@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from 'redux-saga/effects'
-import { api, VerifyEmailSuccessResponse } from '../api'
+import { api, VerifyEmailResponse, RequestVerificationResponse } from '../api'
 import {
   AttemptRequestVerificationAction,
   AttemptVerifyEmailAction,
@@ -9,11 +9,11 @@ import {
   VerifyEmailSuccessAction,
   VerifyEmailFailureAction,
 } from './actions'
-import { acceptCoC } from '../coc'
 
-function* requestVerification() {
+function* requestVerification(isNewUser: boolean) {
   const requestVerificationSuccessAction: RequestVerificationSuccessAction = {
     type: AuthActionType.REQUEST_VERIFICATION_SUCCESS,
+    isNewUser,
   }
   yield put(requestVerificationSuccessAction)
 }
@@ -28,18 +28,17 @@ function* handleRequestVerificationError(error: Error) {
 
 function* attemptRequestVerification(payload: AttemptRequestVerificationAction) {
   try {
-    yield call(api.requestVerification, payload.credentials)
-    // if here, then network call was successful
-    yield requestVerification()
+    const response: RequestVerificationResponse = yield call(api.requestVerification, payload.credentials)
+    yield requestVerification(response.new_user)
   } catch (error) {
     yield handleRequestVerificationError(error)
   }
 }
 
-function* verifyEmail(response: VerifyEmailSuccessResponse) {
+function* verifyEmail(sessionKey: string) {
   const verifyEmailSuccessAction: VerifyEmailSuccessAction = {
     type: AuthActionType.VERIFY_EMAIL_SUCCESS,
-    sessionKey: response.session_key,
+    sessionKey,
   }
   yield put(verifyEmailSuccessAction)
 }
@@ -55,11 +54,8 @@ function* handleEmailVerificationError(error: Error) {
 function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
   try {
     const code = payload.verificationCode
-    const response = yield call(api.verifyEmail, code)
-    yield verifyEmail(response)
-    if (response.acceptedCoC === true) {
-      yield put(acceptCoC())
-    }
+    const response: VerifyEmailResponse = yield call(api.verifyEmail, code)
+    yield verifyEmail(response.session_key)
   } catch (error) {
     yield handleEmailVerificationError(error)
   }

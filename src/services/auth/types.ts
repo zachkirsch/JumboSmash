@@ -4,6 +4,7 @@ export interface Credentials {
 
 export interface AuthState {
   isLoggedIn: boolean
+  isNewUser: boolean
   email: string
   sessionKey: string
   validEmail: boolean

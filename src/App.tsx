@@ -5,6 +5,7 @@ import { WelcomeScreen, Navigator, CodeOfConductScreen } from './components'
 
 interface StateProps {
   isLoggedIn: boolean,
+  isNewUser: boolean,
   codeOfConductAccepted: boolean
 }
 
@@ -15,7 +16,7 @@ class App extends PureComponent<Props, {}> {
   public render() {
     if (!this.props.isLoggedIn) {
       return <WelcomeScreen />
-    } else if (!this.props.codeOfConductAccepted) {
+    } else if (this.props.isNewUser && !this.props.codeOfConductAccepted) {
       return <CodeOfConductScreen />
     } else {
       return <Navigator />
@@ -27,6 +28,7 @@ class App extends PureComponent<Props, {}> {
 const mapStateToProps = (state: RootState): StateProps => {
     return {
         isLoggedIn: state.auth.isLoggedIn,
+        isNewUser: state.auth.isNewUser,
         codeOfConductAccepted: state.coc.codeOfConductAccepted,
     }
 }

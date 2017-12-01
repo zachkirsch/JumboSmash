@@ -29,7 +29,7 @@ class VerificationCodeScreen extends PureComponent<Props, State> {
     return (
       <View style={[styles.container, styles.center]}>
       <View style={styles.centerText}>
-          <Text>We just emailed {this.props.email} with the code 123456</Text>
+          <Text>We just "emailed" {this.props.email} with the code</Text>
           <Text style={styles.errorMessage}>
             {this.props.authErrorMessage}
           </Text>

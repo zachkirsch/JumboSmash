@@ -20,6 +20,7 @@ export interface AttemptRequestVerificationAction {
 
 export interface RequestVerificationSuccessAction {
   type: AuthActionType.REQUEST_VERIFICATION_SUCCESS
+  isNewUser: boolean
 }
 
 export interface RequestVerificationFailureAction {

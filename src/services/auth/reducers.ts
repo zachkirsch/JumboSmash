@@ -3,6 +3,7 @@ import { AuthState } from './types'
 
 const initialState: AuthState = {
   isLoggedIn: false,
+  isNewUser: true,
   email: 'fakeuser@tufts.edu',
   sessionKey: '',
   errorMessage: '',
@@ -22,6 +23,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
     case AuthActionType.REQUEST_VERIFICATION_SUCCESS:
       return {
         ...state,
+        isNewUser: action.isNewUser,
         validEmail: true,
         errorMessage: '',
       }
