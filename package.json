@@ -16,6 +16,7 @@
 		"dependencies": {
 				"@types/react": "^16.0.25",
 				"@types/react-native": "^0.50.7",
+				"@types/react-native-fabric": "^0.5.0",
 				"@types/react-native-vector-icons": "^4.4.2",
 				"@types/react-navigation": "^1.0.22",
 				"@types/react-redux": "^5.0.13",
@@ -25,6 +26,7 @@
 				"react": "16.0.0",
 				"react-native": "0.50.3",
 				"react-native-button": "^2.1.0",
+				"react-native-fabric": "^0.5.1",
 				"react-native-vector-icons": "^4.4.2",
 				"react-navigation": "^1.0.0-beta.19",
 				"react-redux": "^5.0.6",
