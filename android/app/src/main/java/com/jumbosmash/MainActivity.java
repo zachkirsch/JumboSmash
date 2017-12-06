@@ -1,6 +1,11 @@
 package com.jumbosmash;
 
 import com.facebook.react.ReactActivity;
+import android.os.Bundle;
+
+import com.facebook.common.logging.FLog;
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends ReactActivity {
 
@@ -11,5 +16,12 @@ public class MainActivity extends ReactActivity {
     @Override
     protected String getMainComponentName() {
         return "JumboSmash";
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+      Fabric.with(this, new Crashlytics());
+      FLog.setLoggingDelegate(ReactNativeFabricLogger.getInstance());
     }
 }

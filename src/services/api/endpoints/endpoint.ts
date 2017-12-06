@@ -1,7 +1,8 @@
+import { Platform } from 'react-native'
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
-const SERVER = 'http://127.0.0.1:5000'
+const SERVER = 'http://' + (Platform.OS === 'ios' ? '127.0.0.1' : '10.0.2.2') + ':5000'
 
 type HTTPMethod = 'GET' | 'POST'
 
