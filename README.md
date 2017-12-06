@@ -12,7 +12,9 @@ Other important things to check out:
   - [Redux](https://redux.js.org)
   - [Redux-Saga](https://redux-saga.js.org)
 
-### Initial Setup (for Mac)
+### Initial Setup
+
+#### Install tools
 
 ```
 brew install node
@@ -21,13 +23,22 @@ npm install -g react-native-cli
 npm install -g yarn
 ```
 
-#### iOS
+#### Clone this repository.
+
+```
+git clone git@github.com:zachkirsch/JumboSmash.git
+cd JumboSmash
+yarn install
+```
+
+
+#### Setup for iOS
 
 - Download Xcode and Xcode command line tools. Please follow the directions on
  the [RN
  docs](https://facebook.github.io/react-native/releases/next/docs/getting-started.html#command-line-tools).
 
-#### Android
+#### Setup for Android
 
  - [Download JDK 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
  - Download Android Studio and relevant SDKs. Please follow the directions on
@@ -45,16 +56,6 @@ npm install -g yarn
    EOT
    source $HOME/.bash_profile
    ```
-
-### Setup
-
-First, clone this repository.
-
-```
-git clone git@github.com:zachkirsch/JumboSmash.git
-cd JumboSmash
-yarn install
-```
 
 ### Run the App
 
