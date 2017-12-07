@@ -4,7 +4,7 @@
 
 This is the repository for the 2017-2018 JumboSmash React Native App. If you
 haven't dealt with React Native before, you should walk through the
-[tutorial](https://facebook.github.io/react-native/releases/next/docs/tutorial.html)
+[tutorial](https://facebook.github.io/react-native/docs/tutorial.html)
 (React knowledge is not a prerequisite).
 
 Other important things to check out:
@@ -36,15 +36,15 @@ yarn install
 
 - Download Xcode and Xcode command line tools. Please follow the directions on
  the [RN
- docs](https://facebook.github.io/react-native/releases/next/docs/getting-started.html#command-line-tools).
+ docs](https://facebook.github.io/react-native/docs/getting-started.html#command-line-tools).
 
 #### Setup for Android
 
  - [Download JDK 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
  - Download Android Studio and relevant SDKs. Please follow the directions on
-  the [RN docs](https://facebook.github.io/react-native/releases/next/docs/getting-started.html#1-install-android-studio).
+  the [RN docs](https://facebook.github.io/react-native/docs/getting-started.html#1-install-android-studio).
  - Install an Android Virtual Device. Please follow the directions on the [RN
- docs](https://facebook.github.io/react-native/releases/next/docs/getting-started.html#using-a-virtual-device). You'll have to create a dummy project in
+ docs](https://facebook.github.io/react-native/docs/getting-started.html#using-a-virtual-device). You'll have to create a dummy project in
  Android Studio to be able to see the virtual devices icon in the toolbar.
  You'll also probably have to install [HAXM](https://software.intel.com/en-us/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x).
  - Set up environment:
