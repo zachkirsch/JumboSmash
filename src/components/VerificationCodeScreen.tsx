@@ -16,7 +16,7 @@ interface State {
 }
 
 const CODE_LENGTH = 6
-const INITIAL_RESEND_CODE_WAIT_TIME = 10 // seconds
+const INITIAL_RESEND_CODE_WAIT_TIME = 9 // seconds
 
 class VerificationCodeScreen extends PureComponent<Props, State> {
 
