@@ -1,4 +1,4 @@
-import { GetEndpoint } from './endpoint'
+import { GetEndpoint } from './Endpoint'
 
 export interface Response {
   email: string

@@ -1,4 +1,4 @@
-import { PostEndpoint } from './endpoint'
+import { PostEndpoint } from './Endpoint'
 
 interface Request {
 }
