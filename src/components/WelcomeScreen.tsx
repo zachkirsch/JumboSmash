@@ -35,12 +35,20 @@ class WelcomeScreen extends PureComponent<Props, {}> {
         <VerificationCodeScreen
           email={this.props.email}
           onSubmitVerificationCode={this.props.verifyEmail}
+          requestResendVerificationCode={this.requestResendVerificationCode}
           authErrorMessage={this.props.authErrorMessage}
         />
       )
     } else {
       return undefined
     }
+  }
+
+  private requestResendVerificationCode = () => {
+    const credentials: Credentials = {
+      email: this.props.email,
+    }
+    this.props.requestVerification(credentials)
   }
 
 }

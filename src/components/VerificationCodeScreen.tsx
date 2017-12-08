@@ -4,6 +4,7 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
 interface OwnProps {
   email: string
   onSubmitVerificationCode: (code: string) => void
+  requestResendVerificationCode: () => void
   authErrorMessage?: string
 }
 
@@ -11,20 +12,42 @@ type Props = OwnProps
 
 interface State {
   verificationCode: string
+  secondsUntilCanResendCode: number
 }
 
 const CODE_LENGTH = 6
+const INITIAL_RESEND_CODE_WAIT_TIME = 10 // seconds
 
 class VerificationCodeScreen extends PureComponent<Props, State> {
+
+  private resendCodeTimer: number
 
   constructor (props: Props) {
     super(props)
     this.state = {
       verificationCode: '',
+      secondsUntilCanResendCode: INITIAL_RESEND_CODE_WAIT_TIME,
     }
   }
 
+  public componentDidMount() {
+    this.resendCodeTimer = setInterval(() => {
+      this.setState({
+        secondsUntilCanResendCode: this.state.secondsUntilCanResendCode - 1,
+      })
+    }, 1000)
+  }
+
+  public componentWillUnmount() {
+    clearInterval(this.resendCodeTimer)
+  }
+
   public render() {
+
+    let resendCodeButtonTitle = 'Resend Code'
+    if (this.state.secondsUntilCanResendCode > 0) {
+      resendCodeButtonTitle = 'Resend Code in ' + this.state.secondsUntilCanResendCode
+    }
 
     return (
       <View style={[styles.container, styles.center]}>
@@ -51,6 +74,11 @@ class VerificationCodeScreen extends PureComponent<Props, State> {
           title='Login'
           disabled={this.state.verificationCode.length !== CODE_LENGTH}
         />
+        <Button
+          onPress={this.onRequestResendCode}
+          title={resendCodeButtonTitle}
+          disabled={this.state.secondsUntilCanResendCode > 0}
+        />
       </View>
     )
   }
@@ -63,6 +91,13 @@ class VerificationCodeScreen extends PureComponent<Props, State> {
 
   private onSubmitVerificationCode = () => {
     this.props.onSubmitVerificationCode(this.state.verificationCode)
+  }
+
+  private onRequestResendCode = () => {
+    this.props.requestResendVerificationCode()
+    this.setState({
+      secondsUntilCanResendCode: INITIAL_RESEND_CODE_WAIT_TIME,
+    })
   }
 
 }
