@@ -16,7 +16,7 @@ interface State {
 }
 
 const CODE_LENGTH = 6
-const INITIAL_RESEND_CODE_WAIT_TIME = 9 // seconds
+const INITIAL_RESEND_CODE_WAIT_TIME = 0 // seconds
 
 class VerificationCodeScreen extends PureComponent<Props, State> {
 
@@ -31,11 +31,13 @@ class VerificationCodeScreen extends PureComponent<Props, State> {
   }
 
   public componentDidMount() {
-    this.resendCodeTimer = setInterval(() => {
-      this.setState({
-        secondsUntilCanResendCode: this.state.secondsUntilCanResendCode - 1,
-      })
-    }, 1000)
+    if (INITIAL_RESEND_CODE_WAIT_TIME > 0) {
+      this.resendCodeTimer = setInterval(() => {
+        this.setState({
+          secondsUntilCanResendCode: this.state.secondsUntilCanResendCode - 1,
+        })
+      }, 1000)
+    }
   }
 
   public componentWillUnmount() {
