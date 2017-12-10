@@ -16,7 +16,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
 
     case AuthActionType.ATTEMPT_REQUEST_VERIFICATION:
       return {
-        ...initialState,
+        ...state,
         email: action.credentials.email,
       }
 
@@ -31,6 +31,7 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
     case AuthActionType.REQUEST_VERIFICATION_FAILURE:
       return {
         ...state,
+        validEmail: false,
         errorMessage: action.errorMessage,
       }
 
