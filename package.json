@@ -1,47 +1,64 @@
 {
-	"name": "JumboSmash",
-	"version": "0.0.1",
-	"private": true,
-	"scripts": {
-		"start": "node node_modules/react-native/local-cli/cli.js start",
-		"watch": "npm run build -- -w",
-    "ios": "concurrently -r 'npm run watch' 'react-native run-ios'",
-    "android": "concurrently -r 'npm run watch' 'react-native run-android'",
-		"tsc": "tsc",
-    "build": "npm run clean && npm run tsc --",
-    "clean": "rimraf build",
-		"lint": "tslint src/**/*.ts",
-		"test": "npm run build && npm run lint && jest --coverage"
-	},
-	"dependencies": {
-		"react": "16.0.0-beta.5",
-		"react-native": "0.49.3"
-	},
-	"devDependencies": {
-		"@types/jest": "^21.1.2",
-		"@types/react": "^16.0.10",
-		"@types/react-native": "^0.49.2",
-		"babel-jest": "21.2.0",
-		"babel-preset-react-native": "4.0.0",
-		"concurrently": "^3.5.0",
-		"jest": "21.2.1",
-		"react-test-renderer": "16.0.0-beta.5",
-		"rimraf": "^2.6.2",
-		"tslint": "^5.7.0",
-		"typescript": "^2.5.3"
-	},
-	"jest": {
-    "preset": "react-native",
-    "testRegex": "build/__tests__/.+\\.js$",
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text-summary",
-      "html"
-    ],
-    "collectCoverageFrom": [
-      "build/**/*.js",
-      "!build/**/*.spec.js",
-      "!build/**/*.index.js"
-    ]
-  }
+		"name": "JumboSmash",
+		"version": "0.0.1",
+		"private": true,
+		"scripts": {
+				"start": "node node_modules/react-native/local-cli/cli.js start",
+				"watch": "npm run build -- -w",
+				"ios": "react-native run-ios",
+				"android": "react-native run-android",
+				"tsc": "tsc",
+				"build": "npm run clean && npm run tsc --",
+				"clean": "rimraf build",
+				"lint": "tslint --project tsconfig.json --config tslint.json",
+				"test": "npm run build && npm run lint && jest --coverage"
+		},
+		"dependencies": {
+				"@types/react": "^16.0.25",
+				"@types/react-native": "^0.50.7",
+				"@types/react-native-fabric": "^0.5.0",
+				"@types/react-native-vector-icons": "^4.4.2",
+				"@types/react-navigation": "^1.0.22",
+				"@types/react-redux": "^5.0.13",
+				"@types/react-test-renderer": "^16.0.0",
+				"@types/redux-logger": "^3.0.5",
+				"babel-core": "^6.26.0",
+				"react": "16.0.0",
+				"react-native": "0.50.3",
+				"react-native-button": "^2.1.0",
+				"react-native-fabric": "^0.5.1",
+				"react-native-vector-icons": "^4.4.2",
+				"react-navigation": "^1.0.0-beta.19",
+				"react-redux": "^5.0.6",
+				"redux": "^3.7.2",
+				"redux-logger": "^3.0.6",
+				"redux-saga": "^0.16.0"
+		},
+		"devDependencies": {
+				"@types/jest": "^21.1.2",
+				"babel-jest": "21.2.0",
+				"babel-preset-react-native": "4.0.0",
+				"jest": "21.2.1",
+				"react-test-renderer": "16.0.0-beta.5",
+				"rimraf": "^2.6.2",
+				"tslint": "^5.7.0",
+				"typescript": "^2.5.3"
+		},
+		"jest": {
+				"preset": "react-native",
+				"testRegex": "build/__tests__/.+\\.js$",
+				"coverageDirectory": "coverage",
+				"coverageReporters": [
+						"text-summary",
+						"html"
+				],
+				"collectCoverageFrom": [
+						"build/**/*.js",
+						"!build/**/*.spec.js",
+						"!build/**/*.index.js"
+				],
+				"transformIgnorePatterns": [
+						"node_modules/(?!(jest-)?react-native|react-navigation)"
+				]
+		}
 }
