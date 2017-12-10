@@ -18,6 +18,7 @@ interface State {
 enum EmailInputError {
   NotEmailAddress,
   NotTuftsEmail,
+  EmptyEmail,
   None,
 }
 
@@ -80,6 +81,9 @@ class LoginScreen extends PureComponent<Props, State> {
   private onChangeEmail = (email: string) => this.onChangeCredentials({email})
 
   private getEmailInputError = (email: string): EmailInputError => {
+    if (email === undefined) {
+      return EmailInputError.EmptyEmail
+    }
     email = this.state.credentials.email.trim().toLowerCase()
     if (!EMAIL_REGEX.test(email)) {
       return EmailInputError.NotEmailAddress
@@ -95,6 +99,7 @@ class LoginScreen extends PureComponent<Props, State> {
       case EmailInputError.NotTuftsEmail:
         return 'You must use a Tufts e-mail address'
       case EmailInputError.NotEmailAddress:
+      case EmailInputError.EmptyEmail:
         return 'You must enter an e-mail address'
       case EmailInputError.None:
         return ''
