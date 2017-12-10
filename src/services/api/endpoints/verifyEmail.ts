@@ -1,9 +1,14 @@
-import { GetEndpoint } from './Endpoint'
+import { GetEndpoint, HttpGetRequestBody } from './Endpoint'
 
-export interface Response {
+interface Request extends HttpGetRequestBody {
+  email: string
+  code: string
+}
+
+interface Response {
   email: string
   session_key: string
 }
 
-export const verifyEmail = new GetEndpoint<Response>('/users/verify', false)
+export const verifyEmail = new GetEndpoint<Request, Response>('/users/verify', false)
 export interface VerifyEmailResponse extends Response { }
