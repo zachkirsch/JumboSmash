@@ -4,7 +4,11 @@ import { ErrorResponse } from '../api'
 
 const SERVER = 'http://' + (Platform.OS === 'ios' ? '127.0.0.1' : '10.0.2.2') + ':5000'
 
-type HTTPMethod = 'GET' | 'POST'
+type HttpMethod = 'GET' | 'POST'
+
+export interface HttpGetRequestParams {
+  [key: string]: string | number | boolean
+}
 
 interface Token {
   email: string
@@ -22,7 +26,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 
   constructor(readonly endpoint: string, readonly requiresToken: boolean) { }
 
-  protected makeRequest(endpoint: string, method: HTTPMethod, body?: REQ): Promise<SUCC_RESP> {
+  protected makeRequest(endpoint: string, method: HttpMethod, body?: REQ): Promise<SUCC_RESP> {
     return fetch(SERVER + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
       throw Error('Could not connect to the server')
@@ -37,7 +41,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
     })
   }
 
-  private buildRequest(method: HTTPMethod, body: REQ): RequestInit {
+  private buildRequest(method: HttpMethod, body?: REQ): RequestInit {
 
     const request: RequestInit = {
       method,
@@ -59,10 +63,26 @@ abstract class Endpoint<REQ, SUCC_RESP> {
   }
 }
 
-export class GetEndpoint<SUCC_RESP> extends Endpoint<{}, SUCC_RESP> {
-  public hit(suffix?: string) {
-    return this.makeRequest(suffix ? this.endpoint + '/' + suffix : this.endpoint, 'GET')
+export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
+  public hit(params?: REQ) {
+    const uri = this.constructUriWithParams(params)
+    return this.makeRequest(uri, 'GET')
   }
+
+  private constructUriWithParams = (params?: REQ) => {
+    let uri = this.endpoint
+    if (params !== undefined) {
+        const queryParams: string[] = []
+        for (const key in params) {
+          if (params.hasOwnProperty(key)) {
+            queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
+          }
+        }
+        uri += '?' + queryParams.join('&')
+    }
+    return uri
+  }
+
 }
 
 export class PostEndpoint<REQ, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {

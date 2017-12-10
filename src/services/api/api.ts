@@ -1,5 +1,6 @@
 import { Credentials } from '../auth'
 import * as Endpoints from './endpoints'
+import { getEmail } from '../auth'
 
 export interface ErrorResponse {
   message: string
@@ -10,7 +11,8 @@ export const api = {
     return Endpoints.requestVerification.hit(credentials)
   },
   verifyEmail: (code: string) => {
-    return Endpoints.verifyEmail.hit(code)
+    const email = getEmail()
+    return Endpoints.verifyEmail.hit({email, code})
   },
   acceptCoC: () => {
     return Endpoints.acceptCoc.hit({})
