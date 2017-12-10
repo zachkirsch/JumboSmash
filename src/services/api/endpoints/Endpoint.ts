@@ -6,7 +6,7 @@ const SERVER = 'http://' + (Platform.OS === 'ios' ? '127.0.0.1' : '10.0.2.2') + 
 
 type HttpMethod = 'GET' | 'POST'
 
-export interface HttpGetRequestBody {
+export interface HttpGetRequestParams {
   [key: string]: string | number | boolean
 }
 
@@ -63,19 +63,19 @@ abstract class Endpoint<REQ, SUCC_RESP> {
   }
 }
 
-export class GetEndpoint<REQ extends HttpGetRequestBody, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(body?: REQ) {
-    const uri = this.constructUriWithParams(body)
+export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
+  public hit(params?: REQ) {
+    const uri = this.constructUriWithParams(params)
     return this.makeRequest(uri, 'GET')
   }
 
-  private constructUriWithParams = (body?: REQ) => {
+  private constructUriWithParams = (params?: REQ) => {
     let uri = this.endpoint
-    if (body !== undefined) {
+    if (params !== undefined) {
         const queryParams: string[] = []
-        for (const key in body) {
-          if (body.hasOwnProperty(key)) {
-            queryParams.push(encodeURI(key) + '=' + encodeURI(body[key].toString()))
+        for (const key in params) {
+          if (params.hasOwnProperty(key)) {
+            queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
           }
         }
         uri += '?' + queryParams.join('&')

@@ -1,6 +1,6 @@
-import { GetEndpoint, HttpGetRequestBody } from './Endpoint'
+import { GetEndpoint, HttpGetRequestParams } from './Endpoint'
 
-interface Request extends HttpGetRequestBody {
+interface Request extends HttpGetRequestParams {
   email: string
   code: string
 }
