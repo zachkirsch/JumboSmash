@@ -15,12 +15,10 @@ interface Token {
   session_key: string
 }
 
-const getToken = (): Token => {
-  return {
-    email: getEmail(),
-    session_key: getSessionKey(),
-  }
-}
+const getToken = (): Token => ({
+  email: getEmail(),
+  session_key: getSessionKey(),
+})
 
 abstract class Endpoint<REQ, SUCC_RESP> {
 
@@ -52,7 +50,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 
     if (method === 'POST') {
       if (this.requiresToken) {
-        const bodyWithAuth = Object.assign(body, getToken())
+        const bodyWithAuth = Object.assign({}, body, getToken())
         request.body = JSON.stringify(bodyWithAuth)
       } else {
         request.body = JSON.stringify(body)

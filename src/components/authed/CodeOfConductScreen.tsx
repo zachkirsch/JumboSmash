@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
-import { acceptCoC } from '../services/coc'
-import { RootState } from '../redux'
+import { acceptCoC } from '../../services/coc'
+import { RootState } from '../../redux'
 import {
   View,
   Text,
