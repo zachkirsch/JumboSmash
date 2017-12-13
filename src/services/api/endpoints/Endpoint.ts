@@ -26,6 +26,8 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 
   constructor(readonly endpoint: string, readonly requiresToken: boolean) { }
 
+  public abstract hit(body?: REQ): Promise<SUCC_RESP>
+
   protected makeRequest(endpoint: string, method: HttpMethod, body?: REQ): Promise<SUCC_RESP> {
     return fetch(SERVER + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
@@ -61,6 +63,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 
     return request
   }
+
 }
 
 export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
