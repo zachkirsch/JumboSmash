@@ -63,13 +63,13 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
     let resendCodeButtonTitle = 'Resend Code'
     if (this.state.secondsUntilCanResendEmail > 0) {
-      resendCodeButtonTitle = 'Resend Code in ' + this.state.secondsUntilCanResendEmail
+      resendCodeButtonTitle = 'Resend in ' + this.state.secondsUntilCanResendEmail
     }
 
     let instructions = ''
-    instructions += 'We just "emailed" {this.props.email} with a link and a code.'
-    instructions += '\nClick the link on your phone or put the code in this text box.'
-    instructions += '\nCheck your email! (i.e. the server logs)'
+    instructions += 'We just "emailed" ' + this.props.email + ' with a link and a code.'
+    instructions += ' Click the link on your phone or put the code in this text box.'
+    instructions += ' Check your email! (i.e. the server logs)'
 
     return (
       <View style={[styles.container, styles.center]}>

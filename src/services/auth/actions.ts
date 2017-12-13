@@ -9,6 +9,7 @@ export enum AuthActionType {
   ATTEMPT_VERIFY_EMAIL = 'ATTEMPT_VERIFY_EMAIL',
   VERIFY_EMAIL_SUCCESS = 'VERIFY_EMAIL_SUCCESS',
   VERIFY_EMAIL_FAILURE = 'VERIFY_EMAIL_FAILURE',
+  STORE_SESSION_KEY = 'STORE_SESSION_KEY',
   LOGOUT = 'LOGOUT',
   OTHER_ACTION = '__any_other_action_type__',
 }
@@ -35,12 +36,16 @@ export interface AttemptVerifyEmailAction {
 
 export interface VerifyEmailSuccessAction {
   type: AuthActionType.VERIFY_EMAIL_SUCCESS
-  sessionKey: string
 }
 
 export interface VerifyEmailFailureAction {
   type: AuthActionType.VERIFY_EMAIL_FAILURE
   errorMessage: string
+}
+
+export interface StoreSessionKeyAction {
+  type: AuthActionType.STORE_SESSION_KEY
+  sessionKey: string
 }
 
 export interface LogoutAction {
@@ -65,6 +70,7 @@ export type AuthAction =
 | AttemptVerifyEmailAction
 | VerifyEmailSuccessAction
 | VerifyEmailFailureAction
+| StoreSessionKeyAction
 | LogoutAction
 | OtherAction
 
