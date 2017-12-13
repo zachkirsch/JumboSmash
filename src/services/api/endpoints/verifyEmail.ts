@@ -11,5 +11,4 @@ type Response = {
 }
 
 export const verifyEmail = new GetEndpoint<Request, Response>('/users/verify', false)
-export type VerifyEmailRequest = Request
 export type VerifyEmailResponse = Response

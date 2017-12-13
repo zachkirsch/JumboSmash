@@ -11,5 +11,4 @@ type Response = {
 }
 
 export const requestVerification = new PostEndpoint<Request, Response>('/users/request_verification', false)
-export type RequestVerificationRequest = Request
 export type RequestVerificationResponse = Response
