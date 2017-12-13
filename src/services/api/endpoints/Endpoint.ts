@@ -6,11 +6,13 @@ const SERVER = 'http://' + (Platform.OS === 'ios' ? '127.0.0.1' : '10.0.2.2') + 
 
 type HttpMethod = 'GET' | 'POST'
 
-export interface HttpGetRequestParams {
+interface IndexableMap {
   [key: string]: string | number | boolean
 }
 
-interface Token {
+export type HttpGetRequestParams = IndexableMap
+
+interface Token extends IndexableMap {
   email: string
   session_key: string
 }
@@ -53,7 +55,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
         const bodyWithAuth = Object.assign({}, body, getToken())
         request.body = JSON.stringify(bodyWithAuth)
       } else {
-        request.body = JSON.stringify(body)
+        request.body = JSON.stringify(body || {})
       }
     }
 
@@ -67,24 +69,37 @@ export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends En
     return this.makeRequest(uri, 'GET')
   }
 
-  private constructUriWithParams = (params?: REQ) => {
-    let uri = this.endpoint
-    if (params !== undefined) {
-        const queryParams: string[] = []
-        for (const key in params) {
-          if (params.hasOwnProperty(key)) {
-            queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
-          }
-        }
-        uri += '?' + queryParams.join('&')
+  private constructUriWithParams = (givenParams?: REQ) => {
+    if (givenParams === undefined && !this.requiresToken) {
+      return this.endpoint
     }
+
+    let uri = this.endpoint + '?'
+
+    if (givenParams !== undefined) {
+      uri = this.addParamsToUri(uri, givenParams)
+    }
+
+    if (this.requiresToken) {
+      uri = this.addParamsToUri(uri, getToken())
+    }
+
     return uri
   }
 
+  private addParamsToUri(uri: string, params: HttpGetRequestParams) {
+    const queryParams: string[] = []
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
+      }
+    }
+    return uri + queryParams.join('&')
+  }
 }
 
 export class PostEndpoint<REQ, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(body: REQ) {
+  public hit(body?: REQ) {
     return this.makeRequest(this.endpoint, 'POST', body)
   }
 }

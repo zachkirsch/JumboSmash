@@ -1,15 +1,15 @@
 import { PostEndpoint } from './Endpoint'
 
-interface Request {
+type Request = {
   email: string
 }
 
-interface Response {
+type Response = {
   email: string
   new_user: boolean
   message: 'email_sent'
 }
 
 export const requestVerification = new PostEndpoint<Request, Response>('/users/request_verification', false)
-export interface RequestVerificationRequest extends Request { }
-export interface RequestVerificationResponse extends Response { }
+export type RequestVerificationRequest = Request
+export type RequestVerificationResponse = Response
