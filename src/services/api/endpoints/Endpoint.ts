@@ -77,24 +77,24 @@ export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends En
     let uri = this.endpoint + '?'
 
     if (givenParams !== undefined) {
-      uri = this.addParamsToUri(uri, givenParams)
+      uri += this.getQueryString(givenParams)
     }
 
     if (this.requiresToken) {
-      uri = this.addParamsToUri(uri, getToken())
+      uri += this.getQueryString(getToken())
     }
 
     return uri
   }
 
-  private addParamsToUri(uri: string, params: HttpGetRequestParams) {
+  private getQueryString(params: HttpGetRequestParams) {
     const queryParams: string[] = []
     for (const key in params) {
       if (params.hasOwnProperty(key)) {
         queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
       }
     }
-    return uri + queryParams.join('&')
+    return queryParams.join('&')
   }
 }
 
