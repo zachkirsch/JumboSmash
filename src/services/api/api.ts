@@ -15,9 +15,9 @@ export const api = {
     return Endpoints.verifyEmail.hit({email, code})
   },
   acceptCoC: () => {
-    return Endpoints.acceptCoC.hit()
+    return Endpoints.acceptCoC.hit({})
   },
   getUserInfo: () => {
-    return Endpoints.getUserInfo.hit()
+    return Endpoints.getUserInfo.hit({})
   },
 }

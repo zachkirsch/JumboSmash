@@ -26,7 +26,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 
   constructor(readonly endpoint: string, readonly requiresToken: boolean) { }
 
-  public abstract hit(body?: REQ): Promise<SUCC_RESP>
+  public abstract hit(body: REQ): Promise<SUCC_RESP>
 
   protected makeRequest(endpoint: string, method: HttpMethod, body?: REQ): Promise<SUCC_RESP> {
     return fetch(SERVER + endpoint, this.buildRequest(method, body))
@@ -67,7 +67,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 }
 
 export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(params?: REQ) {
+  public hit(params: REQ) {
     const uri = this.constructUriWithParams(params)
     return this.makeRequest(uri, 'GET')
   }
@@ -102,7 +102,7 @@ export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends En
 }
 
 export class PostEndpoint<REQ, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(body?: REQ) {
+  public hit(body: REQ) {
     return this.makeRequest(this.endpoint, 'POST', body)
   }
 }
