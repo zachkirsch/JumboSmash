@@ -1,11 +1,14 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
-import { View, Text, TextInput, Button, StyleSheet, Image} from 'react-native'
+import { View, Text, TextInput, Button, StyleSheet, /*Image, CameraRoll*/} from 'react-native'
 import { NavigationTabScreenOptions } from 'react-navigation'
 import { Icon } from 'react-native-elements'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { logout } from '../../services/auth'
 import { RootState } from '../../redux'
+/*import ImagePicker from 'react-native-image-picker'*/
+
+//TODO: CAMERA ROLL, BACKEND PERSISTENCE, Name editing (?), ADDITIONAL FEATURES (TAGS, etc?)
 
 interface DispatchProps {
   onLogout: () => void
@@ -13,16 +16,16 @@ interface DispatchProps {
 
 type Props = DispatchProps
 interface State {
-  bio: string
+  bio: string,
+  avatarSource: string
 }
 
 class ProfileScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
      super(props);
-     this.state = { bio: 'Useless Placeholder' };
+     this.state = { bio: 'Useless Placeholder', avatarSource: 'none'};
    }
-
 
   static navigationOptions: NavigationTabScreenOptions = {
     tabBarIcon: ({focused, tintColor}) => (
@@ -46,14 +49,26 @@ class ProfileScreen extends PureComponent<Props, State> {
             borderBottomWidth: 3}}>
               <View style={{flex: 4, margin: 4, justifyContent: 'flex-end', backgroundColor: 'steelblue'}}>
 
-              <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={50} color='#EFEFEF'/></View>
+              <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={50} color='#EFEFEF'
+                    onPress={() => {
+                     //TODO: INSERT CAMERA ROLL
+                    }}
+              /></View>
               </View>
               <View style={{flex: 2, margin: 4, marginTop: 4, backgroundColor: '#EFEFEF'}} >
                     <View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-end', backgroundColor: 'midnightblue'}}>
-                      <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={30} color='#EFEFEF'/></View>
+                      <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={30} color='#EFEFEF'
+                            onPress={() => {
+                             //TODO: INSERT CAMERA ROLL
+                            }}
+                      /></View>
                     </View>
                     <View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-end', backgroundColor: 'steelblue'}}>
-                      <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={30} color='#EFEFEF'/></View>
+                      <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={30} color='#EFEFEF'
+                            onPress={() => {
+                             //TODO: INSERT CAMERA ROLL
+                            }}
+                      /></View>
                     </View>
               </View>
             </View>
@@ -62,6 +77,15 @@ class ProfileScreen extends PureComponent<Props, State> {
                     <Text style={styles.titleText}>Dummy Profile, 22</Text>
               </View>
               <View style={[styles.textContainer]}>
+                  <View style={{flex: 1, flexDirection: 'row'}}>
+                  <Button
+                    onPress={this.props.onLogout} //TODO: CHANGE THIS TO CHANGE NAME.
+                    title="Edit Name"
+                    color="#841584"
+                    accessibilityLabel="Edit your name!"
+                  />
+                  </View>
+                <View style={{flex: 1, flexDirection: 'row'}}/>
               </View>
             </View>
             <View style={{flex: 4, flexDirection: 'row'}} >
@@ -94,6 +118,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     onLogout: () => dispatch(logout()),
   }
 }
+
 
 export default connect(undefined, mapDispatchToProps)(ProfileScreen)
 
