@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
-import { requestVerification, verifyEmail, Credentials } from '../services/auth'
-import { RootState } from '../redux'
+import { requestVerification, verifyEmail, Credentials } from '../../services/auth'
+import { RootState } from '../../redux'
 import LoginScreen from './LoginScreen'
-import VerificationCodeScreen from './VerificationCodeScreen'
+import VerifyEmailScreen from './VerifyEmailScreen'
 
 interface StateProps {
   email: string
@@ -32,9 +32,9 @@ class WelcomeScreen extends PureComponent<Props, {}> {
       )
     } else if (!this.props.validVerificationCode) {
       return (
-        <VerificationCodeScreen
+        <VerifyEmailScreen
           email={this.props.email}
-          onSubmitVerificationCode={this.props.verifyEmail}
+          submitVerificationCode={this.props.verifyEmail}
           requestResendVerificationCode={this.requestResendVerificationCode}
           authErrorMessage={this.props.authErrorMessage}
         />

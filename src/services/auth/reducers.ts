@@ -4,14 +4,14 @@ import { AuthState } from './types'
 const initialState: AuthState = {
   isLoggedIn: false,
   isNewUser: true,
-  email: 'fakeuser@tufts.edu',
+  email: 'maxwell.bernstein@tufts.edu',
   sessionKey: '',
   errorMessage: '',
   validEmail: false,
   validVerificationCode: false,
 }
 
-export function authReducer(state: AuthState, action: AuthAction): AuthState {
+export function authReducer(state = initialState, action: AuthAction): AuthState {
   switch (action.type) {
 
     case AuthActionType.ATTEMPT_REQUEST_VERIFICATION:
@@ -38,7 +38,6 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
       return {
         ...state,
-        sessionKey: action.sessionKey,
         validVerificationCode: true,
         isLoggedIn: true,
         errorMessage: '',
@@ -51,6 +50,12 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
         errorMessage: action.errorMessage,
       }
 
+    case AuthActionType.STORE_SESSION_KEY:
+      return {
+        ...state,
+        sessionKey: action.sessionKey,
+      }
+
     case AuthActionType.LOGOUT:
       return {
         ...state,
@@ -61,6 +66,6 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
       }
 
     default:
-      return {...state} || initialState
+      return state
   }
 }

@@ -1,6 +1,11 @@
 import { put, call, takeLatest} from 'redux-saga/effects'
 import { api } from '../api'
-import { AttemptAcceptCoCAction, AcceptCoCSuccessAction, AcceptCoCFailureAction, CoCActionType } from './actions'
+import {
+  AttemptAcceptCoCAction,
+  AcceptCoCFailureAction,
+  CoCActionType,
+  setCoCReadStatus,
+} from './actions'
 
 function* handleAcceptCoCError(error: Error) {
   const acceptCoCFailureAction: AcceptCoCFailureAction = {
@@ -13,10 +18,7 @@ function* handleAcceptCoCError(error: Error) {
 function* acceptCoC(_: AttemptAcceptCoCAction) {
     try {
       yield call(api.acceptCoC)
-      const acceptCoCSuccessAction: AcceptCoCSuccessAction = {
-        type: CoCActionType.ACCEPT_COC_SUCCESS,
-      }
-      yield put(acceptCoCSuccessAction)
+      yield put(setCoCReadStatus(true))
     } catch (error) {
       yield handleAcceptCoCError(error)
     }

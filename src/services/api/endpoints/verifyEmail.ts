@@ -5,10 +5,10 @@ interface Request extends HttpGetRequestParams {
   code: string
 }
 
-interface Response {
+type Response = {
   email: string
   session_key: string
 }
 
 export const verifyEmail = new GetEndpoint<Request, Response>('/users/verify', false)
-export interface VerifyEmailResponse extends Response { }
+export type VerifyEmailResponse = Response

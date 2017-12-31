@@ -1,13 +1,12 @@
 import { PostEndpoint } from './Endpoint'
 
-interface Request {
+type Request = {
 }
 
-interface Response {
+type Response = {
   email: string
   accepted_coc: boolean
 }
 
-export const acceptCoc = new PostEndpoint<Request, Response>('/users/accept_coc', true)
-export interface AcceptCoCRequest extends Request { }
-export interface AcceptCoCResponse extends Response { }
+export const acceptCoC = new PostEndpoint<Request, Response>('/users/accept_coc', true)
+export type AcceptCoCResponse = Response

@@ -6,9 +6,10 @@ const initialState: CoCState = {
   errorMessage: '',
 }
 
-export function cocReducer(state: CoCState, action: CoCAction): CoCState {
+export function cocReducer(state = initialState, action: CoCAction): CoCState {
   switch (action.type) {
 
+    case CoCActionType.ATTEMPT_ACCEPT_COC:
     case CoCActionType.ACCEPT_COC_SUCCESS:
       return {
         codeOfConductAccepted: true,
@@ -21,7 +22,13 @@ export function cocReducer(state: CoCState, action: CoCAction): CoCState {
         errorMessage: action.errorMessage,
       }
 
+    case CoCActionType.SET_COC_READ_STATUS:
+      return {
+        ...state,
+        codeOfConductAccepted: action.readStatus,
+      }
+
     default:
-      return {...state} || initialState
+      return state
   }
 }

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
-import { Credentials } from '../services/auth'
+import { Credentials } from '../../services/auth'
 
 interface OwnProps {
   onSubmitCredentials: (credentials: Credentials) => void
