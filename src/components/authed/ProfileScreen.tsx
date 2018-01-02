@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
-import { Modal, View, Text, TextInput, Button, StyleSheet, /*Image, CameraRoll*/} from 'react-native'
+import { Modal, View, Text, TextInput, Button, StyleSheet /*Image, CameraRoll*/} from 'react-native'
 import { NavigationTabScreenOptions } from 'react-navigation'
 import { Icon } from 'react-native-elements'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -54,6 +54,7 @@ class ProfileScreen extends PureComponent<Props, State> {
             {this.renderNameSection()}
             {this.renderBioSection()}
             {this.renderLogoutSection()}
+            {this.renderModal()}
       </View>
     )
   }
@@ -64,6 +65,44 @@ class ProfileScreen extends PureComponent<Props, State> {
       {this.renderName()}
       {this.renderNameEdit()}
     </View>
+  }
+
+  private renderModal = () => {
+    return <View>
+       <Modal animationType = {"slide"} transparent = {false}
+          visible = {this.state.modalVisible}>
+          <View style={styles.modal}>
+             <Text style = {styles.titleText}>If You Don't See Your Preferred Name 🙁...</Text>
+             </View>
+             <View style={styles.modal2}>
+               <Text style={styles.SignOfftext}> Jumbosmash pulls your default name from the Tufts White Pages, so we understand that this may not be your preferred name.</Text>
+               <Text></Text>
+               <Text style={styles.SignOfftext}> Please email [INSERT JUMBOSMASH EMAIL HERE] with the title "I would like to change my name". </Text>
+               <Text></Text>
+               <Text style={styles.SignOfftext}>Include your current White Pages name and your preferred name, and our team will change it in 24 hours!</Text>
+               {this.renderSignoff()}
+               <View style={styles.modal}/>
+             <Button
+               onPress = {() => {this.toggleModal(false)}}
+               title="Okay, thanks for letting me know!"
+               color="#841584"
+               accessibilityLabel="Okay, thanks for letting me know."
+             />
+             </View>
+       </Modal>
+    </View>
+  }
+  private renderSignoff = () => {
+    return (
+      <View style={styles.signoff}>
+        <Text style={styles.SignOfftext}>xoxo 💕</Text>
+        <Text style={styles.SignOfftext}>The Jumbosmash Team 🐘</Text>
+      </View>
+    )
+  }
+
+  private toggleModal(visible: boolean) {
+     this.setState({ modalVisible: visible });
   }
 
   private renderBioSection = () => {
@@ -118,10 +157,9 @@ class ProfileScreen extends PureComponent<Props, State> {
         return <View style={[styles.textContainer]}>
               <View style={{flex: 2, flexDirection: 'row'}}>
               <Button
-                onPress={this.props.onLogout} //TODO: CHANGE THIS TO CHANGE NAME.
+                onPress = {() => {this.toggleModal(true)}}
                 title="Edit Name"
                 color="#841584"
-
                 accessibilityLabel="Edit your name!"
               />
               </View>
@@ -184,13 +222,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   typeText:{
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     fontFamily: 'Helvetica',
     color: '#595959',
   },
   bioText: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Helvetica'
+  },
+
+  modal: {
+     flex: 1,
+     alignItems: 'center',
+     backgroundColor: 'white',
+     padding: 20
+  },
+  modal2: {
+     flex: 6,
+     alignItems: 'center',
+     backgroundColor: 'white',
+     padding: 40
+  },
+  SignOfftext: {
+    fontSize: 19,
+    color: '#3f3f3f',
+  },
+  signoff: {
+    marginTop: 20,
   }
 })
