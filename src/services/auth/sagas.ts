@@ -1,4 +1,5 @@
-import { call, put, takeLatest } from 'redux-saga/effects'
+import { call, put, select, takeLatest } from 'redux-saga/effects'
+import { Answers } from 'react-native-fabric'
 import { api, VerifyEmailResponse, RequestVerificationResponse, GetUserInfoResponse } from '../api'
 import {
   AttemptRequestVerificationAction,
@@ -11,6 +12,9 @@ import {
   StoreSessionKeyAction,
 } from './actions'
 import { setCoCReadStatus } from '../coc'
+import { RootState } from '../../redux'
+
+const getEmail = (state: RootState) => state.auth.email
 
 function* handleRequestVerificationSuccess(isNewUser: boolean) {
   const requestVerificationSuccessAction: RequestVerificationSuccessAction = {
@@ -32,9 +36,15 @@ function* attemptRequestVerification(payload: AttemptRequestVerificationAction) 
   try {
     const response: RequestVerificationResponse = yield call(api.requestVerification, payload.credentials)
     yield handleRequestVerificationSuccess(response.new_user)
+
+    // if new user, log signup with Answers
+    if (response.new_user) {
+      Answers.logSignUp('Email', true, { email: payload.credentials.email })
+    }
   } catch (error) {
     yield handleRequestVerificationError(error)
   }
+
 }
 
 function* storeSessionKey(sessionKey: string) {
@@ -61,6 +71,9 @@ function* handleEmailVerificationError(error: Error) {
 }
 
 function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
+
+  let loginSuccess = true
+
   try {
     const response: VerifyEmailResponse = yield call(api.verifyEmail, payload.verificationCode)
     yield storeSessionKey(response.session_key)
@@ -74,9 +87,15 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
 
     // now set the user as 'logged in'
     yield handleEmailVerificationSuccess()
+
   } catch (error) {
+    loginSuccess = false
     yield handleEmailVerificationError(error)
   }
+
+  // log login with Fabric Answers
+  const email = yield select(getEmail)
+  yield call(Answers.logLogin, 'Email', loginSuccess, { email })
 }
 
 export function* authSaga() {
