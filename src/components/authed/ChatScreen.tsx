@@ -1,71 +1,74 @@
 import React, { PureComponent } from 'react'
 import { View, Button, StyleSheet } from 'react-native'
 import { NavigationScreenProps } from 'react-navigation'
-import { GiftedChat } from 'react-native-gifted-chat'; // 0.3.0
+import { Message, GiftedChat } from 'react-native-gifted-chat'
 
 interface OwnProps {
   user: string
 }
 
+interface State {
+  messages: Message[]
+}
+
 type Props = NavigationScreenProps<OwnProps>
 
-class ChatScreen extends PureComponent<Props, {}> {
-    HEADER = 'Chatting with:' + this.props.navigation.state.params.user
-    FIRSTMESSAGE = 'Lemme smash'
-    state = {
-          messages: [],
-      }
+const FIRST_MESSAGE = 'Lemme smash'
 
-      componentWillMount() {
-          this.setState({ messages:  [
-                  {
-                      _id: Math.round(Math.random() * 1000000),
-                      text: this.FIRSTMESSAGE,
-                      createdAt: new Date(),
-                      user: {
-                          _id: 2,
-                          name: this.props.navigation.state.params.user,
-                      },
-                      sent: true,
-                      received: true,
-                  },
-                  {
-                      _id: Math.round(Math.random() * 1000000),
-                      text: this.HEADER,
-                      createdAt: new Date(),
-                      system: true,
-                  },
-              ]})
-      }
+class ChatScreen extends PureComponent<Props, State> {
 
-      onSend(messages = []) {
-          this.setState((previousState) => ({
-              messages: GiftedChat.append(previousState.messages, messages),
-          }))
+    constructor(props: Props) {
+      super(props)
+      this.state = {
+        messages: [],
       }
+    }
 
-      render() {
-          console.log(this.props)
-          return (
-              <View style={[styles.container, styles.center]}>
-                  <Button onPress={() => this.props.navigation.goBack()} title='Go Back'/>
-                  <GiftedChat
-                  messages={this.state.messages}
-                  onSend={(messages) => this.onSend(messages)}
-                  user={{
-                      _id: 1,
-                  }}
-                  parsePatterns={linkStyle => [
-                      {
-                          pattern: /#(\w+)/,
-                          style: { ...linkStyle, color: 'lightgreen' },
-                          onPress: props => alert(`press on ${props}`),
-                      },
-                  ]}
-              />
-              </View>
-          )
-  }
+    componentWillMount() {
+      this.setState({
+        messages:  [
+          {
+            _id: 100,
+            text: FIRST_MESSAGE,
+            createdAt: new Date(),
+            user: {
+              _id: 2,
+              name: this.props.navigation.state.params.user,
+            },
+            sent: true,
+            received: true,
+          },
+          {
+            _id: 101,
+            text: 'Chatting with:' + this.props.navigation.state.params.user,
+            createdAt: new Date(),
+            system: true,
+          },
+        ],
+      })
+    }
+
+    public render() {
+      return (
+        <View style={[styles.container, styles.center]}>
+          <Button onPress={() => this.props.navigation.goBack()} title='Go Back'/>
+          <GiftedChat
+            messages={this.state.messages}
+            onSend={this.onSend}
+            user={{
+              _id: 1,
+              name: 'Max Bernstein',
+            }}
+          />
+        </View>
+      )
+    }
+
+    private onSend = (messages: Message[] = []) => {
+      this.setState((previousState: State) => ({
+          messages: GiftedChat.append(previousState.messages, messages),
+      }))
+    }
 }
 
 export default ChatScreen
