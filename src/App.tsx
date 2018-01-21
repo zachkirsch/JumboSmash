@@ -4,8 +4,9 @@ import { RootState } from './redux'
 import { WelcomeScreen, CodeOfConductScreen, AuthedRouter, ProfileScreen } from './components'
 
 interface StateProps {
-  isLoggedIn: boolean,
+  isLoggedIn: boolean
   codeOfConductAccepted: boolean
+  rehydrated: boolean
 }
 
 type Props = StateProps
@@ -13,8 +14,11 @@ type Props = StateProps
 class App extends PureComponent<Props, {}> {
 
   public render() {
-    if (!this.props.isLoggedIn) {
-      return <ProfileScreen />
+    if (!this.props.rehydrated) {
+      // TODO: replace with loading screen
+      return null /* tslint:disable-line:no-null-keyword */
+    } else if (!this.props.isLoggedIn) {
+      return <WelcomeScreen />
     } else if (!this.props.codeOfConductAccepted) {
       return <CodeOfConductScreen />
     } else {
@@ -28,6 +32,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     return {
         isLoggedIn: state.auth.isLoggedIn,
         codeOfConductAccepted: state.coc.codeOfConductAccepted,
+        rehydrated: state.redux.rehydrated,
     }
 }
 

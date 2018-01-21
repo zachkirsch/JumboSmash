@@ -17,7 +17,7 @@ interface State {
 }
 
 const CODE_LENGTH = 6
-const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash:\/\/verify\/([A-Z0-9]{${CODE_LENGTH}})`)
+const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([A-Z0-9]{${CODE_LENGTH}})`)
 const INITIAL_RESEND_EMAIL_WAIT_TIME = 10 // seconds
 
 class VerifyEmailScreen extends PureComponent<Props, State> {

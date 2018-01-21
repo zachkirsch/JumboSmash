@@ -53,3 +53,5 @@ coverage/
 
 # fabric
 **/fabric.properties
+**/crashlytics-build.properties
+**/com_crashlytics_export_strings.xml
