@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   signoffLeft: {
     margin: 20,
-    alignSelf: 'flex-start'
+    alignSelf: 'flex-start',
     justifyContent: 'flex-start'
   },
     text:{

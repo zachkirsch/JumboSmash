@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
-import { WelcomeScreen, CodeOfConductScreen, AuthedRouter, ProfileScreen } from './components'
+import { WelcomeScreen, CodeOfConductScreen, AuthedRouter } from './components'
 
 interface StateProps {
   isLoggedIn: boolean
