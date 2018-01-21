@@ -13,7 +13,7 @@ class MatchesList extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      userToChat: 'Tony',
+      userToChat: 'Tony Monaco',
     }
   }
 
