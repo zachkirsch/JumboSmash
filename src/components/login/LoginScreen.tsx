@@ -42,6 +42,7 @@ class LoginScreen extends PureComponent<Props, State> {
 
   public render() {
 
+    // default is ' ' so that it's never empty (and so it always takes up space)
     const errorMsg = this.state.inputErrorMessage || this.props.authErrorMessage || ' '
 
     return (

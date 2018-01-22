@@ -129,7 +129,6 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private handleOpenURL = (url: string) => {
-    console.log(url)
     const match = VERIFY_EMAIL_INCOMING_URL_REGEX.exec(url)
     if (!match) {
       this.setState({
