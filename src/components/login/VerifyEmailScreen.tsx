@@ -38,7 +38,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     // listen for verification link
     if (Platform.OS === 'android') {
       Linking.getInitialURL().then(url => {
-        this.handleOpenURL(url)
+        if (url !== null) {
+          this.handleOpenURL(url)
+        }
       })
     } else {
       Linking.addEventListener('url', this.handleOpenURLiOS)
@@ -127,6 +129,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private handleOpenURL = (url: string) => {
+    console.log(url)
     const match = VERIFY_EMAIL_INCOMING_URL_REGEX.exec(url)
     if (!match) {
       this.setState({
