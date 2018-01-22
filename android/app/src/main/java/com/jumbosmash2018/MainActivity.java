@@ -1,4 +1,4 @@
-package com.jumbosmash;
+package com.jumbosmash2018;
 
 import com.facebook.react.ReactActivity;
 import android.os.Bundle;
