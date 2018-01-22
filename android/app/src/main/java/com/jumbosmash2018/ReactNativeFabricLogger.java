@@ -1,4 +1,4 @@
-package com.jumbosmash;
+package com.jumbosmash2018;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
