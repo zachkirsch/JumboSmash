@@ -8,10 +8,11 @@
 				"ios": "react-native run-ios",
 				"android": "react-native run-android",
 				"tsc": "tsc",
-				"build": "npm run clean && npm run tsc --",
+				"build": "npm run clean && npm run copyimages && npm run tsc --",
 				"clean": "rimraf build",
 				"lint": "tslint --project tsconfig.json --config tslint.json",
-				"test": "npm run build && npm run lint && jest --coverage --silent"
+				"test": "npm run build && npm run lint && jest --coverage --silent",
+				"copyimages": "mkdir -p build/img && cp src/img/* build/img"
 		},
 		"dependencies": {
 				"@types/react": "^16.0.25",

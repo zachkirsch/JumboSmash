@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native'
 import { Credentials } from '../../services/auth'
 
 interface OwnProps {
@@ -42,30 +42,52 @@ class LoginScreen extends PureComponent<Props, State> {
 
   public render() {
 
-    const errorMsg = this.state.inputErrorMessage || this.props.authErrorMessage
+    // default is ' ' so that it's never empty (and so it always takes up space)
+    const errorMsg = this.state.inputErrorMessage || this.props.authErrorMessage || ' '
 
     return (
-      <View style={[styles.container, styles.center]}>
-        <View style={styles.errorMessageContainer}>
-          <Text style={styles.errorMessage}>
-            {errorMsg}
-          </Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps='handled'
+        scrollEnabled={false}
+      >
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../img/jumbosmash_logo.png')}
+            style={styles.logo}
+          />
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder='E-mail Address'
-          onChangeText={this.onChangeEmail}
-          value={this.state.credentials.email}
-          autoCapitalize='none'
-          autoCorrect={false}
-          keyboardType={'email-address'}
-          enablesReturnKeyAutomatically={true}
-          onSubmitEditing={this.onSubmitCredentials}
-          returnKeyType={'next'}
-          autoFocus={true}
-        />
-        <Button onPress={this.onSubmitCredentials} title='Get Code'/>
-      </View>
+        <View style={styles.inputContainer}>
+          <View style={styles.errorMessageContainer}>
+            <Text style={styles.errorMessage}>
+              {errorMsg}
+            </Text>
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder='Tufts E-mail Address'
+            onChangeText={this.onChangeEmail}
+            value={this.state.credentials.email}
+            autoCapitalize='none'
+            autoCorrect={false}
+            keyboardType={'email-address'}
+            enablesReturnKeyAutomatically={true}
+            onSubmitEditing={this.onSubmitCredentials}
+            returnKeyType={'next'}
+            autoFocus
+          />
+        </View>
+        <View style={styles.submitContainer}>
+          <TouchableOpacity
+            onPress={this.onSubmitCredentials}
+            style={styles.submitButton}
+          >
+            <Text style={styles.submitButtonText}>
+              {'VERIFY'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     )
   }
 
@@ -116,6 +138,7 @@ class LoginScreen extends PureComponent<Props, State> {
       }
     })
   }
+
 }
 
 export default LoginScreen
@@ -125,15 +148,19 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
   },
-  center: {
-    justifyContent: 'center',
+  logoContainer: {
+    flex: 3,
+    justifyContent: 'flex-end',
   },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    margin: 5,
-    padding: 5,
+  logo: {
+    flex: 0.75,
+    width: undefined,
+    height: undefined,
+    resizeMode: 'contain',
+  },
+  inputContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   errorMessageContainer: {
     alignItems: 'center',
@@ -141,5 +168,28 @@ const styles = StyleSheet.create({
   errorMessage: {
     color: 'red',
     fontWeight: 'bold',
+  },
+  input: {
+    height: 40,
+    borderColor: 'lightgray',
+    borderWidth: 1,
+    marginVertical: 5,
+    marginHorizontal: 40,
+    padding: 5,
+    borderRadius: 5,
+  },
+  submitContainer: {
+    flex: 2,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  submitButton: {
+    backgroundColor: 'lightgray',
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 10,
+  },
+  submitButtonText: {
+    fontSize: 20,
   },
 })

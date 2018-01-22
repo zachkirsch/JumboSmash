@@ -38,7 +38,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     // listen for verification link
     if (Platform.OS === 'android') {
       Linking.getInitialURL().then(url => {
-        this.handleOpenURL(url)
+        if (url !== null) {
+          this.handleOpenURL(url)
+        }
       })
     } else {
       Linking.addEventListener('url', this.handleOpenURLiOS)

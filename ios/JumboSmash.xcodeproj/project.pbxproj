@@ -1371,7 +1371,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.JumboSmash.2017-2018";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jumbosmash2018;
 				PRODUCT_NAME = JumboSmash;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -1398,7 +1398,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.JumboSmash.2017-2018";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jumbosmash2018;
 				PRODUCT_NAME = JumboSmash;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

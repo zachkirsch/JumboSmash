@@ -11,7 +11,6 @@ type Props = NavigationScreenProps<OwnProps>
 class ChatScreen extends PureComponent<Props, {}> {
 
   public render() {
-    console.log(this.props)
     return (
       <View style={[styles.container, styles.center]}>
         <Text>Chatting with: {this.props.navigation.state.params.user}</Text>
