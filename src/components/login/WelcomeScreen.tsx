@@ -1,9 +1,11 @@
 import React, { PureComponent } from 'react'
+import { View, StyleSheet } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { requestVerification, verifyEmail, Credentials } from '../../services/auth'
 import { RootState } from '../../redux'
 import LoginScreen from './LoginScreen'
 import VerifyEmailScreen from './VerifyEmailScreen'
+import EmailUsFooter from './EmailUsFooter'
 
 interface StateProps {
   email: string
@@ -23,7 +25,7 @@ class WelcomeScreen extends PureComponent<Props, {}> {
 
   public render() {
     if (!this.props.validEmail) {
-      return (
+      return this.renderLoginScreen(
         <LoginScreen
           onSubmitCredentials={this.props.requestVerification}
           initialCredentials={{email: this.props.email}}
@@ -31,7 +33,7 @@ class WelcomeScreen extends PureComponent<Props, {}> {
         />
       )
     } else if (!this.props.validVerificationCode) {
-      return (
+      return this.renderLoginScreen(
         <VerifyEmailScreen
           email={this.props.email}
           submitVerificationCode={this.props.verifyEmail}
@@ -42,6 +44,15 @@ class WelcomeScreen extends PureComponent<Props, {}> {
     } else {
       return undefined
     }
+  }
+
+  private renderLoginScreen = (screen: JSX.Element) => {
+    return (
+      <View style={styles.container}>
+        {screen}
+        <EmailUsFooter/>
+      </View>
+    )
   }
 
   private requestResendVerificationCode = () => {
@@ -70,3 +81,9 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(WelcomeScreen)
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+})

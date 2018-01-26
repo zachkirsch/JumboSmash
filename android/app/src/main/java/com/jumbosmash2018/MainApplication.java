@@ -1,4 +1,4 @@
-package com.jumbosmash;
+package com.jumbosmash2018;
 
 import android.app.Application;
 
