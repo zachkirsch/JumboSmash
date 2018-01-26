@@ -8,7 +8,9 @@ interface State {
   isLoggingOut: boolean,
   isReporting: boolean
 }
-
+//TODO: settingsMenu freezes for some reason
+//TODO: logout does nothing
+//TODO:
 class SettingsMenuScreen extends PureComponent<{}, State> {
 
   constructor(props: {}){
@@ -109,8 +111,10 @@ class SettingsMenuScreen extends PureComponent<{}, State> {
     if (name == 'Logout'){
       this.setState({ isLoggingOut: true });
     } else if (name == "Reporting") {
-      this.setState({ isReporting: true});
-    }
+      this.setState({ isReporting: true});}
+    // } else if (name == "Code Of Conduct") {
+    //   
+    // }
 
   }
 }
