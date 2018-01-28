@@ -1,14 +1,24 @@
 import React, { PureComponent } from 'react'
-import { View, Text, TextInput, Button, StyleSheet, Linking, Platform } from 'react-native'
+import { View, Text, Button, StyleSheet, Linking, Platform } from 'react-native'
+import { connect, Dispatch } from 'react-redux'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { RootState } from '../../redux'
+import { verifyEmail, requestVerification, Credentials } from '../../services/auth'
 
 interface OwnProps {
-  email: string
-  submitVerificationCode: (code: string) => void
-  requestResendVerificationCode: () => void
+  credentials: Credentials
+}
+
+interface StateProps {
   authErrorMessage?: string
 }
 
-type Props = OwnProps
+interface DispatchProps {
+  submitVerificationCode: (code: string) => void
+  requestVerification: (credentials: Credentials) => void
+}
+
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 interface State {
   verificationCode: string
@@ -69,9 +79,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     }
 
     let instructions = ''
-    instructions += 'We just "emailed" ' + this.props.email + ' with a link and a code.'
-    instructions += ' Click the link on your phone or put the code in this text box.'
-    instructions += ' Check your email! (i.e. the server logs)'
+    instructions += 'We just emailed ' + this.getEmail() + ' with instructions to get onto JumboSmash.'
 
     return (
       <View style={[styles.container, styles.center]}>
@@ -81,47 +89,17 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
             {this.props.authErrorMessage || this.state.errorMessage}
           </Text>
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder='Code'
-          onChangeText={this.onChangeVerificationCode}
-          value={this.state.verificationCode}
-          keyboardType={'numeric'}
-          maxLength={6}
-          enablesReturnKeyAutomatically={true}
-          onSubmitEditing={this.onSubmitVerificationCode}
-          returnKeyType={'go'}
-          autoFocus={true}
-        />
         <Button
-          onPress={this.onSubmitVerificationCode}
-          title='Login'
-          disabled={this.state.verificationCode.length !== CODE_LENGTH}
-        />
-        <Button
-          onPress={this.onRequestResendCode}
+          onPress={this.requestResendVerificationCode}
           title={resendCodeButtonTitle}
           disabled={this.state.secondsUntilCanResendEmail > 0}
         />
+        <Button
+          onPress={() => this.props.navigation.goBack()}
+          title={'Go Back'}
+        />
       </View>
     )
-  }
-
-  private onChangeVerificationCode = (verificationCode: string) => {
-    this.setState({
-      verificationCode,
-    })
-  }
-
-  private onSubmitVerificationCode = () => {
-    this.props.submitVerificationCode(this.state.verificationCode)
-  }
-
-  private onRequestResendCode = () => {
-    this.props.requestResendVerificationCode()
-    this.setState({
-      secondsUntilCanResendEmail: INITIAL_RESEND_EMAIL_WAIT_TIME,
-    })
   }
 
   private handleOpenURLiOS = (event: {url: string}) => {
@@ -141,9 +119,34 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     }
   }
 
+  private requestResendVerificationCode = () => {
+    const credentials: Credentials = {
+      email: this.getEmail(),
+    }
+    this.props.requestVerification(credentials)
+    this.setState({
+      secondsUntilCanResendEmail: INITIAL_RESEND_EMAIL_WAIT_TIME,
+    })
+  }
+
+  private getEmail = () => this.props.navigation.state.params.credentials.email
+
 }
 
-export default VerifyEmailScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    authErrorMessage: state.auth.errorMessage,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+  return {
+    requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
+    submitVerificationCode: (code: string) => dispatch(verifyEmail(code)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(VerifyEmailScreen)
 
 const styles = StyleSheet.create({
   container: {
@@ -153,13 +156,6 @@ const styles = StyleSheet.create({
   },
   center: {
     justifyContent: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    margin: 5,
-    padding: 5,
   },
   centerText: {
     textAlign: 'center',

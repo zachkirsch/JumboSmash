@@ -1,14 +1,21 @@
 import React, { PureComponent } from 'react'
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native'
-import { Credentials } from '../../services/auth'
+import { connect, Dispatch } from 'react-redux'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { requestVerification, Credentials } from '../../services/auth'
+import { RootState } from '../../redux'
 
-interface OwnProps {
-  onSubmitCredentials: (credentials: Credentials) => void
-  initialCredentials?: Credentials
-  authErrorMessage?: string
+interface StateProps {
+  email: string
+  authErrorMessage: string
 }
 
-type Props = OwnProps
+interface DispatchProps {
+  onSubmitCredentials: (credentials: Credentials) => void
+  initialCredentials?: Credentials
+}
+
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 
 interface State {
   credentials: Credentials,
@@ -29,9 +36,8 @@ class LoginScreen extends PureComponent<Props, State> {
 
   constructor (props: Props) {
     super(props)
-
-    const initialCredentials: Credentials = this.props.initialCredentials || {
-      email: '',
+    const initialCredentials: Credentials = {
+      email: this.props.email || '',
     }
 
     this.state = {
@@ -135,13 +141,27 @@ class LoginScreen extends PureComponent<Props, State> {
     }, () => {
       if (!errorMessage) {
         this.props.onSubmitCredentials(this.state.credentials)
+        this.props.navigation.navigate('VerifyEmailScreen', {credentials: this.state.credentials})
       }
     })
   }
 
 }
 
-export default LoginScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    email: state.auth.email,
+    authErrorMessage: state.auth.errorMessage,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+  return {
+    onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
 
 const styles = StyleSheet.create({
   container: {

@@ -1,8 +1,7 @@
-import { Platform } from 'react-native'
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
-const SERVER = 'http://' + (Platform.OS === 'ios' ? '127.0.0.1' : '10.0.2.2') + ':5000'
+const SERVER = 'https://jumbosmash2018-staging.herokuapp.com/'
 
 type HttpMethod = 'GET' | 'POST'
 
