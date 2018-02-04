@@ -10,6 +10,13 @@
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/@types/react-native-fabric/-/react-native-fabric-0.5.0.tgz#9f957864b2673584fc314644bd98e4f781fa809b"
 
+"@types/react-native-linear-gradient@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@types/react-native-linear-gradient/-/react-native-linear-gradient-2.3.0.tgz#e7ed1e0f9739491430560d4734d55dd2edd6f2f4"
+  dependencies:
+    "@types/react" "*"
+    "@types/react-native" "*"
+
 "@types/react-native-vector-icons@^4.4.2":
   version "4.4.2"
   resolved "https://registry.yarnpkg.com/@types/react-native-vector-icons/-/react-native-vector-icons-4.4.2.tgz#dd6b6a4d9dee7c85e3246f6c67905dbc1faee3d5"
@@ -3401,6 +3408,12 @@ react-native-drawer-layout@1.3.2:
 react-native-fabric@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/react-native-fabric/-/react-native-fabric-0.5.1.tgz#e5eb65c56196355b41f230c14adcc9c4bcf60dda"
+
+react-native-linear-gradient@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/react-native-linear-gradient/-/react-native-linear-gradient-2.4.0.tgz#51d8ea12bb72a59bede9edc87b694b16b64cf435"
+  dependencies:
+    prop-types "^15.5.10"
 
 react-native-tab-view@^0.0.70:
   version "0.0.70"
