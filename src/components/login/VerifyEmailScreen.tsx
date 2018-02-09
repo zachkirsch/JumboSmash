@@ -1,34 +1,41 @@
 import React, { PureComponent } from 'react'
-import { View, Text, Button, StyleSheet, Linking, Platform } from 'react-native'
+import { ScrollView, View, Text, ActivityIndicator, TouchableOpacity, TextInput, StyleSheet, Linking, Platform } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
+import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
+import { default as MaterialIcons } from 'react-native-vector-icons/MaterialIcons'
+import { emailSupport } from './utils'
 import { RootState } from '../../redux'
-import { verifyEmail, requestVerification, Credentials } from '../../services/auth'
+import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } from '../../services/auth'
+import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 
 interface OwnProps {
   credentials: Credentials
 }
 
 interface StateProps {
-  authErrorMessage?: string
+  email: string
+  authError: AuthError
+  loading: boolean
 }
 
 interface DispatchProps {
   submitVerificationCode: (code: string) => void
   requestVerification: (credentials: Credentials) => void
+  clearAuthErrorMessage: () => void
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 interface State {
   verificationCode: string
-  secondsUntilCanResendEmail: number
-  errorMessage: string
+  canRequestResend: boolean
+  requestedResend: boolean
 }
 
 const CODE_LENGTH = 6
 const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([A-Z0-9]{${CODE_LENGTH}})`)
-const INITIAL_RESEND_EMAIL_WAIT_TIME = 10 // seconds
 
 class VerifyEmailScreen extends PureComponent<Props, State> {
 
@@ -38,8 +45,8 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     super(props)
     this.state = {
       verificationCode: '',
-      secondsUntilCanResendEmail: INITIAL_RESEND_EMAIL_WAIT_TIME,
-      errorMessage: '',
+      requestedResend: false,
+      canRequestResend: true,
     }
   }
 
@@ -55,49 +62,154 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     } else {
       Linking.addEventListener('url', this.handleOpenURLiOS)
     }
-
-    // countdown for resend button
-    if (INITIAL_RESEND_EMAIL_WAIT_TIME > 0) {
-      this.resendCodeTimer = setInterval(() => {
-        this.setState({
-          secondsUntilCanResendEmail: this.state.secondsUntilCanResendEmail - 1,
-        })
-      }, 1000)
-    }
   }
 
   public componentWillUnmount() {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
-    clearInterval(this.resendCodeTimer)
+    clearTimeout(this.resendCodeTimer)
+  }
+
+  public componentWillReceiveProps(newProps: Props) {
+    if (this.props.email !== newProps.email) {
+      this.setState({
+        requestedResend: false,
+        canRequestResend: true,
+      })
+    }
   }
 
   public render() {
 
-    let resendCodeButtonTitle = 'Resend Code'
-    if (this.state.secondsUntilCanResendEmail > 0) {
-      resendCodeButtonTitle = 'Resend in ' + this.state.secondsUntilCanResendEmail
+    let renderScreen: () => JSX.Element
+    if (this.props.loading && !this.state.requestedResend) {
+      renderScreen = this.renderLoadingScreen
+    } else if (this.props.authError === AuthError.NO_ERROR || this.props.authError === AuthError.BAD_CODE) {
+      renderScreen = this.renderCheckEmailScreen
+    } else {
+      renderScreen = this.renderErrorScreen
     }
 
-    let instructions = ''
-    instructions += 'We just emailed ' + this.getEmail() + ' with instructions to get onto JumboSmash.'
+    return (
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps='handled'
+        scrollEnabled={false}
+      >
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            onPress={() => this.props.navigation.goBack()}
+          >
+            <Ionicons name='ios-arrow-back' size={30} color='black' />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.contentContainer}>
+          {renderScreen()}
+        </View>
+      </ScrollView>
+    )
+  }
+
+  private renderLoadingScreen = () => (
+    <View style={styles.loadingScreen}>
+      <ActivityIndicator size='large' color='rgb(202, 183, 241)' />
+    </View>
+  )
+
+  private renderErrorScreen = () => {
+
+    let messageToUser: string
+    switch (this.props.authError) {
+      case AuthError.NOT_SENIOR:
+        messageToUser = 'JumboSmash is only open to Tufts seniors. According to our records, '
+        messageToUser += "you don't have senior status."
+        break
+      case AuthError.SERVER_ERROR:
+        messageToUser = "There's been a server error. Please go back and try again."
+        break
+    }
 
     return (
-      <View style={[styles.container, styles.center]}>
-        <View>
-          <Text style={styles.centerText}>{instructions}</Text>
-          <Text style={[styles.centerText, styles.errorMessage]}>
-            {this.props.authErrorMessage || this.state.errorMessage}
+      <View>
+        <View style={styles.errorContentContainer}>
+          <View style={styles.errorIconContainer}>
+            <MaterialIcons name='error-outline' size={75} color='rgb(202, 183, 241)' />
+          </View>
+          <Text style={[styles.text, styles.largeMargin]}>
+            {messageToUser}
           </Text>
         </View>
-        <Button
-          onPress={this.requestResendVerificationCode}
-          title={resendCodeButtonTitle}
-          disabled={this.state.secondsUntilCanResendEmail > 0}
-        />
-        <Button
-          onPress={() => this.props.navigation.goBack()}
-          title={'Go Back'}
-        />
+          <View style={styles.bottomLinkContainer} >
+          {this.props.authError !== AuthError.NOT_SENIOR ? undefined : (
+            <TouchableOpacity
+              onPress={() => emailSupport("I'm a senior... let me into JumboSmash")}
+            >
+              <Text style={styles.bottomLink}>
+                Think you qualify to use JumboSmash?
+              </Text>
+            </TouchableOpacity>
+          )}
+          </View>
+      </View>
+    )
+  }
+
+  private renderCheckEmailScreen = () => {
+    let instructions = ''
+    instructions += 'To start using JumboSmash, tap the '
+    instructions += 'link in the email we just sent to'
+
+    let inputStyle = [styles.input]
+    let underlineColorAndroid
+    if (this.props.authError === AuthError.BAD_CODE) {
+      if (Platform.OS === 'ios') {
+        inputStyle.push(styles.badCode)
+      } else if (Platform.OS === 'android') {
+        underlineColorAndroid = '#A82A2A'
+      }
+    }
+
+    return (
+      <View>
+        <View style={styles.checkEmailContentContainer}>
+          <SimpleLineIcons name='envelope' size={75} color='rgb(202, 183, 241)' />
+          <View style={styles.contentTitleContainer}>
+            <Text style={[styles.text, styles.contentTitle, styles.bold]}>
+              CHECK YOUR EMAIL!
+            </Text>
+          </View>
+          <View style={styles.largeMargin}>
+            <Text style={styles.text}>
+              {instructions}
+            </Text>
+            <Text style={[styles.text, styles.bold]}>
+              {this.props.email}
+            </Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={inputStyle}
+              placeholder='Or enter the verification code'
+              onChangeText={this.onChangeCode}
+              value={this.state.verificationCode}
+              keyboardType={'numeric'}
+              onSubmitEditing={() => this.submitVerificationCode(this.state.verificationCode)}
+              returnKeyType={'go'}
+              maxLength={CODE_LENGTH}
+              underlineColorAndroid={underlineColorAndroid}
+              enablesReturnKeyAutomatically
+            />
+          </View>
+        </View>
+        <View style={styles.bottomLinkContainer} >
+          <TouchableOpacity
+            onPress={this.requestResendVerificationCode}
+            disabled={!this.state.canRequestResend}
+          >
+            <Text style={styles.bottomLink}>
+              Resend Email
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     )
   }
@@ -109,33 +221,49 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   private handleOpenURL = (url: string) => {
     const match = VERIFY_EMAIL_INCOMING_URL_REGEX.exec(url)
     if (!match) {
-      this.setState({
-        errorMessage: 'That is not a valid URL.\nYou can resend the email if you want.',
-        secondsUntilCanResendEmail: 0,
-      })
+      // TODO: alert user
     } else {
       const code = match[1]
-      this.props.submitVerificationCode(code)
+      this.submitVerificationCode(code)
     }
   }
+
+  private onChangeCode = (code: string) => {
+    this.setState({
+      verificationCode: code,
+    })
+    if (code.length === CODE_LENGTH) {
+      this.submitVerificationCode(code)
+    } else if (this.props.authError === AuthError.BAD_CODE) {
+      this.props.clearAuthErrorMessage()
+    }
+  }
+
+  private submitVerificationCode = (code: string) => this.props.submitVerificationCode(code)
 
   private requestResendVerificationCode = () => {
-    const credentials: Credentials = {
-      email: this.getEmail(),
-    }
-    this.props.requestVerification(credentials)
     this.setState({
-      secondsUntilCanResendEmail: INITIAL_RESEND_EMAIL_WAIT_TIME,
+      requestedResend: true,
+      canRequestResend: false,
+    }, () => {
+      const credentials: Credentials = {
+        email: this.props.email,
+      }
+      this.props.requestVerification(credentials)
+      this.resendCodeTimer = setTimeout(() => {
+        this.setState({
+          canRequestResend: true,
+        })
+      }, 1000)
     })
   }
-
-  private getEmail = () => this.props.navigation.state.params.credentials.email
-
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    authErrorMessage: state.auth.errorMessage,
+    authError: getAuthErrorFromMessage(state.auth.errorMessage),
+    loading: state.auth.waitingForVerificationResponse,
+    email: state.auth.email,
   }
 }
 
@@ -143,25 +271,106 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
   return {
     requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
     submitVerificationCode: (code: string) => dispatch(verifyEmail(code)),
+    clearAuthErrorMessage: () => dispatch(clearAuthErrorMessage()),
   }
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(VerifyEmailScreen)
 
 const styles = StyleSheet.create({
+
+  /* generic styles */
+
+  text: {
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '300',
+    fontFamily: 'Avenir',
+  },
+  bold: {
+    fontFamily: 'Avenir-Heavy',
+    fontWeight: '800',
+  },
+  largeMargin: {
+    paddingHorizontal: '15%',
+  },
+
+  /* main containers */
+
   container: {
     flex: 1,
     flexDirection: 'column',
-    padding: 3,
-  },
-  center: {
     justifyContent: 'center',
   },
-  centerText: {
-    textAlign: 'center',
+  headerContainer: {
+    justifyContent: 'flex-end',
+    height: Platform.OS === 'ios' ? 75 : 50, // space for iOS status bar
+    paddingHorizontal: '8%',
   },
-  errorMessage: {
-    color: 'red',
-    fontWeight: 'bold',
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  /* loading screen */
+
+  loadingScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    marginBottom: '20%',
+  },
+
+  /* other screens */
+
+  checkEmailContentContainer: {
+    flex: 3,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  errorContentContainer: {
+    flex: 2,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  errorIconContainer: {
+    marginBottom: 20,
+  },
+  contentTitleContainer: {
+    marginBottom: 10,
+  },
+  contentTitle: {
+    fontSize: 21,
+  },
+  inputContainer: {
+    alignSelf: 'stretch',
+  },
+  input: {
+    shadowColor: 'rgb(238,219,249)',
+    shadowOpacity: 1,
+    shadowRadius: 50,
+    height: 50,
+    marginTop: 50,
+    marginHorizontal: 45,
+    padding: 10,
+    fontSize: 15,
+    fontWeight: '300',
+    fontFamily: 'Avenir',
+  },
+  badCode: {
+    borderWidth: 1,
+    borderColor: '#A82A2A',
+  },
+  bottomLinkContainer: {
+    flex: 1.6,
+    marginBottom: 30,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  bottomLink: {
+    fontSize: 14,
+    fontWeight: '300',
+    fontFamily: 'Avenir',
+    color: 'rgba(74,74,74,0.84)',
   },
 })

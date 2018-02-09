@@ -10,4 +10,5 @@ export interface AuthState {
   validEmail: boolean
   validVerificationCode: boolean
   errorMessage: string
+  waitingForVerificationResponse: boolean
 }

@@ -1,18 +1,21 @@
-import { StyleSheet } from 'react-native'
-import { StackNavigator } from 'react-navigation'
+import { TabNavigator } from 'react-navigation'
 import LoginScreen from './LoginScreen'
 import VerifyEmailScreen from './VerifyEmailScreen'
 
-const styles = StyleSheet.create({
-  stackCard: {
-    backgroundColor: 'white',
+export default TabNavigator({
+  LoginScreen: {
+    screen: LoginScreen,
+    navigationOptions: {
+      tabBarVisible: false,
+    },
   },
-})
-
-export default StackNavigator({
-  LoginScreen: { screen: LoginScreen },
-  VerifyEmailScreen: { screen: VerifyEmailScreen },
+  VerifyEmailScreen: {
+    screen: VerifyEmailScreen,
+    navigationOptions: {
+      tabBarVisible: false,
+    },
+  },
 }, {
-  headerMode: 'none',
-  cardStyle: styles.stackCard,
+  swipeEnabled: false,
+  animationEnabled: true,
 })

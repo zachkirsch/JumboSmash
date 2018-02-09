@@ -10,6 +10,7 @@ export enum AuthActionType {
   VERIFY_EMAIL_SUCCESS = 'VERIFY_EMAIL_SUCCESS',
   VERIFY_EMAIL_FAILURE = 'VERIFY_EMAIL_FAILURE',
   STORE_SESSION_KEY = 'STORE_SESSION_KEY',
+  CLEAR_AUTH_ERROR_MESSAGE = 'CLEAR_AUTH_ERROR_MESSAGE',
   LOGOUT = 'LOGOUT',
   OTHER_ACTION = '__any_other_action_type__',
 }
@@ -48,6 +49,10 @@ export interface StoreSessionKeyAction {
   sessionKey: string
 }
 
+export interface ClearAuthErrorMessageAction {
+  type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGE
+}
+
 export interface LogoutAction {
   type: AuthActionType.LOGOUT
 }
@@ -71,6 +76,7 @@ export type AuthAction =
 | VerifyEmailSuccessAction
 | VerifyEmailFailureAction
 | StoreSessionKeyAction
+| ClearAuthErrorMessageAction
 | LogoutAction
 | OtherAction
 
@@ -87,6 +93,12 @@ export const verifyEmail = (code: string): AttemptVerifyEmailAction => {
   return {
     type: AuthActionType.ATTEMPT_VERIFY_EMAIL,
     verificationCode: code,
+  }
+}
+
+export const clearAuthErrorMessage = (): ClearAuthErrorMessageAction => {
+  return {
+    type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGE,
   }
 }
 

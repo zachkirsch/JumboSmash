@@ -1,8 +1,9 @@
 import React, { PureComponent } from 'react'
-import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Linking } from 'react-native'
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import LinearGradient from 'react-native-linear-gradient'
+import { emailSupport } from './utils'
 import { requestVerification, Credentials } from '../../services/auth'
 import { RootState } from '../../redux'
 
@@ -14,8 +15,6 @@ interface DispatchProps {
   onSubmitCredentials: (credentials: Credentials) => void
   initialCredentials?: Credentials
 }
-
-const JUMBOSMASH_EMAIL = 'help@jumbosmash.com'
 
 type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 
@@ -86,7 +85,6 @@ class LoginScreen extends PureComponent<Props, State> {
               keyboardType={'email-address'}
               onSubmitEditing={this.onSubmitCredentials}
               returnKeyType={'go'}
-              autoFocus
               enablesReturnKeyAutomatically
             />
           </View>
@@ -180,13 +178,13 @@ class LoginScreen extends PureComponent<Props, State> {
       })
     } else {
       this.props.onSubmitCredentials(this.state.credentials)
-      this.props.navigation.navigate('VerifyEmailScreen', {credentials: this.state.credentials})
+      this.props.navigation.navigate('VerifyEmailScreen')
     }
   }
 
   private sendUsEmail = () => {
     const subject = 'I need help with JumboSmash'
-    Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)
+    emailSupport(subject)
   }
 
 }
@@ -226,10 +224,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Avenir',
     lineHeight: 29,
     fontWeight: '300',
+    color: 'black',
   },
   inputContainer: {
     justifyContent: 'center',
-    backgroundColor: 'white',
     flex: 1,
   },
   bold: {
@@ -293,4 +291,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Avenir',
     color: 'rgba(74,74,74,0.84)',
   },
-})
+} )
