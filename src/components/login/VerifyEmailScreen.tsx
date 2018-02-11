@@ -124,6 +124,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         messageToUser += "you don't have senior status."
         break
       case AuthError.SERVER_ERROR:
+      default:
         messageToUser = "There's been a server error. Please go back and try again."
         break
     }
@@ -156,7 +157,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   private renderCheckEmailScreen = () => {
     let instructions = ''
     instructions += 'To start using JumboSmash, tap the '
-    instructions += 'link in the email we just sent to'
+    instructions += 'link in the email we just sent to '
 
     let inputStyle = [styles.input]
     let underlineColorAndroid
@@ -180,9 +181,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
           <View style={styles.largeMargin}>
             <Text style={styles.text}>
               {instructions}
-            </Text>
-            <Text style={[styles.text, styles.bold]}>
-              {this.props.email}
+              <Text style={[styles.text, styles.bold]}>
+                {this.props.email}
+              </Text>
             </Text>
           </View>
           <View style={styles.inputContainer}>
