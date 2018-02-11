@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react'
-import { ScrollView, View, Text, ActivityIndicator, TouchableOpacity, TextInput, StyleSheet, Linking, Platform } from 'react-native'
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Linking,
+  Platform,
+  Keyboard,
+} from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
@@ -11,7 +21,7 @@ import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } 
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 
 interface OwnProps {
-  credentials: Credentials
+  timeOfNavigation?: number
 }
 
 interface StateProps {
@@ -34,6 +44,12 @@ interface State {
   requestedResend: boolean
 }
 
+const INITIAL_STATE: State = {
+  verificationCode: '',
+  requestedResend: false,
+  canRequestResend: true,
+}
+
 const CODE_LENGTH = 6
 const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([A-Z0-9]{${CODE_LENGTH}})`)
 
@@ -43,11 +59,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   constructor (props: Props) {
     super(props)
-    this.state = {
-      verificationCode: '',
-      requestedResend: false,
-      canRequestResend: true,
-    }
+    this.state = INITIAL_STATE
   }
 
   public componentDidMount() {
@@ -70,7 +82,11 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   public componentWillReceiveProps(newProps: Props) {
-    if (this.props.email !== newProps.email) {
+    const getTimeOfNavigation = (props: Props) => props.navigation.state.params.timeOfNavigation
+
+    if (getTimeOfNavigation(this.props) !== getTimeOfNavigation(newProps)) {
+      this.setState(INITIAL_STATE)
+    } else if (this.props.email !== newProps.email) {
       this.setState({
         requestedResend: false,
         canRequestResend: true,
@@ -90,14 +106,10 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     }
 
     return (
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps='handled'
-        scrollEnabled={false}
-      >
+      <View style={styles.container}>
         <View style={styles.headerContainer}>
           <TouchableOpacity
-            onPress={() => this.props.navigation.goBack()}
+            onPress={this.goBack}
           >
             <Ionicons name='ios-arrow-back' size={30} color='black' />
           </TouchableOpacity>
@@ -105,7 +117,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         <View style={styles.contentContainer}>
           {renderScreen()}
         </View>
-      </ScrollView>
+      </View>
     )
   }
 
@@ -156,8 +168,8 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private renderCheckEmailScreen = () => {
     let instructions = ''
-    instructions += 'To start using JumboSmash, tap the '
-    instructions += 'link in the email we just sent to '
+    instructions += 'To start using JumboSmash, type in the '
+    instructions += 'six digit code we just emailed to '
 
     let inputStyle = [styles.input]
     let underlineColorAndroid
@@ -189,7 +201,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
           <View style={styles.inputContainer}>
             <TextInput
               style={inputStyle}
-              placeholder='Or enter the verification code'
+              placeholder='••••••'
               onChangeText={this.onChangeCode}
               value={this.state.verificationCode}
               keyboardType={'numeric'}
@@ -198,6 +210,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
               maxLength={CODE_LENGTH}
               underlineColorAndroid={underlineColorAndroid}
               enablesReturnKeyAutomatically
+              autoFocus
             />
           </View>
         </View>
@@ -257,6 +270,11 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         })
       }, 1000)
     })
+  }
+
+  private goBack = () => {
+    Keyboard.dismiss()
+    this.props.navigation.goBack()
   }
 }
 
@@ -344,6 +362,7 @@ const styles = StyleSheet.create({
     fontSize: 21,
   },
   inputContainer: {
+    alignItems: 'center',
     alignSelf: 'stretch',
   },
   input: {
@@ -352,11 +371,13 @@ const styles = StyleSheet.create({
     shadowRadius: 50,
     height: 50,
     marginTop: 50,
-    marginHorizontal: 45,
+    width: 200,
     padding: 10,
-    fontSize: 15,
+    fontSize: 30,
+    letterSpacing: 100,
     fontWeight: '300',
     fontFamily: 'Avenir',
+    textAlign: 'center',
   },
   badCode: {
     borderWidth: 1,

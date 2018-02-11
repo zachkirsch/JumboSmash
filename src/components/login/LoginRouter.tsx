@@ -18,4 +18,5 @@ export default TabNavigator({
 }, {
   swipeEnabled: false,
   animationEnabled: true,
+  lazy: true,
 })
