@@ -257,12 +257,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Avenir',
   },
   submitContainer: {
-    flex: 1,
+    flex: 1.8,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   submitButtonContainer: {
-    flex: 2,
+    flex: 4,
     justifyContent: 'flex-end',
     marginBottom: 10,
   },

@@ -174,8 +174,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     let inputStyle = [styles.input]
     let underlineColorAndroid
     if (this.props.authError === AuthError.BAD_CODE) {
+      inputStyle.push(styles.badCode)
       if (Platform.OS === 'ios') {
-        inputStyle.push(styles.badCode)
+        inputStyle.push(styles.badCodeIOS)
       } else if (Platform.OS === 'android') {
         underlineColorAndroid = '#A82A2A'
       }
@@ -214,7 +215,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
             />
           </View>
         </View>
-        <View style={styles.bottomLinkContainer} >
+        <View
+          style={[styles.bottomLinkContainer, styles.bottomLinkContainerWithRoomForKeyboard]}
+        >
           <TouchableOpacity
             onPress={this.requestResendVerificationCode}
             disabled={!this.state.canRequestResend}
@@ -360,6 +363,7 @@ const styles = StyleSheet.create({
   },
   contentTitle: {
     fontSize: 21,
+    color: 'black',
   },
   inputContainer: {
     alignItems: 'center',
@@ -370,16 +374,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 50,
     height: 50,
-    marginTop: 50,
     width: 200,
+    marginTop: 10,
     padding: 10,
     fontSize: 30,
     letterSpacing: 100,
     fontWeight: '300',
     fontFamily: 'Avenir',
     textAlign: 'center',
+    color: 'black',
   },
   badCode: {
+    color: '#A82A2A',
+  },
+  badCodeIOS: {
     borderWidth: 1,
     borderColor: '#A82A2A',
   },
@@ -388,6 +396,12 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     justifyContent: 'flex-end',
     alignItems: 'center',
+  },
+  bottomLinkContainerWithRoomForKeyboard: {
+    flex: 2.5,
+    justifyContent: 'flex-start',
+    marginTop: 10,
+    backgroundColor: 'transparent',
   },
   bottomLink: {
     fontSize: 14,
