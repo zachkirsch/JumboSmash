@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react'
-import { View, Button, StyleSheet, FlatList } from 'react-native'
+import { View, StyleSheet, FlatList } from 'react-native'
 import { NavigationScreenProps } from 'react-navigation'
+import MatchesListItem from './MatchesListItem'
 
 type Props = NavigationScreenProps<{}>
 
@@ -27,7 +28,7 @@ class MatchesList extends PureComponent<Props, State> {
                 {key: 'Zach Kirsch'},
                 {key: 'Shanshan Duan'},
                 {key: 'Chris Gregg'},
-            ]
+            ],
         }
     }
 
@@ -61,9 +62,9 @@ class MatchesList extends PureComponent<Props, State> {
 
     private renderItem = (y: x) => {
         return (
-            <Button
-                onPress={() => this.openChatScreen(y.item.key)}
-                title={y.item.key}
+            <MatchesListItem
+              name={y.item.key}
+              onPress={() => this.openChatScreen(y.item.key)}
             />
         )
     }
