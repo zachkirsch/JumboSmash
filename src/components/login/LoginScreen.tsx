@@ -178,9 +178,7 @@ class LoginScreen extends PureComponent<Props, State> {
       })
     } else {
       this.props.onSubmitCredentials(this.state.credentials)
-      this.props.navigation.navigate('VerifyEmailScreen', {
-        timeOfNavigation: Date.now(),
-      })
+      this.props.navigation.navigate('VerifyEmailScreen')
     }
   }
 

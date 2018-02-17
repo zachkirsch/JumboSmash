@@ -4,7 +4,6 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput,
   StyleSheet,
   Linking,
   Platform,
@@ -13,15 +12,14 @@ import {
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
-import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
 import { default as MaterialIcons } from 'react-native-vector-icons/MaterialIcons'
 import { emailSupport } from './utils'
 import { RootState } from '../../redux'
 import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } from '../../services/auth'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
+import CheckEmailScreen from './CheckEmailScreen'
 
 interface OwnProps {
-  timeOfNavigation?: number
 }
 
 interface StateProps {
@@ -39,15 +37,7 @@ interface DispatchProps {
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 interface State {
-  verificationCode: string
-  canRequestResend: boolean
   requestedResend: boolean
-}
-
-const INITIAL_STATE: State = {
-  verificationCode: '',
-  requestedResend: false,
-  canRequestResend: true,
 }
 
 const CODE_LENGTH = 6
@@ -55,15 +45,16 @@ const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/(
 
 class VerifyEmailScreen extends PureComponent<Props, State> {
 
-  private resendCodeTimer: number
+  private checkEmailScreen: CheckEmailScreen
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
-    this.state = INITIAL_STATE
+    this.state = {
+      requestedResend: false,
+    }
   }
 
   public componentDidMount() {
-
     // listen for verification link
     if (Platform.OS === 'android') {
       Linking.getInitialURL().then(url => {
@@ -78,20 +69,6 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   public componentWillUnmount() {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
-    clearTimeout(this.resendCodeTimer)
-  }
-
-  public componentWillReceiveProps(newProps: Props) {
-    const getTimeOfNavigation = (props: Props) => props.navigation.state.params.timeOfNavigation
-
-    if (getTimeOfNavigation(this.props) !== getTimeOfNavigation(newProps)) {
-      this.setState(INITIAL_STATE)
-    } else if (this.props.email !== newProps.email) {
-      this.setState({
-        requestedResend: false,
-        canRequestResend: true,
-      })
-    }
   }
 
   public render() {
@@ -99,10 +76,10 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     let renderScreen: () => JSX.Element
     if (this.props.loading && !this.state.requestedResend) {
       renderScreen = this.renderLoadingScreen
-    } else if (this.props.authError === AuthError.NO_ERROR || this.props.authError === AuthError.BAD_CODE) {
-      renderScreen = this.renderCheckEmailScreen
-    } else {
+    } else if (this.props.authError !== AuthError.NO_ERROR && this.props.authError !== AuthError.BAD_CODE) {
       renderScreen = this.renderErrorScreen
+    } else {
+      renderScreen = this.renderCheckEmailScreen
     }
 
     return (
@@ -166,70 +143,16 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     )
   }
 
-  private renderCheckEmailScreen = () => {
-    let instructions = ''
-    instructions += 'To start using JumboSmash, type in the '
-    instructions += 'six digit code we just emailed to '
-
-    let inputStyle = [styles.input]
-    let underlineColorAndroid
-    if (this.props.authError === AuthError.BAD_CODE) {
-      inputStyle.push(styles.badCode)
-      if (Platform.OS === 'ios') {
-        inputStyle.push(styles.badCodeIOS)
-      } else if (Platform.OS === 'android') {
-        underlineColorAndroid = '#A82A2A'
-      }
-    }
-
-    return (
-      <View>
-        <View style={styles.checkEmailContentContainer}>
-          <SimpleLineIcons name='envelope' size={75} color='rgb(202, 183, 241)' />
-          <View style={styles.contentTitleContainer}>
-            <Text style={[styles.text, styles.contentTitle, styles.bold]}>
-              CHECK YOUR EMAIL!
-            </Text>
-          </View>
-          <View style={styles.largeMargin}>
-            <Text style={styles.text}>
-              {instructions}
-              <Text style={[styles.text, styles.bold]}>
-                {this.props.email}
-              </Text>
-            </Text>
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={inputStyle}
-              placeholder='••••••'
-              onChangeText={this.onChangeCode}
-              value={this.state.verificationCode}
-              keyboardType={'numeric'}
-              onSubmitEditing={() => this.submitVerificationCode(this.state.verificationCode)}
-              returnKeyType={'go'}
-              maxLength={CODE_LENGTH}
-              underlineColorAndroid={underlineColorAndroid}
-              enablesReturnKeyAutomatically
-              autoFocus
-            />
-          </View>
-        </View>
-        <View
-          style={[styles.bottomLinkContainer, styles.bottomLinkContainerWithRoomForKeyboard]}
-        >
-          <TouchableOpacity
-            onPress={this.requestResendVerificationCode}
-            disabled={!this.state.canRequestResend}
-          >
-            <Text style={styles.bottomLink}>
-              Resend Email
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    )
-  }
+  private renderCheckEmailScreen = () => (
+    <CheckEmailScreen
+      email={this.props.email}
+      requestResend={this.requestResend}
+      submitVerificationCode={this.props.submitVerificationCode}
+      authError={this.props.authError}
+      clearAuthErrorMessage={this.props.clearAuthErrorMessage}
+      ref={(ref) => this.checkEmailScreen = ref}
+    />
+  )
 
   private handleOpenURLiOS = (event: {url: string}) => {
     this.handleOpenURL(event.url)
@@ -237,47 +160,33 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private handleOpenURL = (url: string) => {
     const match = VERIFY_EMAIL_INCOMING_URL_REGEX.exec(url)
-    if (!match) {
-      // TODO: alert user
-    } else {
+    if (match) {
       const code = match[1]
-      this.submitVerificationCode(code)
+      this.props.submitVerificationCode(code)
     }
   }
 
-  private onChangeCode = (code: string) => {
-    this.setState({
-      verificationCode: code,
-    })
-    if (code.length === CODE_LENGTH) {
-      this.submitVerificationCode(code)
-    } else if (this.props.authError === AuthError.BAD_CODE) {
-      this.props.clearAuthErrorMessage()
+  private requestResend = () => {
+    const credentials: Credentials = {
+      email: this.props.email,
     }
-  }
-
-  private submitVerificationCode = (code: string) => this.props.submitVerificationCode(code)
-
-  private requestResendVerificationCode = () => {
+    this.props.requestVerification(credentials)
     this.setState({
       requestedResend: true,
-      canRequestResend: false,
-    }, () => {
-      const credentials: Credentials = {
-        email: this.props.email,
-      }
-      this.props.requestVerification(credentials)
-      this.resendCodeTimer = setTimeout(() => {
-        this.setState({
-          canRequestResend: true,
-        })
-      }, 1000)
     })
   }
 
   private goBack = () => {
     Keyboard.dismiss()
     this.props.navigation.goBack()
+    setTimeout(() => {
+      this.setState({
+        requestedResend: false,
+      })
+      if (this.checkEmailScreen) {
+        this.checkEmailScreen.resetState()
+      }
+    }, 500)
   }
 }
 
@@ -300,25 +209,15 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
 export default connect(mapStateToProps, mapDispatchToProps)(VerifyEmailScreen)
 
 const styles = StyleSheet.create({
-
-  /* generic styles */
-
   text: {
     textAlign: 'center',
     fontSize: 15,
     fontWeight: '300',
     fontFamily: 'Avenir',
   },
-  bold: {
-    fontFamily: 'Avenir-Heavy',
-    fontWeight: '800',
-  },
   largeMargin: {
     paddingHorizontal: '15%',
   },
-
-  /* main containers */
-
   container: {
     flex: 1,
     flexDirection: 'column',
@@ -334,21 +233,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  /* loading screen */
-
   loadingScreen: {
     flex: 1,
     justifyContent: 'center',
     marginBottom: '20%',
-  },
-
-  /* other screens */
-
-  checkEmailContentContainer: {
-    flex: 3,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
   },
   errorContentContainer: {
     flex: 2,
@@ -358,50 +246,11 @@ const styles = StyleSheet.create({
   errorIconContainer: {
     marginBottom: 20,
   },
-  contentTitleContainer: {
-    marginBottom: 10,
-  },
-  contentTitle: {
-    fontSize: 21,
-    color: 'black',
-  },
-  inputContainer: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-  },
-  input: {
-    shadowColor: 'rgb(238,219,249)',
-    shadowOpacity: 1,
-    shadowRadius: 50,
-    height: 50,
-    width: 200,
-    marginTop: 10,
-    padding: 10,
-    fontSize: 30,
-    letterSpacing: 100,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
-    textAlign: 'center',
-    color: 'black',
-  },
-  badCode: {
-    color: '#A82A2A',
-  },
-  badCodeIOS: {
-    borderWidth: 1,
-    borderColor: '#A82A2A',
-  },
   bottomLinkContainer: {
     flex: 1.6,
     marginBottom: 30,
     justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  bottomLinkContainerWithRoomForKeyboard: {
-    flex: 2.5,
-    justifyContent: 'flex-start',
-    marginTop: 10,
-    backgroundColor: 'transparent',
   },
   bottomLink: {
     fontSize: 14,
