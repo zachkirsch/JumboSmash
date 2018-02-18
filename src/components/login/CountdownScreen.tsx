@@ -2,30 +2,75 @@ import React, { PureComponent } from 'react'
 import {
     Text,
     View,
+    Image,
     StyleSheet,
     } from 'react-native'
 
-    const DEFAULT_BG_COLOR = '#FAB913';
-    const DEFAULT_TIME_TXT_COLOR = '#000';
-    const DEFAULT_DIGIT_TXT_COLOR = '#000';
+    const DEFAULT_BG_COLOR = '#ABCCED'
+    const DEFAULT_TIME_TXT_COLOR = '#000'
+    const DEFAULT_DIGIT_TXT_COLOR = '#FFF'
 
-class CountdownScreen extends PureComponent<{}, {}> {
+interface State {
+      sec: number,
+      min: number,
+      hr: number,
+      days: number,
+}
 
- // componentDidMount() {
- //   // if (CountdownScreen.propTypes.onFinish) {
- //   //   this.onFinish = _.once(CountdownScreen.propTypes.onFinish);
- //   // } - uncertain what this does...
- //   this.timer = setInterval(this.updateTimer, 1000);
- // }
- //
- // componentWillUnmount() {
- //   clearInterval(this.timer);
- // }
+class CountdownScreen extends PureComponent<{}, State> {
 
+ private CountDownClock: number
+
+ constructor(props: {}) {
+   super(props)
+   const {days, hours, minutes, seconds} = this.getTimeLeft()
+   this.state = {
+      days: days,
+      hr: hours,
+      min: minutes,
+      sec: seconds,
+   }
+ }
+
+ public componentDidMount() {
+   if ((this.state.days + this.state.hr + this.state.min + this.state.sec) > 0){
+     this.CountDownClock = setInterval(() => {
+       this.renderCountDown()
+     }, 1000)
+   }
+ }
+
+ public render() {
+
+   return (
+     <View style={styles.Centercontainer}>
+     <View style={styles.Centercontainer}>
+     </View>
+         <View style={styles.logoContainer}>
+           <Image
+             source={require('../../img/jumbosmash_logo.png')}
+             style={styles.logo}
+           />
+         </View>
+          
+          <View>
+            {this.renderCountDown()}
+          </View>
+            <View style={styles.Centercontainer}>
+          <View style={styles.doubleDigitCont}>
+          <Text style={styles.TitleText}>LEFT UNTIL</Text>
+        <Text style={styles.TitleText}>LAUNCH</Text>
+          </View>
+          </View>
+          <View style={styles.Centercontainer}></View>
+     </View>
+
+   )
+ }
  private renderDigit = (d: number) => {
      const digitBgColor = DEFAULT_BG_COLOR
      const digitTxtColor = DEFAULT_DIGIT_TXT_COLOR
-     const size = 15
+     const size = 30
      return (
        <View style={[
          styles.digitCont,
@@ -35,15 +80,15 @@ class CountdownScreen extends PureComponent<{}, {}> {
          <Text style={[
            styles.digitTxt,
            {fontSize: size},
-           {color: digitTxtColor}
+           {color: digitTxtColor},
          ]}>
            {d}
          </Text>
        </View>
-     );
-   };
+     )
+   }
 
-   renderDoubleDigits = (label: string, digits: number) => {
+   private renderDoubleDigits = (label: string, digits: number) => {
      const timeTxtColor = DEFAULT_TIME_TXT_COLOR
      const size = 15
      return (
@@ -59,39 +104,62 @@ class CountdownScreen extends PureComponent<{}, {}> {
            {label}
          </Text>
        </View>
-     );
-   };
-
+     )
+   }
+//TODO: CHECK THIS MATH OMG OR FIX IT TO SOMETHING NOT HACKED TOGETHER.
    private getTimeLeft = () => {
-   const until = 700;
+   const now: Date = new Date()
+   const release: Date = new Date(2018, 5, 11, 22, 30, 0)
+   let seconds = (release.getSeconds() - now.getSeconds())
+   let minutes = (release.getMinutes() - now.getMinutes())
+   let hours = (release.getHours() - now.getHours())
+   let days = 0
+   let currentMonth = now.getMonth()
+   for (var i = currentMonth; i < release.getMonth(); i++){
+     if (i == 2) { days = days + 28}
+     if (i == 3) { days = days + 31}
+     if (i == 4) { days = days + 30}
+     if (i == 5) { days = days + 11}
+   }
+   days = days - now.getDate() + release.getDate()
+
+   //const hours = (release.)
+   if (seconds < 0){
+    seconds = (60 + seconds)
+    minutes = minutes - 1
+   }
+   if (minutes < 0){
+     minutes = (60 + minutes)
+     hours = hours - 1
+   } if (hours < 0){
+     hours = 24 + hours
+     days = days - 1
+   }
+
    return {
-     seconds: +until % 60,
-     minutes: +until / 60 % 60,
-     hours: +(+until / (60 * 60)) % 24,
-     days: +(until / (60 * 60 * 24)),
-   };
- };
+    days: days,
+    hours: hours,
+    minutes: minutes,
+    seconds: seconds,
+   }
+ }
 
    private renderCountDown = () => {
-     // const {until} = this.state;
-     const {days, hours, minutes, seconds} = this.getTimeLeft();
-    // const Component = this.props.onPress ? TouchableOpacity : View;
+     const {days, hours, minutes, seconds} = this.getTimeLeft()
+     this.setState({
+        days: days,
+        hr: hours,
+        min: minutes,
+        sec: seconds,
+     })
      return (
-       <View style={styles.timeCont}>
-         {this.renderDoubleDigits('Days', days)}
-         {this.renderDoubleDigits('Hours', hours)}
-         {this.renderDoubleDigits('Minutes', minutes)}
-         {this.renderDoubleDigits('Seconds', seconds)}
-       </View>
-     );
-   };
-
-   public render() {
-     return (
-       <View>
-         {this.renderCountDown()}
-       </View>
-     );
+         <View style={styles.timeCont}>
+           {this.renderDoubleDigits('Days', this.state.days)}
+           {this.renderDoubleDigits('Hours', this.state.hr)}
+           {this.renderDoubleDigits('Minutes', this.state.min)}
+           {this.renderDoubleDigits('Seconds', this.state.sec)}
+         </View>
+     )
    }
 
 }
@@ -99,9 +167,10 @@ class CountdownScreen extends PureComponent<{}, {}> {
 export default CountdownScreen
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
+  Centercontainer: {
+     flexDirection: 'column',
+     justifyContent: 'center',
+     flex: 2,
   },
   logoContainer: {
     flex: 3,
@@ -132,12 +201,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
-  submitButton: {
-    backgroundColor: 'lightgray',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 10,
-  },
   submitButtonText: {
     fontSize: 20,
   },
@@ -156,7 +219,6 @@ const styles = StyleSheet.create({
    alignItems: 'center',
  },
  digitCont: {
-
    borderRadius: 5,
    marginHorizontal: 2,
    alignItems: 'center',
@@ -169,5 +231,19 @@ const styles = StyleSheet.create({
  digitTxt: {
    color: 'white',
    fontWeight: 'bold',
+ },
+ logo: {
+   flex: 1,
+   width: undefined,
+   height: undefined,
+   resizeMode: 'contain',
+   marginBottom: 40,
+ },
+ TitleText: {
+   fontWeight: 'bold',
+   fontSize: 40,
+   marginTop: 0,
+   color: '#ABCCED',
+
  },
 })
