@@ -4,7 +4,7 @@ import { AuthState } from './types'
 const initialState: AuthState = {
   isLoggedIn: false,
   isNewUser: true,
-  email: 'maxwell.bernstein@tufts.edu',
+  email: 'zachary.kirsch@tufts.edu',
   sessionKey: '',
   errorMessage: '',
   validEmail: false,

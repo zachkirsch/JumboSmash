@@ -1,7 +1,9 @@
 import React, { PureComponent } from 'react'
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Platform } from 'react-native'
+import { View, KeyboardAvoidingView, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native'
 import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
+import { JSText, JSTextInput, TextInputRef, scale } from '../generic'
+import EmailUsFooter from './EmailUsFooter'
 
 interface Props {
   email: string
@@ -26,6 +28,7 @@ const INITIAL_STATE: State = {
 class CheckEmailScreen extends PureComponent<Props, State> {
 
   private resendCodeTimer: number
+  private textInputRef: TextInputRef
 
   constructor (props: Props) {
     super(props)
@@ -42,8 +45,15 @@ class CheckEmailScreen extends PureComponent<Props, State> {
 
   public resetState = () => {
     this.setState(INITIAL_STATE)
-    clearInterval(this.resendCodeTimer)
   }
+
+  public focusTextInput = () => {
+    if (this.textInputRef) {
+      this.textInputRef.focus()
+    }
+  }
+
+  public textInputIsFocused = () => this.textInputRef && this.textInputRef.isFocused()
 
   public render() {
     let instructions = ''
@@ -67,57 +77,69 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     }
 
     const resendEmailButtonDisabled = this.state.secondsUntilCanResendEmail > 0
-    const bottomLinkStyle = [styles.bottomLink]
+    const resendLinkStyle = []
     if (resendEmailButtonDisabled) {
-      bottomLinkStyle.push(styles.bottomLinkDisabled)
+      resendLinkStyle.push(styles.resendLinkDisabled)
     }
 
     return (
-      <View>
-        <View style={styles.checkEmailContentContainer}>
-          <SimpleLineIcons name='envelope' size={75} color='rgb(202, 183, 241)' />
-          <View style={styles.contentTitleContainer}>
-            <Text style={[styles.text, styles.contentTitle, styles.bold]}>
-              CHECK YOUR EMAIL!
-            </Text>
+      <ScrollView
+        keyboardShouldPersistTaps='handled'
+        scrollEnabled={false}
+        contentContainerStyle={{flex: 1}}
+      >
+        <View style={{height: 75}} />
+        <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
+          <View style={styles.messageContainer}>
+            <SimpleLineIcons name='envelope' size={scale(50)} color='rgba(172,203,238,0.6)' />
+            <View style={styles.contentTitleContainer}>
+              <JSText bold fontSize={18} style={[styles.text, styles.contentTitle]}>
+                CHECK YOUR EMAIL!
+              </JSText>
+            </View>
           </View>
-          <View style={styles.largeMargin}>
-            <Text style={styles.text}>
+          <View style={styles.instructionsContainer}>
+            <JSText style={styles.text}>
               {instructions}
-              <Text style={[styles.text, styles.bold]}>
+              <JSText bold style={[styles.text]}>
                 {this.props.email}
-              </Text>
-            </Text>
+              </JSText>
+            </JSText>
           </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={inputStyle}
-              placeholder='••••••'
-              onChangeText={this.onChangeCode}
-              value={this.state.verificationCode}
-              keyboardType={'numeric'}
-              onSubmitEditing={() => this.submitVerificationCode(this.state.verificationCode)}
-              returnKeyType={'go'}
-              maxLength={CODE_LENGTH}
-              underlineColorAndroid={underlineColorAndroid}
-              autoFocus
-              enablesReturnKeyAutomatically
-            />
+          <View style={styles.codeContainer}>
+            <View style={styles.inputContainer}>
+              <JSTextInput
+                style={inputStyle}
+                onChangeText={this.onChangeCode}
+                value={this.state.verificationCode}
+                placeholder='••••••'
+                keyboardType={'numeric'}
+                onSubmitEditing={() => this.submitVerificationCode(this.state.verificationCode)}
+                returnKeyType={'go'}
+                maxLength={CODE_LENGTH}
+                underlineColorAndroid={underlineColorAndroid}
+                enablesReturnKeyAutomatically
+                textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
+                fontSize={30}
+              />
+            </View>
+            <View
+              style={styles.resendLinkContainer}
+            >
+              <TouchableOpacity
+                onPress={this.requestResendVerificationCode}
+                disabled={resendEmailButtonDisabled}
+              >
+                <JSText fontSize={14} style={resendLinkStyle}>
+                  {resendEmailTitle}
+                </JSText>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-        <View
-          style={[styles.bottomLinkContainer, styles.bottomLinkContainerWithRoomForKeyboard]}
-        >
-          <TouchableOpacity
-            onPress={this.requestResendVerificationCode}
-            disabled={resendEmailButtonDisabled}
-          >
-            <Text style={bottomLinkStyle}>
-              {resendEmailTitle}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        </KeyboardAvoidingView>
+        <View style={{height: 100}} />
+        <EmailUsFooter />
+      </ScrollView>
     )
   }
 
@@ -147,10 +169,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     }
     this.resendCodeTimer = setInterval(() => {
       const secondsUntilCanResendEmail = this.state.secondsUntilCanResendEmail
-      if (secondsUntilCanResendEmail === 0) {
-        clearInterval(this.resendCodeTimer)
-        this.resendCodeTimer = undefined
-      } else {
+      if (secondsUntilCanResendEmail > 0) {
         this.setState({
           secondsUntilCanResendEmail: secondsUntilCanResendEmail - 1,
         })
@@ -164,27 +183,25 @@ export default CheckEmailScreen
 const styles = StyleSheet.create({
   text: {
     textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
   },
-  bold: {
-    fontFamily: 'Avenir-Heavy',
-    fontWeight: '800',
+  container: {
+    flex: 1,
+    justifyContent: 'space-around',
   },
-  largeMargin: {
+  messageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  instructionsContainer: {
     paddingHorizontal: '15%',
   },
-  checkEmailContentContainer: {
-    flex: 3,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+  codeContainer: {
+    justifyContent: 'flex-start',
   },
   contentTitleContainer: {
     marginBottom: 10,
   },
   contentTitle: {
-    fontSize: 21,
     color: 'black',
   },
   inputContainer: {
@@ -192,46 +209,34 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   input: {
-    shadowColor: 'rgb(238,219,249)',
-    shadowOpacity: 1,
-    shadowRadius: 50,
-    height: 50,
     width: 200,
     marginTop: 10,
-    padding: 10,
-    fontSize: 30,
+    marginBottom: 0,
+    paddingVertical: 5,
     letterSpacing: 100,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
-    textAlign: 'center',
     color: 'black',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   badCode: {
     color: '#A82A2A',
   },
   badCodeIOS: {
-    borderWidth: 1,
     borderColor: '#A82A2A',
   },
-  bottomLinkContainer: {
-    flex: 1.6,
-    marginBottom: 30,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  bottomLinkContainerWithRoomForKeyboard: {
-    flex: 2.5,
+  resendLinkContainer: {
     justifyContent: 'flex-start',
+    alignItems: 'center',
     marginTop: 10,
+    marginBottom: 30,
     backgroundColor: 'transparent',
   },
-  bottomLink: {
-    fontSize: 14,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
-    color: 'black',
-  },
-  bottomLinkDisabled: {
+  resendLinkDisabled: {
     color: 'rgba(74,74,74,0.84)',
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
   },
 })

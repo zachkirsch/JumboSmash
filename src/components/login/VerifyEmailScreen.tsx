@@ -1,13 +1,11 @@
 import React, { PureComponent } from 'react'
 import {
   View,
-  Text,
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
   Linking,
   Platform,
-  Keyboard,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
@@ -18,8 +16,10 @@ import { RootState } from '../../redux'
 import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } from '../../services/auth'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 import CheckEmailScreen from './CheckEmailScreen'
+import { JSText, scale } from '../generic'
 
 interface OwnProps {
+  focusKeyboardOnLoginScreen?: () => void
 }
 
 interface StateProps {
@@ -55,6 +55,25 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   public componentDidMount() {
+    this.props.navigation.addListener(
+      'willFocus',
+      () => {
+        this.props.clearAuthErrorMessage()
+      }
+    )
+
+    this.props.navigation.addListener(
+      'didBlur',
+      () => {
+        this.setState({
+          requestedResend: false,
+        })
+        if (this.checkEmailScreen) {
+          this.checkEmailScreen.resetState()
+        }
+      }
+    )
+
     // listen for verification link
     if (Platform.OS === 'android') {
       Linking.getInitialURL().then(url => {
@@ -84,15 +103,15 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.container}>
+        <View style={styles.contentContainer}>
+          {renderScreen()}
+        </View>
         <View style={styles.headerContainer}>
           <TouchableOpacity
             onPress={this.goBack}
           >
-            <Ionicons name='ios-arrow-back' size={30} color='black' />
+            <Ionicons name='ios-arrow-back' size={scale(30)} color='black' />
           </TouchableOpacity>
-        </View>
-        <View style={styles.contentContainer}>
-          {renderScreen()}
         </View>
       </View>
     )
@@ -100,7 +119,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private renderLoadingScreen = () => (
     <View style={styles.loadingScreen}>
-      <ActivityIndicator size='large' color='rgb(202, 183, 241)' />
+      <ActivityIndicator size='large' color='rgba(172,203,238,0.6)' />
     </View>
   )
 
@@ -118,27 +137,32 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         break
     }
 
+    let bottomSection: JSX.Element = undefined
+    if (this.props.authError === AuthError.NOT_SENIOR) {
+      bottomSection = (
+        <TouchableOpacity
+          onPress={() => emailSupport("I'm a senior... let me into JumboSmash")}
+        >
+          <JSText fontSize={14}>
+            Think you qualify to use JumboSmash?
+          </JSText>
+        </TouchableOpacity>
+      )
+    }
+
     return (
       <View>
         <View style={styles.errorContentContainer}>
           <View style={styles.errorIconContainer}>
-            <MaterialIcons name='error-outline' size={75} color='rgb(202, 183, 241)' />
+            <MaterialIcons name='error-outline' size={75} color='rgba(172,203,238,0.6)' />
           </View>
-          <Text style={[styles.text, styles.largeMargin]}>
+          <JSText style={[styles.text, styles.largeMargin]}>
             {messageToUser}
-          </Text>
+          </JSText>
         </View>
-          <View style={styles.bottomLinkContainer} >
-          {this.props.authError !== AuthError.NOT_SENIOR ? undefined : (
-            <TouchableOpacity
-              onPress={() => emailSupport("I'm a senior... let me into JumboSmash")}
-            >
-              <Text style={styles.bottomLink}>
-                Think you qualify to use JumboSmash?
-              </Text>
-            </TouchableOpacity>
-          )}
-          </View>
+        <View style={styles.bottomSection}>
+          {bottomSection}
+        </View>
       </View>
     )
   }
@@ -177,16 +201,14 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private goBack = () => {
-    Keyboard.dismiss()
+    if (this.checkEmailScreen && this.checkEmailScreen.textInputIsFocused()) {
+      this.getOwnProps().focusKeyboardOnLoginScreen()
+    }
     this.props.navigation.goBack()
-    setTimeout(() => {
-      this.setState({
-        requestedResend: false,
-      })
-      if (this.checkEmailScreen) {
-        this.checkEmailScreen.resetState()
-      }
-    }, 500)
+  }
+
+  private getOwnProps = (): OwnProps => {
+    return this.props.navigation.state.params || {}
   }
 }
 
@@ -211,9 +233,6 @@ export default connect(mapStateToProps, mapDispatchToProps)(VerifyEmailScreen)
 const styles = StyleSheet.create({
   text: {
     textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
   },
   largeMargin: {
     paddingHorizontal: '15%',
@@ -224,9 +243,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerContainer: {
-    justifyContent: 'flex-end',
-    height: Platform.OS === 'ios' ? 75 : 50, // space for iOS status bar
-    paddingHorizontal: '8%',
+   position: 'absolute',
+   top: Platform.OS === 'ios' ? 35 : 20, // space for iOS status bar
+   left: 20,
   },
   contentContainer: {
     flex: 1,
@@ -246,16 +265,10 @@ const styles = StyleSheet.create({
   errorIconContainer: {
     marginBottom: 20,
   },
-  bottomLinkContainer: {
+  bottomSection: {
     flex: 1.6,
     marginBottom: 30,
     justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  bottomLink: {
-    fontSize: 14,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
-    color: 'rgba(74,74,74,0.84)',
   },
 })

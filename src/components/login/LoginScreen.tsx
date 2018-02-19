@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react'
-import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
+import { ScrollView, View, KeyboardAvoidingView, StyleSheet, Platform } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import LinearGradient from 'react-native-linear-gradient'
-import { emailSupport } from './utils'
 import { requestVerification, Credentials } from '../../services/auth'
 import { RootState } from '../../redux'
+import { JSButton, JSText, JSTextInput, TextInputRef } from '../generic'
+import EmailUsFooter from './EmailUsFooter'
 
 interface StateProps {
   email: string
@@ -21,6 +21,7 @@ type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 interface State {
   credentials: Credentials,
   inputErrorMessage: string
+  showTextInputPlaceholder: boolean
 }
 
 enum EmailInputError {
@@ -38,6 +39,8 @@ const PARTIAL_TUFTS_EMAIL_REGEX = /^([^@]*|.*@|.*@t|.*@tu|.*@tuf|.*@tuft|.*@tuft
 
 class LoginScreen extends PureComponent<Props, State> {
 
+  private textInputRef: TextInputRef
+
   constructor (props: Props) {
     super(props)
     const initialCredentials: Credentials = {
@@ -47,6 +50,7 @@ class LoginScreen extends PureComponent<Props, State> {
     this.state = {
       credentials: initialCredentials,
       inputErrorMessage: '',
+      showTextInputPlaceholder: true,
     }
   }
 
@@ -61,23 +65,21 @@ class LoginScreen extends PureComponent<Props, State> {
         keyboardShouldPersistTaps='handled'
         scrollEnabled={false}
       >
-        <View style={styles.headerContainer} />
-        <View style={styles.mainContainer} >
+        <KeyboardAvoidingView behavior='padding' style={styles.mainContainer} >
           <View style={styles.messageContainer}>
-            <Text style={[styles.message, styles.bold]}>CLASS OF 2018</Text>
-            <Text style={styles.message}>IT'S TIME</Text>
-            <Text style={styles.message}>FOR</Text>
-            <Text style={styles.message}>SMASHING.</Text>
+            <JSText fontSize={21} bold style={styles.message}>CLASS OF 2018</JSText>
+            <JSText fontSize={21} style={styles.message}>IT'S TIME</JSText>
+            <JSText fontSize={21} style={styles.message}>FOR</JSText>
+            <JSText fontSize={21} style={styles.message}>SMASHING.</JSText>
           </View>
           <View style={styles.inputContainer}>
             <View style={styles.errorMessageContainer}>
-              <Text style={styles.errorMessage}>
+              <JSText style={styles.errorMessage}>
                 {errorMsg}
-              </Text>
+              </JSText>
             </View>
-            <TextInput
-              style={styles.input}
-              placeholder='Tufts E-mail Address'
+            <JSTextInput
+              placeholder={'Tufts E-mail Address'}
               onChangeText={this.onChangeEmail}
               value={this.state.credentials.email}
               autoCapitalize='none'
@@ -86,36 +88,16 @@ class LoginScreen extends PureComponent<Props, State> {
               onSubmitEditing={this.onSubmitCredentials}
               returnKeyType={'go'}
               enablesReturnKeyAutomatically
+              selectTextOnFocus
+              textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
             />
           </View>
-        </View>
+        </KeyboardAvoidingView>
         <View style={styles.submitContainer}>
           <View style={styles.submitButtonContainer}>
-            <LinearGradient
-              colors={['rgb(243,239,254)', 'rgb(224,213,249)']}
-              start={{x: 0, y: 1}} end={{x: 1, y: 1}}
-              locations={[0.5, 1]}
-              style={styles.linearGradient}
-            >
-              <TouchableOpacity
-                onPress={this.onSubmitCredentials}
-                style={styles.submitButton}
-              >
-                <Text style={styles.submitButtonText}>
-                  Verify
-                </Text>
-              </TouchableOpacity>
-            </LinearGradient>
+            <JSButton onPress={this.onSubmitCredentials} label='Log In' />
           </View>
-          <View style={styles.emailUsContainer}>
-            <TouchableOpacity
-              onPress={this.sendUsEmail}
-            >
-              <Text style={styles.emailUsText}>
-                Got a question? Email us.
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <EmailUsFooter />
         </View>
       </ScrollView>
     )
@@ -177,14 +159,13 @@ class LoginScreen extends PureComponent<Props, State> {
         inputErrorMessage: errorMessage,
       })
     } else {
-      this.props.onSubmitCredentials(this.state.credentials)
-      this.props.navigation.navigate('VerifyEmailScreen')
+      this.props.onSubmitCredentials({
+        email: this.state.credentials.email.toLowerCase(),
+      })
+      this.props.navigation.navigate('VerifyEmailScreen', {
+        focusKeyboardOnLoginScreen: () => this.textInputRef && this.textInputRef.focus(),
+      })
     }
-  }
-
-  private sendUsEmail = () => {
-    const subject = 'I need help with JumboSmash'
-    emailSupport(subject)
   }
 
 }
@@ -206,12 +187,9 @@ export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
-  },
-  headerContainer: {
-    flex: 0.9,
   },
   mainContainer: {
+    marginTop: 100,
     flex: 2,
   },
   messageContainer: {
@@ -220,39 +198,20 @@ const styles = StyleSheet.create({
     marginLeft: '10%',
   },
   message: {
-    fontSize: 21,
-    fontFamily: 'Avenir',
     lineHeight: 29,
-    fontWeight: '300',
     color: 'black',
   },
   inputContainer: {
     justifyContent: 'center',
     flex: 1,
   },
-  bold: {
-    fontFamily: 'Avenir-Heavy',
-    fontWeight: '800',
-  },
   errorMessageContainer: {
     alignItems: 'center',
+    marginBottom: Platform.OS === 'ios' ? 5 : -5,
   },
   errorMessage: {
     color: 'red',
     fontWeight: '500',
-    fontFamily: 'Avenir',
-  },
-  input: {
-    shadowColor: 'rgb(238,219,249)',
-    shadowOpacity: 1,
-    shadowRadius: 50,
-    height: 50,
-    marginVertical: 5,
-    marginHorizontal: 45,
-    padding: 10,
-    fontSize: 15,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
   },
   submitContainer: {
     flex: 1.8,
@@ -264,31 +223,4 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginBottom: 10,
   },
-  submitButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 60,
-  },
-  submitButtonText: {
-    fontSize: 14,
-    lineHeight: 19,
-    backgroundColor: 'transparent',
-    fontFamily: 'Avenir',
-    marginVertical: 5,
-    color: '#4A4A4A',
-  },
-  linearGradient: {
-    borderRadius: 21,
-  },
-  emailUsContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
-  },
-  emailUsText: {
-    fontSize: 14,
-    lineHeight: 14,
-    padding: 10,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
-    color: 'rgba(74,74,74,0.84)',
-  },
-} )
+})
