@@ -1,46 +1,46 @@
 import React, { PureComponent } from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Linking } from 'react-native'
+import { View, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native'
+import { emailSupport } from './utils'
+import { JSText } from '../generic'
 
-const JUMBOSMASH_EMAIL = 'help@jumbosmash.com'
+interface Props {
+  emailSubject?: string
+  label?: string
+  containerStyle?: ViewStyle
+}
 
-class EmailUsFooter extends PureComponent<{}, {}> {
+class EmailUsFooter extends PureComponent<Props, {}> {
 
-  render() {
+  public render() {
     return (
-      <View style={styles.emailUsContainer}>
+      <View style={[styles.emailUsContainer, this.props.containerStyle]}>
         <TouchableOpacity
           onPress={this.sendUsEmail}
         >
-          <Text>
-            <Text>
-              {'Got a question? '}
-            </Text>
-            <Text style={styles.emailUsText}>
-              {'Email us.'}
-            </Text>
-          </Text>
+          <JSText style={styles.emailUsText}>
+            {this.props.label || 'Got a question? Email us.'}
+          </JSText>
         </TouchableOpacity>
       </View>
     )
   }
 
   private sendUsEmail = () => {
-    const subject = 'I need help with JumboSmash'
-    Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)
+    const subject = this.props.emailSubject || 'I need help with JumboSmash'
+    emailSupport(subject)
   }
-
 }
 
 export default EmailUsFooter
 
 const styles = StyleSheet.create({
   emailUsContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
     marginBottom: 10,
   },
   emailUsText: {
-    textDecorationLine: 'underline',
+    fontSize: 14,
+    lineHeight: 14,
+    padding: 10,
+    textAlign: 'center',
   },
 })
