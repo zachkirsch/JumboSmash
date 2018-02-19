@@ -4,6 +4,8 @@ import { emailSupport } from './utils'
 import { JSText } from '../generic'
 
 interface Props {
+  emailSubject?: string
+  label?: string
   containerStyle?: ViewStyle
 }
 
@@ -16,7 +18,7 @@ class EmailUsFooter extends PureComponent<Props, {}> {
           onPress={this.sendUsEmail}
         >
           <JSText style={styles.emailUsText}>
-            Got a question? Email us.
+            {this.props.label || 'Got a question? Email us.'}
           </JSText>
         </TouchableOpacity>
       </View>
@@ -24,7 +26,7 @@ class EmailUsFooter extends PureComponent<Props, {}> {
   }
 
   private sendUsEmail = () => {
-    const subject = 'I need help with JumboSmash'
+    const subject = this.props.emailSubject || 'I need help with JumboSmash'
     emailSupport(subject)
   }
 }
@@ -33,12 +35,12 @@ export default EmailUsFooter
 
 const styles = StyleSheet.create({
   emailUsContainer: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    marginBottom: 10,
   },
   emailUsText: {
     fontSize: 14,
     lineHeight: 14,
     padding: 10,
+    textAlign: 'center',
   },
 })

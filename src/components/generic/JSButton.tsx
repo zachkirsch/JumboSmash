@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'React'
+import React, { PureComponent } from 'react'
 import { TouchableOpacity, TouchableOpacityProperties, StyleSheet } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import JSText from './JSText'

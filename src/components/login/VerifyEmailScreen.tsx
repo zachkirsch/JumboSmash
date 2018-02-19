@@ -11,11 +11,11 @@ import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
 import { default as MaterialIcons } from 'react-native-vector-icons/MaterialIcons'
-import { emailSupport } from './utils'
 import { RootState } from '../../redux'
 import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } from '../../services/auth'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 import CheckEmailScreen from './CheckEmailScreen'
+import EmailUsFooter from './EmailUsFooter'
 import { JSText, scale } from '../generic'
 
 interface OwnProps {
@@ -140,13 +140,10 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     let bottomSection: JSX.Element = undefined
     if (this.props.authError === AuthError.NOT_SENIOR) {
       bottomSection = (
-        <TouchableOpacity
-          onPress={() => emailSupport("I'm a senior... let me into JumboSmash")}
-        >
-          <JSText fontSize={14}>
-            Think you qualify to use JumboSmash?
-          </JSText>
-        </TouchableOpacity>
+        <EmailUsFooter
+          emailSubject="I'm a senior... let me into JumboSmash"
+          label='Think you qualify to use JumboSmash?'
+        />
       )
     }
 
@@ -160,9 +157,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
             {messageToUser}
           </JSText>
         </View>
-        <View style={styles.bottomSection}>
-          {bottomSection}
-        </View>
+        {bottomSection}
       </View>
     )
   }
@@ -259,7 +254,7 @@ const styles = StyleSheet.create({
   },
   errorContentContainer: {
     flex: 2,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   errorIconContainer: {

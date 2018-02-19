@@ -86,9 +86,9 @@ class CheckEmailScreen extends PureComponent<Props, State> {
       <ScrollView
         keyboardShouldPersistTaps='handled'
         scrollEnabled={false}
-        contentContainerStyle={{flex: 1}}
+        contentContainerStyle={styles.wrapper}
       >
-        <View style={{height: 75}} />
+        <View style={styles.header} />
         <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
           <View style={styles.messageContainer}>
             <SimpleLineIcons name='envelope' size={scale(50)} color='rgba(172,203,238,0.6)' />
@@ -123,9 +123,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 fontSize={30}
               />
             </View>
-            <View
-              style={styles.resendLinkContainer}
-            >
+            <View style={styles.resendLinkContainer} >
               <TouchableOpacity
                 onPress={this.requestResendVerificationCode}
                 disabled={resendEmailButtonDisabled}
@@ -137,7 +135,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
             </View>
           </View>
         </KeyboardAvoidingView>
-        <View style={{height: 100}} />
+        <View style={styles.footer} />
         <EmailUsFooter />
       </ScrollView>
     )
@@ -184,9 +182,18 @@ const styles = StyleSheet.create({
   text: {
     textAlign: 'center',
   },
+  wrapper: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     justifyContent: 'space-around',
+  },
+  header: {
+    height: 75,
+  },
+  footer: {
+    height: 100,
   },
   messageContainer: {
     justifyContent: 'center',
