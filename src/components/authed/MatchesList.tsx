@@ -5,16 +5,22 @@ import MatchesListItem from './MatchesListItem'
 
 type Props = NavigationScreenProps<{}>
 
-interface User {
-  key: string
+interface Chat {
+  id: number,
+  time: number,
+  isSender: boolean,
+  read: boolean,
+  text: string,
 }
 
-interface x {
-  item: User
+interface User {
+  name: string,
+  profilePic: string,
+  messages: Chat[],
 }
 
 interface State {
-  userToChat: User[]
+  usersToChat: User[]
 }
 
 class MatchesList extends PureComponent<Props, State> {
@@ -22,21 +28,93 @@ class MatchesList extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props)
         this.state = {
-            userToChat: [
-                {key: 'Tony Monaco'},
-                {key: 'Yuki Zaninovich'},
-                {key: 'Zach Kirsch'},
-                {key: 'Shanshan Duan'},
-                {key: 'Chris Gregg'},
-            ],
-        }
+          usersToChat: [
+            {
+              name: 'Greg Aloupis',
+              profilePic: 'http://www.cs.tufts.edu/people/faculty/images/GregAloupis.png',
+              messages: [
+                {
+                  id: 1,
+                  time: Date.now(),
+                  isSender: true,
+                  read: true,
+                  text: 'ok!'
+                },
+                {
+                  id: 2,
+                  time: Date.now(),
+                  isSender: false,
+                  read: true,
+                  text: 'Lemme smashhhhhh'
+                }
+              ]
+
+            },
+            {
+              name: 'Zach Kirsch',
+              profilePic: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+              messages: [
+                {
+                  id: 3,
+                  time: Date.now(),
+                  isSender: false,
+                  read: false,
+                  text: 'Sliding into those DMs'
+                }
+              ]
+
+            },
+            {
+              name: 'Jeff Bezos',
+              profilePic: 'http://mblogthumb3.phinf.naver.net/20160823_162/banddi95_14719406421210hOJW_JPEG/%B0%A1%C0%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
+              messages: [
+                {
+                  id: 4,
+                  time: Date.now(),
+                  isSender: false,
+                  read: true,
+                  text: 'What do you think about Whole Foods?'
+                }
+              ]
+
+            },
+            {
+              name: 'Mewtwo',
+              profilePic: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
+              messages: [
+                {
+                  id: 5,
+                  time: Date.now(),
+                  isSender: false,
+                  read: false,
+                  text: 'I see now that the circumstances of one\'s birth are irrelevant. It is what you do with the gift of life that determines who you are.'
+                }
+              ]
+
+            },
+            {
+              name: 'Bane',
+              profilePic: 'http://www.fitzness.com/blog/wp-content/uploads/Tom-Hardy-Bane-Head-Shot.jpeg',
+              messages: [
+                {
+                  id: 6,
+                  time: Date.now(),
+                  isSender: false,
+                  read: false,
+                  text: 'Crashing this plane with no survivors'
+                }
+              ]
+
+            },
+        ]
+      }
     }
 
     public render() {
         return (
             <View style={[styles.container]}>
                 <FlatList
-                    data={this.state.userToChat}
+                    data={this.state.usersToChat}
                     renderItem={this.renderItem}
                 />
                 {/*<TextInput*/}
@@ -56,15 +134,18 @@ class MatchesList extends PureComponent<Props, State> {
     //     })
     // }
 
-    private openChatScreen(userToChat: string) {
-        this.props.navigation.navigate('Chat', {user: userToChat})
+    private openChatScreen = (user: User) => {
+        this.props.navigation.navigate('Chat', {name: user.name, profilePic: user.profilePic, messages: user.messages})
     }
 
-    private renderItem = (y: x) => {
+    private renderItem = ({item}: {item: User}) => {
         return (
             <MatchesListItem
-              name={y.item.key}
-              onPress={() => this.openChatScreen(y.item.key)}
+              name={item.name}
+              onPress={() => this.openChatScreen(item)}
+              lastMessage={item.messages[0].text}
+              messageRead={item.messages[0].read}
+              profilePic={item.profilePic}
             />
         )
     }
