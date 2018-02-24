@@ -25,7 +25,8 @@ interface OwnProps {
 interface StateProps {
   email: string
   authError: AuthError
-  loading: boolean
+  waitingForRequestVerificationResponse: boolean
+  waitingForVerificationResponse: boolean
 }
 
 interface DispatchProps {
@@ -93,7 +94,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   public render() {
 
     let renderScreen: () => JSX.Element
-    if (this.props.loading && !this.state.requestedResend) {
+    if (this.props.waitingForRequestVerificationResponse && !this.state.requestedResend) {
       renderScreen = this.renderLoadingScreen
     } else if (this.props.authError !== AuthError.NO_ERROR && this.props.authError !== AuthError.BAD_CODE) {
       renderScreen = this.renderErrorScreen
@@ -170,6 +171,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       authError={this.props.authError}
       clearAuthErrorMessage={this.props.clearAuthErrorMessage}
       ref={(ref) => this.checkEmailScreen = ref}
+      waitingForVerificationResponse={this.props.waitingForRequestVerificationResponse}
     />
   )
 
@@ -210,7 +212,8 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     authError: getAuthErrorFromMessage(state.auth.errorMessage),
-    loading: state.auth.waitingForVerificationResponse,
+    waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
+    waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
     email: state.auth.email,
   }
 }

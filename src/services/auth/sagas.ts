@@ -1,6 +1,6 @@
 import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { Answers } from 'react-native-fabric'
-import { api, VerifyEmailResponse, RequestVerificationResponse, GetUserInfoResponse } from '../api'
+import { api, VerifyEmailResponse, RequestVerificationResponse, MeResponse } from '../api'
 import {
   AttemptRequestVerificationAction,
   AttemptVerifyEmailAction,
@@ -10,7 +10,9 @@ import {
   VerifyEmailSuccessAction,
   VerifyEmailFailureAction,
   StoreSessionKeyAction,
+  LogoutAction,
 } from './actions'
+import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { setCoCReadStatus } from '../coc'
 import { RootState } from '../../redux'
 
@@ -82,11 +84,14 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
      * before setting the user as 'logged in', update what he/she has done so far
      * (e.g. accepted CoC, seen tutorial)
      */
-    const userInfo: GetUserInfoResponse = yield call(api.getUserInfo)
+    const userInfo: MeResponse = yield call(api.me)
     yield put(setCoCReadStatus(userInfo.accepted_coc))
 
     // now set the user as 'logged in'
     yield handleEmailVerificationSuccess()
+
+    // connect to firebase
+    yield put(attemptConnectToFirebase(userInfo.firebase_token))
 
   } catch (error) {
     loginSuccess = false
@@ -98,7 +103,12 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
   yield call(Answers.logLogin, 'Email', loginSuccess, { email })
 }
 
+function* logout(_: LogoutAction) {
+  yield put(logoutFirebase())
+}
+
 export function* authSaga() {
   yield takeLatest(AuthActionType.ATTEMPT_REQUEST_VERIFICATION, attemptRequestVerification)
   yield takeLatest(AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
+  yield takeLatest(AuthActionType.LOGOUT, logout)
 }

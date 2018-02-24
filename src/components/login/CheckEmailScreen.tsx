@@ -9,6 +9,7 @@ interface Props {
   email: string
   requestResend: () => void
   submitVerificationCode: (code: string) => void
+  waitingForVerificationResponse: boolean
   authError: AuthError
   clearAuthErrorMessage: () => void
 }

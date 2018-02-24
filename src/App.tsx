@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react'
+import { View, StatusBar, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
 import { LoginRouter, CodeOfConductScreen, AuthedRouter } from './components'
@@ -7,6 +8,7 @@ interface StateProps {
   isLoggedIn: boolean
   codeOfConductAccepted: boolean
   rehydrated: boolean
+  networkRequestInProgress: boolean
 }
 
 type Props = StateProps
@@ -14,6 +16,17 @@ type Props = StateProps
 class App extends PureComponent<Props, {}> {
 
   public render() {
+    return (
+      <View style={styles.container}>
+        <StatusBar
+            networkActivityIndicatorVisible={this.props.networkRequestInProgress}
+          />
+        {this.renderScreen()}
+      </View>
+    )
+  }
+
+  private renderScreen() {
     if (!this.props.rehydrated) {
       // TODO: replace with loading screen
       return null /* tslint:disable-line:no-null-keyword */
@@ -25,7 +38,6 @@ class App extends PureComponent<Props, {}> {
       return <AuthedRouter />
     }
   }
-
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
@@ -33,7 +45,16 @@ const mapStateToProps = (state: RootState): StateProps => {
         isLoggedIn: state.auth.isLoggedIn,
         codeOfConductAccepted: state.coc.codeOfConductAccepted,
         rehydrated: state.redux.rehydrated,
+        networkRequestInProgress: state.auth.waitingForRequestVerificationResponse ||
+                                  state.auth.waitingForVerificationResponse ||
+                                  state.firebase.loading,
     }
 }
 
 export default connect(mapStateToProps)(App)
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+})

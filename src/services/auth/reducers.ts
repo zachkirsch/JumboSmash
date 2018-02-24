@@ -9,6 +9,7 @@ const initialState: AuthState = {
   errorMessage: '',
   validEmail: false,
   validVerificationCode: false,
+  waitingForRequestVerificationResponse: false,
   waitingForVerificationResponse: false,
 }
 
@@ -19,7 +20,8 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...state,
         email: action.credentials.email,
-        waitingForVerificationResponse: true,
+        waitingForRequestVerificationResponse: true,
+        errorMessage: '',
       }
 
     case AuthActionType.REQUEST_VERIFICATION_SUCCESS:
@@ -28,7 +30,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         isNewUser: action.isNewUser,
         validEmail: true,
         errorMessage: '',
-        waitingForVerificationResponse: false,
+        waitingForRequestVerificationResponse: false,
       }
 
     case AuthActionType.REQUEST_VERIFICATION_FAILURE:
@@ -36,7 +38,14 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         ...state,
         validEmail: false,
         errorMessage: action.errorMessage,
-        waitingForVerificationResponse: false,
+        waitingForRequestVerificationResponse: false,
+      }
+
+    case AuthActionType.ATTEMPT_VERIFY_EMAIL:
+      return {
+        ...state,
+        errorMessage: '',
+        waitingForVerificationResponse: true,
       }
 
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
@@ -45,6 +54,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         validVerificationCode: true,
         isLoggedIn: true,
         errorMessage: '',
+        waitingForVerificationResponse: false,
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
@@ -52,6 +62,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         ...state,
         validVerificationCode: false,
         errorMessage: action.errorMessage,
+        waitingForVerificationResponse: false,
       }
 
     case AuthActionType.STORE_SESSION_KEY:
