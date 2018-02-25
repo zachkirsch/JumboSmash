@@ -64,53 +64,80 @@ class ProfileEditScreen extends PureComponent<{}, State> {
         {this.renderPhotos()}
         <View style={styles.container}></View>
         {this.renderBio()}
-
-        <View style={styles.bio}>
-          <View style={styles.bioItem}>
-              <JSText>Reacts Received </JSText>
-                <View style={styles.reactRow}>
-                    <View>
-                        <JSText>❤️</JSText>
-                        <JSText>{this.state.react1}</JSText>
-                    </View>
-                    <View style={{flex:1}}></View>
-                    <View>
-                        <JSText>🔥</JSText>
-                        <JSText>{this.state.react2}</JSText>
-                    </View>
-                    <View>
-                        <JSText>😂</JSText>
-                        <JSText>{this.state.react3}</JSText>
-                    </View>
-                    <View>
-                        <JSText>😮</JSText>
-                        <JSText>{this.state.react4}</JSText>
-                    </View>
-                    <View>
-                        <JSText>🐘</JSText>
-                        <JSText>{this.state.react5}</JSText>
-                    </View>
-                    <View>
-                        <JSText>🎓</JSText>
-                        <JSText>{this.state.react6}</JSText>
-                    </View>
-                    <View>
-                        <JSText>🎓</JSText>
-                        <JSText>{this.state.react6}</JSText>
-                    </View>
-                    <View>
-                    <Image
-                      source={require('../img/tonymonaco.png')}
-                      style={styles.small}
-                    />
-                        <JSText>{this.state.react6}</JSText>
-                    </View>
-                </View>
-          </View>
-        </View>
+        {this.renderTags()}
+        {this.renderReacts()}
         {this.renderButtons()}
       </ScrollView>
     )
+  }
+
+  private renderTags(){
+    return <View style={styles.bio}>
+    <View style={styles.bioItem}>
+        <JSText onPress={() => alert("hello, put edit tags here")}>Tags </JSText>
+          {this.renderAllTags()}
+    </View>
+    </View>
+  }
+
+  private renderAllTags(){
+      //TODO: actually find the person's tags.
+      return <View style={styles.reactRow}>
+            <Text style={styles.tags}>Halligan Life</Text>
+            <Text>, </Text>
+            <Text style={styles.tags}>Downhill</Text>
+            <Text>, </Text>
+            <Text style={styles.tags}>KindleVan</Text>
+      </View>
+  }
+  private renderReacts(){
+    return <View style={styles.bio}>
+      <View style={styles.bioItem}>
+          <JSText>Reacts Received </JSText>
+            <View style={styles.reactRow}>
+                <View style={styles.reactRow}>
+                    <Text style={styles.reacts}>❤️</Text>
+                    <Text style={styles.reactNum}>x{this.state.react1}</Text>
+                </View>
+                <View style={styles.reactRow}>
+                    <Text style={styles.reacts}>🔥</Text>
+                    <Text style={styles.reactNum}>x{this.state.react2}</Text>
+                </View>
+                <View style={styles.reactRow}>
+                    <Text style={styles.reacts}>😂</Text>
+                    <Text style={styles.reactNum}>x{this.state.react3}</Text>
+                </View>
+                <View style={styles.reactRow}>
+                    <Text style={styles.reacts}>😮</Text>
+                    <Text style={styles.reactNum}>x{this.state.react4}</Text>
+                </View>
+              </View>
+              <View style={styles.reactRow}>
+                <View style={styles.reactRow}>
+                    <Text style={styles.reacts}>🐘</Text>
+                    <Text style={styles.reactNum}>x{this.state.react5}</Text>
+                </View>
+                <View style={styles.reactRow}>
+                  <Image
+                    source={require('../../img/tonymonaco.png')}
+                    style={styles.smallReact}
+                  />
+                    <Text style={styles.reactNum}>x{this.state.react6}</Text>
+                </View>
+                <View style={styles.reactRow}>
+                  <Image
+                    source={require('../../img/goBos.png')}
+                    style={styles.smallReact}
+                  />
+                    <Text style={styles.reactNum}>x{this.state.react7}</Text>
+                </View>
+                <View style={styles.reactRow}>
+                    <Text style={styles.reacts}>🎓</Text>
+                    <Text style={styles.reactNum}>x{this.state.react8}</Text>
+                </View>
+            </View>
+      </View>
+    </View>
   }
   private renderButtons(){
     return <View>
@@ -217,7 +244,8 @@ const styles = StyleSheet.create({
   reactRow:{
     flex:1,
     flexDirection: 'row',
-    justifyContent: 'space-around'
+    justifyContent: 'space-around',
+    paddingVertical: 10,
   },
   paddingcontainer: {
     flex: 0.3,
@@ -236,6 +264,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(172, 203, 238, 0.75)',
     borderBottomWidth: 1
   },
+  reacts:{
+    fontSize: 25,
+    fontWeight: '300'
+  },
+  reactNum:{
+    paddingVertical: 10,
+    fontSize: 10,
+    fontWeight: '300'
+  },
   photos: {
     flex: 1,
     flexDirection: 'row',
@@ -247,9 +284,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
-  }, small: {
-      width: 10,
-      height: 10
+  },
+  smallReact: {
+      paddingVertical: 15,
+      width: 25,
+      height: 25,
+      justifyContent: 'center'
   },
   photo:{
     flex: 3,
@@ -262,6 +302,10 @@ const styles = StyleSheet.create({
     borderColor: '#d6d7da',
     alignItems: 'baseline',
     justifyContent: 'flex-end'
+  },
+  tags:{
+    textDecorationLine: 'underline'
+
   },
   smallPhotoColumn :{
     flex: 1.2,
