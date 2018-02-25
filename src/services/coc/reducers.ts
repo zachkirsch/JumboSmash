@@ -18,7 +18,7 @@ export function cocReducer(state = initialState, action: CoCAction): CoCState {
 
     case CoCActionType.ACCEPT_COC_FAILURE:
       return {
-        codeOfConductAccepted: false,
+        ...state,
         errorMessage: action.errorMessage,
       }
 

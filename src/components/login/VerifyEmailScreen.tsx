@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Linking,
   Platform,
+  Keyboard,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
@@ -25,7 +26,10 @@ interface OwnProps {
 interface StateProps {
   email: string
   authError: AuthError
-  loading: boolean
+  waitingForRequestVerificationResponse: boolean
+  waitingForVerificationResponse: boolean
+  isLoggedIn: boolean
+  acceptedCoC: boolean
 }
 
 interface DispatchProps {
@@ -90,10 +94,17 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
   }
 
+  public componentWillReceiveProps(newProps: Props) {
+    if (newProps.isLoggedIn && !newProps.acceptedCoC) {
+      Keyboard.dismiss()
+      this.props.navigation.navigate('CodeOfConductScreen')
+    }
+  }
+
   public render() {
 
     let renderScreen: () => JSX.Element
-    if (this.props.loading && !this.state.requestedResend) {
+    if (this.props.waitingForRequestVerificationResponse && !this.state.requestedResend) {
       renderScreen = this.renderLoadingScreen
     } else if (this.props.authError !== AuthError.NO_ERROR && this.props.authError !== AuthError.BAD_CODE) {
       renderScreen = this.renderErrorScreen
@@ -170,6 +181,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       authError={this.props.authError}
       clearAuthErrorMessage={this.props.clearAuthErrorMessage}
       ref={(ref) => this.checkEmailScreen = ref}
+      waitingForVerificationResponse={this.props.waitingForRequestVerificationResponse}
     />
   )
 
@@ -210,8 +222,11 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     authError: getAuthErrorFromMessage(state.auth.errorMessage),
-    loading: state.auth.waitingForVerificationResponse,
+    waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
+    waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
     email: state.auth.email,
+    acceptedCoC: state.coc.codeOfConductAccepted,
+    isLoggedIn: !!state.auth.sessionKey,
   }
 }
 
@@ -239,7 +254,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
    position: 'absolute',
-   top: Platform.OS === 'ios' ? 35 : 20, // space for iOS status bar
+   top: Platform.OS === 'ios' ? 40 : 20, // space for iOS status bar
    left: 20,
   },
   contentContainer: {
