@@ -5,6 +5,7 @@ import { NavigationTabScreenOptions } from 'react-navigation'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { logout } from '../../services/auth'
 import { RootState } from '../../redux'
+import { JSButton } from '../generic/index';
 
 interface DispatchProps {
   onLogout: () => void
@@ -28,6 +29,7 @@ class ProfileScreen extends PureComponent<Props, {}> {
     return (
       <View style={[styles.container, styles.center]}>
         <Text>This is the profile screen</Text>
+          <JSButton label="Edit Profile" onPress={() => this.props.navigation.navigate('ProfileEditScreen')}></JSButton>
         <Button onPress={this.props.onLogout} title='Logout'/>
       </View>
     )

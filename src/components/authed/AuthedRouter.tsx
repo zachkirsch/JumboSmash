@@ -7,9 +7,12 @@ import {
 } from 'react-navigation'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import ProfileScreen from './ProfileScreen'
+import ProfileEditScreen from './ProfileEditScreen'
+import SettingsScreen from './SettingsScreen'
 import SwipeScreen from './SwipeScreen'
 import MatchesList from './MatchesList'
 import ChatScreen from './ChatScreen'
+import CodeOfConductScreen from '../login/CodeOfConductScreen'
 
 const styles = StyleSheet.create({
   iOSTabBar: {
@@ -23,6 +26,10 @@ const styles = StyleSheet.create({
 const matchesScreen = StackNavigator({
   MatchesList: { screen: MatchesList },
   Chat: { screen: ChatScreen },
+  ProfileScreen: {screen: ProfileScreen},
+  ProfileEditScreen: {screen: ProfileEditScreen},
+  SettingsScreen: {screen: SettingsScreen},
+  CodeOfConductScreen: {screen: CodeOfConductScreen},
 }, {
   headerMode: 'none',
   cardStyle: styles.stackCard,

@@ -1,10 +1,10 @@
-export { default as JSTextInput, TextInputRef, JSButton, JSText } from '../generic'
 import React, { PureComponent } from 'react'
-import { View, Text, TextInput, Image, StyleSheet, ScrollView } from 'react-native'
-import { NavigationTabScreenOptions } from 'react-navigation'
+import { View, Text, TextInput,TouchableOpacity, Image, StyleSheet, ScrollView, Modal } from 'react-native'
+import { NavigationTabScreenOptions, NavigationScreenProps } from 'react-navigation'
 import { Icon } from 'react-native-elements'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { JSButton, JSText, JSTextInput } from '../generic/index';
+import {emailSupport} from '../login/utils'
 
 interface State {
   bio: string,
@@ -21,15 +21,14 @@ interface State {
   react5: number,
   react6: number,
   react7: number,
-  react8: number
+  react8: number,
 }
 
-const ALPHA_REGEX = /^[A-Za-z -']+$/
+type Props = NavigationScreenProps<{}>
 
+class ProfileEditScreen extends PureComponent<Props, State> {
 
-class ProfileEditScreen extends PureComponent<{}, State> {
-
-  constructor(props: {}) {
+  constructor(props: Props) {
      super(props);
      this.state = { bio: "I haven't set up a bio yet." +'\n' +"I have 240 characters to do so!",
                     avatarSource: 'none',
@@ -48,15 +47,7 @@ class ProfileEditScreen extends PureComponent<{}, State> {
                     react8: 10,
                   };
    }
-  static navigationOptions: NavigationTabScreenOptions = {
-    tabBarIcon: ({focused, tintColor}) => (
-      <Ionicons
-        name={focused ? 'ios-person' : 'ios-person-outline'}
-        size={35}
-        style={{ color: tintColor }}
-      />
-    ),
-  }
+
 
   render() {
     return (
@@ -70,6 +61,7 @@ class ProfileEditScreen extends PureComponent<{}, State> {
       </ScrollView>
     )
   }
+
 
   private renderTags(){
     return <View style={styles.bio}>
@@ -145,10 +137,10 @@ class ProfileEditScreen extends PureComponent<{}, State> {
       <JSButton label="View Profile"></JSButton>
     </View>
     <View style={styles.buttons}>
-      <JSButton label="Settings"></JSButton>
+      <JSButton label="Settings" onPress={() => this.props.navigation.navigate('SettingsScreen')}></JSButton>
     </View>
     <View style={styles.buttons}>
-      <JSButton label="Help/Feedback"></JSButton>
+      <JSButton label="Help/Feedback" onPress = {() => emailSupport("HELP/FEEDBACK")} ></JSButton>
     </View>
     </View>
   }
@@ -167,15 +159,17 @@ class ProfileEditScreen extends PureComponent<{}, State> {
         <TextInput maxLength={30}
         style= {styles.bioInput}
         placeholder={this.state.major}
-        onChangeText={(name) => this.setState({name})}
+        onChangeText={(major) => this.setState({major})}
         />
     </View>
       <View style={styles.bioItem}>
           <JSText>About Me </JSText>
       </View>
-      <JSTextInput placeholder="240 character max"></JSTextInput>
+      <JSTextInput placeholder="240 character max"
+        onChangeText={(bio) => this.setState({bio})}></JSTextInput>
   </View>
   }
+
   private renderPhotos(){
     //TODO: pull from db, put in each photo - for the first empty view, renderAddButton, then populate the other views
     return <View style={[styles.overall]}>
@@ -227,6 +221,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  titleText:{
+  marginTop: 3,
+  fontSize: 24,
+  fontWeight: 'bold',
+  fontFamily: 'Avenir',
+  color: '#3f3f3f',
+  alignItems: 'center',
+},
+SignOfftext: {
+   fontSize: 19,
+   color: '#3f3f3f',
+   alignSelf: 'flex-start'
+ },
+ signoff: {
+  marginTop: 30
+},
+signoffLeft: {
+  margin: 20,
+  alignSelf: 'flex-start',
+  justifyContent: 'flex-start'
+},
+left: {
+   flex: 1,
+   flexDirection: 'column',
+   borderBottomColor: '#D3D3D3',
+   borderBottomWidth: 1,
+   alignItems: 'center',
+   padding: 1
+ },
+ modal: {
+   alignItems: 'center',
+   padding: 5
+ },
   bio: {
     flex: 8,
     justifyContent: 'space-between',
@@ -241,6 +268,12 @@ const styles = StyleSheet.create({
     flex:10,
     height: 380,
   },
+  text:{
+  fontSize: 22,
+  fontWeight: 'bold',
+  fontFamily: 'Helvetica',
+  color: '#595959',
+},
   reactRow:{
     flex:1,
     flexDirection: 'row',
@@ -305,7 +338,6 @@ const styles = StyleSheet.create({
   },
   tags:{
     textDecorationLine: 'underline'
-
   },
   smallPhotoColumn :{
     flex: 1.2,
@@ -322,27 +354,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  mainContainer: {
-    marginTop: 100,
-    flex: 2,
-  },
-  messageContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    marginLeft: '10%',
-  },
-  message: {
-    lineHeight: 29,
-    color: 'black',
-  },
-  inputContainer: {
-    justifyContent: 'center',
-    flex: 1,
-  },
-  errorMessage: {
-    color: 'red',
-    fontWeight: '500',
-  },
   submitContainer: {
     flex: 1.8,
     alignItems: 'center',
@@ -356,5 +367,8 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     justifyContent: 'space-between'
+  },
+  stackCard: {
+    backgroundColor: 'white',
   },
 })
