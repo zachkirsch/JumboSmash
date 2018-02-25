@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 10,
     paddingHorizontal: 60,
+    alignSelf: 'center'
   },
   text: {
     fontSize: 14,
@@ -50,5 +51,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Avenir',
     marginVertical: 5,
     color: '#4A4A4A',
+
   },
 })
