@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Linking,
   Platform,
+  Keyboard,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
@@ -27,6 +28,8 @@ interface StateProps {
   authError: AuthError
   waitingForRequestVerificationResponse: boolean
   waitingForVerificationResponse: boolean
+  isLoggedIn: boolean
+  acceptedCoC: boolean
 }
 
 interface DispatchProps {
@@ -89,6 +92,13 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   public componentWillUnmount() {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
+  }
+
+  public componentWillReceiveProps(newProps: Props) {
+    if (newProps.isLoggedIn && !newProps.acceptedCoC) {
+      Keyboard.dismiss()
+      this.props.navigation.navigate('CodeOfConductScreen')
+    }
   }
 
   public render() {
@@ -215,6 +225,8 @@ const mapStateToProps = (state: RootState): StateProps => {
     waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
     waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
     email: state.auth.email,
+    acceptedCoC: state.coc.codeOfConductAccepted,
+    isLoggedIn: !!state.auth.sessionKey,
   }
 }
 
@@ -242,7 +254,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
    position: 'absolute',
-   top: Platform.OS === 'ios' ? 35 : 20, // space for iOS status bar
+   top: Platform.OS === 'ios' ? 40 : 20, // space for iOS status bar
    left: 20,
   },
   contentContainer: {

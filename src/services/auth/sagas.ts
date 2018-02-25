@@ -9,7 +9,6 @@ import {
   RequestVerificationFailureAction,
   VerifyEmailSuccessAction,
   VerifyEmailFailureAction,
-  StoreSessionKeyAction,
   LogoutAction,
 } from './actions'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
@@ -49,17 +48,10 @@ function* attemptRequestVerification(payload: AttemptRequestVerificationAction) 
 
 }
 
-function* storeSessionKey(sessionKey: string) {
-  const storeSessionKeyAction: StoreSessionKeyAction = {
-    type: AuthActionType.STORE_SESSION_KEY,
-    sessionKey,
-  }
-  yield put(storeSessionKeyAction)
-}
-
-function* handleEmailVerificationSuccess() {
+function* handleEmailVerificationSuccess(sessionKey: string) {
   const verifyEmailSuccessAction: VerifyEmailSuccessAction = {
     type: AuthActionType.VERIFY_EMAIL_SUCCESS,
+    sessionKey,
   }
   yield put(verifyEmailSuccessAction)
 }
@@ -78,21 +70,19 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
 
   try {
     const response: VerifyEmailResponse = yield call(api.verifyEmail, payload.verificationCode)
-    yield storeSessionKey(response.session_key)
 
     /*
      * before setting the user as 'logged in', update what he/she has done so far
      * (e.g. accepted CoC, seen tutorial)
      */
-    const userInfo: MeResponse = yield call(api.me)
+    const userInfo: MeResponse = yield call(api.me, response.session_key)
     yield put(setCoCReadStatus(userInfo.accepted_coc))
 
     // now set the user as 'logged in'
-    yield handleEmailVerificationSuccess()
+    yield handleEmailVerificationSuccess(response.session_key)
 
-    // connect to firebase
+    // and finally, connect to firebase
     yield put(attemptConnectToFirebase(userInfo.firebase_token))
-
   } catch (error) {
     loginSuccess = false
     yield handleEmailVerificationError(error)
@@ -104,6 +94,7 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
 }
 
 function* logout(_: LogoutAction) {
+  yield put(setCoCReadStatus(false))
   yield put(logoutFirebase())
 }
 

@@ -2,12 +2,10 @@ import { AuthActionType, AuthAction } from './actions'
 import { AuthState } from './types'
 
 const initialState: AuthState = {
-  isLoggedIn: false,
   isNewUser: true,
   email: 'zachary.kirsch@tufts.edu',
   sessionKey: '',
   errorMessage: '',
-  validEmail: false,
   validVerificationCode: false,
   waitingForRequestVerificationResponse: false,
   waitingForVerificationResponse: false,
@@ -28,15 +26,14 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...state,
         isNewUser: action.isNewUser,
-        validEmail: true,
         errorMessage: '',
+        validVerificationCode: false,
         waitingForRequestVerificationResponse: false,
       }
 
     case AuthActionType.REQUEST_VERIFICATION_FAILURE:
       return {
         ...state,
-        validEmail: false,
         errorMessage: action.errorMessage,
         waitingForRequestVerificationResponse: false,
       }
@@ -52,9 +49,9 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...state,
         validVerificationCode: true,
-        isLoggedIn: true,
         errorMessage: '',
         waitingForVerificationResponse: false,
+        sessionKey: action.sessionKey ,
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
@@ -63,12 +60,6 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         validVerificationCode: false,
         errorMessage: action.errorMessage,
         waitingForVerificationResponse: false,
-      }
-
-    case AuthActionType.STORE_SESSION_KEY:
-      return {
-        ...state,
-        sessionKey: action.sessionKey,
       }
 
     case AuthActionType.CLEAR_AUTH_ERROR_MESSAGE:
@@ -80,10 +71,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
     case AuthActionType.LOGOUT:
       return {
         ...state,
-        isLoggedIn: false,
         sessionKey: '',
-        validEmail: false,
-        validVerificationCode: false,
       }
 
     default:

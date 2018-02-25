@@ -1,6 +1,7 @@
 import { TabNavigator } from 'react-navigation'
 import LoginScreen from './LoginScreen'
 import VerifyEmailScreen from './VerifyEmailScreen'
+import CodeOfConductScreen from './CodeOfConductScreen'
 
 export default TabNavigator({
   LoginScreen: {
@@ -11,6 +12,12 @@ export default TabNavigator({
   },
   VerifyEmailScreen: {
     screen: VerifyEmailScreen,
+    navigationOptions: {
+      tabBarVisible: false,
+    },
+  },
+  CodeOfConductScreen: {
+    screen: CodeOfConductScreen,
     navigationOptions: {
       tabBarVisible: false,
     },

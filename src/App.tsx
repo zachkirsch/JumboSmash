@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { View, StatusBar, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
-import { LoginRouter, CodeOfConductScreen, AuthedRouter } from './components'
+import { LoginRouter, AuthedRouter, CodeOfConductScreen } from './components'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -18,9 +18,7 @@ class App extends PureComponent<Props, {}> {
   public render() {
     return (
       <View style={styles.container}>
-        <StatusBar
-            networkActivityIndicatorVisible={this.props.networkRequestInProgress}
-          />
+        <StatusBar networkActivityIndicatorVisible={this.props.networkRequestInProgress} />
         {this.renderScreen()}
       </View>
     )
@@ -28,12 +26,12 @@ class App extends PureComponent<Props, {}> {
 
   private renderScreen() {
     if (!this.props.rehydrated) {
-      // TODO: replace with loading screen
+      // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */
-    } else if (!this.props.isLoggedIn) {
-      return <LoginRouter />
-    } else if (!this.props.codeOfConductAccepted) {
+    } else if (this.props.isLoggedIn && !this.props.codeOfConductAccepted) {
       return <CodeOfConductScreen />
+    } else if (!this.props.isLoggedIn || !this.props.codeOfConductAccepted) {
+      return <LoginRouter />
     } else {
       return <AuthedRouter />
     }
@@ -42,7 +40,7 @@ class App extends PureComponent<Props, {}> {
 
 const mapStateToProps = (state: RootState): StateProps => {
     return {
-        isLoggedIn: state.auth.isLoggedIn,
+        isLoggedIn: !!state.auth.sessionKey,
         codeOfConductAccepted: state.coc.codeOfConductAccepted,
         rehydrated: state.redux.rehydrated,
         networkRequestInProgress: state.auth.waitingForRequestVerificationResponse ||

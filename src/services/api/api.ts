@@ -17,8 +17,8 @@ export const api = {
   acceptCoC: () => {
     return Endpoints.acceptCoC.hit({})
   },
-  me: () => {
-    return Endpoints.me.hit({})
+  me: (sessionKey?: string) => {
+    return Endpoints.me.hit({}, sessionKey)
   },
 }
 
