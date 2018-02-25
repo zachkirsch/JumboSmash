@@ -1,8 +1,7 @@
-import { Platform } from 'react-native'
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
-const SERVER = 'http://' + (Platform.OS === 'ios' ? '127.0.0.1' : '10.0.2.2') + ':5000'
+const SERVER = 'https://jumbosmash2018-staging.herokuapp.com/'
 
 type HttpMethod = 'GET' | 'POST'
 
@@ -17,9 +16,9 @@ interface Token extends IndexableMap {
   session_key: string
 }
 
-const getToken = (): Token => ({
+const getToken = (sessionKey?: string): Token => ({
   email: getEmail(),
-  session_key: getSessionKey(),
+  session_key: getSessionKey() || sessionKey,
 })
 
 abstract class Endpoint<REQ, SUCC_RESP> {
@@ -67,12 +66,12 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 }
 
 export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(params: REQ) {
-    const uri = this.constructUriWithParams(params)
+  public hit(params: REQ, sessionKey?: string) {
+    const uri = this.constructUriWithParams(params, sessionKey)
     return this.makeRequest(uri, 'GET')
   }
 
-  private constructUriWithParams = (givenParams?: REQ) => {
+  private constructUriWithParams = (givenParams?: REQ, sessionKey?: string) => {
     if (givenParams === undefined && !this.requiresToken) {
       return this.endpoint
     }
@@ -84,7 +83,7 @@ export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends En
     }
 
     if (this.requiresToken) {
-      uri += this.getQueryString(getToken())
+      uri += this.getQueryString(getToken(sessionKey))
     }
 
     return uri
