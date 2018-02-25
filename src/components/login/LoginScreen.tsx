@@ -1,18 +1,27 @@
 import React, { PureComponent } from 'react'
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
-import { Credentials } from '../../services/auth'
+import { ScrollView, View, KeyboardAvoidingView, StyleSheet, Platform } from 'react-native'
+import { connect, Dispatch } from 'react-redux'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { requestVerification, Credentials } from '../../services/auth'
+import { RootState } from '../../redux'
+import { JSButton, JSText, JSTextInput, TextInputRef } from '../generic'
+import EmailUsFooter from './EmailUsFooter'
 
-interface OwnProps {
-  onSubmitCredentials: (credentials: Credentials) => void
-  initialCredentials?: Credentials
-  authErrorMessage?: string
+interface StateProps {
+  email: string
 }
 
-type Props = OwnProps
+interface DispatchProps {
+  onSubmitCredentials: (credentials: Credentials) => void
+  initialCredentials?: Credentials
+}
+
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 
 interface State {
   credentials: Credentials,
   inputErrorMessage: string
+  showTextInputPlaceholder: boolean
 }
 
 enum EmailInputError {
@@ -25,57 +34,91 @@ enum EmailInputError {
 /* tslint:disable-next-line:max-line-length */
 const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
+/* tslint:disable-next-line:max-line-length */
+const PARTIAL_TUFTS_EMAIL_REGEX = /^([^@]*|.*@|.*@t|.*@tu|.*@tuf|.*@tuft|.*@tufts|.*@tufts\.|.*@tufts\.e|.*@tufts\.ed|.*@tufts\.edu)$/
+
 class LoginScreen extends PureComponent<Props, State> {
+
+  private textInputRef: TextInputRef
 
   constructor (props: Props) {
     super(props)
-
-    const initialCredentials: Credentials = this.props.initialCredentials || {
-      email: '',
+    const initialCredentials: Credentials = {
+      email: this.props.email || '',
     }
 
     this.state = {
       credentials: initialCredentials,
       inputErrorMessage: '',
+      showTextInputPlaceholder: true,
     }
   }
 
   public render() {
 
-    const errorMsg = this.state.inputErrorMessage || this.props.authErrorMessage
+    // default is ' ' so that it's never empty (and so it always takes up space)
+    const errorMsg = this.state.inputErrorMessage || ' '
 
     return (
-      <View style={[styles.container, styles.center]}>
-        <View style={styles.errorMessageContainer}>
-          <Text style={styles.errorMessage}>
-            {errorMsg}
-          </Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps='handled'
+        scrollEnabled={false}
+      >
+        <KeyboardAvoidingView behavior='padding' style={styles.mainContainer} >
+          <View style={styles.messageContainer}>
+            <JSText fontSize={21} bold style={styles.message}>CLASS OF 2018</JSText>
+            <JSText fontSize={21} style={styles.message}>IT'S TIME</JSText>
+            <JSText fontSize={21} style={styles.message}>FOR</JSText>
+            <JSText fontSize={21} style={styles.message}>SMASHING.</JSText>
+          </View>
+          <View style={styles.inputContainer}>
+            <View style={styles.errorMessageContainer}>
+              <JSText style={styles.errorMessage}>
+                {errorMsg}
+              </JSText>
+            </View>
+            <JSTextInput
+              placeholder={'Tufts E-mail Address'}
+              onChangeText={this.onChangeEmail}
+              value={this.state.credentials.email}
+              autoCapitalize='none'
+              autoCorrect={false}
+              keyboardType={'email-address'}
+              onSubmitEditing={this.onSubmitCredentials}
+              returnKeyType={'go'}
+              enablesReturnKeyAutomatically
+              selectTextOnFocus
+              textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
+            />
+          </View>
+        </KeyboardAvoidingView>
+        <View style={styles.submitContainer}>
+          <View style={styles.submitButtonContainer}>
+            <JSButton onPress={this.onSubmitCredentials} label='Log In' />
+          </View>
+          <EmailUsFooter />
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder='E-mail Address'
-          onChangeText={this.onChangeEmail}
-          value={this.state.credentials.email}
-          autoCapitalize='none'
-          autoCorrect={false}
-          keyboardType={'email-address'}
-          enablesReturnKeyAutomatically={true}
-          onSubmitEditing={this.onSubmitCredentials}
-          returnKeyType={'next'}
-          autoFocus={true}
-        />
-        <Button onPress={this.onSubmitCredentials} title='Get Code'/>
-      </View>
+      </ScrollView>
     )
   }
 
-  private onChangeCredentials = (credentials: Partial<Credentials>) => {
+  private onChangeCredentials = (credentials: Credentials) => {
+    const couldBeTuftsEmail = this.couldBeTuftsEmail(credentials.email)
     this.setState({
       credentials: {
         ...this.state.credentials,
         ...credentials,
       },
+      inputErrorMessage: couldBeTuftsEmail ? '' : this.getErrorMessage(EmailInputError.NotTuftsEmail),
     })
+  }
+
+  private couldBeTuftsEmail = (email?: string) => {
+    if (email === undefined) {
+      email = this.state.credentials.email
+    }
+    return PARTIAL_TUFTS_EMAIL_REGEX.test(email)
   }
 
   private onChangeEmail = (email: string) => this.onChangeCredentials({email})
@@ -85,6 +128,9 @@ class LoginScreen extends PureComponent<Props, State> {
       return EmailInputError.EmptyEmail
     }
     email = this.state.credentials.email.trim().toLowerCase()
+    if (email.length === 0) {
+      return EmailInputError.EmptyEmail
+    }
     if (!EMAIL_REGEX.test(email)) {
       return EmailInputError.NotEmailAddress
     }
@@ -94,8 +140,8 @@ class LoginScreen extends PureComponent<Props, State> {
     return EmailInputError.None
   }
 
-  private getErrorMessage = (): string => {
-    switch (this.getEmailInputError(this.state.credentials.email)) {
+  private getErrorMessage = (error: EmailInputError): string => {
+    switch (error) {
       case EmailInputError.NotTuftsEmail:
         return 'You must use a Tufts e-mail address'
       case EmailInputError.NotEmailAddress:
@@ -107,39 +153,74 @@ class LoginScreen extends PureComponent<Props, State> {
   }
 
   private onSubmitCredentials = () => {
-    const errorMessage: string = this.getErrorMessage()
-    this.setState({
-      inputErrorMessage: errorMessage,
-    }, () => {
-      if (!errorMessage) {
-        this.props.onSubmitCredentials(this.state.credentials)
-      }
-    })
+    const errorMessage: string = this.getErrorMessage(this.getEmailInputError(this.state.credentials.email))
+    if (errorMessage) {
+      this.setState({
+        inputErrorMessage: errorMessage,
+      })
+    } else {
+      this.props.onSubmitCredentials({
+        email: this.state.credentials.email.toLowerCase(),
+      })
+      this.props.navigation.navigate('VerifyEmailScreen', {
+        focusKeyboardOnLoginScreen: () => this.textInputRef && this.textInputRef.focus(),
+      })
+    }
+  }
+
+}
+
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    email: state.auth.email,
   }
 }
 
-export default LoginScreen
+const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+  return {
+    onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
   },
-  center: {
+  mainContainer: {
+    marginTop: 100,
+    flex: 2,
+  },
+  messageContainer: {
+    flex: 1,
     justifyContent: 'center',
+    marginLeft: '10%',
   },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    margin: 5,
-    padding: 5,
+  message: {
+    lineHeight: 29,
+    color: 'black',
+  },
+  inputContainer: {
+    justifyContent: 'center',
+    flex: 1,
   },
   errorMessageContainer: {
     alignItems: 'center',
+    marginBottom: Platform.OS === 'ios' ? 5 : -5,
   },
   errorMessage: {
     color: 'red',
-    fontWeight: 'bold',
+    fontWeight: '500',
+  },
+  submitContainer: {
+    flex: 1.8,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  submitButtonContainer: {
+    flex: 4,
+    justifyContent: 'flex-end',
+    marginBottom: 10,
   },
 })

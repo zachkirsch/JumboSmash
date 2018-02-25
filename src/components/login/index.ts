@@ -1,3 +1,2 @@
-export { default as LoginScreen } from './LoginScreen'
-export { default as WelcomeScreen } from './WelcomeScreen'
-export { default as VerifyEmailScreen } from './VerifyEmailScreen'
+export { default as LoginRouter } from './LoginRouter'
+export { default as CodeOfConductScreen } from './CodeOfConductScreen'
