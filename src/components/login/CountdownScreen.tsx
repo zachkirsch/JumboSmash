@@ -1,6 +1,3 @@
-// TODO: CHECK THIS MATH OMG OR FIX IT TO SOMETHING NOT HACKED TOGETHER.
-//       MAKE A WAY TO GO TO THE WELCOME PAGE WHEN THE TIME = 0
-
 import React, { PureComponent } from 'react'
 import {
     Text,
@@ -55,7 +52,7 @@ class CountdownScreen extends PureComponent<{}, State> {
              style={styles.logo}
            />
          </View>
-
+          
           <View>
             {this.renderCountDown()}
           </View>
@@ -109,7 +106,7 @@ class CountdownScreen extends PureComponent<{}, State> {
        </View>
      )
    }
-
+//TODO: CHECK THIS MATH OMG OR FIX IT TO SOMETHING NOT HACKED TOGETHER.
    private getTimeLeft = () => {
    const now: Date = new Date()
    const release: Date = new Date(2018, 5, 11, 22, 30, 0)
