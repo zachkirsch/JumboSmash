@@ -38,44 +38,46 @@ class MatchesList extends PureComponent<Props, State> {
                   time: Date.now(),
                   isSender: true,
                   read: true,
-                  text: 'ok!'
+                  text: 'ok!',
                 },
                 {
                   id: 2,
                   time: Date.now(),
                   isSender: false,
                   read: true,
-                  text: 'Lemme smashhhhhh'
-                }
-              ]
+                  text: 'Lemme smashhhhhh',
+                },
+              ],
 
             },
             {
               name: 'Zach Kirsch',
-              profilePic: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+              profilePic: 'https://scontent.fzty2-1.fna.fbcdn.net' +
+              '/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
               messages: [
                 {
                   id: 3,
                   time: Date.now(),
                   isSender: false,
                   read: false,
-                  text: 'Sliding into those DMs'
-                }
-              ]
+                  text: 'Sliding into those DMs',
+                },
+              ],
 
             },
             {
               name: 'Jeff Bezos',
-              profilePic: 'http://mblogthumb3.phinf.naver.net/20160823_162/banddi95_14719406421210hOJW_JPEG/%B0%A1%C0%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
+              profilePic: 'http://mblogthumb3.phinf.naver.net/20160823_162/' +
+              'banddi95_14719406421210hOJW_JPEG/%B0%A1%C0%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
               messages: [
                 {
                   id: 4,
                   time: Date.now(),
                   isSender: false,
                   read: true,
-                  text: 'What do you think about Whole Foods?'
-                }
-              ]
+                  text: 'Thoughts on Whole Foods?',
+                },
+              ],
 
             },
             {
@@ -87,9 +89,10 @@ class MatchesList extends PureComponent<Props, State> {
                   time: Date.now(),
                   isSender: false,
                   read: false,
-                  text: 'I see now that the circumstances of one\'s birth are irrelevant. It is what you do with the gift of life that determines who you are.'
-                }
-              ]
+                  text: 'I see now that the circumstances of one\'s birth are irrelevant. ' +
+                  'It is what you do with the gift of life that determines who you are.',
+                },
+              ],
 
             },
             {
@@ -101,12 +104,12 @@ class MatchesList extends PureComponent<Props, State> {
                   time: Date.now(),
                   isSender: false,
                   read: false,
-                  text: 'Crashing this plane with no survivors'
-                }
-              ]
+                  text: 'Crashing this plane with no survivors',
+                },
+              ],
 
             },
-        ]
+        ],
       }
     }
 
@@ -141,7 +144,7 @@ class MatchesList extends PureComponent<Props, State> {
     private renderItem = ({item}: {item: User}) => {
         return (
             <MatchesListItem
-              name={item.name}
+              name={item.name.split(' ')[0]}
               onPress={() => this.openChatScreen(item)}
               lastMessage={item.messages[0].text}
               messageRead={item.messages[0].read}
@@ -156,6 +159,7 @@ export default MatchesList
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 20,
   },
   center: {
     flexDirection: 'column',

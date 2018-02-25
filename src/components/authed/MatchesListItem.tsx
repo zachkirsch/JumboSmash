@@ -1,5 +1,7 @@
 import React, { PureComponent } from 'react'
-import { View, TouchableOpacity, Text, Image, StyleSheet } from 'react-native'
+import { View, TouchableOpacity, Image, StyleSheet } from 'react-native'
+import JSText from '../generic/JSText'
+import LinearGradient from 'react-native-linear-gradient'
 
 interface Props {
   name: string,
@@ -19,11 +21,39 @@ class MatchesListItem extends PureComponent<Props, State> {
     // let display = this.props.messageRead ? 'Unread' : 'Read';
     return (
     <View>
-        <TouchableOpacity style={styles.match} onPress={this.props.onPress}>
-          <Image source={{uri: this.props.profilePic}} style={styles.avatarPhoto} />
-          <Text style={this.props.messageRead ? styles.readText : styles.unreadText}>{this.props.name}: {this.props.lastMessage}</Text>
-        </TouchableOpacity>
-      </View>
+      {this.props.messageRead ? this.readItem() : this.unreadItem()}
+    </View>
+    )
+  }
+
+  private readItem() {
+    return (
+      <TouchableOpacity style={styles.match} onPress={this.props.onPress}>
+        <Image source={{uri: this.props.profilePic}} style={styles.avatarPhoto} />
+        <View style={styles.textContainer}>
+          <JSText style={styles.nameText}>{this.props.name}</JSText>
+          <JSText numberOfLines={1} style={styles.readText}>{this.props.lastMessage}</JSText>
+        </View>
+      </TouchableOpacity>
+    )
+  }
+
+  private unreadItem() {
+    return (
+      <LinearGradient
+        colors={['rgba(231,240,253,0.1)', 'rgba(172,203,238,0.2)']}
+        start={{x: 0, y: 1}} end={{x: 1, y: 1}}
+        locations={[0, 1]}
+        style={styles.container}
+      >
+      <TouchableOpacity style={styles.match} onPress={this.props.onPress}>
+        <Image source={{uri: this.props.profilePic}} style={styles.avatarPhoto} />
+        <View style={styles.textContainer}>
+          <JSText style={styles.nameText}>{this.props.name}</JSText>
+          <JSText bold={true} numberOfLines={1} style={styles.unreadText}>{this.props.lastMessage}</JSText>
+        </View>
+      </TouchableOpacity>
+      </LinearGradient>
     )
   }
 
@@ -32,27 +62,34 @@ class MatchesListItem extends PureComponent<Props, State> {
 export default MatchesListItem
 
 const styles = StyleSheet.create({
+  container: {
+    borderRadius: 10,
+  },
   match: {
     flex: 1,
     flexDirection: 'row',
-    marginBottom: 15,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  nameText: {
+    color: 'black',
   },
   readText: {
-    fontWeight: 'normal',
-    textAlignVertical: 'center',
-    marginLeft: 15,
-    flexDirection: 'column',
-    flex: 0.9
+    color: 'gray',
   },
   unreadText: {
-    fontWeight: 'bold',
-    textAlignVertical: 'center',
-    marginLeft: 15,
-    flexDirection: 'column',
-    flex: 0.9
+    color: 'rgb(46,64,90)',
   },
   avatarPhoto: {
-    width: 100,
-    height: 100,
-  }
-});
+    marginLeft: 25,
+    marginRight: 15,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+  },
+  textContainer: {
+    flexDirection: 'column',
+    flex: .9,
+    justifyContent: 'center',
+  },
+})
