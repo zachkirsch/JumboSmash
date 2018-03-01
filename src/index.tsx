@@ -6,6 +6,7 @@ import App from './App'
 
 // ignore "yellow box" warnings
 console.ignoredYellowBox = ['Remote debugger']
+console.disableYellowBox = true
 
 export default class JumboSmash extends Component {
   public render() {
