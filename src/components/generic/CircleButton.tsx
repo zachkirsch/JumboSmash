@@ -3,7 +3,7 @@ import { TouchableWithoutFeedback, View, ViewStyle, StyleSheet } from 'react-nat
 import { moderateScale } from './scaling'
 
 interface Props {
-  IconClass: any
+  IconClass: any /* tslint:disable-line:no-any */
   iconName: string
   iconColor: string
   iconSize: number
@@ -19,7 +19,7 @@ class CircleButton extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      buttonPressedIn: false
+      buttonPressedIn: false,
     }
   }
 
@@ -72,3 +72,4 @@ const styles = StyleSheet.create({
 })
 
 export default CircleButton
+export { Props as CircleButtonProps }
