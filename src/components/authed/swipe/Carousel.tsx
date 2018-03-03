@@ -12,7 +12,6 @@ interface State {
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
-const HEIGHT = Dimensions.get('window').height
 const WIDTH = Dimensions.get('window').width
 
 class Carousel extends PureComponent<Props, State> {
@@ -34,25 +33,31 @@ class Carousel extends PureComponent<Props, State> {
   }
 
   render() {
+
+    const containerStyle = {
+      minWidth: WIDTH * this.props.imageUris.length,
+    }
+
     return (
       <View>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        ref={(ref) => this.carouselScrollView = ref}
-        scrollEventThrottle={1}
-        onScroll={this.onScroll}
-        scrollEnabled={this.props.enabled}
-      >
-        {this.renderImages()}
-      </ScrollView>
-      <View
-        style={styles.dotsContainer}
-      >
-        {this.renderDots()}
-      </View>
+        <ScrollView
+          contentContainerStyle={containerStyle}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          ref={(ref) => this.carouselScrollView = ref}
+          scrollEventThrottle={1}
+          onScroll={this.onScroll}
+          scrollEnabled={this.props.enabled}
+          bounces={false}
+        >
+          {this.renderImages()}
+        </ScrollView>
+        <View
+          style={styles.dotsContainer}
+        >
+          {this.renderDots()}
+        </View>
       </View>
     )
   }
@@ -85,8 +90,8 @@ class Carousel extends PureComponent<Props, State> {
 
   private onScroll = (event: ScrollEvent) => {
     const { layoutMeasurement, contentOffset } = event.nativeEvent
-    const maxOffsetOfFirstPhoto = layoutMeasurement.width / 2
-    const photoIndex = Math.floor(1 + (contentOffset.x - maxOffsetOfFirstPhoto) / layoutMeasurement.width)
+    let photoIndex = Math.round(contentOffset.x / layoutMeasurement.width)
+    photoIndex = Math.min(this.props.imageUris.length, Math.max(photoIndex, 0))
     this.setState({
       carouselIndex: photoIndex,
     })
@@ -96,13 +101,9 @@ class Carousel extends PureComponent<Props, State> {
 export default Carousel
 
 const styles = StyleSheet.create({
-  container: {
-    minHeight: HEIGHT * 0.6,
-    minWidth: WIDTH * 3,
-  },
   image: {
     flex: 1,
-    height: undefined,
+    height: WIDTH,
     width: WIDTH,
   },
   dotsContainer: {
