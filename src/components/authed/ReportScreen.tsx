@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, Text, StyleSheet} from 'react-native'
+import { View, Text, StyleSheet, ScrollView} from 'react-native'
 import {emailSupport} from '../login/utils'
 import { NavigationScreenProps } from 'react-navigation'
 import { JSButton } from '../generic/index';
@@ -12,7 +12,7 @@ class ReportScreen extends PureComponent<Props, {}> {
   }
   render(){
     return(
-      <View style={[styles.modal, styles.center, styles.signoff]}>
+      <ScrollView><View style={[styles.center, styles.signoff]}>
                   <Text style={styles.titleText}>To Report Something or Someone...</Text>
                   <Text></Text>
                   <View style={[styles.left, styles.signoffLeft]}>
@@ -24,21 +24,19 @@ class ReportScreen extends PureComponent<Props, {}> {
                       <Text></Text>
                       <Text style={styles.SignOfftext}>[4] ✅ Our team will resolve the issue in 24 hours! </Text>
                       {this.renderSignoff()}
-                      <View style={styles.buttons}>
-                          <JSButton
-                            onPress = {() => emailSupport("FEEDBACK/REPORTING")}
-                            label="Report Something"
-                            accessibilityLabel="Report"
-                          ></JSButton>
-                          <JSButton
-                            onPress = {() => this.props.navigation.goBack()}
-                            label="Go Back"
-                            accessibilityLabel="Go Back"
-                          /></JSButton>
-                      </View>
                     </View>
-                  </View>
-    )
+                    <View style={styles.buttons}>
+                    <JSButton
+                      onPress = {() => emailSupport("FEEDBACK/REPORTING")}
+                      label="Report Something"
+                      accessibilityLabel="Report"
+                    ></JSButton>
+                        <JSButton
+                          onPress = {() => this.props.navigation.goBack()}
+                          label="Go Back"
+                          accessibilityLabel="Go Back"
+                        ></JSButton></View>
+                    </View></ScrollView>)
   }
   private renderSignoff = () => {
    return (

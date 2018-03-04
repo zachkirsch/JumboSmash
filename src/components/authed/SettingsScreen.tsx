@@ -77,7 +77,7 @@ class SettingsMenu extends PureComponent<Props,State> {
     (buttonIndex: number) => {
       switch(buttonIndex) {
         case 1:
-             this.props.navigation.navigate('TagsScreen')
+             this.props.navigation.navigate('ReportScreen')
             break;
         case 2:
             //Block User
