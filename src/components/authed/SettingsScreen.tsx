@@ -4,7 +4,6 @@ import { View, StyleSheet} from 'react-native'
 import { JSButton } from '../generic/index';
 import { logout } from '../../services/auth'
 import { connectActionSheet } from '@expo/react-native-action-sheet';
-import {emailSupport} from '../login/utils'
 import { RootState } from '../../redux'
 import { NavigationScreenProps } from 'react-navigation'
 
@@ -78,7 +77,7 @@ class SettingsMenu extends PureComponent<Props,State> {
     (buttonIndex: number) => {
       switch(buttonIndex) {
         case 1:
-            emailSupport("FEEDBACK/REPORTING"); //PUT IN A PAGE, and then start reporting.
+             this.props.navigation.navigate('TagsScreen')
             break;
         case 2:
             //Block User

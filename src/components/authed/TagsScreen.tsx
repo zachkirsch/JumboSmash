@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Text,
 } from 'react-native'
-import { JSText, JSButton } from '../generic'
 import { NavigationScreenProps } from 'react-navigation'
+import { JSText, JSButton } from '../generic/index';
 
 interface State {
   chosentags: Array<string>,

@@ -14,6 +14,7 @@ import ChatScreen from './ChatScreen'
 import CodeOfConductScreen from './CoCPrivacyScreen'
 import TagsScreen from './TagsScreen';
 import CoCPrivacyScreen from './CoCPrivacyScreen';
+import ReportScreen from './ReportScreen';
 
 const styles = StyleSheet.create({
   iOSTabBar: {
@@ -32,6 +33,7 @@ const matchesScreen = StackNavigator({
   CodeOfConductScreen: {screen: CodeOfConductScreen},
   TagsScreen: {screen: TagsScreen},
   CoCPrivacyScreen: {screen: CoCPrivacyScreen},
+  ReportScreen: {screen: ReportScreen},
 
 }, {
   headerMode: 'none',
