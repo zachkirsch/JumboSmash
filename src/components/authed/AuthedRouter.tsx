@@ -8,11 +8,12 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import ProfileScreen from './ProfileScreen'
 import ProfileEditScreen from './ProfileEditScreen'
-import SettingsScreen from './SettingsScreen'
 import SwipeScreen from './SwipeScreen'
 import MatchesList from './MatchesList'
 import ChatScreen from './ChatScreen'
-import CodeOfConductScreen from '../login/CodeOfConductScreen'
+import CodeOfConductScreen from './CoCPrivacyScreen'
+import TagsScreen from './TagsScreen';
+import CoCPrivacyScreen from './CoCPrivacyScreen';
 
 const styles = StyleSheet.create({
   iOSTabBar: {
@@ -28,8 +29,10 @@ const matchesScreen = StackNavigator({
   Chat: { screen: ChatScreen },
   ProfileScreen: {screen: ProfileScreen},
   ProfileEditScreen: {screen: ProfileEditScreen},
-  SettingsScreen: {screen: SettingsScreen},
   CodeOfConductScreen: {screen: CodeOfConductScreen},
+  TagsScreen: {screen: TagsScreen},
+  CoCPrivacyScreen: {screen: CoCPrivacyScreen},
+
 }, {
   headerMode: 'none',
   cardStyle: styles.stackCard,

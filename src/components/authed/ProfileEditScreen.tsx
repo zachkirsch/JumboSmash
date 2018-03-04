@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react'
-import { View, Text, TextInput,TouchableOpacity, Image, StyleSheet, ScrollView, Modal } from 'react-native'
-import { NavigationTabScreenOptions, NavigationScreenProps } from 'react-navigation'
+import { View, Text, TextInput, Image, StyleSheet, ScrollView } from 'react-native'
+import { NavigationScreenProps } from 'react-navigation'
 import { Icon } from 'react-native-elements'
-import Ionicons from 'react-native-vector-icons/Ionicons'
-import { JSButton, JSText, JSTextInput } from '../generic/index';
-import {emailSupport} from '../login/utils'
+import { default as SettingsMenu } from './SettingsScreen'
+import { JSText, JSTextInput, JSButton } from '../generic/index';
+import { ActionSheetProvider} from '@expo/react-native-action-sheet';
 
 interface State {
   bio: string,
@@ -22,6 +22,7 @@ interface State {
   react6: number,
   react7: number,
   react8: number,
+  chosentags: Array<string>,
 }
 
 type Props = NavigationScreenProps<{}>
@@ -45,20 +46,26 @@ class ProfileEditScreen extends PureComponent<Props, State> {
                     react6: 10,
                     react7: 10,
                     react8: 10,
+                    chosentags: []
                   };
    }
 
 
   render() {
     return (
+      <ActionSheetProvider>
       <ScrollView >
         {this.renderPhotos()}
         <View style={styles.container}></View>
         {this.renderBio()}
         {this.renderTags()}
         {this.renderReacts()}
-        {this.renderButtons()}
+        <View style={styles.buttons}>
+          <JSButton onPress={() => this.props.navigation.goBack()} label="View Profile"></JSButton>
+        </View>
+        <SettingsMenu />
       </ScrollView>
+      </ActionSheetProvider>
     )
   }
 
@@ -66,26 +73,25 @@ class ProfileEditScreen extends PureComponent<Props, State> {
   private renderTags(){
     return <View style={styles.bio}>
     <View style={styles.bioItem}>
-        <JSText onPress={() => alert("hello, put edit tags here")}>Tags </JSText>
+        <JSText onPress={() => this.props.navigation.navigate('TagsScreen')}>Tags </JSText>
+          <View style={styles.reactRow}>
           {this.renderAllTags()}
+            </View>
     </View>
     </View>
   }
 
   private renderAllTags(){
-      //TODO: actually find the person's tags.
-      return <View style={styles.reactRow}>
-            <Text style={styles.tags}>Halligan Life</Text>
-            <Text>, </Text>
-            <Text style={styles.tags}>Downhill</Text>
-            <Text>, </Text>
-            <Text style={styles.tags}>KindleVan</Text>
-      </View>
+      return (
+        this.state.chosentags.length == 0? (<Text style={styles.tags} onPress={() => this.props.navigation.navigate('TagsScreen')}>
+                                            None yet - tap to set tags! </Text>) :
+          this.state.chosentags.map((tag) => (<Text style={styles.tags} key={tag}> {tag} </Text>))
+      )
   }
   private renderReacts(){
     return <View style={styles.bio}>
       <View style={styles.bioItem}>
-          <JSText>Reacts Received </JSText>
+          <JSText>Reaccs </JSText>
             <View style={styles.reactRow}>
                 <View style={styles.reactRow}>
                     <Text style={styles.reacts}>❤️</Text>
@@ -131,19 +137,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
       </View>
     </View>
   }
-  private renderButtons(){
-    return <View>
-    <View style={styles.buttons}>
-      <JSButton label="View Profile"></JSButton>
-    </View>
-    <View style={styles.buttons}>
-      <JSButton label="Settings" onPress={() => this.props.navigation.navigate('SettingsScreen')}></JSButton>
-    </View>
-    <View style={styles.buttons}>
-      <JSButton label="Help/Feedback" onPress = {() => emailSupport("HELP/FEEDBACK")} ></JSButton>
-    </View>
-    </View>
-  }
+
   private renderBio(){
     return  <View style={styles.bio}>
     <View style={styles.bioItem}>
@@ -278,6 +272,7 @@ left: {
     flex:1,
     flexDirection: 'row',
     justifyContent: 'space-around',
+    flexWrap: 'wrap',
     paddingVertical: 10,
   },
   paddingcontainer: {

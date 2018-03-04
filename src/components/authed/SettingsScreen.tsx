@@ -1,79 +1,109 @@
-import { JSButton, JSText, JSTextInput } from '../generic/index';
 import React, { PureComponent } from 'react'
-import { View, Text, Button, StyleSheet, Modal, TouchableOpacity } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
+import { connect, Dispatch } from 'react-redux'
+import { View, StyleSheet} from 'react-native'
+import { JSButton } from '../generic/index';
 import { logout } from '../../services/auth'
-
-type Props = NavigationScreenProps<{}>
+import { connectActionSheet } from '@expo/react-native-action-sheet';
+import {emailSupport} from '../login/utils'
+import { RootState } from '../../redux'
+import { NavigationScreenProps } from 'react-navigation'
 
 interface State {
-  settingtasks: [{id: number, name: string}],
+  bio: string,
+}
+interface OwnProps {
+  onLogout: () => void
 }
 
-class SettingsScreen extends PureComponent<Props, State> {
+type Props = NavigationScreenProps<OwnProps>
+
+@connectActionSheet
+class SettingsMenu extends PureComponent<Props,State> {
   constructor(props: Props) {
      super(props);
-     this.state = {
-       settingtasks: [{
-                id: 0,
-                name: 'Tags',
-             },{
-                id: 1,
-                name: 'Code of Conduct',
-             },
-             {
-                id: 2,
-                name: 'Reporting',
-             },
-             {
-                id: 3,
-                name: 'Block Users',
-             },
-             {
-                id: 4,
-                name: 'Logout',
-             }]
-     }}
+     this.state = { bio: "I don't know why this is here, maybe take it out",}
+  }
 
-  render() {
+  render(){
     return (
-      <Modal transparent = {false}>
-      <View style={[styles.container, styles.center]}>
-        <View>
-         {
-            this.state.settingtasks.map((item) => (
-               <TouchableOpacity key = {item.id}
-                  style = {styles.center}>
-                  <Text style = {styles.text}>
-                     {item.name}
-                  </Text>
-               </TouchableOpacity>
-            ))
-         }
-         </View>
-      <Button onPress={() => this.props.navigation.goBack()} title='Go Back'/>
+      <View>
+      <View style={styles.buttons}>
+        <JSButton label="Settings" onPress={this._onOpenSettingsSheet} ></JSButton>
       </View>
-      </Modal>
+      <View style={styles.buttons}>
+        <JSButton label="Help/Feedback" onPress={this._onOpenHelpSheet}></JSButton>
+      </View>
+      </View>
     )
   }
 
+  private _onOpenSettingsSheet = () => {
+  // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
+    let options = ['Notifications', 'Log Out', 'Deactivate Account', 'Cancel'];
+    let destructiveButtonIndex = 2;
+    let cancelButtonIndex = 3;
+
+    this.props.showActionSheetWithOptions({
+      options,
+      cancelButtonIndex,
+      destructiveButtonIndex,
+    },
+    (buttonIndex: number) => {
+      switch(buttonIndex) {
+        case 1:
+            //Notifications
+            break;
+        case 2:
+            this.props.onLogout()
+            break;
+        case 3:
+            //Deactivate Account
+            break;
+      }
+    });
+
   }
+  private _onOpenHelpSheet = () => {
+  // TODO: after one use everything gets fucked.
+  //
+    let options = ['Reporting / Feedback', 'Block / Avoid User', 'Code of Conduct', 'Cancel'];
+    let destructiveButtonIndex = 1;
+    let cancelButtonIndex = 3;
 
-  export default SettingsScreen
+    this.props.showActionSheetWithOptions({
+      options,
+      cancelButtonIndex,
+      destructiveButtonIndex,
+    },
+    (buttonIndex: number) => {
+      switch(buttonIndex) {
+        case 1:
+            emailSupport("FEEDBACK/REPORTING"); //PUT IN A PAGE, and then start reporting.
+            break;
+        case 2:
+            //Block User
+            break;
+        case 3:
+            this.props.navigation.navigate('CoCPrivacyScreen')
+            break;
+      }
+    });
 
-  const styles = StyleSheet.create({
-  container: {
+  }
+}
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): OwnProps => {
+  return {
+    onLogout: () => dispatch(logout()),
+  }
+}
+
+export default connect(undefined, mapDispatchToProps)(SettingsMenu)
+
+
+const styles = StyleSheet.create({
+  buttons:{
     flex: 1,
+    justifyContent: 'space-around',
+    paddingVertical: 1,
   },
-  center: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-   text:{
-    fontSize: 22,
-    fontWeight: 'bold',
-    fontFamily: 'Helvetica',
-    color: '#595959',
-  },
-  })
+})
