@@ -60,9 +60,13 @@ export default JSTextInput
 
 const styles = StyleSheet.create({
   input: {
-    shadowColor: 'rgba(172, 203, 238, 0.75)',
-    shadowOpacity: 1,
-    shadowRadius: 50,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(172, 203, 238, 0.75)',
+        shadowOpacity: 1,
+        shadowRadius: 50,
+      },
+    }),
     marginVertical: 5,
     marginHorizontal: 45,
     paddingVertical: 15,

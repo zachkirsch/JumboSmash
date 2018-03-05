@@ -25,11 +25,11 @@ class Carousel extends PureComponent<Props, State> {
     }
   }
 
-  public reset = () => {
+  public reset = (animated: boolean) => {
     this.setState({
       carouselIndex: 0,
     })
-    this.carouselScrollView.scrollTo({ x: 0, y: 0, animated: true })
+    this.carouselScrollView.scrollTo({ x: 0, y: 0, animated })
   }
 
   render() {
@@ -39,7 +39,7 @@ class Carousel extends PureComponent<Props, State> {
     }
 
     return (
-      <View>
+      <View style={styles.container}>
         <ScrollView
           contentContainerStyle={containerStyle}
           horizontal
@@ -74,7 +74,7 @@ class Carousel extends PureComponent<Props, State> {
   }
 
   private renderDots = () => {
-    if (!this.props.enabled) {
+    if (!this.props.enabled || this.props.imageUris.length <= 1) {
       return undefined
     }
     return this.props.imageUris.map((_, i) => (
@@ -101,8 +101,10 @@ class Carousel extends PureComponent<Props, State> {
 export default Carousel
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'green',
+  },
   image: {
-    flex: 1,
     height: WIDTH,
     width: WIDTH,
   },

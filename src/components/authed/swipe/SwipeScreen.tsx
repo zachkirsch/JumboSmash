@@ -1,21 +1,54 @@
 import React, { PureComponent } from 'react'
-import { Animated, View, StyleSheet } from 'react-native'
+import { Animated, View, StyleSheet, ViewStyle, PanResponder, Platform } from 'react-native'
 import { NavigationTabScreenOptions } from 'react-navigation'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import LinearGradient from 'react-native-linear-gradient'
 import Card from './Card'
-import { CircleButton, CircleButtonProps } from '../../generic'
+import CircleButton, { CircleButtonProps } from './CircleButton'
 
 interface Props {
 
 }
 
 interface State {
+  index: number
   expansion: Animated.Value
-  possiblyTappingGradient: boolean
 }
+
+const IMAGES = [
+  'https://www.howtophotographyourlife.com/wp-content/uploads/2015/06/mary-2-1.jpg',
+  'https://blog.linkedin.com/content/dam/blog/en-us/corporate/blog/2014/07/Anais_Saint-Jude_L4388_SQ.jpg.jpeg',
+  'https://www.travelingphotographer.com/images/DENTIST-square-headshot-3.jpg',
+]
+
+const NAMES = [
+  {
+    name: 'Sally',
+    imageUris: [IMAGES[0], IMAGES[1], IMAGES[2]],
+  },
+  {
+    name: 'Harriett',
+    imageUris: [IMAGES[1], IMAGES[2], IMAGES[0]],
+  },
+  {
+    name: 'George',
+    imageUris: [IMAGES[2], IMAGES[0], IMAGES[1]],
+  },
+  {
+    name: 'Stella',
+    imageUris: [IMAGES[0], IMAGES[1], IMAGES[2]],
+  },
+  {
+    name: 'Harry',
+    imageUris: [IMAGES[1], IMAGES[2], IMAGES[0]],
+  },
+  {
+    name: 'James',
+    imageUris: [IMAGES[2], IMAGES[0], IMAGES[1]],
+  },
+]
 
 class SwipeScreen extends PureComponent<Props, State> {
 
@@ -29,28 +62,48 @@ class SwipeScreen extends PureComponent<Props, State> {
     ),
   }
 
-  private card: Card
+  private topCard: Card
 
   constructor(props: Props) {
     super(props)
     this.state = {
+      index: 0,
       expansion: new Animated.Value(0),
-      possiblyTappingGradient: false,
     }
   }
 
   public render() {
+
     return (
-      <View style={styles.container}>
-        <Card
-          onExpandCard={this.onExpandCard}
-          onContractCard={this.onContractCard}
-          ref={(ref: Card) => this.card = ref}
-        />
+      <View style={styles.fill}>
+        {this.renderCard(0)}
+        {this.renderCard(1)}
+        {this.renderCard(2)}
         {this.renderGradient()}
         {this.renderCrossButton()}
         {this.renderHeartButton()}
       </View>
+    )
+  }
+
+  private renderCard = (cardIndex: number) => {
+
+    const positionInDeck = (((cardIndex - this.state.index) % 3) + 3) % 3
+    const globalIndex = (this.state.index + positionInDeck) % NAMES.length
+
+    return (
+      <Card
+        positionInDeck={positionInDeck}
+        {...NAMES[globalIndex]}
+        onExpandCard={this.onExpandCard}
+        onContractCard={this.onContractCard}
+        onCompleteSwipe={this.onCompleteSwipe}
+        ref={(ref: Card) => {
+          if (positionInDeck === 0) {
+            this.topCard = ref
+          }
+        }}
+      />
     )
   }
 
@@ -69,80 +122,69 @@ class SwipeScreen extends PureComponent<Props, State> {
 
     return (
       <Animated.View
-        onStartShouldSetResponder={() => {
-          this.setState({
-            possiblyTappingGradient: true,
-          })
-          return true
-        }}
-        onResponderMove={() => {
-          this.setState({
-            possiblyTappingGradient: false,
-          })
-        }}
-        onResponderRelease={() => {
-          if (this.state.possiblyTappingGradient) {
-            this.card.tap()
-          }
-        }}
+        {...PanResponder.create({
+          onStartShouldSetPanResponder: () => true,
+          onPanResponderRelease: (_, gestureState) => {
+            if (gestureState.moveX === 0 && gestureState.moveY === 0) {
+              this.topCard.tap()
+            }
+          },
+        }).panHandlers}
         style={[styles.overlay, gradientStyle]}
       >
         <LinearGradient
           colors={['rgba(217,228,239,0)', 'rgba(217,228,239,1)']}
           start={{x: 0, y: 0}} end={{x: 0, y: 0.75}}
-          style={{flex: 1}}
+          style={styles.fill}
         >
-            <View style={{flex: 1}}/>
+            <View style={styles.fill}/>
         </LinearGradient>
       </Animated.View>
     )
   }
 
-  private renderCircleButton = (props: CircleButtonProps) => {
+  private renderCircleButton = (props: CircleButtonProps, style: ViewStyle) => {
 
     const containerStyle = {
       opacity: this.state.expansion.interpolate({
         inputRange: [0, 1],
         outputRange: [1, 0],
       }),
+      elevation: 11,
     }
 
     return (
-      <Animated.View style={containerStyle}>
-        <CircleButton
-          {...props}
-          style={{
-            position: 'absolute',
-            bottom: 20,
-            ...props.style,
-          }}
-        />
-      </Animated.View>
+      <CircleButton
+        {...props}
+        style={[styles.circleButton, containerStyle, style]}
+      />
     )
   }
 
   private renderCrossButton = () => {
     return this.renderCircleButton({
-      IconClass: Entypo,
-      iconName: 'cross',
-      iconSize: 50,
-      iconColor: 'rgba(172,203,238,0.6)',
-      style: {
+        IconClass: Entypo,
+        iconName: 'cross',
+        iconSize: 50,
+        iconColor: 'rgba(172,203,238,0.6)',
+        onPress: this.swipeLeft,
+      }, {
         left: '20%',
-      },
-    })
+      }
+    )
   }
 
   private renderHeartButton = () => {
     return this.renderCircleButton({
-      IconClass: MaterialCommunityIcons,
-      iconName: 'heart',
-      iconSize: 40,
-      iconColor: '#ACCBEE',
-      style: {
+        IconClass: MaterialCommunityIcons,
+        iconName: 'heart',
+        iconSize: 40,
+        iconColor: '#ACCBEE',
+        onPress: this.swipeRight,
+      }, {
         right: '20%',
-      },
-    })
+      }
+    )
   }
 
   private onExpandCard = () => {
@@ -164,12 +206,21 @@ class SwipeScreen extends PureComponent<Props, State> {
       }
     ).start()
   }
+
+  private swipeRight = () => this.topCard && this.topCard.swipeRight()
+  private swipeLeft = () => this.topCard && this.topCard.swipeLeft()
+
+  private onCompleteSwipe = () => {
+    this.setState({
+      index: this.state.index + 1,
+    })
+  }
 }
 
 export default SwipeScreen
 
 const styles = StyleSheet.create({
-  container: {
+  fill: {
     flex: 1,
   },
   overlay: {
@@ -178,6 +229,21 @@ const styles = StyleSheet.create({
     height: '20%',
     bottom: 0,
     left: 0,
-    elevation: 4,
+    zIndex: 11,
+    ...Platform.select({
+      android: {
+        elevation: 11,
+      },
+    }),
+  },
+  circleButton: {
+    position: 'absolute',
+    bottom: 25,
+    zIndex: 12,
+    ...Platform.select({
+      android: {
+        elevation: 12,
+      },
+    }),
   },
 })

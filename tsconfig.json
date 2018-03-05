@@ -9,7 +9,7 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "preserveConstEnums": true,
-    "allowJs": true,
+    "allowJs": false,
     "sourceMap": true,
     "noImplicitReturns": true,
     "noUnusedParameters": true,

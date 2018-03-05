@@ -25,7 +25,6 @@ class App extends PureComponent<Props, {}> {
   }
 
   private renderScreen() {
-    return <AuthedRouter />
     if (!this.props.rehydrated) {
       // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */

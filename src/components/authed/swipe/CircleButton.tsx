@@ -1,13 +1,14 @@
 import React, { PureComponent } from 'react'
-import { TouchableWithoutFeedback, View, ViewStyle, StyleSheet } from 'react-native'
-import { moderateScale } from './scaling'
+import { Animated, TouchableWithoutFeedback, StyleSheet } from 'react-native'
+import { moderateScale } from '../../generic'
 
 interface Props {
   IconClass: any /* tslint:disable-line:no-any */
   iconName: string
   iconColor: string
   iconSize: number
-  style: ViewStyle
+  onPress: () => void
+  style?: any /* tslint:disable-line:no-any */
 }
 
 interface State {
@@ -32,9 +33,10 @@ class CircleButton extends PureComponent<Props, State> {
 
     return (
       <TouchableWithoutFeedback
+        onPress={this.props.onPress}
         onPressIn={() => this.setState({buttonPressedIn: true})}
         onPressOut={() => this.setState({buttonPressedIn: false})}>
-        <View style={[styles.button, this.state.buttonPressedIn ? clickedButtonStyle : {}, this.props.style]}>
+        <Animated.View style={[styles.button, this.state.buttonPressedIn ? clickedButtonStyle : {}, this.props.style]}>
           <this.props.IconClass
             style={styles.icon}
             name={this.props.iconName}
@@ -42,7 +44,7 @@ class CircleButton extends PureComponent<Props, State> {
             color={this.state.buttonPressedIn ? 'white' : this.props.iconColor}
           />
 
-        </View>
+        </Animated.View>
       </TouchableWithoutFeedback>
     )
   }
