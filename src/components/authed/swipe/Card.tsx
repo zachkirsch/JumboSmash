@@ -31,8 +31,11 @@ interface State {
   panX: Animated.Value
   expansion: Animated.Value
   fullyExpanded: boolean
-  marginTop: number
-  bounces: boolean // false if at bottom of scrollview, true if at top
+  margin: {
+    top: Animated.Value
+    bottom: Animated.Value
+  }
+  isMomentumScrolling: boolean
 }
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
@@ -71,7 +74,6 @@ class Card extends PureComponent<Props, State> {
   private mainScrollView: any /* tslint:disable-line:no-any */
   private carousel: Carousel
   private isSwipingProgrammatically: boolean = false
-  private isMomentumScrolling: boolean = false
 
   constructor(props: Props) {
     super(props)
@@ -80,8 +82,11 @@ class Card extends PureComponent<Props, State> {
       panX: new Animated.Value(0),
       expansion: new Animated.Value(0),
       fullyExpanded: false,
-      marginTop: 0,
-      bounces: true,
+      margin: {
+        top: new Animated.Value(MAX_MARGIN),
+        bottom: new Animated.Value(MAX_MARGIN),
+      },
+      isMomentumScrolling: false,
     }
     this.setupGestureResponders()
   }
@@ -94,9 +99,8 @@ class Card extends PureComponent<Props, State> {
 
   public expandCard = () => {
     this.props.onExpandCard && this.props.onExpandCard()
-    this.setState({
-      marginTop: 0,
-    })
+    this.state.margin.top.setValue(0)
+    this.state.margin.bottom.setValue(0)
     Animated.timing(
       this.state.expansion,
       {
@@ -115,12 +119,28 @@ class Card extends PureComponent<Props, State> {
     this.setState({
       fullyExpanded: false,
     })
-    Animated.timing(
-      this.state.expansion,
-      {
-        toValue: 0,
-        duration: 100,
-      }
+    Animated.parallel([
+      Animated.timing(
+        this.state.expansion,
+        {
+          toValue: 0,
+          duration: 100,
+        }
+      ),
+      Animated.spring(
+        this.state.margin.top,
+        {
+          toValue: MAX_MARGIN,
+          friction: 4, // duration: 100,
+        }
+      ),
+      Animated.spring(
+        this.state.margin.bottom,
+        {
+          toValue: MAX_MARGIN,
+          friction: 4, // duration: 100,
+        }
+      )]
     ).start()
   }
 
@@ -133,16 +153,11 @@ class Card extends PureComponent<Props, State> {
   }
 
   render() {
-    const outerContainerStyle = {
+
+    let outerContainerStyle = {
       zIndex: 10 - this.props.positionInDeck,
-      marginTop: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [MAX_MARGIN, this.state.marginTop],
-      }),
-      marginBottom: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [MAX_MARGIN, 0],
-      }),
+      marginTop: this.state.margin.top,
+      marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.expansion.interpolate({
         inputRange: [0, 1],
         outputRange: [MAX_MARGIN, 0],
@@ -201,7 +216,7 @@ class Card extends PureComponent<Props, State> {
               style={styles.scrollView}
               showsVerticalScrollIndicator={false}
               scrollsToTop={false}
-              bounces={this.state.bounces}
+              bounces
               ref={(ref: any) => this.mainScrollView = ref} /* tslint:disable-line:no-any */
             >
               <View
@@ -292,28 +307,37 @@ class Card extends PureComponent<Props, State> {
 
   private cardWidth = () => WIDTH - 2 * MAX_MARGIN
 
-  private canSwipe = () => this.props.positionInDeck === 0 && !this.isSwipingProgrammatically
+  private canSwipe = () => !this.state.fullyExpanded
+                           && this.props.positionInDeck === 0
+                           && !this.isSwipingProgrammatically
 
-  private onMomentumScrollCard = (isMomentumScrolling: boolean) => () => this.isMomentumScrolling = isMomentumScrolling
+  private getMarginTopFromScrollviewBounce = (event: ScrollEvent) => Math.max(0, -event.nativeEvent.contentOffset.y)
+
+  private getMarginBottomFromScrollviewBounce = (event: ScrollEvent) => {
+    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
+    return Math.max(0, contentOffset.y + layoutMeasurement.height - contentSize.height)
+  }
+
+  private setMarginFromScrollviewBounce = (event: ScrollEvent) => {
+    this.state.margin.top.setValue(this.getMarginTopFromScrollviewBounce(event))
+    this.state.margin.bottom.setValue(this.getMarginBottomFromScrollviewBounce(event))
+  }
+
+  private onMomentumScrollCard = (isMomentumScrolling: boolean) => () => this.setState({isMomentumScrolling})
 
   private onScrollCard = (event: ScrollEvent) => {
 
     const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
 
-    this.setState({
-      bounces: contentOffset.y + layoutMeasurement.height / 2 < contentSize.height / 2,
-    })
-
-    if (this.isMomentumScrolling) {
+    if (this.state.isMomentumScrolling) {
       return
     }
 
     const swipedDown = contentOffset.y < -75
-    if (swipedDown) {
-      this.setState({
-        marginTop: swipedDown ? -contentOffset.y : this.state.marginTop,
-      })
+    const swipedUp = contentOffset.y + layoutMeasurement.height > contentSize.height + 100
+    if (swipedDown || swipedUp) {
       this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+      this.setMarginFromScrollviewBounce(event)
       this.contractCard()
     }
   }
