@@ -150,7 +150,6 @@ class SwipeScreen extends PureComponent<Props, State> {
         inputRange: [0, 1],
         outputRange: [1, 0],
       }),
-      elevation: 11,
     }
 
     return (

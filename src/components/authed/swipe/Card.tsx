@@ -1,11 +1,13 @@
 import React, { PureComponent } from 'react'
 import {
   Animated,
+  Easing,
   View,
   StyleSheet,
   Platform,
   PanResponder,
   PanResponderInstance,
+  PanResponderGestureState,
   NativeSyntheticEvent,
   NativeScrollEvent,
   TouchableOpacity,
@@ -35,6 +37,7 @@ interface State {
     top: Animated.Value
     bottom: Animated.Value
   }
+  shouldBounce: boolean // scrollView should bounce at the top, but not the bottom
   isMomentumScrolling: boolean
 }
 
@@ -65,6 +68,7 @@ const TAGS = [
   'tag3',
 ]
 
+const BOTTOM_SWIPE_AWAY_ENABLED = false
 const WIDTH = Dimensions.get('window').width
 const MAX_MARGIN = 20
 
@@ -74,6 +78,7 @@ class Card extends PureComponent<Props, State> {
   private mainScrollView: any /* tslint:disable-line:no-any */
   private carousel: Carousel
   private isSwipingProgrammatically: boolean = false
+  private isSwiping: boolean = false
 
   constructor(props: Props) {
     super(props)
@@ -86,6 +91,7 @@ class Card extends PureComponent<Props, State> {
         top: new Animated.Value(MAX_MARGIN),
         bottom: new Animated.Value(MAX_MARGIN),
       },
+      shouldBounce: true,
       isMomentumScrolling: false,
     }
     this.setupGestureResponders()
@@ -99,18 +105,32 @@ class Card extends PureComponent<Props, State> {
 
   public expandCard = () => {
     this.props.onExpandCard && this.props.onExpandCard()
-    this.state.margin.top.setValue(0)
-    this.state.margin.bottom.setValue(0)
-    Animated.timing(
-      this.state.expansion,
-      {
-        toValue: 1,
-        duration: 100,
-      }
-    ).start(() => {
-      this.setState({
-        fullyExpanded: true,
-      })
+    Animated.parallel([
+      Animated.timing(
+        this.state.expansion,
+        {
+          toValue: 1,
+          duration: 150,
+          easing: Easing.inOut(Easing.cubic),
+        }
+      ),
+      Animated.timing(
+        this.state.margin.top,
+        {
+          toValue: 0,
+          duration: 150,
+        }
+      ),
+      Animated.timing(
+        this.state.margin.bottom,
+        {
+          toValue: 0,
+          duration: 150,
+        }
+      )]
+    ).start()
+    this.setState({
+      fullyExpanded: true,
     })
   }
 
@@ -124,21 +144,21 @@ class Card extends PureComponent<Props, State> {
         this.state.expansion,
         {
           toValue: 0,
-          duration: 100,
+          duration: 175,
         }
       ),
       Animated.spring(
         this.state.margin.top,
         {
           toValue: MAX_MARGIN,
-          friction: 4, // duration: 100,
+          friction: 4,
         }
       ),
       Animated.spring(
         this.state.margin.bottom,
         {
           toValue: MAX_MARGIN,
-          friction: 4, // duration: 100,
+          friction: 4,
         }
       )]
     ).start()
@@ -154,8 +174,8 @@ class Card extends PureComponent<Props, State> {
 
   render() {
 
-    let outerContainerStyle = {
-      zIndex: 10 - this.props.positionInDeck,
+    const outerContainerStyle = {
+      zIndex: this.state.fullyExpanded ? 14 : 10 - this.props.positionInDeck,
       marginTop: this.state.margin.top,
       marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.expansion.interpolate({
@@ -171,15 +191,24 @@ class Card extends PureComponent<Props, State> {
       }),
     }
 
+    const scrollViewStyle = {
+      backgroundColor: this.state.shouldBounce ? 'transparent' : 'white',
+    }
+
     let shadowStyle
     switch (this.props.positionInDeck) {
       case 0:
-        shadowStyle = [styles.firstCard, {
-          shadowOpacity: this.state.panX.interpolate({
-            inputRange: [-50, 0, 50],
-            outputRange: [0.5, 0, 0.5],
+        shadowStyle = [
+          styles.firstCard,
+          Platform.select({
+            ios: {
+              shadowOpacity: this.state.panX.interpolate({
+                inputRange: [-50, 0, 50],
+                outputRange: [0.5, 0, 0.5],
+              }),
+            },
           }),
-        }]
+        ]
         break
       case 1:
         shadowStyle = styles.secondCard
@@ -213,7 +242,7 @@ class Card extends PureComponent<Props, State> {
               onScroll={this.onScrollCard}
               onMomentumScrollBegin={this.onMomentumScrollCard(true)}
               onMomentumScrollEnd={this.onMomentumScrollCard(false)}
-              style={styles.scrollView}
+              style={[styles.scrollView, scrollViewStyle]}
               showsVerticalScrollIndicator={false}
               scrollsToTop={false}
               bounces
@@ -225,6 +254,7 @@ class Card extends PureComponent<Props, State> {
                 <Carousel
                   enabled={this.state.fullyExpanded}
                   imageUris={this.props.imageUris}
+                  onTapImage={this.contractCard}
                   ref={(ref) => this.carousel = ref}
                 />
                 {this.renderBottom()}
@@ -238,9 +268,17 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderBottom = () => {
+
+    const bottomContainerStyle = {
+      paddingHorizontal: this.state.expansion.interpolate({
+        inputRange: [0, 1],
+        outputRange: [10, 10 + MAX_MARGIN],
+      }),
+    }
+
     return (
-      <View
-        style={styles.bottomContainer}
+      <Animated.View
+        style={[styles.bottomContainer, bottomContainerStyle]}
       >
         <JSText fontSize={20} bold style={styles.name}>{this.props.name}</JSText>
         <View style={styles.textContainer}>
@@ -260,7 +298,7 @@ class Card extends PureComponent<Props, State> {
             Don't mess up now... yeah baby!!
           </JSText>
         </View>
-      </View>
+      </Animated.View>
     )
   }
 
@@ -282,11 +320,10 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderGradient = () => {
-
     const gradientStyle = {
       opacity: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 1],
+        outputRange: [0, 1],
       }),
     }
 
@@ -295,7 +332,7 @@ class Card extends PureComponent<Props, State> {
         style={[styles.overlay, gradientStyle]}
       >
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
+          colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.6)']}
           start={{x: 0, y: 0}} end={{x: 0, y: 0.5}}
           style={styles.fill}
         >
@@ -310,6 +347,10 @@ class Card extends PureComponent<Props, State> {
   private canSwipe = () => !this.state.fullyExpanded
                            && this.props.positionInDeck === 0
                            && !this.isSwipingProgrammatically
+
+  private isSwipe = (gestureState: PanResponderGestureState) => {
+    return Math.abs(gestureState.dx) > 1 || Math.abs(gestureState.dx) > 1
+  }
 
   private getMarginTopFromScrollviewBounce = (event: ScrollEvent) => Math.max(0, -event.nativeEvent.contentOffset.y)
 
@@ -329,13 +370,13 @@ class Card extends PureComponent<Props, State> {
 
     const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
 
-    if (this.state.isMomentumScrolling) {
-      return
-    }
+    this.setState({
+      shouldBounce: contentOffset.y < (contentSize.height - layoutMeasurement.height) / 2,
+    })
 
-    const swipedDown = contentOffset.y < -75
+    const swipedDown = contentOffset.y < -90
     const swipedUp = contentOffset.y + layoutMeasurement.height > contentSize.height + 100
-    if (swipedDown || swipedUp) {
+    if (swipedDown || BOTTOM_SWIPE_AWAY_ENABLED && swipedUp) {
       this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
       this.setMarginFromScrollviewBounce(event)
       this.contractCard()
@@ -377,13 +418,15 @@ class Card extends PureComponent<Props, State> {
   }
 
   private setupGestureResponders = () => {
+
     this.cardPanResponder = PanResponder.create({
 
       onStartShouldSetPanResponder: () => !this.state.fullyExpanded && this.canSwipe(),
       onStartShouldSetPanResponderCapture: () => !this.state.fullyExpanded && this.canSwipe(),
 
       onPanResponderMove: (event, gestureState) => {
-        if (!this.state.fullyExpanded && this.canSwipe()) {
+        if (!this.state.fullyExpanded && this.canSwipe() && this.isSwipe(gestureState)) {
+          this.isSwiping = true
           const updatePan = Animated.event([undefined, {dx: this.state.pan.x, dy: this.state.pan.y}])
           const updatePanX = Animated.event([undefined, {dx: this.state.panX}])
           updatePan(event, gestureState)
@@ -397,9 +440,13 @@ class Card extends PureComponent<Props, State> {
           return
         }
 
-        if (gestureState.moveX === 0 && gestureState.moveY === 0) { // just a tap
+        if (!this.isSwiping && !this.isSwipe(gestureState)) { // just a tap
           this.tap()
+          return
         }
+
+        this.isSwiping = false
+
         const {dx, vx, vy} = gestureState
 
         let isSwipe = Math.abs(dx) > WIDTH / 4
@@ -536,9 +583,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomContainer: {
-    padding: 10,
     justifyContent: 'flex-end',
     backgroundColor: 'white',
+    paddingVertical: 10,
   },
   textContainer: {
     flexDirection: 'row',

@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react'
-import { View, ScrollView, Image, StyleSheet, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
+import { View, TouchableWithoutFeedback, ScrollView, Image, StyleSheet, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
 
 interface Props {
   imageUris: string[]
   enabled: boolean
+  onTapImage?: () => void
 }
 
 interface State {
@@ -64,12 +65,14 @@ class Carousel extends PureComponent<Props, State> {
 
   private renderImages = () => {
     return this.props.imageUris.map((uri, i) => (
-      <Image
-        key={i}
-        source={{uri}}
-        resizeMode={'cover'}
-        style={styles.image}
-      />
+      <TouchableWithoutFeedback onPress={this.props.enabled && this.props.onTapImage}>
+        <Image
+          key={i}
+          source={{uri}}
+          resizeMode={'cover'}
+          style={styles.image}
+        />
+      </TouchableWithoutFeedback>
     ))
   }
 
