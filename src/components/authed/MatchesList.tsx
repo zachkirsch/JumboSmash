@@ -15,6 +15,7 @@ interface Chat {
 
 interface User {
   name: string,
+  id: number,
   profilePic: string,
   messages: Chat[],
 }
@@ -31,8 +32,16 @@ class MatchesList extends PureComponent<Props, State> {
           usersToChat: [
             {
               name: 'Greg Aloupis',
+              id: 0,
               profilePic: 'http://www.cs.tufts.edu/people/faculty/images/GregAloupis.png',
               messages: [
+                {
+                  id: 0,
+                  time: Date.now(),
+                  isSender: false,
+                  read: true,
+                  text: 'Great!',
+                },
                 {
                   id: 1,
                   time: Date.now(),
@@ -47,16 +56,24 @@ class MatchesList extends PureComponent<Props, State> {
                   read: true,
                   text: 'Lemme smashhhhhh',
                 },
+                {
+                  id: 3,
+                  time: Date.now(),
+                  isSender: false,
+                  read: true,
+                  text: 'Hey',
+                },
               ],
 
             },
             {
               name: 'Zach Kirsch',
+              id: 1,
               profilePic: 'https://scontent.fzty2-1.fna.fbcdn.net' +
               '/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
               messages: [
                 {
-                  id: 3,
+                  id: 4,
                   time: Date.now(),
                   isSender: false,
                   read: false,
@@ -67,11 +84,12 @@ class MatchesList extends PureComponent<Props, State> {
             },
             {
               name: 'Jeff Bezos',
+              id: 2,
               profilePic: 'http://mblogthumb3.phinf.naver.net/20160823_162/' +
               'banddi95_14719406421210hOJW_JPEG/%B0%A1%C0%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
               messages: [
                 {
-                  id: 4,
+                  id: 5,
                   time: Date.now(),
                   isSender: false,
                   read: true,
@@ -82,10 +100,11 @@ class MatchesList extends PureComponent<Props, State> {
             },
             {
               name: 'Mewtwo',
+              id: 3,
               profilePic: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
               messages: [
                 {
-                  id: 5,
+                  id: 6,
                   time: Date.now(),
                   isSender: false,
                   read: false,
@@ -97,10 +116,11 @@ class MatchesList extends PureComponent<Props, State> {
             },
             {
               name: 'Bane',
+              id: 4,
               profilePic: 'http://www.fitzness.com/blog/wp-content/uploads/Tom-Hardy-Bane-Head-Shot.jpeg',
               messages: [
                 {
-                  id: 6,
+                  id: 7,
                   time: Date.now(),
                   isSender: false,
                   read: false,
@@ -138,12 +158,13 @@ class MatchesList extends PureComponent<Props, State> {
     // }
 
     private openChatScreen = (user: User) => {
-        this.props.navigation.navigate('Chat', {name: user.name, profilePic: user.profilePic, messages: user.messages})
+        this.props.navigation.navigate('Chat', {name: user.name, id: user.id, profilePic: user.profilePic, messages: user.messages})
     }
 
     private renderItem = ({item}: {item: User}) => {
         return (
             <MatchesListItem
+              key={item.id}
               name={item.name.split(' ')[0]}
               onPress={() => this.openChatScreen(item)}
               lastMessage={item.messages[0].text}

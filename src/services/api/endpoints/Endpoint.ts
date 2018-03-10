@@ -1,7 +1,7 @@
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
-const SERVER = 'https://jumbosmash2018-staging.herokuapp.com/'
+const SERVER = 'http://10.0.2.2:5000'
 
 type HttpMethod = 'GET' | 'POST'
 

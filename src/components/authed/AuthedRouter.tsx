@@ -22,7 +22,12 @@ const styles = StyleSheet.create({
 
 const matchesScreen = StackNavigator({
   MatchesList: { screen: MatchesList },
-  Chat: { screen: ChatScreen },
+  Chat: {
+    screen: ChatScreen,
+    navigationOptions: {
+      tabBarVisible: false,
+    },
+  },
 }, {
   headerMode: 'none',
   cardStyle: styles.stackCard,
