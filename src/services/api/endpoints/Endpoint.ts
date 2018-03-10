@@ -1,34 +1,37 @@
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
-const SERVER = 'https://jumbosmash2018-staging.herokuapp.com/'
+// const SERVER = 'https://jumbosmash2018-staging.herokuapp.com/'
+const SERVER = 'http://127.0.0.1:5000/'
 
 type HttpMethod = 'GET' | 'POST'
 
-interface IndexableMap {
-  [key: string]: string | number | boolean
+type HttpGetRequest = {
+  [key: string]: string | number
 }
 
-export type HttpGetRequestParams = IndexableMap
-
-interface Token extends IndexableMap {
+interface Token {
   email: string
   session_key: string
 }
 
-const getToken = (sessionKey?: string): Token => ({
+const getToken = (): Token => ({
   email: getEmail(),
-  session_key: getSessionKey() || sessionKey,
+  session_key: getSessionKey(),
 })
 
-abstract class Endpoint<REQ, SUCC_RESP> {
+abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
-  constructor(readonly endpoint: string, readonly requiresToken: boolean) { }
+  constructor(readonly endpoint: string,
+              readonly requiresToken: boolean,
+              readonly constructUri?: (endpoint: string, components: PathExtensionComponents) => string) { }
 
-  public abstract hit(body: REQ): Promise<SUCC_RESP>
+  protected getEndpoint = (pathExtensionComponents: PathExtensionComponents) => {
+    return this.constructUri ? this.constructUri(this.endpoint, pathExtensionComponents) : this.endpoint
+  }
 
-  protected makeRequest(endpoint: string, method: HttpMethod, body?: REQ): Promise<SUCC_RESP> {
-    return fetch(SERVER + endpoint, this.buildRequest(method, body))
+  protected makeRequest(endpoint: string, method: HttpMethod, body?: Request): Promise<SuccessResponse> {
+    return fetch(SERVER.replace(/\/$/, '') + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
       throw Error('Could not connect to the server')
     })
@@ -42,7 +45,7 @@ abstract class Endpoint<REQ, SUCC_RESP> {
     })
   }
 
-  private buildRequest(method: HttpMethod, body?: REQ): RequestInit {
+  private buildRequest(method: HttpMethod, body?: Request): RequestInit {
 
     const request: RequestInit = {
       method,
@@ -65,43 +68,51 @@ abstract class Endpoint<REQ, SUCC_RESP> {
 
 }
 
-export class GetEndpoint<REQ extends HttpGetRequestParams, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(params: REQ, sessionKey?: string) {
-    const uri = this.constructUriWithParams(params, sessionKey)
+export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathExtensionComponents = {}>
+       extends Endpoint<Request, SuccessResponse, PathExtensionComponents> {
+
+  public hit(params: Request, pathExtensionComponents: PathExtensionComponents) {
+    const uri = this.constructUriWithParams(params, pathExtensionComponents)
     return this.makeRequest(uri, 'GET')
   }
 
-  private constructUriWithParams = (givenParams?: REQ, sessionKey?: string) => {
-    if (givenParams === undefined && !this.requiresToken) {
-      return this.endpoint
+  private constructUriWithParams = (params: Request, pathExtensionComponents: PathExtensionComponents) => {
+
+    const endpoint = this.getEndpoint(pathExtensionComponents)
+
+    if (params === undefined && !this.requiresToken) {
+      return endpoint
     }
 
-    let uri = this.endpoint + '?'
-
-    if (givenParams !== undefined) {
-      uri += this.getQueryString(givenParams)
-    }
+    let uri = endpoint + '?'
 
     if (this.requiresToken) {
-      uri += this.getQueryString(getToken(sessionKey))
+      const {email, session_key} = getToken()
+      uri += this.getQueryString({email, session_key})
+    }
+
+    if (params) {
+      uri += this.getQueryString(params)
     }
 
     return uri
   }
 
-  private getQueryString(params: HttpGetRequestParams) {
+  private getQueryString(params: HttpGetRequest) {
     const queryParams: string[] = []
-    for (const key in params) {
+    Object.keys(params).forEach((key) => {
       if (params.hasOwnProperty(key)) {
         queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
       }
-    }
+    })
     return queryParams.join('&')
   }
 }
 
-export class PostEndpoint<REQ, SUCC_RESP> extends Endpoint<REQ, SUCC_RESP> {
-  public hit(body: REQ) {
-    return this.makeRequest(this.endpoint, 'POST', body)
+export class PostEndpoint<Request, SuccessResponse, PathExtensionComponents = {}>
+       extends Endpoint<Request, SuccessResponse, PathExtensionComponents> {
+
+  public hit(body: Request, pathExtensionComponents: PathExtensionComponents) {
+    return this.makeRequest(this.getEndpoint(pathExtensionComponents), 'POST', body)
   }
 }

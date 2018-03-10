@@ -1,5 +1,5 @@
+import { LoadableValue } from '../redux'
+
 export interface FirebaseState {
-    loading: boolean,
-    token: string,
-    errorMessage: string
+  token: LoadableValue<string>
 }

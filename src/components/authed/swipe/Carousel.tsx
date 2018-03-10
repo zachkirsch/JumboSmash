@@ -65,9 +65,8 @@ class Carousel extends PureComponent<Props, State> {
 
   private renderImages = () => {
     return this.props.imageUris.map((uri, i) => (
-      <TouchableWithoutFeedback onPress={this.props.enabled && this.props.onTapImage}>
+      <TouchableWithoutFeedback key={`image-${i}`} onPress={this.props.enabled ? this.props.onTapImage : undefined}>
         <Image
-          key={i}
           source={{uri}}
           resizeMode={'cover'}
           style={styles.image}
@@ -82,7 +81,7 @@ class Carousel extends PureComponent<Props, State> {
     }
     return this.props.imageUris.map((_, i) => (
       <View
-        key={i}
+        key={`dot-${i}`}
         style={[styles.dot, {
           backgroundColor: this.state.carouselIndex === i ? 'black' : 'white',
           borderColor:     this.state.carouselIndex === i ? 'white' : 'black',

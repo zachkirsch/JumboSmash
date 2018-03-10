@@ -1,48 +1,48 @@
 /* Actions */
 
 export enum FirebaseActionType {
-    ATTEMPT_CONNECT_TO_FIREBASE = 'ATTEMPT_CONNECT_TO_FIREBASE',
-    CONNECT_TO_FIREBASE_SUCCESS = 'CONNECT_TO_FIREBASE_SUCCESS',
-    CONNECT_TO_FIREBASE_FAILURE = 'CONNECT_TO_FIREBASE_FAILURE',
-    LOGOUT_FIREBASE = 'LOGOUT_FIREBASE',
-    OTHER_ACTION = '__any_other_action_type__',
+  ATTEMPT_CONNECT_TO_FIREBASE = 'ATTEMPT_CONNECT_TO_FIREBASE',
+  CONNECT_TO_FIREBASE_SUCCESS = 'CONNECT_TO_FIREBASE_SUCCESS',
+  CONNECT_TO_FIREBASE_FAILURE = 'CONNECT_TO_FIREBASE_FAILURE',
+  LOGOUT_FIREBASE = 'LOGOUT_FIREBASE',
+  OTHER_ACTION = '__any_other_action_type__',
 }
 
 export interface AttemptConnectToFirebaseAction {
-    type: FirebaseActionType.ATTEMPT_CONNECT_TO_FIREBASE
-    token: string
+  type: FirebaseActionType.ATTEMPT_CONNECT_TO_FIREBASE
+  token: string
 }
 
 export interface ConnectToFirebaseSuccessAction {
-    type: FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS
+  type: FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS
 }
 
 export interface ConnectToFirebaseFailureAction {
-    type: FirebaseActionType.CONNECT_TO_FIREBASE_FAILURE
-    errorMessage: string
+  type: FirebaseActionType.CONNECT_TO_FIREBASE_FAILURE
+  errorMessage: string
 }
 
 export interface LogoutFirebaseAction {
-    type: FirebaseActionType.LOGOUT_FIREBASE
+  type: FirebaseActionType.LOGOUT_FIREBASE
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
- * have a default case when processing actions. We will never dispatch
- * OtherAction, but we do need a default case for the other Actions that are
- * dispatched (by third-party plugins and Redux itself). For more information,
- * see https://spin.atomicobject.com/2017/07/24/redux-action-pattern-typescript/
- */
+* have a default case when processing actions. We will never dispatch
+* OtherAction, but we do need a default case for the other Actions that are
+* dispatched (by third-party plugins and Redux itself). For more information,
+* see https://spin.atomicobject.com/2017/07/24/redux-action-pattern-typescript/
+*/
 
 export interface OtherAction {
-    type: FirebaseActionType.OTHER_ACTION
+  type: FirebaseActionType.OTHER_ACTION
 }
 
 export type FirebaseAction =
-    AttemptConnectToFirebaseAction
-    | ConnectToFirebaseSuccessAction
-    | ConnectToFirebaseFailureAction
-    | LogoutFirebaseAction
-    | OtherAction
+AttemptConnectToFirebaseAction
+| ConnectToFirebaseSuccessAction
+| ConnectToFirebaseFailureAction
+| LogoutFirebaseAction
+| OtherAction
 
 /* Action Creators */
 

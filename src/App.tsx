@@ -39,14 +39,23 @@ class App extends PureComponent<Props, {}> {
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
-    return {
-        isLoggedIn: !!state.auth.sessionKey,
-        codeOfConductAccepted: state.coc.codeOfConductAccepted,
-        rehydrated: state.redux.rehydrated,
-        networkRequestInProgress: state.auth.waitingForRequestVerificationResponse ||
-                                  state.auth.waitingForVerificationResponse ||
-                                  state.firebase.loading,
-    }
+  return {
+    isLoggedIn: state.auth.isLoggedIn,
+    codeOfConductAccepted: state.coc.codeOfConductAccepted,
+    rehydrated: state.redux.rehydrated,
+    networkRequestInProgress: networkRequestInProgress(state),
+  }
+}
+
+const networkRequestInProgress = (state: RootState) => {
+  return state.auth.waitingForRequestVerificationResponse
+  || state.auth.waitingForVerificationResponse
+  || state.firebase.token.loading
+  || state.profile.preferredName.loading
+  || state.profile.major.loading
+  || state.profile.bio.loading
+  || state.profile.images.loading
+  || state.profile.tags.loading
 }
 
 export default connect(mapStateToProps)(App)

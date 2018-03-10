@@ -181,7 +181,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       authError={this.props.authError}
       clearAuthErrorMessage={this.props.clearAuthErrorMessage}
       ref={(ref) => this.checkEmailScreen = ref}
-      waitingForVerificationResponse={this.props.waitingForRequestVerificationResponse}
+      waitingForVerificationResponse={this.props.waitingForVerificationResponse}
     />
   )
 
@@ -226,7 +226,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
     email: state.auth.email,
     acceptedCoC: state.coc.codeOfConductAccepted,
-    isLoggedIn: !!state.auth.sessionKey,
+    isLoggedIn: state.auth.isLoggedIn,
   }
 }
 

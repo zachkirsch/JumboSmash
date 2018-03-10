@@ -166,7 +166,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         iconName: 'cross',
         iconSize: 50,
         iconColor: 'rgba(172,203,238,0.6)',
-        onPress: this.swipeLeft,
+        onPress: () => this.topCard && this.topCard.swipeLeft(),
       }, {
         left: '20%',
       }
@@ -179,7 +179,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         iconName: 'heart',
         iconSize: 40,
         iconColor: '#ACCBEE',
-        onPress: this.swipeRight,
+        onPress: () => this.topCard && this.topCard.swipeRight(),
       }, {
         right: '20%',
       }
@@ -205,9 +205,6 @@ class SwipeScreen extends PureComponent<Props, State> {
       }
     ).start()
   }
-
-  private swipeRight = () => this.topCard && this.topCard.swipeRight()
-  private swipeLeft = () => this.topCard && this.topCard.swipeLeft()
 
   private onCompleteSwipe = () => {
     this.setState({

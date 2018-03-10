@@ -7,19 +7,25 @@ export interface ErrorResponse {
 }
 
 export const api = {
-  requestVerification: (credentials: Credentials) => {
-    return Endpoints.requestVerification.hit(credentials)
-  },
-  verifyEmail: (code: string) => {
-    const email = getEmail()
-    return Endpoints.verifyEmail.hit({email, code})
-  },
-  acceptCoC: () => {
-    return Endpoints.acceptCoC.hit({})
-  },
-  me: (sessionKey?: string) => {
-    return Endpoints.me.hit({}, sessionKey)
-  },
+
+  /* LOGIN */
+
+  requestVerification: (credentials: Credentials) => Endpoints.requestVerification.hit(credentials, {}),
+  verifyEmail: (code: string) => Endpoints.verifyEmail.hit({email: getEmail(), code}, {}),
+  acceptCoC: () => Endpoints.acceptCoC.hit({}, {}),
+
+  /* ME */
+
+  me: () => Endpoints.me.hit({}, {}),
+  updateBio: (bio: string) => Endpoints.updateBio.hit({bio}, {}),
+  updateName: (preferredName: string) => Endpoints.updateName.hit({preferred_name: preferredName}, {}),
+  updateImages: (images: string[]) => Endpoints.updateImages.hit({images}, {}),
+
+  /* OTHERS */
+
+  swipe: (direction: 'left' | 'right', onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
+  getUser: (userId: number) => Endpoints.getUser.hit({}, {userId}),
+
 }
 
 // Errors
