@@ -29,10 +29,10 @@ class SettingsMenu extends PureComponent<Props,State> {
     return (
       <View>
       <View style={styles.buttons}>
-        <JSButton label="Settings" onPress={this._onOpenSettingsSheet} ></JSButton>
+        <JSButton label="Help/Feedback" onPress={this._onOpenHelpSheet}></JSButton>
       </View>
       <View style={styles.buttons}>
-        <JSButton label="Help/Feedback" onPress={this._onOpenHelpSheet}></JSButton>
+        <JSButton label="Settings" onPress={this._onOpenSettingsSheet} ></JSButton>
       </View>
       </View>
     )

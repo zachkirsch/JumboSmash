@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { View, Text, StyleSheet, ScrollView} from 'react-native'
 import {emailSupport} from '../login/utils'
 import { NavigationScreenProps } from 'react-navigation'
-import { JSButton } from '../generic/index';
+import { JSButton, JSText } from '../generic/index';
 
 type Props = NavigationScreenProps<{}>
 
@@ -13,16 +13,16 @@ class ReportScreen extends PureComponent<Props, {}> {
   render(){
     return(
       <ScrollView><View style={[styles.center, styles.signoff]}>
-                  <Text style={styles.titleText}>To Report Something or Someone...</Text>
+                  <JSText fontSize={20} style={styles.title}>To Report Something or Someone...</Text>
                   <Text></Text>
                   <View style={[styles.left, styles.signoffLeft]}>
-                      <Text style={styles.SignOfftext}>[1] 🤔 Make sure that the action or individual actually violates our code of conduct. </Text>
+                      <JSText style={styles.SignOfftext}>[1] 🤔 Make sure that the action or individual actually violates our code of conduct. </JSText>
                       <Text></Text>
-                      <Text style={styles.SignOfftext}>[2] 📸 Take a screenshot of the issue. </Text>
+                      <JSText style={styles.SignOfftext}>[2] 📸 Take a screenshot of the issue. </JSText>
                       <Text></Text>
-                      <Text style={styles.SignOfftext}>[3] ✉️ Please email [INSERT JUMBOSMASH EMAIL HERE] with the title "REPORTING". Include the screenshot, and which article of the Code of Conduct the individual or action is violating. </Text>
+                      <JSText style={styles.SignOfftext}>[3] ✉️ Please email [INSERT JUMBOSMASH EMAIL HERE] with the title "REPORTING". Include the screenshot, and which article of the Code of Conduct the individual or action is violating. </JSText>
                       <Text></Text>
-                      <Text style={styles.SignOfftext}>[4] ✅ Our team will resolve the issue in 24 hours! </Text>
+                      <JSText style={styles.SignOfftext}>[4] ✅ Our team will resolve the issue in 24 hours! </JSText>
                       {this.renderSignoff()}
                     </View>
                     <View style={styles.buttons}>
@@ -31,6 +31,7 @@ class ReportScreen extends PureComponent<Props, {}> {
                       label="Report Something"
                       accessibilityLabel="Report"
                     ></JSButton>
+                    <View></View>
                         <JSButton
                           onPress = {() => this.props.navigation.goBack()}
                           label="Go Back"
@@ -41,8 +42,8 @@ class ReportScreen extends PureComponent<Props, {}> {
   private renderSignoff = () => {
    return (
      <View style={styles.signoff}>
-       <Text style={styles.text}>xoxo 💕</Text>
-       <Text style={styles.text}>The Jumbosmash Team 🐘</Text>
+       <JSText style={styles.text}>xoxo 💕</JSText>
+       <JSText style={styles.text}>The Jumbosmash Team 🐘</JSText>
      </View>
    )
  }
@@ -56,9 +57,6 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    flexDirection: 'column',
-    borderBottomColor: '#D3D3D3',
-    borderBottomWidth: 1,
     alignItems: 'center',
     padding: 1
   },
@@ -89,21 +87,15 @@ const styles = StyleSheet.create({
   },
     text:{
       fontSize: 22,
-      fontWeight: 'bold',
-      fontFamily: 'Helvetica',
       color: '#595959',
     },
     titleText:{
       marginTop: 3,
-      fontSize: 24,
-      fontWeight: 'bold',
-      fontFamily: 'Helvetica',
-      color: '#3f3f3f',
       alignItems: 'center',
     },
      buttons:{
         flex: 1,
         justifyContent: 'space-around',
-        paddingVertical: 1,
+        paddingVertical: 5,
       },
 })
