@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { Text, TextProperties, StyleSheet, TextStyle } from 'react-native'
-import { scale, DEFAULT_FONT_SIZE } from './scaling'
+import { DEFAULT_FONT_SIZE } from './scaling'
 
 interface Props extends TextProperties {
   style?: TextStyle | TextStyle[]
@@ -18,7 +18,7 @@ class JSText extends PureComponent<Props, {}> {
     }
     textStyles.push(style)
     textStyles.push({
-      fontSize: scale(fontSize || DEFAULT_FONT_SIZE),
+      fontSize: fontSize || DEFAULT_FONT_SIZE,
     })
 
     return <Text style={textStyles} {...otherProps} />

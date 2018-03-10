@@ -2,40 +2,39 @@ import { FirebaseActionType, FirebaseAction } from './actions'
 import { FirebaseState } from './types'
 
 const initialState: FirebaseState = {
+  token: {
+    value: '',
     loading: false,
-    token: '',
-    errorMessage: '',
+  },
 }
 
 export function firebaseReducer(state = initialState, action: FirebaseAction): FirebaseState {
-    switch (action.type) {
+  const newState = Object.assign({}, state)
+  switch (action.type) {
 
-        case FirebaseActionType.ATTEMPT_CONNECT_TO_FIREBASE:
-            return {
-                ...state,
-                loading: true,
-                token: action.token,
-            }
+    case FirebaseActionType.ATTEMPT_CONNECT_TO_FIREBASE:
+      newState.token = {
+        value: action.token,
+        loading: true,
+      }
+      return newState
 
-        case FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS:
-            return {
-                ...state,
-                loading: false,
-                errorMessage: '',
-            }
+    case FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS:
+      newState.token.loading = false
+      return newState
 
-        case FirebaseActionType.CONNECT_TO_FIREBASE_FAILURE:
-            return {
-                ...state,
-                loading: false,
-                errorMessage: action.errorMessage,
-                token: '',
-            }
+    case FirebaseActionType.CONNECT_TO_FIREBASE_FAILURE:
+      newState.token = {
+        value: state.token.value,
+        loading: false,
+        errorMessage: action.errorMessage,
+      }
+      return newState
 
-        case FirebaseActionType.LOGOUT_FIREBASE:
-            return initialState
+    case FirebaseActionType.LOGOUT_FIREBASE:
+      return initialState
 
-        default:
-            return state
-    }
+    default:
+      return state
+  }
 }

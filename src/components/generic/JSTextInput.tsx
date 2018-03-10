@@ -1,6 +1,6 @@
 import React, { PureComponent, Component, ComponentState } from 'react'
 import { TextInput, TextInputProperties, StyleSheet, TextInputStatic, TextStyle, Platform } from 'react-native'
-import { DEFAULT_FONT_SIZE, scale } from './scaling'
+import { DEFAULT_FONT_SIZE } from './scaling'
 
 export type TextInputRef = TextInputStatic & Component<TextInputProperties, ComponentState>
 
@@ -30,7 +30,7 @@ class JSTextInput extends PureComponent<Props, State> {
     const textInputStyles: any[] = [styles.input] /* tslint:disable-line:no-any */
     textInputStyles.push(style)
     textInputStyles.push({
-      fontSize: scale(fontSize || DEFAULT_FONT_SIZE),
+      fontSize: fontSize || DEFAULT_FONT_SIZE,
     })
 
     return (
@@ -60,9 +60,13 @@ export default JSTextInput
 
 const styles = StyleSheet.create({
   input: {
-    shadowColor: 'rgba(172, 203, 238, 0.75)',
-    shadowOpacity: 1,
-    shadowRadius: 50,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgba(172, 203, 238, 0.75)',
+        shadowOpacity: 1,
+        shadowRadius: 50,
+      },
+    }),
     marginVertical: 5,
     marginHorizontal: 45,
     paddingVertical: 15,

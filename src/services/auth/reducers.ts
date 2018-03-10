@@ -2,6 +2,7 @@ import { AuthActionType, AuthAction } from './actions'
 import { AuthState } from './types'
 
 const initialState: AuthState = {
+  isLoggedIn: false,
   isNewUser: true,
   email: 'zachary.kirsch@tufts.edu',
   sessionKey: '',
@@ -16,18 +17,15 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
 
     case AuthActionType.ATTEMPT_REQUEST_VERIFICATION:
       return {
-        ...state,
+        ...initialState,
         email: action.credentials.email,
         waitingForRequestVerificationResponse: true,
-        errorMessage: '',
       }
 
     case AuthActionType.REQUEST_VERIFICATION_SUCCESS:
       return {
         ...state,
         isNewUser: action.isNewUser,
-        errorMessage: '',
-        validVerificationCode: false,
         waitingForRequestVerificationResponse: false,
       }
 
@@ -41,25 +39,28 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
     case AuthActionType.ATTEMPT_VERIFY_EMAIL:
       return {
         ...state,
-        errorMessage: '',
         waitingForVerificationResponse: true,
       }
 
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
       return {
         ...state,
+        isLoggedIn: true,
         validVerificationCode: true,
-        errorMessage: '',
         waitingForVerificationResponse: false,
-        sessionKey: action.sessionKey ,
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
       return {
         ...state,
-        validVerificationCode: false,
         errorMessage: action.errorMessage,
         waitingForVerificationResponse: false,
+      }
+
+    case AuthActionType.SET_SESSION_KEY:
+      return {
+        ...state,
+        sessionKey: action.sessionKey,
       }
 
     case AuthActionType.CLEAR_AUTH_ERROR_MESSAGE:
@@ -70,8 +71,8 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
 
     case AuthActionType.LOGOUT:
       return {
-        ...state,
-        sessionKey: '',
+        ...initialState,
+        email: state.email,
       }
 
     default:

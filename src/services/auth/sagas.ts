@@ -1,16 +1,7 @@
 import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { Answers } from 'react-native-fabric'
 import { api, VerifyEmailResponse, RequestVerificationResponse, MeResponse } from '../api'
-import {
-  AttemptRequestVerificationAction,
-  AttemptVerifyEmailAction,
-  AuthActionType,
-  RequestVerificationSuccessAction,
-  RequestVerificationFailureAction,
-  VerifyEmailSuccessAction,
-  VerifyEmailFailureAction,
-  LogoutAction,
-} from './actions'
+import * as AuthActions from './actions'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { setCoCReadStatus } from '../coc'
 import { RootState } from '../../redux'
@@ -18,22 +9,22 @@ import { RootState } from '../../redux'
 const getEmail = (state: RootState) => state.auth.email
 
 function* handleRequestVerificationSuccess(isNewUser: boolean) {
-  const requestVerificationSuccessAction: RequestVerificationSuccessAction = {
-    type: AuthActionType.REQUEST_VERIFICATION_SUCCESS,
+  const requestVerificationSuccessAction: AuthActions.RequestVerificationSuccessAction = {
+    type: AuthActions.AuthActionType.REQUEST_VERIFICATION_SUCCESS,
     isNewUser,
   }
   yield put(requestVerificationSuccessAction)
 }
 
 function* handleRequestVerificationError(error: Error) {
-  const requestVerificationFailureAction: RequestVerificationFailureAction = {
-    type: AuthActionType.REQUEST_VERIFICATION_FAILURE,
+  const requestVerificationFailureAction: AuthActions.RequestVerificationFailureAction = {
+    type: AuthActions.AuthActionType.REQUEST_VERIFICATION_FAILURE,
     errorMessage: error.message,
   }
   yield put(requestVerificationFailureAction)
 }
 
-function* attemptRequestVerification(payload: AttemptRequestVerificationAction) {
+function* attemptRequestVerification(payload: AuthActions.AttemptRequestVerificationAction) {
   try {
     const response: RequestVerificationResponse = yield call(api.requestVerification, payload.credentials)
     yield handleRequestVerificationSuccess(response.new_user)
@@ -48,26 +39,24 @@ function* attemptRequestVerification(payload: AttemptRequestVerificationAction) 
 
 }
 
-function* handleEmailVerificationSuccess(sessionKey: string) {
-  const verifyEmailSuccessAction: VerifyEmailSuccessAction = {
-    type: AuthActionType.VERIFY_EMAIL_SUCCESS,
-    sessionKey,
+function* handleEmailVerificationSuccess() {
+  const verifyEmailSuccessAction: AuthActions.VerifyEmailSuccessAction = {
+    type: AuthActions.AuthActionType.VERIFY_EMAIL_SUCCESS,
   }
   yield put(verifyEmailSuccessAction)
 }
 
 function* handleEmailVerificationError(error: Error) {
-  const verifyEmailFailureAction: VerifyEmailFailureAction = {
-    type: AuthActionType.VERIFY_EMAIL_FAILURE,
+  const verifyEmailFailureAction: AuthActions.VerifyEmailFailureAction = {
+    type: AuthActions.AuthActionType.VERIFY_EMAIL_FAILURE,
     errorMessage: error.message,
   }
   yield put(verifyEmailFailureAction)
 }
 
-function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
+function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 
   let loginSuccess = true
-
   try {
     const response: VerifyEmailResponse = yield call(api.verifyEmail, payload.verificationCode)
 
@@ -75,11 +64,12 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
      * before setting the user as 'logged in', update what he/she has done so far
      * (e.g. accepted CoC, seen tutorial)
      */
-    const userInfo: MeResponse = yield call(api.me, response.session_key)
+    yield put(AuthActions.setSessionKey(response.session_key))
+    const userInfo: MeResponse = yield call(api.me)
     yield put(setCoCReadStatus(userInfo.accepted_coc))
 
     // now set the user as 'logged in'
-    yield handleEmailVerificationSuccess(response.session_key)
+    yield handleEmailVerificationSuccess()
 
     // and finally, connect to firebase
     yield put(attemptConnectToFirebase(userInfo.firebase_token))
@@ -93,13 +83,13 @@ function* attemptVerifyEmail(payload: AttemptVerifyEmailAction) {
   yield call(Answers.logLogin, 'Email', loginSuccess, { email })
 }
 
-function* logout(_: LogoutAction) {
+function* logout(_: AuthActions.LogoutAction) {
   yield put(setCoCReadStatus(false))
   yield put(logoutFirebase())
 }
 
 export function* authSaga() {
-  yield takeLatest(AuthActionType.ATTEMPT_REQUEST_VERIFICATION, attemptRequestVerification)
-  yield takeLatest(AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
-  yield takeLatest(AuthActionType.LOGOUT, logout)
+  yield takeLatest(AuthActions.AuthActionType.ATTEMPT_REQUEST_VERIFICATION, attemptRequestVerification)
+  yield takeLatest(AuthActions.AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
+  yield takeLatest(AuthActions.AuthActionType.LOGOUT, logout)
 }
