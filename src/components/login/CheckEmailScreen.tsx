@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, KeyboardAvoidingView, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native'
+import { View, KeyboardAvoidingView, ScrollView, TouchableOpacity, StyleSheet, Platform, ActivityIndicator } from 'react-native'
 import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
 import { JSText, JSTextInput, TextInputRef, scale } from '../generic'
@@ -36,11 +36,11 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     this.state = INITIAL_STATE
   }
 
-  public componentDidMount() {
+  componentDidMount() {
     this.startResendTimer()
   }
 
-  public componentWillUnmount() {
+  componentWillUnmount() {
     clearInterval(this.resendCodeTimer)
   }
 
@@ -57,9 +57,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   public textInputIsFocused = () => this.textInputRef && this.textInputRef.isFocused()
 
   public render() {
-    let instructions = ''
-    instructions += 'To start using JumboSmash, type in the '
-    instructions += 'six digit code we just emailed to '
+    const instructions = 'Please type in the six digit code we just emailed to '
 
     let inputStyle = [styles.input]
     let underlineColorAndroid
@@ -107,6 +105,11 @@ class CheckEmailScreen extends PureComponent<Props, State> {
               </JSText>
             </JSText>
           </View>
+          <ActivityIndicator
+            size='large'
+            animating={this.props.waitingForVerificationResponse}
+            color='rgba(172,203,238,0.6)'
+          />
           <View style={styles.codeContainer}>
             <View style={styles.inputContainer}>
               <JSTextInput
@@ -115,8 +118,6 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 value={this.state.verificationCode}
                 placeholder='••••••'
                 keyboardType={'numeric'}
-                onSubmitEditing={() => this.submitVerificationCode(this.state.verificationCode)}
-                returnKeyType={'go'}
                 maxLength={CODE_LENGTH}
                 underlineColorAndroid={underlineColorAndroid}
                 enablesReturnKeyAutomatically
@@ -213,18 +214,30 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   inputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     alignSelf: 'stretch',
   },
   input: {
     width: 200,
-    marginTop: 10,
+    marginTop: 0,
     marginBottom: 0,
     paddingVertical: 5,
     letterSpacing: 100,
     color: 'black',
     borderWidth: 1,
     borderColor: 'transparent',
+  },
+  activityIndicatorContainer: {
+    position: 'absolute',
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   badCode: {
     color: '#A82A2A',

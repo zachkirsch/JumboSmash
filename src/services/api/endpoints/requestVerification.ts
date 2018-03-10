@@ -1,10 +1,10 @@
 import { PostEndpoint } from './Endpoint'
 
-type Request = {
+interface Request {
   email: string
 }
 
-type Response = {
+interface Response {
   email: string
   new_user: boolean
   message: 'email_sent'

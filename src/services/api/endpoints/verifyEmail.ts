@@ -1,11 +1,11 @@
-import { GetEndpoint, HttpGetRequestParams } from './Endpoint'
+import { GetEndpoint } from './Endpoint'
 
-interface Request extends HttpGetRequestParams {
+type Request = {
   email: string
   code: string
 }
 
-type Response = {
+interface Response {
   email: string
   session_key: string
 }
