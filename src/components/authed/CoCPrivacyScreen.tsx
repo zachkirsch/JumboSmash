@@ -4,8 +4,9 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  Button,
 } from 'react-native'
-import { JSText, JSButton } from '../generic'
+import { JSText } from '../generic'
 import { NavigationScreenProps } from 'react-navigation'
 
 interface CoCRule {
@@ -27,8 +28,13 @@ const COC_RULES: CoCRule[] = [
     description: "No identity theft. Don't pretend to be someone you're not.",
   },
   {
-    emojiTitle: '✅🙋🏽',
+    emojiTitle: '✅🙋',
     description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
+  },
+
+  {
+    emojiTitle: '🔐💌',
+    description: 'Jumbosmash will delete all your data after graduation - we value your privacy!',
   },
 ]
 
@@ -39,71 +45,31 @@ class CoCPrivacyScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
-      <View style={styles.container}>
-        <View style={styles.statusBar} />
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.rulesContainer}>
-            {this.renderTitle()}
-            {this.renderDescription()}
+            <JSText fontSize={30} style={styles.title}>Code of Conduct</JSText>
+            <JSText style={styles.description}>
+              In order to be a JumboSmash user, we ask that you agree to follow
+              a few simple rules
+            </JSText>
             {this.renderRules()}
           </View>
-          <View style={styles.rulesContainer}>
-            {this.renderSignoff()}
-          </View>
-          <View style={styles.buttonContainer}>
-            {this.renderAgreeButton()}
-          </View>
+          <Button
+            onPress={() => this.props.navigation.goBack()}
+            title={"Go Back"}
+          />
         </ScrollView>
-      </View>
-    )
-  }
-
-  private renderTitle = () => {
-    return <JSText fontSize={30} bold style={styles.title}>Code of Conduct</JSText>
-  }
-
-  private renderDescription = () => {
-    return (
-      <JSText style={styles.description}>
-        In order to be a JumboSmash user, we ask that you agree to follow
-        a few simple rules
-      </JSText>
     )
   }
 
   private renderRules = () => {
     return COC_RULES.map((rule, index) => (
       <View style={styles.rule} key={index}>
-        {Platform.OS === 'ios' ? <JSText fontSize={20}>{rule.emojiTitle}</JSText> : undefined}
+        <JSText fontSize={20}>{rule.emojiTitle}</JSText>
         <JSText>{rule.description}</JSText>
       </View>
     ))
   }
-
-  private renderSignoff = () => {
-
-    let signoff = 'The JumboSmash Team'
-    if (Platform.OS === 'ios') {
-      signoff += ' 🐘'
-    }
-
-    return (
-      <View>
-        <JSText>Happy smashing 💕</JSText>
-        <JSText>{signoff}</JSText>
-      </View>
-    )
-  }
-
-  private renderAgreeButton = () => {
-    return (
-      <JSButton
-        onPress={this.props.navigation.goBack()}
-        label={"Go Back"}
-      />
-    )
-  }
-
 }
 
 const styles = StyleSheet.create({

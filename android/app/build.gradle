@@ -154,6 +154,9 @@ repositories {
 }
 
 dependencies {
+    compile project(':react-native-fs')
+    compile project(':react-native-image-resizer')
+    compile project(':react-native-image-picker')
     compile project(':react-native-linear-gradient')
     compile project(':react-native-fabric')
     compile project(':react-native-vector-icons')

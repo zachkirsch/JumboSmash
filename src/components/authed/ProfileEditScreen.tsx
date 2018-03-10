@@ -1,14 +1,15 @@
 import React, { PureComponent } from 'react'
-import { View, Text, TextInput, Image, StyleSheet, ScrollView } from 'react-native'
+import { View, TouchableOpacity, Text, TextInput, Image, StyleSheet, ScrollView } from 'react-native'
 import { NavigationScreenProps } from 'react-navigation'
-import { Icon } from 'react-native-elements'
+import ImagePicker from 'react-native-image-picker'
+//import { Icon } from 'react-native-elements'
 import { default as SettingsMenu } from './SettingsScreen'
 import { JSText, JSTextInput, JSButton } from '../generic/index';
 import { ActionSheetProvider} from '@expo/react-native-action-sheet';
 
 interface State {
   bio: string,
-  avatarSource: string,
+  avatarSources: Array<{uri: string}>,
   name: string,
   major: string,
   modalVisible: boolean,
@@ -22,19 +23,31 @@ interface State {
   react6: number,
   react7: number,
   react8: number,
-  chosentags: Array<string>,
+  PhotoDimensionsBig: number[],
+  PhotoDimensionsSmall: number[],
+  chosentags: string[]
 }
-
-type Props = NavigationScreenProps<{}>
+interface OwnProps {
+  chosentags: string[]
+}
+type Props = NavigationScreenProps<OwnProps>
 
 class ProfileEditScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
      super(props);
      this.state = { bio: "I haven't set up a bio yet." +'\n' +"I have 240 characters to do so!",
-                    avatarSource: 'none',
+                    avatarSources: [{uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'}, //one default, 6 real spots
+                                    {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
+                                    {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
+                                    {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
+                                    {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
+                                    {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
+                                    {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},],
                     name: 'Dummy Name',
                     major: 'Undeclared',
+                    PhotoDimensionsBig: [],
+                    PhotoDimensionsSmall: [],
                     modalVisible: false,
                     nameEditing: false,
                     bioEditing: false,
@@ -46,7 +59,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
                     react6: 10,
                     react7: 10,
                     react8: 10,
-                    chosentags: []
+                    chosentags: this.props.chosentags? this.props.chosentags : []
                   };
    }
 
@@ -61,9 +74,12 @@ class ProfileEditScreen extends PureComponent<Props, State> {
         {this.renderTags()}
         {this.renderReacts()}
         <View style={styles.buttons}>
-          <JSButton onPress={() => this.props.navigation.goBack()} label="View Profile"></JSButton>
+          <JSButton onPress={() => this.props.navigation.goBack()} label="View Profile/Save Changes"></JSButton>
         </View>
-        <SettingsMenu />
+        <SettingsMenu Report={() => this.props.navigation.navigate('ReportScreen')}
+                      Block={() => this.props.navigation.navigate('BlockScreen')}
+                      CoC={() => this.props.navigation.navigate('CoCPrivacyScreen')}
+                      />
       </ScrollView>
       </ActionSheetProvider>
     )
@@ -146,6 +162,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
         style= {styles.bioInput}
         placeholder={this.state.name}
         onChangeText={(name) => this.setState({name})}
+        onEndEditing={() => console.log(this.state.name)}
         />
     </View>
     <View style={styles.bioItem}>
@@ -154,13 +171,16 @@ class ProfileEditScreen extends PureComponent<Props, State> {
         style= {styles.bioInput}
         placeholder={this.state.major}
         onChangeText={(major) => this.setState({major})}
+        onEndEditing={() => console.log(this.state.major)}
         />
     </View>
       <View style={styles.bioItem}>
           <JSText>About Me </JSText>
       </View>
-      <JSTextInput placeholder="240 character max"
-        onChangeText={(bio) => this.setState({bio})}></JSTextInput>
+      <JSTextInput placeholder="240 character max" multiline={true} maxLength={240}
+        onChangeText={(bio) => this.setState({bio})}
+        onEndEditing={() => console.log(this.state.bio)}
+        ></JSTextInput>
   </View>
   }
 
@@ -170,17 +190,27 @@ class ProfileEditScreen extends PureComponent<Props, State> {
       <View style={styles.photos}>
           <View style={styles.bigPhotoFrame}>
           <View style={[styles.paddingcontainer]}></View>
-            <View style={styles.photo}>
-              {this.renderAddButton()}
-            </View>
+            <TouchableOpacity style={styles.photo} onPress={() => this.ImagePick('1')}onLayout={(event) => {let {width, height} = event.nativeEvent.layout;
+              this.setState({PhotoDimensionsBig: this.state.PhotoDimensionsBig.concat([width, height])}}}>
+              <Image
+                       style={{
+                         width: this.state.PhotoDimensionsBig[0], height:this.state.PhotoDimensionsBig[1],
+                         resizeMode: 'cover', borderRadius: 6,
+                       }}
+                       resizeMode='cover'
+                       source={this.state.avatarSources[1]}
+                     />
+            </TouchableOpacity>
             <View style={{flex:0.1}}></View>
           </View>
           <View style={styles.smallPhotoColumn}>
             <View style={{flex:0.65}}></View>
             <View style={styles.photo}>
+            {this.SmallImageLoad('2')}
             </View>
             <View style={[styles.paddingcontainer]}></View>
             <View style={styles.photo}>
+              {this.SmallImageLoad('3')}
             </View>
             <View style={{flex:0.25}}></View>
           </View>
@@ -188,25 +218,83 @@ class ProfileEditScreen extends PureComponent<Props, State> {
         <View style={styles.smallPhotoRow}>
         <View style={{flex:0.35}}></View>
         <View style={styles.photo}>
+          {this.SmallImageLoad('4')}
         </View>
         <View style={{flex:0.35}}></View>
         <View style={styles.photo}>
+            {this.SmallImageLoad('5')}
         </View>
         <View style={{flex:0.35}}></View>
         <View style={styles.photo}>
+            {this.SmallImageLoad('6')}
         </View>
         <View style={{flex:0.18}}></View>
         </View>
     </View>
   }
 
-  private renderAddButton(){
-    return <View style={{alignSelf: 'flex-end'}}><Icon name='add-circle' size={50} color='#EFEFEF'
-                   onPress={() => {
-                    //TODO: INSERT CAMERA ROLL
-                   }}
-             /></View>
+  private SmallImageLoad(key: string){
+    return(
+    <TouchableOpacity style={styles.photo} onPress={() => this.ImagePick(key)} onLayout={(event) => {let {width, height} = event.nativeEvent.layout;
+      this.setState({PhotoDimensionsSmall: this.state.PhotoDimensionsSmall.concat([width, height])}}}>
+      <Image
+               style={{
+                 width: this.state.PhotoDimensionsSmall[0]*1.1, height:this.state.PhotoDimensionsSmall[1],
+                 resizeMode: 'cover', borderRadius: 6, alignSelf: 'flex-start'
+               }}
+               resizeMode='cover'
+               source={this.state.avatarSources[parseInt(key)]}
+             />
+    </TouchableOpacity>
+  )
   }
+
+  private ImagePick(key: string){
+    let options = {
+          title: 'Select Avatar',
+        customButtons: [
+          {name: 'Delete', title: 'Delete Photo'},
+        ],
+        storageOptions: {
+          skipBackup: true,
+          path: 'images'
+        }
+      };
+
+    let index = parseInt(key , 10 )
+        ImagePicker.showImagePicker(options, (response) => {
+           console.log('Response = ', response);
+           if (response.didCancel) {
+             console.log('User cancelled image picker');
+           }
+           else if (response.error) {
+             console.log('ImagePicker Error: ', response.error);
+           }
+           else if (response.customButton) {
+             let avatars = []
+             avatars = this.state.avatarSources
+             avatars[index] = avatars[0]
+             this.setState({
+               avatarSources: avatars
+             });
+             this.forceUpdate()
+           }
+           else {
+             let source = { uri: response.uri };
+             console.log(response.uri)
+             // You can also display the image using data:
+             // let source = { uri: 'data:image/jpeg;base64,' + response.data };
+             let avatars = []
+             avatars = this.state.avatarSources
+             avatars[index] = source
+             console.log(avatars[index] == source)
+             this.setState({
+               avatarSources: avatars
+             });
+             this.forceUpdate()
+           }
+         });
+     }
 }
 
 export default ProfileEditScreen
@@ -327,9 +415,9 @@ left: {
     backgroundColor: 'white',
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#d6d7da',
+    borderColor: 'white',
     alignItems: 'baseline',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-start'
   },
   tags:{
     textDecorationLine: 'underline'
@@ -338,11 +426,14 @@ left: {
     flex: 1.2,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    paddingRight: 10
   },
   smallPhotoRow :{
     flex: 0.47,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingRight: 10,
+
   },
   center: {
     flexDirection: 'column',

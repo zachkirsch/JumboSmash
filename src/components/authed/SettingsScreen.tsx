@@ -1,20 +1,22 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
-import { View, StyleSheet} from 'react-native'
+import { Alert, View, StyleSheet} from 'react-native'
 import { JSButton } from '../generic/index';
 import { logout } from '../../services/auth'
 import { connectActionSheet } from '@expo/react-native-action-sheet';
 import { RootState } from '../../redux'
-import { NavigationScreenProps } from 'react-navigation'
 
 interface State {
   bio: string,
 }
 interface OwnProps {
   onLogout: () => void
+  Block: () => void
+  CoC: () => void
+  Report: () => void
 }
 
-type Props = NavigationScreenProps<OwnProps>
+type Props = connectActionSheet<OwnProps>
 
 @connectActionSheet
 class SettingsMenu extends PureComponent<Props,State> {
@@ -38,9 +40,9 @@ class SettingsMenu extends PureComponent<Props,State> {
 
   private _onOpenSettingsSheet = () => {
   // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
-    let options = ['Notifications', 'Log Out', 'Deactivate Account', 'Cancel'];
-    let destructiveButtonIndex = 2;
-    let cancelButtonIndex = 3;
+    let options = ['Log Out', 'Deactivate Account', 'Cancel'];
+    let destructiveButtonIndex = 1;
+    let cancelButtonIndex = 2;
 
     this.props.showActionSheetWithOptions({
       options,
@@ -49,14 +51,19 @@ class SettingsMenu extends PureComponent<Props,State> {
     },
     (buttonIndex: number) => {
       switch(buttonIndex) {
+        case 0:
+            Alert.alert("Logout", "Are you sure you want to log out?",
+            [
+              {text: 'Yes', onPress: () => this.props.onLogout()},
+              {text: 'No', style: 'cancel'}
+            ],)
+            break
         case 1:
-            //Notifications
-            break;
-        case 2:
-            this.props.onLogout()
-            break;
-        case 3:
-            //Deactivate Account
+            Alert.alert("Deactivate My Account", "This will prevent others from seeing your profile until you log back in again.",
+            [
+              {text: 'Deactivate', onPress: () => this.props.onLogout()},
+              {text: 'Nvm', style: 'cancel'}
+            ],)
             break;
       }
     });
@@ -76,14 +83,14 @@ class SettingsMenu extends PureComponent<Props,State> {
     },
     (buttonIndex: number) => {
       switch(buttonIndex) {
+        case 0:
+            this.props.Report()
+            break;
         case 1:
-             this.props.navigation.navigate('ReportScreen')
+            this.props.Block()
             break;
         case 2:
-            //Block User
-            break;
-        case 3:
-            this.props.navigation.navigate('CoCPrivacyScreen')
+            this.props.CoC()
             break;
       }
     });
@@ -93,6 +100,8 @@ class SettingsMenu extends PureComponent<Props,State> {
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): OwnProps => {
   return {
     onLogout: () => dispatch(logout()),
+    goBack: () => this.props.goBack(),
+
   }
 }
 

@@ -15,6 +15,9 @@ import CodeOfConductScreen from './CoCPrivacyScreen'
 import TagsScreen from './TagsScreen';
 import CoCPrivacyScreen from './CoCPrivacyScreen';
 import ReportScreen from './ReportScreen';
+import BlockScreen from './BlockScreen';
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import SettingsScreen from './SettingsScreen';
 
 const styles = StyleSheet.create({
   iOSTabBar: {
@@ -25,16 +28,34 @@ const styles = StyleSheet.create({
   },
 })
 
-const matchesScreen = StackNavigator({
-  MatchesList: { screen: MatchesList },
-  Chat: { screen: ChatScreen },
+const profileScreen = StackNavigator({
   ProfileScreen: {screen: ProfileScreen},
   ProfileEditScreen: {screen: ProfileEditScreen},
   CodeOfConductScreen: {screen: CodeOfConductScreen},
   TagsScreen: {screen: TagsScreen},
+  SettingsScreen: {screen: SettingsScreen},
   CoCPrivacyScreen: {screen: CoCPrivacyScreen},
   ReportScreen: {screen: ReportScreen},
+  BlockScreen: {screen: BlockScreen},
+},{
+  headerMode: 'none',
+  cardStyle: styles.stackCard,
+  mode: 'modal'
+})
 
+const profileScreenNavigationOptions: NavigationTabScreenOptions = {
+  tabBarIcon: ({focused, tintColor}) => (
+    <Ionicons
+      name={focused ? 'ios-person' : 'ios-person-outline'}
+      size={35}
+      style={{ color: tintColor }}
+    />
+  ),
+}
+
+const matchesScreen = StackNavigator({
+  MatchesList: { screen: MatchesList },
+  Chat: { screen: ChatScreen },
 }, {
   headerMode: 'none',
   cardStyle: styles.stackCard,
@@ -52,7 +73,8 @@ const matchesScreenNavigationOptions: NavigationTabScreenOptions = {
 
 export default TabNavigator({
   Profile: {
-    screen: ProfileScreen,
+    screen: profileScreen,
+    navigationOptions: profileScreenNavigationOptions
   },
   Swipe: {
     screen: SwipeScreen,

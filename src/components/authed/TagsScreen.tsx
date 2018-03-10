@@ -21,7 +21,9 @@ interface State {
   xxx: Array<string>,
   tagTitles: Array<string>,
 }
-
+interface OwnProps {
+  chosentags: string[]
+}
 type Props = NavigationScreenProps<{}>
 
 class TagsScreen extends PureComponent<Props, State> {
