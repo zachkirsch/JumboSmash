@@ -35,7 +35,13 @@ class CountdownScreen extends PureComponent<{}, State> {
  public componentDidMount() {
    if ((this.state.days + this.state.hr + this.state.min + this.state.sec) > 0){
      this.CountDownClock = setInterval(() => {
-       this.renderCountDown()
+       const {days, hours, minutes, seconds} = this.getTimeLeft()
+       this.setState({
+          days: days,
+          hr: hours,
+          min: minutes,
+          sec: seconds,
+       })
      }, 1000)
    }
  }
@@ -52,7 +58,7 @@ class CountdownScreen extends PureComponent<{}, State> {
              style={styles.logo}
            />
          </View>
-          
+
           <View>
             {this.renderCountDown()}
           </View>
@@ -145,13 +151,6 @@ class CountdownScreen extends PureComponent<{}, State> {
  }
 
    private renderCountDown = () => {
-     const {days, hours, minutes, seconds} = this.getTimeLeft()
-     this.setState({
-        days: days,
-        hr: hours,
-        min: minutes,
-        sec: seconds,
-     })
      return (
          <View style={styles.timeCont}>
            {this.renderDoubleDigits('Days', this.state.days)}

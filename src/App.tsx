@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { View, StatusBar, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
-import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter, ProfileEditScreen} from './components'
+import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter} from './components'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -29,7 +29,7 @@ class App extends PureComponent<Props, {}> {
       // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */
     } else if (!this.props.isLoggedIn) {
-      return <AuthedRouter />
+      return <LoginRouter />
     } else if (!this.props.codeOfConductAccepted) {
       return <CodeOfConductScreen />
     } else {
