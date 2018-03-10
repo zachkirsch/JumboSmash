@@ -3,7 +3,7 @@ import { GetEndpoint } from './Endpoint'
 type Request = {
 }
 
-type Response = {
+interface Response {
   accepted_coc: boolean
   bio: string
   email: string

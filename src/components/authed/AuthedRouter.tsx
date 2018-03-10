@@ -8,7 +8,7 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import ProfileScreen from './ProfileScreen'
 import ProfileEditScreen from './ProfileEditScreen'
-import SwipeScreen from './SwipeScreen'
+import { SwipeScreen } from './swipe'
 import MatchesList from './MatchesList'
 import ChatScreen from './ChatScreen'
 import CodeOfConductScreen from './CoCPrivacyScreen'

@@ -1,9 +1,9 @@
 import { PostEndpoint } from './Endpoint'
 
-type Request = {
+interface Request {
 }
 
-type Response = {
+interface Response {
   email: string
   accepted_coc: boolean
 }
