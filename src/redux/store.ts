@@ -15,7 +15,7 @@ const sagaMiddleware = createSagaMiddleware()
 const logger = createLogger({
   stateTransformer: (state: RootState) => {
     let newState = Object.assign({}, state)
-    if (Iterable.isIterable(newState.matches.chats)) {
+    if (newState.matches && Iterable.isIterable(newState.matches.chats)) {
       newState = {
         ...newState,
         matches: {

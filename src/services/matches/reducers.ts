@@ -142,6 +142,12 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
     // this is a separate case because redux-persist stores immutables as plain JS
     case MatchesActionType.REHYDRATE:
+
+      // for unit tests when root state is empty
+      if (!action.payload.matches) {
+        return state
+      }
+
       let chats = Map<string, Conversation>()
       Object.keys(action.payload.matches.chats).forEach((conversationId) => {
         originalConversation = (action.payload.matches.chats as any)[conversationId] /* tslint:disable-line:no-any */
