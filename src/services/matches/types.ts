@@ -18,8 +18,8 @@ export interface User {
 
 export interface MatchesState {
   matches: {
-    [userId: number]: {
-      user: User
+    [chatroom: string]: {
+      otherUsers: User[]
       messages: Message[]
     }
   }

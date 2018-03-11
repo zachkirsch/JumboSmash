@@ -6,7 +6,10 @@ const initialState: MatchesState = {
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
+
   const newState = Object.assign({}, state)
+  let numMessages
+
   switch (action.type) {
 
     case MatchesActionType.ATTEMPT_SEND_MESSAGES:
@@ -14,23 +17,27 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         message.sending = true
         return message
       })
-      newState.matches[action.toUser].messages.concat(newMessages)
+      newState.matches[action.conversationId].messages.concat(newMessages)
       return newState
 
     case MatchesActionType.SEND_MESSAGES_SUCCESS:
-      const numMessages = newState.matches[action.toUser].messages.length
+    case MatchesActionType.SEND_MESSAGES_FAILURE:
+      numMessages = newState.matches[action.conversationId].messages.length
       for (let i = numMessages - 1; i >= 0; i++) {
         const message = action.messages.find((newMessage) => {
-          return newMessage._id === newState.matches[action.toUser].messages[i]._id
+          return newMessage._id === newState.matches[action.conversationId].messages[i]._id
         })
         if (message) {
-          newState.matches[action.toUser].messages[i].sending = false
-          newState.matches[action.toUser].messages[i].sent = true
+            newState.matches[action.conversationId].messages[i].sending = false
+          if (action.type === MatchesActionType.SEND_MESSAGES_SUCCESS) {
+            newState.matches[action.conversationId].messages[i].sent = true
+          } else if (action.type === MatchesActionType.SEND_MESSAGES_FAILURE) {
+            newState.matches[action.conversationId].messages[i].sent = false
+            newState.matches[action.conversationId].messages[i].failedToSend = true
+          }
         }
       }
       return newState
-
-    /* TODO: other actions, sagas */
 
     default:
       return newState
