@@ -27,15 +27,15 @@ interface OwnProps {
 
 interface StateProps {
   matches: {
-    [userId: number]: {
-      user: User
+    [conversationId: string]: {
+      otherUsers: User[]
       messages: Message[]
     }
   }
 }
 
 interface DispatchProps {
-  sendMessages: (toUser: number, messages: Message[]) => void
+  sendMessages: (conversationId: string, messages: Message[]) => void
 }
 
 interface State {
@@ -75,6 +75,8 @@ class ChatScreen extends PureComponent<Props, State> {
     //     system: false,
     //   }
     // })
+    //
+    /*
     let temp: Message[] = this.props.navigation.state.params.messages.map((message) => {
       return {
         _id: message.id,
@@ -91,6 +93,7 @@ class ChatScreen extends PureComponent<Props, State> {
     this.setState({
       messages: temp,
     })
+    */
   }
 
   public render() {
@@ -108,7 +111,7 @@ class ChatScreen extends PureComponent<Props, State> {
         </View>
         <View style={styles.chat}>
           <GiftedChat
-            messages={this.state.messages}
+            messages={this.props.matches[this.props.navigation.state.params.conversationId].messages}
             onSend={this.onSend}
             user={{
               _id: 1,
@@ -124,32 +127,18 @@ class ChatScreen extends PureComponent<Props, State> {
     this.setState((previousState: State) => ({
       messages: GiftedChat.append(previousState.messages, messages),
     }))
-    for (let message of messages) {
-      this._pushMessageRef.push({
-        _id: message._id,
-        text: message.text,
-        user: {
-          _id: this.props.navigation.state.params.id,
-          name: this.props.navigation.state.params.name,
-          avatar: this.props.navigation.state.params.profilePic,
-        },
-        date: new Date().getTime(),
-        read: false,
-      })
-    }
-    //TODO
-    this.props.sendMessages(2, messages)
+    this.props.sendMessages(this.props.navigation.state.params.conversationId, messages)
   }
 }
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    matches: state.matches
+    matches: state.matches.matches
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    sendMessages: (toUser: number, messages: Message[]) => dispatch(sendMessages(toUser, messages)),
+    sendMessages: (conversationId: string, messages: Message[]) => dispatch(sendMessages(conversationId, messages)),
   }
 }
 

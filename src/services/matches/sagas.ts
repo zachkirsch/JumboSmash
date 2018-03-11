@@ -1,5 +1,5 @@
-import { put, takeLatest } from 'redux-saga/effects'
-import { firebase } from './firebase'
+import { put, takeEvery } from 'redux-saga/effects'
+import { firebase } from '../firebase'
 import {
   MatchesActionType,
   AttemptSendMessagesAction,
@@ -7,24 +7,31 @@ import {
   SendMessagesFailureAction,
 } from './actions'
 
-function* attemptConnectToFirebase(action: AttemptConnectToFirebaseAction) {
-  try {
-    yield firebase.auth().signInWithCustomToken(action.token)
-    const successAction: ConnectToFirebaseSuccessAction = {
-      type: FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS,
-    }
-    yield put(successAction)
-  } catch (error) {
-    const failureAction: ConnectToFirebaseFailureAction = {
-      type: FirebaseActionType.CONNECT_TO_FIREBASE_FAILURE,
-      errorMessage: error.message,
-    }
-    yield put(failureAction)
-  }
-}
+function* attemptSendMessages(action: AttemptSendMessagesAction) {
+  const path = 'messages/'.concat(action.conversationId)
+  const dbRef = firebase.database().ref(path)
 
-function* logoutFirebase(_: LogoutFirebaseAction) {
-  yield firebase.auth().signOut()
+  console.log('sagas')
+  for (let message of action.messages) {
+    dbRef.push({
+      _id: message._id,
+      text: message.text,
+      user: {
+        _id: 1,
+        name: 'test',
+        avatar: '',
+      },
+      date: new Date().getTime(),
+      read: false,
+    })
+  }
+
+  const successAction: SendMessagesSuccessAction = {
+    type: MatchesActionType.SEND_MESSAGES_SUCCESS,
+    conversationId: action.conversationId,
+    messages: action.messages,
+  }
+  yield put(successAction)
 }
 
 export function* matchesSaga() {

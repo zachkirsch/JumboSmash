@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react'
 import { View, StyleSheet, FlatList } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import MatchesListItem from './MatchesListItem'
-
-type Props = NavigationScreenProps<{}>
+import { MatchesState, Message, User, sendMessages } from '../../services/matches'
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../redux'
 
 interface Chat {
   id: number,
@@ -13,22 +14,53 @@ interface Chat {
   text: string,
 }
 
-interface User {
-  name: string,
-  id: number,
-  profilePic: string,
-  messages: Chat[],
+// interface User {
+//   name: string,
+//   id: number,
+//   profilePic: string,
+//   messages: Chat[],
+// }
+
+interface ConversationDataItem {
+  conversationId: string,
+  otherUsers: User[],
+  mostRecentMessage: string,
 }
 
 interface State {
-  usersToChat: User[]
+  usersToChat: User[],
+  matchesArray: ConversationDataItem[]
 }
+
+interface StateProps {
+  matches: {
+    [conversationId: string]: {
+      otherUsers: User[]
+      messages: Message[]
+      mostRecentMessage: string
+    }
+  }
+}
+
+interface DispatchProps {
+  sendMessages: (conversationId: string, messages: Message[]) => void
+}
+
+type Props = OwnProps & StateProps & DispatchProps
 
 class MatchesList extends PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props)
         this.state = {
+          matchesArray: Object.keys(this.props.matches).map((conversationId: string) => {
+            console.log('this is the most recent', this.props.matches[conversationId].mostRecentMessage)
+            return {
+              conversationId,
+              otherUsers: this.props.matches[conversationId].otherUsers,
+              mostRecentMessage: this.props.matches[conversationId].mostRecentMessage,
+            }
+          }),
           usersToChat: [
             {
               name: 'Greg Aloupis',
@@ -133,11 +165,26 @@ class MatchesList extends PureComponent<Props, State> {
       }
     }
 
+  componentWillReceiveProps(oldProps: Props, newProps: Props) {
+      console.log('new props', newProps)
+    this.setState({
+      ...this.state,
+      messagesArray: Object.keys(newProps.matches).map((conversationId: string) => {
+        console.log('this is the most recent', newProps.matches[conversationId].mostRecentMessage)
+        return {
+          conversationId,
+          otherUsers: newProps.matches[conversationId].otherUsers,
+          mostRecentMessage: newProps.matches[conversationId].mostRecentMessage,
+        }
+      })
+    })
+  }
+
     public render() {
         return (
             <View style={[styles.container]}>
                 <FlatList
-                    data={this.state.usersToChat}
+                    data={this.state.matchesArray}
                     renderItem={this.renderItem}
                 />
                 {/*<TextInput*/}
@@ -157,25 +204,44 @@ class MatchesList extends PureComponent<Props, State> {
     //     })
     // }
 
-    private openChatScreen = (user: User) => {
-        this.props.navigation.navigate('Chat', {name: user.name, id: user.id, profilePic: user.profilePic, messages: user.messages})
+    private openChatScreen = (conversationId: string) => {
+        const user = this.props.matches[conversationId].otherUsers[0]
+        this.props.navigation.navigate('Chat', {
+          name: user.name,
+          id: user.id,
+          profilePic: user.avatar,
+          conversationId,
+          sendMessages: (messages: Message[]) => this.props.sendMessages(conversationId, messages),
+        })
     }
 
-    private renderItem = ({item}: {item: User}) => {
+    private renderItem = ({item}: {item: ConversationDataItem}) => {
         return (
             <MatchesListItem
-              key={item.id}
-              name={item.name.split(' ')[0]}
-              onPress={() => this.openChatScreen(item)}
-              lastMessage={item.messages[0].text}
-              messageRead={item.messages[0].read}
-              profilePic={item.profilePic}
+              key={item.conversationId}
+              name={item.otherUsers[0].name.split(' ')[0]}
+              onPress={() => this.openChatScreen(item.conversationId)}
+              lastMessage={item.mostRecentMessage}
+              messageRead={true}
+              profilePic={item.otherUsers[0].avatar}
             />
         )
     }
 }
 
-export default MatchesList
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    matches: state.matches.matches
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    sendMessages: (conversationId: string, messages: Message[]) => dispatch(sendMessages(conversationId, messages)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MatchesList)
 
 const styles = StyleSheet.create({
   container: {

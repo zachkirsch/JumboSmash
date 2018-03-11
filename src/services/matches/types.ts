@@ -13,14 +13,15 @@ export interface Message {
 export interface User {
   _id: number
   name: string
-  mostRecentMessage: string
+  avatar: string
 }
 
 export interface MatchesState {
   matches: {
-    [chatroom: string]: {
+    [conversationId: string]: {
       otherUsers: User[]
       messages: Message[]
+      mostRecentMessage: string
     }
   }
 }
