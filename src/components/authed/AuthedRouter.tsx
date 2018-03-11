@@ -56,7 +56,6 @@ export default TabNavigator({
   },
 }, {
   tabBarPosition: 'top',
-  //animationEnabled: false,
   swipeEnabled: false,
   tabBarOptions: {
     showLabel: false,

@@ -1,73 +1,166 @@
+import { Map, List } from 'immutable'
 import { MatchesActionType, MatchesAction } from './actions'
-import { MatchesState } from './types'
+import { MatchesState, Conversation } from './types'
 
 const initialState: MatchesState = {
-  matches: {
-    '1234': {
-      otherUsers: [
+  chats: Map<string, Conversation>({
+    '1': {
+      conversationId: '1',
+      otherUsers: List([{
+        _id: 0,
+        name: 'Greg Aloupis',
+        avatar: 'http://www.cs.tufts.edu/people/faculty/images/GregAloupis.png',
+      }]),
+      messages: List([
         {
-          _id: 2,
-          name: 'Greg Aloupis',
-          avatar: 'https://scontent.fzty2-1.fna.fbcdn.net' +
-          '/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
-        }
-      ],
-      messages: [],
+          _id: 0,
+          text: 'This is Greg',
+          createdAt: new Date(),
+          user: {
+            _id: 0,
+            name: 'Greg Aloupis',
+            avatar: 'http://www.cs.tufts.edu/people/faculty/images/GregAloupis.png',
+          },
+          sending: false,
+          failedToSend: false,
+          sent: true,
+          received: true,
+          read: false,
+        },
+      ]),
+      mostRecentMessage: 'This is Greg',
+      messagesUnread: true,
+    },
+    '2': {
+      conversationId: '2',
+      otherUsers: List([{
+        _id: 1,
+        name: 'Zach Kirsch',
+        avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
+                '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+      }]),
+      messages: List([
+        {
+          _id: 0,
+          text: 'This is Zach',
+          createdAt: new Date(),
+          user: {
+            _id: 1,
+            name: 'Zach Kirsch',
+            avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
+                    '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+          },
+          sending: false,
+          failedToSend: false,
+          sent: true,
+          received: true,
+          read: false,
+        },
+      ]),
+      mostRecentMessage: 'This is Zach',
+      messagesUnread: true,
+    },
+    '3': {
+      conversationId: '3',
+      otherUsers: List([{
+        _id: 2,
+        name: 'Jeff Bezos',
+        avatar: 'http://mblogthumb3.phinf.naver.net/20160823_162/banddi95_14719406421210hOJW_JPEG/%B0%A1%C0' +
+                '%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
+      }]),
+      messages: List([
+        {
+          _id: 0,
+          text: 'This is Jeff',
+          createdAt: new Date(),
+          user: {
+            _id: 2,
+            name: 'Jeff Bezos',
+            avatar: 'http://mblogthumb3.phinf.naver.net/20160823_162/banddi95_14719406421210hOJW_JPEG/%B0%A1%C0' +
+                    '%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
+          },
+          sending: false,
+          failedToSend: false,
+          sent: true,
+          received: true,
+          read: false,
+        },
+      ]),
+      mostRecentMessage: 'This is Jeff',
+      messagesUnread: true,
+    },
+    '4': {
+      conversationId: '4',
+      otherUsers: List([{
+        _id: 3,
+        name: 'Mewtwo',
+        avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
+      }]),
+      messages: List([]),
       mostRecentMessage: '',
-    }
-  },
+      messagesUnread: true,
+    },
+    '5': {
+      conversationId: '5',
+      otherUsers: List([{
+        _id: 4,
+        name: 'Bane',
+        avatar: 'http://www.fitzness.com/blog/wp-content/uploads/Tom-Hardy-Bane-Head-Shot.jpeg',
+      }]),
+      messages: List([]),
+      mostRecentMessage: '',
+      messagesUnread: true,
+    },
+  }),
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
-  const newState = Object.assign({}, state)
-  let oldMessages
+
+  let originalConversation: Conversation
 
   switch (action.type) {
 
     case MatchesActionType.ATTEMPT_SEND_MESSAGES:
-      const messages = newState.matches[action.conversationId].messages
+      originalConversation = state.chats.get(action.conversationId)
 
-      const newMessages = action.messages.map((message) => {
-        return {
-          ...message,
-          sending: true,
-        }
+      let newMessages = originalConversation.messages.asImmutable()
+      action.messages.forEach((message) => {
+        newMessages = newMessages.unshift(message)
       })
-      newMessages = newMessages.concat(messages)
 
-      const mostRecentMessage = newMessages.length ? newMessages[newMessages.length - 1].text : 'NO MESSAGES'
-      newState.matches[action.conversationId] = {
-        otherUsers: newState.matches[action.conversationId].otherUsers,
+      const newConversation: Conversation = {
+        conversationId: originalConversation.conversationId,
+        otherUsers: originalConversation.otherUsers.asImmutable(),
         messages: newMessages,
-        mostRecentMessage,
+        mostRecentMessage: newMessages.first().text,
+        messagesUnread: false,
       }
-      return newState
 
-    case MatchesActionType.SEND_MESSAGES_SUCCESS:
-    case MatchesActionType.SEND_MESSAGES_FAILURE:
-      oldMessages = newState.matches[action.conversationId].messages.slice()
-      const numMessages = oldMessages.length
-      for (let i = numMessages - 1; i >= 0; i--) {
-        const message = action.messages.find((newMessage) => {
-          return newMessage._id === oldMessages[i]._id
-        })
-        if (message) {
-          oldMessages[i].sending = false
-          if (action.type === MatchesActionType.SEND_MESSAGES_SUCCESS) {
-            oldMessages[i].sent = true
-          } else if (action.type === MatchesActionType.SEND_MESSAGES_FAILURE) {
-            oldMessages[i].sent = false
-            oldMessages[i].failedToSend = true
-          }
+      return {
+        chats: state.chats.set(action.conversationId, newConversation),
+      }
+
+    // this is a separate case because redux-persist stores immutables as plain JS
+    case MatchesActionType.REHYDRATE:
+      let chats = Map<string, Conversation>()
+      Object.keys(action.payload.matches.chats).forEach((conversationId) => {
+        originalConversation = (action.payload.matches.chats as any)[conversationId] /* tslint:disable-line:no-any */
+        const conversation: Conversation = {
+          conversationId,
+          otherUsers: List(originalConversation.otherUsers),
+          messages: List(originalConversation.messages),
+          mostRecentMessage: originalConversation.mostRecentMessage,
+          messagesUnread: originalConversation.messagesUnread,
         }
+        chats = chats.set(conversationId, conversation)
+      })
+      return {
+        chats,
       }
-      newState.matches[action.conversationId].messages = oldMessages
-      return newState
 
+    case MatchesActionType.SEND_MESSAGES_SUCCESS: // TODO: mark messages as sent
+    case MatchesActionType.SEND_MESSAGES_FAILURE: // TODO: mark messages as errored
     default:
-      console.log('here')
-      console.log(state)
-      console.log(newState)
-      return newState
+      return state
   }
 }

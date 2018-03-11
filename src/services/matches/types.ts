@@ -1,8 +1,7 @@
-export interface Message {
-  _id: number
-  text: string
-  createdAt: Date
-  user: User
+import { IMessage } from 'react-native-gifted-chat'
+import { Map, List } from 'immutable'
+
+export type Message = IMessage & {
   sending: boolean
   failedToSend: boolean
   sent: boolean
@@ -16,12 +15,14 @@ export interface User {
   avatar: string
 }
 
+export interface Conversation {
+  conversationId: string
+  otherUsers: List<User>
+  messages: List<Message>
+  mostRecentMessage: string
+  messagesUnread: boolean
+}
+
 export interface MatchesState {
-  matches: {
-    [conversationId: string]: {
-      otherUsers: User[]
-      messages: Message[]
-      mostRecentMessage: string
-    }
-  }
+  chats: Map<string, Conversation> /* map from conversation ID to conversation */
 }

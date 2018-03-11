@@ -4,14 +4,12 @@ import {
   MatchesActionType,
   AttemptSendMessagesAction,
   SendMessagesSuccessAction,
-  SendMessagesFailureAction,
 } from './actions'
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
   const path = 'messages/'.concat(action.conversationId)
   const dbRef = firebase.database().ref(path)
 
-  console.log('sagas')
   for (let message of action.messages) {
     dbRef.push({
       _id: message._id,

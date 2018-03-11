@@ -1,102 +1,40 @@
 import React, { PureComponent } from 'react'
-import { Text, View, Button, StyleSheet, Image, TouchableHighlight } from 'react-native'
+import { View, StyleSheet, Image, TouchableHighlight } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { GiftedChat } from 'react-native-gifted-chat'
+import { Map } from 'immutable'
 import JSText from '../generic/JSText'
 import {scale} from '../generic'
 import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
-import { firebase } from '../../services/firebase'
-import { MatchesState, Message, sendMessages } from '../../services/matches'
+import { Conversation, Message, sendMessages } from '../../services/matches'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
-
-interface Chat {
-  id: number
-  time: number
-  isSender: boolean,
-  read: boolean,
-  text: string
-}
 
 interface OwnProps {
   name: string,
   id: string,
   profilePic: string,
-  messages: Chat[]
+  conversationId: string,
 }
 
 interface StateProps {
-  matches: {
-    [conversationId: string]: {
-      otherUsers: User[]
-      messages: Message[]
-    }
-  }
+  chats: Map<string, Conversation>,
 }
 
 interface DispatchProps {
   sendMessages: (conversationId: string, messages: Message[]) => void
 }
 
-interface State {
-  messages: Message[]
-}
+interface State { }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class ChatScreen extends PureComponent<Props, State> {
 
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      messages: [],
-    }
-
-    const path = 'messages/'.concat('1234')
-    this._pushMessageRef = firebase.database().ref(path)
-    this._messagesRef = this._pushMessageRef.orderByChild('date').limitToLast(12)
-    this._messagesRef.on('child_added', function(snapshot) {
-      console.log(snapshot.val())
-    })
-    // console.log(this._messagesRef.)
-  }
-
-  componentWillMount() {
-    // let temp: Message[] = this._messagesRef.on('child_added', function(message) {
-    //   return {
-    //     _id: message.val()._id,
-    //     text: message.val().text,
-    //     createdAt: new Date(),
-    //     user: {
-    //       _id: message.val().user._id,
-    //       name: message.val().user.name,
-    //       avatar: message.val().user.avatar,
-    //     },
-    //     system: false,
-    //   }
-    // })
-    //
-    /*
-    let temp: Message[] = this.props.navigation.state.params.messages.map((message) => {
-      return {
-        _id: message.id,
-        text: message.text,
-        createdAt: new Date(message.time),
-        user: {
-          _id: message.isSender ? 1 : 0,
-          name: message.isSender ? 'Max Bernstein' : this.props.navigation.state.params.name,
-          avatar: this.props.navigation.state.params.profilePic,
-        },
-        system: false,
-      }
-    })
-    this.setState({
-      messages: temp,
-    })
-    */
-  }
-
   public render() {
+    const conversationId: string = this.props.navigation.state.params.conversationId
+    const messages = this.props.chats.get(conversationId).messages.toArray()
+
     return (
       <View style={[styles.container, styles.center]}>
         <View style={styles.topBanner}>
@@ -111,10 +49,10 @@ class ChatScreen extends PureComponent<Props, State> {
         </View>
         <View style={styles.chat}>
           <GiftedChat
-            messages={this.props.matches[this.props.navigation.state.params.conversationId].messages}
-            onSend={this.onSend}
+            messages={messages}
+            onSend={this.onSend.bind(this)}
             user={{
-              _id: 1,
+              _id: 6,
               name: 'Max Bernstein',
             }}
           />
@@ -123,16 +61,14 @@ class ChatScreen extends PureComponent<Props, State> {
     )
   }
 
-  private onSend = (messages: Message[] = []) => {
-    this.setState((previousState: State) => ({
-      messages: GiftedChat.append(previousState.messages, messages),
-    }))
-    this.props.sendMessages(this.props.navigation.state.params.conversationId, messages)
+  private onSend<MessageType>(messages: MessageType[] = []) {
+    /* tslint:disable-next-line:no-any */
+    this.props.sendMessages(this.props.navigation.state.params.conversationId, messages as any)
   }
 }
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    matches: state.matches.matches
+    chats: state.matches.chats,
   }
 }
 

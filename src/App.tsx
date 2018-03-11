@@ -29,9 +29,9 @@ class App extends PureComponent<Props, {}> {
       // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */
     } else if (this.props.isLoggedIn && !this.props.codeOfConductAccepted) {
-      return <AuthedRouter />
+      return <CodeOfConductScreen />
     } else if (!this.props.isLoggedIn || !this.props.codeOfConductAccepted) {
-      return <AuthedRouter />
+      return <LoginRouter />
     } else {
       return <AuthedRouter />
     }
