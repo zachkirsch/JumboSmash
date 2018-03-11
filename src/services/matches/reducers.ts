@@ -25,11 +25,11 @@ const initialState: MatchesState = {
           failedToSend: false,
           sent: true,
           received: true,
-          read: false,
+          read: true,
         },
       ]),
       mostRecentMessage: 'This is Greg',
-      messagesUnread: true,
+      messagesUnread: false,
     },
     '2': {
       conversationId: '2',
@@ -98,7 +98,7 @@ const initialState: MatchesState = {
       }]),
       messages: List([]),
       mostRecentMessage: '',
-      messagesUnread: true,
+      messagesUnread: false,
     },
     '5': {
       conversationId: '5',
@@ -109,13 +109,12 @@ const initialState: MatchesState = {
       }]),
       messages: List([]),
       mostRecentMessage: '',
-      messagesUnread: true,
+      messagesUnread: false,
     },
   }),
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
-
   let originalConversation: Conversation
 
   switch (action.type) {

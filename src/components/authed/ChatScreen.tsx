@@ -13,7 +13,7 @@ import { RootState } from '../../redux'
 interface OwnProps {
   name: string,
   id: string,
-  profilePic: string,
+  avatar: string,
   conversationId: string,
 }
 
@@ -42,7 +42,7 @@ class ChatScreen extends PureComponent<Props, State> {
             <Ionicons name='ios-arrow-back' size={scale(30)} color='rgb(172,203,238)' />
           </TouchableHighlight>
           <View style={styles.bannerProfile}>
-            <Image source={{uri: this.props.navigation.state.params.profilePic}} style={styles.avatarPhoto} />
+            <Image source={{uri: this.props.navigation.state.params.avatar}} style={styles.avatarPhoto} />
             <JSText>{this.props.navigation.state.params.name.split(' ')[0]}</JSText>
           </View>
           <View style={styles.buttonBalancer} />

@@ -39,7 +39,7 @@ class MatchesList extends PureComponent<Props, State> {
     this.props.navigation.navigate('Chat', {
       name: user.name,
       id: user._id,
-      profilePic: user.avatar,
+      avatar: user.avatar,
       conversationId,
     })
   }
@@ -50,8 +50,8 @@ class MatchesList extends PureComponent<Props, State> {
         name={item.otherUsers.first().name.split(' ')[0]}
         onPress={() => this.openChatScreen(item.conversationId)}
         lastMessage={item.mostRecentMessage}
-        messageRead={true}
-        profilePic={item.otherUsers.first().avatar}
+        messageRead={!item.messagesUnread}
+        avatar={item.otherUsers.first().avatar}
       />
     )
   }

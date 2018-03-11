@@ -8,7 +8,7 @@ interface Props {
   onPress: () => void,
   lastMessage: string,
   messageRead: boolean,
-  profilePic: string,
+  avatar: string,
 }
 
 interface State {
@@ -29,7 +29,7 @@ class MatchesListItem extends PureComponent<Props, State> {
   private readItem() {
     return (
       <TouchableOpacity style={styles.match} onPress={this.props.onPress}>
-        <Image source={{uri: this.props.profilePic}} style={styles.avatarPhoto} />
+        <Image source={{uri: this.props.avatar}} style={styles.avatarPhoto} />
         <View style={styles.textContainer}>
           <JSText style={styles.nameText}>{this.props.name}</JSText>
           <JSText numberOfLines={1} style={styles.readText}>{this.props.lastMessage}</JSText>
@@ -47,7 +47,7 @@ class MatchesListItem extends PureComponent<Props, State> {
         style={styles.container}
       >
       <TouchableOpacity style={styles.match} onPress={this.props.onPress}>
-        <Image source={{uri: this.props.profilePic}} style={styles.avatarPhoto} />
+        <Image source={{uri: this.props.avatar}} style={styles.avatarPhoto} />
         <View style={styles.textContainer}>
           <JSText style={styles.nameText}>{this.props.name}</JSText>
           <JSText bold={true} numberOfLines={1} style={styles.unreadText}>{this.props.lastMessage}</JSText>
