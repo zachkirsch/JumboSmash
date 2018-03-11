@@ -12,26 +12,26 @@ export enum MatchesActionType {
 
 export interface AttemptSendMessagesAction {
   type: MatchesActionType.ATTEMPT_SEND_MESSAGES
-  toUser: number
+  conversationId: string
   messages: Message[]
 }
 
 export interface SendMessagesSuccessAction {
   type: MatchesActionType.SEND_MESSAGES_SUCCESS
-  toUser: number
+  conversationId: string
   messages: Message[]
 }
 
 export interface SendMessagesFailureAction {
   type: MatchesActionType.SEND_MESSAGES_FAILURE
-  toUser: number
+  conversationId: string
   messages: Message[]
   errorMessage: string
 }
 
 export interface ReceiveMessagesAction {
   type: MatchesActionType.RECEIVE_MESSAGES
-  fromUser: number
+  conversationId: string
   messages: Message[]
 }
 
@@ -55,10 +55,10 @@ AttemptSendMessagesAction
 
 /* Action Creators */
 
-export const sendMessages = (toUser: number, messages: Message[]): AttemptSendMessagesAction => {
+export const sendMessages = (conversationId: string, messages: Message[]): AttemptSendMessagesAction => {
   return {
     type: MatchesActionType.ATTEMPT_SEND_MESSAGES,
-    toUser,
+    conversationId,
     messages,
   }
 }

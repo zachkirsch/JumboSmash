@@ -230,7 +230,7 @@ const mapStateToProps = (state: RootState): StateProps => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
     submitVerificationCode: (code: string) => dispatch(verifyEmail(code)),
