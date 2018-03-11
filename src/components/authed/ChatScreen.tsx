@@ -1,11 +1,14 @@
 import React, { PureComponent } from 'react'
 import { Text, View, Button, StyleSheet, Image, TouchableHighlight } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
-import { Message, GiftedChat } from 'react-native-gifted-chat'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { GiftedChat } from 'react-native-gifted-chat'
 import JSText from '../generic/JSText'
 import {scale} from '../generic'
 import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
 import { firebase } from '../../services/firebase'
+import { MatchesState, Message, sendMessages } from '../../services/matches'
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../redux'
 
 interface Chat {
   id: number
@@ -22,11 +25,24 @@ interface OwnProps {
   messages: Chat[]
 }
 
+interface StateProps {
+  matches: {
+    [userId: number]: {
+      user: User
+      messages: Message[]
+    }
+  }
+}
+
+interface DispatchProps {
+  sendMessages: (toUser: number, messages: Message[]) => void
+}
+
 interface State {
   messages: Message[]
 }
 
-type Props = NavigationScreenProps<OwnProps>
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class ChatScreen extends PureComponent<Props, State> {
 
@@ -121,10 +137,23 @@ class ChatScreen extends PureComponent<Props, State> {
         read: false,
       })
     }
+    //TODO
+    this.props.sendMessages(2, messages)
+  }
+}
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    matches: state.matches
   }
 }
 
-export default ChatScreen
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    sendMessages: (toUser: number, messages: Message[]) => dispatch(sendMessages(toUser, messages)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChatScreen)
 
 const styles = StyleSheet.create({
   container: {
