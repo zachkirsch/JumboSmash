@@ -25,3 +25,28 @@ export function clamp(value: number, min: number, max: number) {
     return value
   }
 }
+
+export interface ActionSheetOption {
+  title: string
+  onPress?: () => void
+  destructive?: boolean
+}
+
+export function generateActionSheetOptions(options: ActionSheetOption[],
+                                           onCancel = () => {}) { /* tslint:disable-line:no-empty */
+  const cancelOption: ActionSheetOption = {
+    title: 'Cancel',
+    onPress: onCancel,
+  }
+
+  const optionsWithCancel = options.concat(cancelOption)
+
+  return [
+    {
+      options: optionsWithCancel.map(option => option.title),
+      cancelButtonIndex: options.length,
+      destructiveButtonIndex: options.findIndex(option => option.destructive),
+    },
+    (buttonIndex: number) => optionsWithCancel[buttonIndex].onPress && optionsWithCancel[buttonIndex].onPress()
+  ]
+}

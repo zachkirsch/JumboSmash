@@ -114,7 +114,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_IMAGES_FAILURE:
       newState.images = {
         prevValue: undefined,
-        value: state.images.prevValue,
+        value: state.images.value, // TODO: prevValue?
         loading: false,
         errorMessage: action.errorMessage,
       }

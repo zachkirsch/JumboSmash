@@ -29,7 +29,6 @@ const styles = StyleSheet.create({
 })
 
 const profileScreen = StackNavigator({
-  ProfileScreen: {screen: ProfileScreen},
   ProfileEditScreen: {screen: ProfileEditScreen},
   CodeOfConductScreen: {screen: CodeOfConductScreen},
   TagsScreen: {screen: TagsScreen},
@@ -37,7 +36,7 @@ const profileScreen = StackNavigator({
   CoCPrivacyScreen: {screen: CoCPrivacyScreen},
   ReportScreen: {screen: ReportScreen},
   BlockScreen: {screen: BlockScreen},
-},{
+}, {
   headerMode: 'none',
   cardStyle: styles.stackCard,
   mode: 'modal'

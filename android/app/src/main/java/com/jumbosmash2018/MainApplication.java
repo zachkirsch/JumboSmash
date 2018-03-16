@@ -3,9 +3,9 @@ package com.jumbosmash2018;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.rnfs.RNFSPackage;
 import fr.bamlab.rnimageresizer.ImageResizerPackage;
-import com.imagepicker.ImagePickerPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
 import com.smixx.fabric.FabricPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -29,9 +29,9 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RCTCameraPackage(),
             new RNFSPackage(),
             new ImageResizerPackage(),
-            new ImagePickerPackage(),
             new LinearGradientPackage(),
             new FabricPackage(),
             new VectorIconsPackage()
