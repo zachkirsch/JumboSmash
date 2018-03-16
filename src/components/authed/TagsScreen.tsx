@@ -5,8 +5,11 @@ import {
   StyleSheet,
   Text,
 } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { JSText, JSButton } from '../generic/index';
+import { connect, Dispatch } from 'react-redux';
+import { RootState } from '../../redux';
+import { updateTags } from '../../services/profile';
 
 interface State {
   chosentags: Array<string>,
@@ -21,17 +24,23 @@ interface State {
   xxx: Array<string>,
   tagTitles: Array<string>,
 }
-interface OwnProps {
-  chosentags: string[]
+interface OwnProps {}
+
+interface StateProps {
+  tags: string[]
 }
-type Props = NavigationScreenProps<{}>
+interface DispatchProps {
+  onSubmitTags: (tags: string[]) => void,
+}
+
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class TagsScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
      super(props);
      this.state = {
-       chosentags: ["did porn to pay tuition", "idc stuff my face", "chinese"],
+       chosentags: this.props.tags,
        Food: ["chinese", "korean", "🍕", "🍣", "🍔", "brunch", "breakfast", "froyo",
                 "thai", "spicy", "vegan", "vegetarian", "carnivore", "idc stuff my face"],
        Drink: ["🍺","natty light", "IPAs", "rum", "vodka", "tequila", "whisky", "wine", "brandy", "gin", "baijiu", "sake", "soju", "scotch", "fireball", "cocktails", "ethanol", "rubinoff"],
@@ -71,10 +80,15 @@ class TagsScreen extends PureComponent<Props, State> {
 
         </View>
         <View style={styles.buttons}>
-          <JSButton onPress={() => this.props.navigation.goBack()} label="Save Changes"></JSButton>
+          <JSButton onPress={() => this.saveChanges()} label="Save Changes"></JSButton>
         </View>
       </ScrollView>
     )
+  }
+
+  private saveChanges(){
+    this.props.onSubmitTags(this.state.chosentags)
+    this.props.navigation.goBack()
   }
 
   private rendersubTags(tag: string){
@@ -110,12 +124,27 @@ private toggleTag(tag: string){
     this.forceUpdate()
   } else {
     this.setState({chosentags: this.state.chosentags.concat([tag])})
+    this.forceUpdate()
   }
 }
 
 }
 
-export default TagsScreen
+
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    tags: state.profile.tags.value,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    onSubmitTags: (tags: string[]) => dispatch(updateTags(tags)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TagsScreen)
+
 
 
 const styles = StyleSheet.create({

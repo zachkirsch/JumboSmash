@@ -5,12 +5,12 @@ import CodeOfConductScreen from './CodeOfConductScreen'
 import CountdownScreen from './CountdownScreen';
 
 export default TabNavigator({
-  CountdownScreen: {
-    screen: CountdownScreen,
-    navigationOptions: {
-      tabBarVisible: false,
-    },
-  },
+  // CountdownScreen: {
+  //   screen: CountdownScreen,
+  //   navigationOptions: {
+  //     tabBarVisible: false,
+  //   },
+  // },
   LoginScreen: {
     screen: LoginScreen,
     navigationOptions: {

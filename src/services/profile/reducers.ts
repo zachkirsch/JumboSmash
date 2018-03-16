@@ -11,7 +11,7 @@ const initialState: ProfileState = {
     loading: false,
   },
   bio: {
-    value: '',
+    value: '240 character max',
     loading: false,
   },
   images: {

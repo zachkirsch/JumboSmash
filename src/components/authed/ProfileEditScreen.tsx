@@ -1,11 +1,14 @@
 import React, { PureComponent } from 'react'
 import { View, TouchableOpacity, Text, TextInput, Image, StyleSheet, ScrollView } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import ImagePicker from 'react-native-image-picker'
-//import { Icon } from 'react-native-elements'
 import { default as SettingsMenu } from './SettingsScreen'
 import { JSText, JSTextInput, JSButton } from '../generic/index';
 import { ActionSheetProvider} from '@expo/react-native-action-sheet';
+import { RootState } from '../../redux';
+import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import { updatePreferredName, updateBio, updateTags, updateMajor } from '../../services/profile';
 
 interface State {
   bio: string,
@@ -27,16 +30,28 @@ interface State {
   PhotoDimensionsSmall: number[],
   chosentags: string[]
 }
-interface OwnProps {
-  chosentags: string[]
+
+interface StateProps {
+  name: string,
+  tags: string[]
+  bio: string,
+  // Images: Array<{uri: string}>,
+  major: string,
 }
-type Props = NavigationScreenProps<OwnProps>
+interface OwnProps {}
+interface DispatchProps {
+  onSubmitName: (name: string) => void,
+  onSubmitBio: (bio: string) => void,
+  onSubmitMajor: (major: string) => void,
+}
+
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class ProfileEditScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
      super(props);
-     this.state = { bio: "I haven't set up a bio yet." +'\n' +"I have 240 characters to do so!",
+     this.state = { bio: this.props.bio,
                     avatarSources: [{uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'}, //one default, 6 real spots
                                     {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
                                     {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
@@ -44,8 +59,8 @@ class ProfileEditScreen extends PureComponent<Props, State> {
                                     {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
                                     {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},
                                     {uri: 'https://www.sparklabs.com/forum/styles/comboot/theme/images/default_avatar.jpg'},],
-                    name: 'Dummy Name',
-                    major: 'Undeclared',
+                    name: this.props.name,
+                    major: this.props.major,
                     PhotoDimensionsBig: [],
                     PhotoDimensionsSmall: [],
                     modalVisible: false,
@@ -59,7 +74,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
                     react6: 10,
                     react7: 10,
                     react8: 10,
-                    chosentags: this.props.chosentags? this.props.chosentags : []
+                    chosentags: this.props.tags
                   };
    }
 
@@ -162,7 +177,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
         style= {styles.bioInput}
         placeholder={this.state.name}
         onChangeText={(name) => this.setState({name})}
-        onEndEditing={() => console.log(this.state.name)}
+        onEndEditing={() => this.props.onSubmitName(this.state.name)}
         />
     </View>
     <View style={styles.bioItem}>
@@ -171,16 +186,16 @@ class ProfileEditScreen extends PureComponent<Props, State> {
         style= {styles.bioInput}
         placeholder={this.state.major}
         onChangeText={(major) => this.setState({major})}
-        onEndEditing={() => console.log(this.state.major)}
+        onEndEditing={() => this.props.onSubmitMajor(this.state.major)}
         />
     </View>
       <View style={styles.bioItem}>
           <JSText>About Me </JSText>
       </View>
-      <JSTextInput placeholder="240 character max" multiline={true} maxLength={240}
+      <JSTextInput placeholder="240 chars max!" multiline={true} maxLength={240}
         onChangeText={(bio) => this.setState({bio})}
-        onEndEditing={() => console.log(this.state.bio)}
-        ></JSTextInput>
+        onEndEditing={() => this.props.onSubmitBio(this.state.bio)}
+        >{this.state.bio}</JSTextInput> 
   </View>
   }
 
@@ -297,7 +312,24 @@ class ProfileEditScreen extends PureComponent<Props, State> {
      }
 }
 
-export default ProfileEditScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    name: state.profile.preferredName.value,
+    bio: state.profile.bio.value,
+    major: state.profile.major.value,
+    tags: state.profile.tags.value,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    onSubmitName: (name: string) => dispatch(updatePreferredName(name)),
+    onSubmitBio: (bio: string) => dispatch(updateBio(bio)),
+    onSubmitMajor: (major: string) => dispatch(updateMajor(major))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProfileEditScreen)
 
 const styles = StyleSheet.create({
   container: {
