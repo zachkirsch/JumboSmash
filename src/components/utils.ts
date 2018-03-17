@@ -26,14 +26,25 @@ export function clamp(value: number, min: number, max: number) {
   }
 }
 
+export function lastIndexOf<T>(array: T[], predicate: (item: T) => boolean) {
+  for (let i = array.length - 1; i >= 0; i--) {
+    if (predicate(array[i])) {
+      return i
+    }
+  }
+  return -1
+}
+
+/* Action Sheet */
+
 export interface ActionSheetOption {
   title: string
   onPress?: () => void
   destructive?: boolean
 }
 
-export function generateActionSheetOptions(options: ActionSheetOption[],
-                                           onCancel = () => {}) { /* tslint:disable-line:no-empty */
+/* tslint:disable-next-line:no-empty */
+export function generateActionSheetOptions(options: ActionSheetOption[], onCancel = () => {}) {
   const cancelOption: ActionSheetOption = {
     title: 'Cancel',
     onPress: onCancel,
@@ -41,12 +52,14 @@ export function generateActionSheetOptions(options: ActionSheetOption[],
 
   const optionsWithCancel = options.concat(cancelOption)
 
-  return [
-    {
+  return {
+    options: {
       options: optionsWithCancel.map(option => option.title),
       cancelButtonIndex: options.length,
       destructiveButtonIndex: options.findIndex(option => option.destructive),
     },
-    (buttonIndex: number) => optionsWithCancel[buttonIndex].onPress && optionsWithCancel[buttonIndex].onPress()
-  ]
+    callback: (buttonIndex: number) => {
+      optionsWithCancel[buttonIndex].onPress && optionsWithCancel[buttonIndex].onPress()
+    },
+  }
 }

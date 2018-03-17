@@ -89,6 +89,7 @@ class LoginScreen extends PureComponent<Props, State> {
               returnKeyType={'go'}
               enablesReturnKeyAutomatically
               selectTextOnFocus
+              fancy
               textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
             />
           </View>

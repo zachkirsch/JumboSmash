@@ -120,9 +120,10 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 keyboardType={'numeric'}
                 maxLength={CODE_LENGTH}
                 underlineColorAndroid={underlineColorAndroid}
-                enablesReturnKeyAutomatically
-                textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
                 fontSize={30}
+                enablesReturnKeyAutomatically
+                fancy
+                textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
               />
             </View>
             <View style={styles.resendLinkContainer} >

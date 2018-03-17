@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react'
 import { View, Text, Button, StyleSheet } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
+import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
 
 interface OwnProps {
   user: string
 }
 
-type Props = NavigationScreenProps<OwnProps>
+type Props = NavigationScreenPropsWithOwnProps<OwnProps>
 
 class ChatScreen extends PureComponent<Props, {}> {
 

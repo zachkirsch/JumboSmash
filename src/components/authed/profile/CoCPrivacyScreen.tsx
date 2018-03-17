@@ -6,7 +6,7 @@ import {
   Platform,
   Button,
 } from 'react-native'
-import { JSText } from '../generic'
+import { JSText } from '../../generic'
 import { NavigationScreenProps } from 'react-navigation'
 
 interface CoCRule {
@@ -31,7 +31,6 @@ const COC_RULES: CoCRule[] = [
     emojiTitle: '✅🙋',
     description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
   },
-
   {
     emojiTitle: '🔐💌',
     description: 'Jumbosmash will delete all your data after graduation - we value your privacy!',

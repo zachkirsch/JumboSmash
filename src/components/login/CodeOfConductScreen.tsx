@@ -6,7 +6,7 @@ import {
   Platform,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { JSText, JSButton } from '../generic'
+import { JSText, RectangleButton } from '../generic'
 import { acceptCoC } from '../../services/coc'
 import { RootState } from '../../redux'
 
@@ -29,34 +29,43 @@ const COC_RULES: CoCRule[] = [
     description: "No identity theft. Don't pretend to be someone you're not.",
   },
   {
-    emojiTitle: '✅🙋🏽',
+    emojiTitle: '✅🙋',
     description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
   },
+  {
+    emojiTitle: '🔐💌',
+    description: 'Jumbosmash will delete all your data after graduation - we value your privacy!',
+  },
 ]
+
+interface OwnProps {
+  buttonLabel?: string // defaults to "Accept"
+  onPress?: () => void // defaults to acceptCoc
+}
 
 interface DispatchProps {
   acceptCoC: () => void
 }
 
-type Props = DispatchProps
+type Props = OwnProps & DispatchProps
 
 class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
-      <View style={styles.container}>
+      <View>
         <View style={styles.statusBar} />
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <View style={styles.rulesContainer}>
+        <ScrollView>
+          <View style={styles.container}>
             {this.renderTitle()}
             {this.renderDescription()}
             {this.renderRules()}
           </View>
-          <View style={styles.rulesContainer}>
+          <View style={styles.container}>
             {this.renderSignoff()}
           </View>
           <View style={styles.buttonContainer}>
-            {this.renderAgreeButton()}
+            {this.renderButton()}
           </View>
         </ScrollView>
       </View>
@@ -100,11 +109,11 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
     )
   }
 
-  private renderAgreeButton = () => {
+  private renderButton = () => {
     return (
-      <JSButton
-        onPress={this.props.acceptCoC}
-        label={"I agree. Let's smash!"}
+      <RectangleButton
+        onPress={this.props.onPress || this.props.acceptCoC}
+        label={this.props.buttonLabel || "I agree. Let's smash!"}
       />
     )
   }
@@ -112,20 +121,9 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
 }
 
 const styles = StyleSheet.create({
-
-  container: {
-    flex: 1,
-  },
   statusBar: {
     height: Platform.OS === 'ios' ? 20 : 0, // space for iOS status bar
   },
-  scrollView: {
-    flex: 1,
-    justifyContent: 'space-around',
-  },
-
-  /* heading */
-
   title: {
     textAlign: 'center',
   },
@@ -134,22 +132,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
-
-  /* rules */
-
-  rulesContainer: {
+  container: {
     padding: 20,
   },
   rule: {
     marginTop: 20,
   },
-
-  /* buttons */
-
   buttonContainer: {
     marginTop: 10,
-    alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 50,
   },
 })
 

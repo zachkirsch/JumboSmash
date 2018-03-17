@@ -1,9 +1,11 @@
 import React, { PureComponent } from 'react'
-import { TouchableOpacity, TouchableOpacityProperties, StyleSheet } from 'react-native'
+import { TouchableOpacity, TouchableOpacityProperties, StyleSheet, ViewStyle } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import JSText from './JSText'
 
 interface Props extends TouchableOpacityProperties {
+  containerStyle?: ViewStyle
+  colors?: string[] // two colors for the gradient
   label: string
 }
 
@@ -15,10 +17,10 @@ class JSButton extends PureComponent<Props, {}> {
 
     return (
       <LinearGradient
-        colors={['rgba(231,240,253,0.67)', 'rgba(172,203,238,0.47)']}
+        colors={this.props.colors || ['rgba(231,240,253,0.67)', 'rgba(172,203,238,0.47)']}
         start={{x: 0, y: 1}} end={{x: 1, y: 1}}
         locations={[0, 1]}
-        style={styles.container}
+        style={[styles.container, this.props.containerStyle]}
       >
         <TouchableOpacity
           style={[styles.button, style]}
@@ -42,7 +44,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 10,
     paddingHorizontal: 60,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   text: {
     fontSize: 14,

@@ -104,7 +104,7 @@ export default Carousel
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'green',
+    backgroundColor: 'white',
   },
   image: {
     height: WIDTH,

@@ -48,7 +48,8 @@
 				"redux": "^3.7.2",
 				"redux-logger": "^3.0.6",
 				"redux-persist": "^4.0",
-				"redux-saga": "^0.16.0"
+				"redux-saga": "^0.16.0",
+				"rnpm": "^1.9.0"
 		},
 		"devDependencies": {
 				"@types/jest": "^21.1.2",
@@ -75,6 +76,11 @@
 				],
 				"transformIgnorePatterns": [
 						"node_modules/(?!(jest-)?react-native|react-navigation)"
+				]
+		},
+		"rnpm": {
+				"assets": [
+						"source/assets/fonts"
 				]
 		}
 }

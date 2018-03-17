@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react'
 import { View, Text, StyleSheet, ScrollView} from 'react-native'
-import {emailSupport} from '../utils'
+import {emailSupport} from '../../utils'
 import { NavigationScreenProps } from 'react-navigation'
-import { JSButton, JSText } from '../generic/index';
+import { JSButton, JSText } from '../../generic/index';
 
 type Props = NavigationScreenProps<{}>
 

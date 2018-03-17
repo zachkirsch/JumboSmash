@@ -6,18 +6,11 @@ import {
   NavigationTabScreenOptions
 } from 'react-navigation'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import ProfileScreen from './ProfileScreen'
-import ProfileEditScreen from './ProfileEditScreen'
+import * as Profile from './profile'
 import { SwipeScreen } from './swipe'
 import MatchesList from './MatchesList'
 import ChatScreen from './ChatScreen'
-import CodeOfConductScreen from './CoCPrivacyScreen'
-import TagsScreen from './TagsScreen';
-import CoCPrivacyScreen from './CoCPrivacyScreen';
-import ReportScreen from './ReportScreen';
-import BlockScreen from './BlockScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import SettingsScreen from './SettingsScreen';
 
 const styles = StyleSheet.create({
   iOSTabBar: {
@@ -29,17 +22,12 @@ const styles = StyleSheet.create({
 })
 
 const profileScreen = StackNavigator({
-  ProfileEditScreen: {screen: ProfileEditScreen},
-  CodeOfConductScreen: {screen: CodeOfConductScreen},
-  TagsScreen: {screen: TagsScreen},
-  SettingsScreen: {screen: SettingsScreen},
-  CoCPrivacyScreen: {screen: CoCPrivacyScreen},
-  ReportScreen: {screen: ReportScreen},
-  BlockScreen: {screen: BlockScreen},
+  ProfileScreen: {screen: Profile.ProfileScreen},
+  TagsScreen: {screen: Profile.TagsScreen},
+  BlockScreen: {screen: Profile.BlockScreen},
 }, {
   headerMode: 'none',
   cardStyle: styles.stackCard,
-  mode: 'modal'
 })
 
 const profileScreenNavigationOptions: NavigationTabScreenOptions = {
@@ -73,7 +61,7 @@ const matchesScreenNavigationOptions: NavigationTabScreenOptions = {
 export default TabNavigator({
   Profile: {
     screen: profileScreen,
-    navigationOptions: profileScreenNavigationOptions
+    navigationOptions: profileScreenNavigationOptions,
   },
   Swipe: {
     screen: SwipeScreen,

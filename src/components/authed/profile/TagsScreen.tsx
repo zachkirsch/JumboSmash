@@ -6,10 +6,10 @@ import {
   Text,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { JSText, JSButton } from '../generic/index';
+import { JSText, JSButton } from '../../generic/index';
 import { connect, Dispatch } from 'react-redux';
-import { RootState } from '../../redux';
-import { updateTags } from '../../services/profile';
+import { RootState } from '../../../redux';
+import { updateTags } from '../../../services/profile';
 
 interface State {
   chosentags: Array<string>,
