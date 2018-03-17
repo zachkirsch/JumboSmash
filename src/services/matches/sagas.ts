@@ -7,6 +7,7 @@ import {
 } from './actions'
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
+  console.log('CONVOID:',action.conversationId)
   const path = 'messages/'.concat(action.conversationId)
   const dbRef = firebase.database().ref(path)
 

@@ -71,3 +71,11 @@ export const sendMessages = (conversationId: string, messages: Message[]): Attem
     messages,
   }
 }
+
+export const receiveMessages = (conversationId: string, messages: Message[]): ReceiveMessagesAction => {
+  return {
+    type: MatchesActionType.RECEIVE_MESSAGES,
+    conversationId,
+    messages,
+  }
+}

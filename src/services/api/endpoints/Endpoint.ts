@@ -1,7 +1,7 @@
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
-const SERVER = 'http://10.0.2.2:5000'
+const SERVER = 'http://10.0.2.2:5000/'
 // const SERVER = 'https://jumbosmash2018-staging.herokuapp.com/'
 // const SERVER = 'http://127.0.0.1:5000/'
 

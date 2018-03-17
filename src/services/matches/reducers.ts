@@ -119,7 +119,9 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
   switch (action.type) {
 
+    case MatchesActionType.RECEIVE_MESSAGES:
     case MatchesActionType.ATTEMPT_SEND_MESSAGES:
+      console.log('THIS FIRED:', action)
       originalConversation = state.chats.get(action.conversationId)
 
       let newMessages = originalConversation.messages.asImmutable()
