@@ -3,34 +3,25 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Text,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { JSText, JSButton } from '../../generic/index';
-import { connect, Dispatch } from 'react-redux';
-import { RootState } from '../../../redux';
-import { updateTags } from '../../../services/profile';
+import update from 'immutability-helper'
+import { JSText } from '../../generic/index'
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../../redux'
+import { TagSectionType, updateTags } from '../../../services/profile'
+import TagSection from './TagSection'
 
 interface State {
-  chosentags: Array<string>,
-  Food: Array<string>,
-  Drink: Array<string>,
-  Tufts: Array<string>,
-  Relationships: Array<string>,
-  Hobbies: Array<string>,
-  Music: Array<string>,
-  Sports: Array<string>,
-  Misc: Array<string>,
-  xxx: Array<string>,
-  tagTitles: Array<string>,
+  tags: TagSectionType[]
 }
 interface OwnProps {}
 
 interface StateProps {
-  tags: string[]
+  tags: TagSectionType[]
 }
 interface DispatchProps {
-  onSubmitTags: (tags: string[]) => void,
+  updateTags: (tags: TagSectionType[]) => void,
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
@@ -38,98 +29,68 @@ type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps
 class TagsScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
-     super(props);
-     this.state = {
-       chosentags: this.props.tags,
-       Food: ["chinese", "korean", "🍕", "🍣", "🍔", "brunch", "breakfast", "froyo",
-                "thai", "spicy", "vegan", "vegetarian", "carnivore", "idc stuff my face"],
-       Drink: ["🍺","natty light", "IPAs", "rum", "vodka", "tequila", "whisky", "wine", "brandy", "gin", "baijiu", "sake", "soju", "scotch", "fireball", "cocktails", "ethanol", "rubinoff"],
-       Tufts: ["club president", "acapella", "meme royalty", "dewick", "carm", "hodgdon", "mugar", "MCATs", "musical theatre", "double major", "jobless af",
-              "dual-degree", "quirky queen", "halligan lyfe", "greek", "tisch lyfe",  "5 year program", "journalism", "liberal arts", "engineering", "Fletcher wannabe", "did porn to pay tuition"],
-       Relationships: ["🏳️‍🌈", "👫", "👬", "👭", "taken af", "single af", "open relationship", "poly", "complicated", "married", "single", "it’s cuffing szn", "one night stands", "'I do CS'", "can't afford a relationship", "here for the memes"],
-       Hobbies: ["420", "swimming", "hiking", "netflix", "traveling", "clubbing", "singing", "powerlifting", "running", "dancing", "fire-juggling", "I don’t go outside"],
-       Music: ["Pop", "rap", "EDM", "hip hop", "folk", "dubstep", "soul", "indie", "metal", "rock", "alternative", "classical", "blues", "jazz", "punk", "country", "I collect vinyls"],
-       Sports: ["go pats", "fuck the pats"],
-       Misc: ["team star wars", "team star trek", "team LOTR", "NY-bound", "SF-bound", "BOS-bound", "DC-bound", "leaving the US", "2cool4school", "the future scares me", "add me on LinkedIn"],
-       xxx: ["bdsm (light)", "bdsm (heavy)", "devil’s 3some", "angel’s 3some", "3some", "thirsty af", "butt stuff", "swinging", "spanking", "role play", "call me daddy"],
-      tagTitles: ["Food", "Drink", "Tufts", "Relationships", "Hobbies", "Music", "Sports", "Misc", "xxx"],
-     };
-   }
+    super(props)
+    this.state = {
+      tags: props.tags,
+    }
+  }
+
+  componentDidMount() {
+    this.props.navigation.addListener('willBlur', this.saveChanges)
+  }
 
   render() {
     return (
-      <ScrollView>
-      <View style={styles.bio}>
-        <JSText style={styles.title}><JSText style={{textDecorationLine: 'underline',color: '#171767', fontWeight: 'bold'}}>Tap </JSText>the tags that apply to you!</JSText>
-        <JSText style={styles.subtitle}>Please note, tags are public to everyone</JSText>
+      <View style={styles.fill}>
+        <View style={styles.topContainer}>
+          <JSText style={styles.title}>
+            Tap the tags that apply to you. When swiping, you will see the tags you have in common with each student.
+          </JSText>
+        </View>
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          {this.renderTags()}
+        </ScrollView>
       </View>
-      <View
-        style={{
-          borderBottomColor: 'grey',
-          borderBottomWidth: 1,
-        }}
-      />
-      <View style={styles.bio}>
-        {this.state.tagTitles.map((tag) =>
-          (<View style={styles.bioItem} key={tag}>
-            <JSText>{tag} </JSText>
-            <View style={styles.reactRow}>
-            {this.rendersubTags(tag)}
-            </View>
-            </View>))}
-
-        </View>
-        <View style={styles.buttons}>
-          <JSButton onPress={() => this.saveChanges()} label="Save Changes"></JSButton>
-        </View>
-      </ScrollView>
     )
   }
 
-  private saveChanges(){
-    this.props.onSubmitTags(this.state.chosentags)
+  private renderTags = () => {
+    return this.state.tags.map((section, sectionIndex) => {
+      return (
+        <View key={section.name}>
+          <JSText bold fontSize={16}>{section.name}</JSText>
+          <TagSection
+            tags={section.tags}
+            onPress={(tagIndex) => this.toggleTag(sectionIndex, tagIndex)}
+            tagStyle={styles.tag}
+            selectedTagStyle={styles.chosenTag}
+            containerStyle={styles.tagSection}
+          />
+        </View>
+      )
+    })
+  }
+
+  private saveChanges = () => {
+    this.props.updateTags(this.state.tags)
     this.props.navigation.goBack()
   }
 
-  private rendersubTags(tag: string){
-    switch(tag) {
-      case "Food":
-          return (this.state.Food.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Drink":
-          return (this.state.Drink.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Tufts":
-          return (this.state.Tufts.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Relationships":
-          return (this.state.Relationships.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Hobbies":
-          return (this.state.Hobbies.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Music":
-          return (this.state.Music.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Sports":
-          return (this.state.Sports.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "Misc":
-          return (this.state.Misc.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-      case "xxx":
-          return (this.state.xxx.map((tag) => (<Text style={this.state.chosentags.includes(tag)? styles.highlightedTags :styles.tags} key={tag} onPress={() => this.toggleTag(tag)}> {tag} </Text>)))
-  }
-    return <Text></Text>
-}
-
-private toggleTag(tag: string){
-  if (this.state.chosentags.includes(tag)){
-    let array = this.state.chosentags
-    let index = array.indexOf(tag)
-    array.splice(index, 1)
-    this.setState({chosentags: array})
-    this.forceUpdate()
-  } else {
-    this.setState({chosentags: this.state.chosentags.concat([tag])})
-    this.forceUpdate()
+  private toggleTag = (sectionIndex: number, tagIndex: number) => {
+    const updateConfig: any = {} /* tslint:disable-line:no-any */
+    updateConfig[sectionIndex] = {
+      tags: {},
+    }
+    updateConfig[sectionIndex].tags[tagIndex] = {
+      selected: {
+        $set: !this.state.tags[sectionIndex].tags[tagIndex].selected,
+      },
+    }
+    this.setState({
+      tags: (update(this.state.tags, updateConfig) as TagSectionType[]),
+    })
   }
 }
-
-}
-
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
@@ -139,56 +100,40 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    onSubmitTags: (tags: string[]) => dispatch(updateTags(tags)),
+    updateTags: (tags: TagSectionType[]) => dispatch(updateTags(tags)),
   }
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TagsScreen)
 
-
-
 const styles = StyleSheet.create({
-  buttons:{
+  fill: {
     flex: 1,
-    justifyContent: 'space-around',
-    paddingVertical: 1,
   },
-  bioItem:{
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    justifyContent: 'space-around',
-    paddingVertical: 20,
+  topContainer: {
+    padding: 20,
+    backgroundColor: 'rgb(250, 250, 250)',
   },
-  bio: {
-    flex: 8,
-    justifyContent: 'space-between',
-    paddingVertical: 20,
+  scrollView: {
+    padding: 20,
   },
-  tags:{
-    fontSize: 16,
-    color: 'grey',
-    alignSelf: 'flex-start'
+  tag: {
+    color: 'black',
+    marginBottom: 5,
+    opacity: 0.6,
   },
-  highlightedTags:{
-    fontSize: 16,
-    textDecorationLine: 'underline',
-    color: '#171767',
+  chosenTag: {
+    opacity: 1,
   },
-  reactRow:{
-    flex:1,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    flexWrap: 'wrap',
-    paddingVertical: 10,
-    alignItems: 'flex-start',
-    alignSelf: 'flex-start'
+  tagSection: {
+    marginBottom: 20,
   },
   title: {
     fontSize: 40,
-    alignSelf: 'center'
+    textAlign: 'center',
   },
-  subtitle:{
+  subtitle: {
     fontSize: 12,
-    fontWeight: 'bold', alignSelf: 'center'
-  }
+    fontWeight: 'bold', alignSelf: 'center',
+  },
 })

@@ -1,13 +1,15 @@
 import React, { PureComponent } from 'react'
-import { TouchableOpacity, TouchableOpacityProperties, StyleSheet, ViewStyle } from 'react-native'
+import { TouchableOpacity, TouchableOpacityProperties, StyleSheet } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import JSText from './JSText'
 
 interface Props extends TouchableOpacityProperties {
-  containerStyle?: ViewStyle
+  containerStyle?: any /* tslint:disable-line:no-any */
   colors?: string[] // two colors for the gradient
   label: string
 }
+
+export type JSButtonProps = Props
 
 class JSButton extends PureComponent<Props, {}> {
 

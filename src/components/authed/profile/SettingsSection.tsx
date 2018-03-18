@@ -42,7 +42,7 @@ class SettingsSection extends PureComponent<Props, {}> {
           onPress={this.openHelpActionSheet}
         />
         <RectangleButton
-          label='Account Settings'
+          label='Stop Smashing'
           onPress={this.openSettingsActionSheet}
         />
       </View>
@@ -100,7 +100,7 @@ class SettingsSection extends PureComponent<Props, {}> {
 
     // BLOCK USER
     buttons.push({
-      title: 'Block User',
+      title: 'Block Users',
       onPress: this.props.block,
     })
 

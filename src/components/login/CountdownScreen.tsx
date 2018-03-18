@@ -5,6 +5,7 @@ import {
     Image,
     StyleSheet,
     } from 'react-native'
+import { Images } from '../../assets'
 
     const DEFAULT_BG_COLOR = '#ABCCED'
     const DEFAULT_TIME_TXT_COLOR = '#000'
@@ -54,7 +55,7 @@ class CountdownScreen extends PureComponent<{}, State> {
      </View>
          <View style={styles.logoContainer}>
            <Image
-             source={require('../../img/jumbosmash_logo.png')}
+             source={Images.jumbo2018}
              style={styles.logo}
            />
          </View>

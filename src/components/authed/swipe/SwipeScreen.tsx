@@ -6,7 +6,7 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import LinearGradient from 'react-native-linear-gradient'
 import Card from './Card'
-import CircleButton, { CircleButtonProps } from './CircleButton'
+import { CircleButton, CircleButtonProps } from '../../generic'
 
 interface Props {
   preview?: {

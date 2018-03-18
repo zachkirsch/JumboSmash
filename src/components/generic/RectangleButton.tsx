@@ -1,24 +1,24 @@
 import React, { PureComponent } from 'react'
 import { StyleSheet } from 'react-native'
-import JSButton from './JSButton'
+import JSButton, { JSButtonProps } from './JSButton'
 
-interface Props {
-  label: string
-  onPress: () => void
+interface Props extends JSButtonProps {
   active?: boolean // darker color
 }
 
 class RectangleButton extends PureComponent<Props, {}> {
 
   render() {
+
+    const { containerStyle, colors, ...otherProps } = this.props
+
     return (
       <JSButton
-        label={this.props.label}
-        onPress={this.props.onPress}
+        {...otherProps}
+        containerStyle={[styles.buttonContainer, containerStyle]}
         colors={this.props.active
                 ? ['rgba(231, 240, 253, 1)', '#B1CAEF']
                 : ['rgba(211, 224, 240, 0.5)', 'rgba(211, 224, 240, 0.8)']}
-        containerStyle={styles.buttonContainer}
       />
     )
   }

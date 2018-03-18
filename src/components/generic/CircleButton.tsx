@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { Animated, TouchableWithoutFeedback, StyleSheet } from 'react-native'
-import { moderateScale } from '../../generic'
+import { moderateScale } from './scaling'
 
 interface Props {
   IconClass: any /* tslint:disable-line:no-any */

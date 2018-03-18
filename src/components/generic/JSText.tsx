@@ -8,6 +8,8 @@ interface Props extends TextProperties {
   fontSize?: number
 }
 
+export type JSTextProps = Props
+
 class JSText extends PureComponent<Props, {}> {
   public render() {
     const { style, bold, fontSize, ...otherProps } = this.props

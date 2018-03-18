@@ -1,86 +1,100 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, ScrollView, Linking, TouchableOpacity, Platform } from 'react-native'
+import { View, StyleSheet, ScrollView, Linking, TouchableOpacity } from 'react-native'
 import { default as Entypo } from 'react-native-vector-icons/Entypo'
 import { default as FontAwesome } from 'react-native-vector-icons/FontAwesome'
 import LinearGradient from 'react-native-linear-gradient'
 import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
-import { JSText, RectangleButton, JSTextInput } from '../../generic/index'
+import { JSText, JSTextInput } from '../../generic/index'
 
 type Props = NavigationScreenPropsWithOwnProps<{}>
 
+interface BlockedUserMap {
+  [email: string]: 'blocked' | 'just_blocked' | 'just_unblocked'
+}
+
 interface State {
-  blockedUsers: {
-    [email: string]: 'blocked' | 'just_blocked' | 'just_unblocked'
-  },
+  blockedUsers: BlockedUserMap,
   textInput: string,
 }
 
 class BlockScreen extends PureComponent<Props, State> {
 
+  private scrollView: any /* tslint:disable-line:no-any */
+
   constructor(props: Props) {
      super(props)
      this.state = {
        blockedUsers: {
-         'bad.dude@tufts.edu': 'blocked',
+         'b1ad.dude@tufts.edu': 'blocked',
+         'bad1.dude@tufts.edu': 'blocked',
+         'bad.d1ude@tufts.edu': 'blocked',
+         'bad.dud1e@tufts.edu': 'blocked',
+         'bad.dud2e@tufts.edu': 'blocked',
+         'bad.dude3@tufts.edu': 'blocked',
+         'bad.dude@4tufts.edu': 'blocked',
+         'bad.dude@t6ufts.edu': 'blocked',
+         'bad.dude@t7ufts.edu': 'blocked',
+         'bad.dude@5tufts.edu': 'blocked',
+         'bad.dude@3tufts.edu': 'blocked',
+         'bad.dude@33tufts.edu': 'blocked',
+         'bad.dude@2tufts.edu': 'blocked',
+         'bad.dude@tufts3.edu': 'blocked',
+         'bad.dude@tu3f1ts.edu': 'blocked',
+         'bad.dude@tufts.e1du': 'blocked',
        },
        textInput: '',
      }
    }
 
+  componentDidMount() {
+    this.props.navigation.addListener('willBlur', this.saveChanges)
+  }
+
   render() {
     return (
-      <ScrollView contentContainerStyle={styles.container} scrollEnabled={false}>
-        <View style={styles.textContainer}>
-          <JSText fontSize={40} bold style={styles.mainTitle}>Block Users</JSText>
-          <JSText fontSize={14} style={{textAlign: 'justify'}}>
-            {"You won't see the users you block anywhere on the app, and they won't see you."
-             + ' To block a user, enter their Tufts email address below.'
-             + ' You can use the '}
-            <JSText
-              fontSize={14}
-              style={styles.underline}
-              onPress={() => Linking.openURL('https://whitepages.tufts.edu/')}
-            >
-              {'Tufts Whitepages'}
+      <View>
+        <ScrollView contentContainerStyle={styles.container}>
+          <View>
+            <JSText fontSize={14} style={{textAlign: 'justify'}}>
+              {"You won't see the users you block anywhere on the app, and they won't see you."
+               + ' To block a user, enter their Tufts email address below.'
+               + ' You can use the '}
+              <JSText
+                fontSize={14}
+                style={styles.underline}
+                onPress={() => Linking.openURL('https://whitepages.tufts.edu/')}
+              >
+                {'Tufts Whitepages'}
+              </JSText>
+              {' to look up a student.'}
             </JSText>
-            {' to look up a student.'}
-          </JSText>
-          <JSTextInput
-            fancy
-            autoCapitalize={'none'}
-            placeholder='firstname.lastname@tufts.edu'
-            returnKeyType={'go'}
-            keyboardType={'email-address'}
-            autoCorrect={false}
-            value={this.state.textInput}
-            style={styles.input}
-            onChangeText = {(value) => {this.setState({textInput: value})}}
-            onSubmitEditing ={() => this.blockUser(this.state.textInput)}
-          />
-          <JSText fontSize={15} bold>Currently Blocked:</JSText>
-          <View style={styles.fill}>
-            <ScrollView bounces={false} contentContainerStyle={styles.blockedUsers}>
-              {this.renderBlockedUsers()}
-            </ScrollView>
-            {this.renderGradient()}
+            <JSTextInput
+              fancy
+              autoCapitalize={'none'}
+              placeholder='firstname.lastname@tufts.edu'
+              returnKeyType={'go'}
+              keyboardType={'email-address'}
+              autoCorrect={false}
+              value={this.state.textInput}
+              style={styles.input}
+              onChangeText = {(value) => {this.setState({textInput: value})}}
+              onSubmitEditing ={() => this.blockUser(this.state.textInput)}
+            />
+            <JSText fontSize={15} bold>Currently Blocked:</JSText>
           </View>
-        </View>
-        <View style={styles.buttons}>
-          <RectangleButton
-            onPress={() => this.props.navigation.goBack()}
-            label='Save Changes'
-          />
-          <RectangleButton
-            onPress={() => this.props.navigation.goBack()}
-            label='Discard Changes'
-          />
-        </View>
-      </ScrollView>
+          {this.renderBlockedUsers()}
+        </ScrollView>
+        {this.renderGradient()}
+      </View>
     )
   }
 
   private renderBlockedUsers = () => {
-    return Object.keys(this.state.blockedUsers).map(email => {
+    return Object.keys(this.state.blockedUsers).sort().map(email => {
+
+      if (!this.state.blockedUsers.hasOwnProperty(email)) {
+        return null /* tslint:disable-line:no-null-keyword */
+      }
 
       let icon
       const textStyles = []
@@ -91,7 +105,7 @@ class BlockScreen extends PureComponent<Props, State> {
           icon = <Entypo name='cross' size={25} color={'red'} style={styles.crossIcon} />
           break
         case 'just_unblocked':
-          icon = <FontAwesome name='undo' size={15} color={'red'} />
+          icon = <FontAwesome name='undo' size={15} color={'blue'} />
           textStyles.push(styles.strikethrough)
           break
       }
@@ -122,11 +136,16 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   private blockUser = (email: string) => {
-    const blockedUsers = Object.assign({}, this.state.blockedUsers)
-    blockedUsers[email] = 'just_blocked'
+    const additionalBlockedUsers: BlockedUserMap = {}
+    additionalBlockedUsers[email] = 'just_blocked'
+
+    this.scrollView.flashScrollIndicators()
 
     this.setState({
-      blockedUsers,
+      blockedUsers: {
+        ...this.state.blockedUsers,
+        ...additionalBlockedUsers,
+      },
       textInput: '',
     })
   }
@@ -145,29 +164,29 @@ class BlockScreen extends PureComponent<Props, State> {
     }
     this.setState({blockedUsers})
   }
+
+  private saveChanges = () => {
+    Object.keys(this.state.blockedUsers).forEach(email => {
+      if (this.state.blockedUsers.hasOwnProperty(email)) {
+        const status = this.state.blockedUsers[email]
+        if (status === 'just_blocked') {
+          // TODO: block user
+        } else if (status === 'just_unblocked' ) {
+          // TODO: unblock user
+        }
+      }
+    })
+  }
 }
 
 export default BlockScreen
 
 const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
   container: {
-    flex: 1,
-  },
-  textContainer: {
-    marginTop: 20,
-    justifyContent: 'space-around',
-    marginHorizontal: 30,
-    flex: 3,
-  },
-  buttons: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginBottom: 20,
-    paddingVertical: 1,
-  },
-  mainTitle: {
-    textAlign: 'center',
-    marginBottom: 15,
+    padding: 20,
   },
   underline: {
     textDecorationLine: 'underline',
@@ -199,16 +218,5 @@ const styles = StyleSheet.create({
     height: 20,
     bottom: 0,
     left: 0,
-    ...Platform.select({
-      android: {
-        elevation: 9,
-      },
-    }),
-  },
-  fill: {
-    flex: 1,
-  },
-  blockedUsers: {
-    paddingBottom: 20,
   },
 })

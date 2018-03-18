@@ -1,3 +1,5 @@
+import { TagSectionType } from './types'
+
 /* Actions */
 
 export enum ProfileActionType {
@@ -83,7 +85,7 @@ export interface UpdateImagesFailureAction {
 
 export interface AttemptUpdateTagsAction {
   type: ProfileActionType.ATTEMPT_UPDATE_TAGS
-  tags: string[]
+  tags: TagSectionType[]
 }
 
 export interface UpdateTagsSuccessAction {
@@ -153,7 +155,7 @@ export const updateImages = (images: string[]): AttemptUpdateImagesAction => {
   }
 }
 
-export const updateTags = (tags: string[]): AttemptUpdateTagsAction => {
+export const updateTags = (tags: TagSectionType[]): AttemptUpdateTagsAction => {
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_TAGS,
     tags,

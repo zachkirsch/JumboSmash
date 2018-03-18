@@ -34,7 +34,7 @@ class JSTextInput extends PureComponent<Props, State> {
       textInputStyles.push(styles.fancy)
     }
     const shouldUnderline = this.props.underline === undefined ? !this.props.fancy : this.props.underline
-    if (Platform.OS === 'ios' && shouldUnderline) {
+    if (shouldUnderline) {
       textInputStyles.push(styles.underline)
     }
 
@@ -73,6 +73,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '300',
     fontFamily: 'Avenir',
+    backgroundColor: 'white',
+    ...Platform.select({
+      android: {
+        textAlignVertical: 'top',
+      },
+    }),
   },
   fancy: {
     ...Platform.select({
@@ -80,6 +86,9 @@ const styles = StyleSheet.create({
         shadowColor: 'rgba(172, 203, 238, 0.75)',
         shadowOpacity: 1,
         shadowRadius: 50,
+      },
+      android: {
+        elevation: 5,
       },
     }),
     marginVertical: 5,

@@ -1,5 +1,7 @@
 import { ProfileActionType, ProfileAction } from './actions'
 import { ProfileState } from './types'
+import TAGS from './TAGS'
+import REACTS from './REACTS'
 
 const initialState: ProfileState = {
   preferredName: {
@@ -11,7 +13,7 @@ const initialState: ProfileState = {
     loading: false,
   },
   bio: {
-    value: '240 character max',
+    value: '',
     loading: false,
   },
   images: {
@@ -19,7 +21,11 @@ const initialState: ProfileState = {
     loading: false,
   },
   tags: {
-    value: [],
+    value: TAGS,
+    loading: false,
+  },
+  reacts: {
+    value: REACTS,
     loading: false,
   },
 }

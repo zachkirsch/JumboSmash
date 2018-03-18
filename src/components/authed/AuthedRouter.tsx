@@ -22,11 +22,26 @@ const styles = StyleSheet.create({
 })
 
 const profileScreen = StackNavigator({
-  ProfileScreen: {screen: Profile.ProfileScreen},
-  TagsScreen: {screen: Profile.TagsScreen},
-  BlockScreen: {screen: Profile.BlockScreen},
+  ProfileScreen: {
+    screen: Profile.ProfileScreen,
+    navigationOptions: {
+      header: null, /* tslint:disable-line:no-null-keyword */
+    },
+  },
+  TagsScreen: {
+    screen: Profile.TagsScreen,
+    navigationOptions: {
+      title: 'Choose Tags',
+    },
+  },
+  BlockScreen: {
+    screen: Profile.BlockScreen,
+    navigationOptions: {
+      title: 'Block Users',
+    },
+  },
 }, {
-  headerMode: 'none',
+  headerMode: 'screen',
   cardStyle: styles.stackCard,
 })
 
