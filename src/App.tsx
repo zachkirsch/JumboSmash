@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { View, StatusBar, StyleSheet } from 'react-native'
 import { connect } from 'react-redux'
 import { RootState } from './redux'
-import { LoginRouter, AuthedRouter, CodeOfConductScreen } from './components'
+import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter} from './components'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -12,6 +12,8 @@ interface StateProps {
 }
 
 type Props = StateProps
+
+const SHOULD_SHOW_COUNTDOWN = false
 
 class App extends PureComponent<Props, {}> {
 
@@ -28,10 +30,12 @@ class App extends PureComponent<Props, {}> {
     if (!this.props.rehydrated) {
       // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */
-    } else if (this.props.isLoggedIn && !this.props.codeOfConductAccepted) {
-      return <CodeOfConductScreen />
-    } else if (!this.props.isLoggedIn || !this.props.codeOfConductAccepted) {
+    } else if (SHOULD_SHOW_COUNTDOWN) {
+      return <CountdownScreen />
+    } else if (!this.props.isLoggedIn) {
       return <LoginRouter />
+    } else if (!this.props.codeOfConductAccepted) {
+      return <CodeOfConductScreen />
     } else {
       return <AuthedRouter />
     }

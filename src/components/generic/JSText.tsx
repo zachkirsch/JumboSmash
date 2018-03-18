@@ -1,12 +1,14 @@
 import React, { PureComponent } from 'react'
-import { Text, TextProperties, StyleSheet, TextStyle } from 'react-native'
+import { Text, TextProperties, StyleSheet } from 'react-native'
 import { DEFAULT_FONT_SIZE } from './scaling'
 
 interface Props extends TextProperties {
-  style?: TextStyle | TextStyle[]
+  style?: any /* tslint:disable-line:no-any */
   bold?: boolean
   fontSize?: number
 }
+
+export type JSTextProps = Props
 
 class JSText extends PureComponent<Props, {}> {
   public render() {
@@ -33,6 +35,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Avenir',
     fontSize: 25,
     color: 'black',
+    backgroundColor: 'transparent',
   },
   bold: {
     fontFamily: 'Avenir-Heavy',

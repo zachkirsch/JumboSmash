@@ -1,6 +1,7 @@
 import { call, put, throttle, takeLatest } from 'redux-saga/effects'
 import * as api from '../api'
 import * as ProfileActions from './actions'
+// import { flatten } from 'lodash'
 
 /* Preferred Name */
 
@@ -125,6 +126,7 @@ function* handleUpdateTagsFailure(error: Error) {
 
 function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
   try {
+    // const chosenTags = flatten(payload.tags.map(section => section.tags.filter(tag => tag.selected)))
     // yield call(api.api.updateTags, payload.tags) TODO: use API to update tags
     yield handleUpdateTagsSuccess()
   } catch (error) {

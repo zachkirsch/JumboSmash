@@ -1,6 +1,7 @@
-import { List } from 'immutable'
 import { ProfileActionType, ProfileAction } from './actions'
 import { ProfileState } from './types'
+import TAGS from './TAGS'
+import REACTS from './REACTS'
 
 const initialState: ProfileState = {
   preferredName: {
@@ -16,11 +17,15 @@ const initialState: ProfileState = {
     loading: false,
   },
   images: {
-    value: List(),
+    value: [],
     loading: false,
   },
   tags: {
-    value: List(),
+    value: TAGS,
+    loading: false,
+  },
+  reacts: {
+    value: REACTS,
     loading: false,
   },
 }
@@ -103,7 +108,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.ATTEMPT_UPDATE_IMAGES:
       newState.images = {
         prevValue: state.images.value,
-        value: List(action.images),
+        value: action.images,
         loading: true,
       }
       return newState
@@ -115,7 +120,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_IMAGES_FAILURE:
       newState.images = {
         prevValue: undefined,
-        value: state.images.prevValue,
+        value: state.images.value, // TODO: prevValue?
         loading: false,
         errorMessage: action.errorMessage,
       }
@@ -126,7 +131,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.ATTEMPT_UPDATE_TAGS:
       newState.tags = {
         prevValue: state.tags.value,
-        value: List(action.tags),
+        value: action.tags,
         loading: true,
       }
       return newState
