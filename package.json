@@ -33,7 +33,7 @@
 				"firebase": "^4.10.1",
 				"immutability-helper": "^2.6.6",
 				"lodash": "^4.17.5",
-				"moment": "^2.20.1",
+				"moment": "^2.21.0",
 				"react": "16.0.0",
 				"react-native": "0.50.3",
 				"react-native-button": "^2.3.0",
@@ -79,7 +79,7 @@
 						"!build/**/*.index.js"
 				],
 				"transformIgnorePatterns": [
-						"node_modules/(?!(jest-)?react-native|react-navigation)"
+						"node_modules/(?!(jest-)?react-native|react-navigation|@expo/react-native-action-sheet)"
 				]
 		},
 		"rnpm": {

@@ -87,6 +87,7 @@ class LoginScreen extends PureComponent<Props, State> {
               keyboardType={'email-address'}
               onSubmitEditing={this.onSubmitCredentials}
               returnKeyType={'go'}
+              style={styles.emailInput}
               enablesReturnKeyAutomatically
               selectTextOnFocus
               fancy
@@ -223,5 +224,8 @@ const styles = StyleSheet.create({
     flex: 4,
     justifyContent: 'flex-end',
     marginBottom: 10,
+  },
+  emailInput: {
+    marginHorizontal: 30,
   },
 })

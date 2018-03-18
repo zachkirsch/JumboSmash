@@ -3473,7 +3473,7 @@ mock-fs@^3.9.0:
     rewire "2.5.2"
     semver "5.3.0"
 
-moment@*, moment@^2.19.0, moment@^2.20.1:
+moment@*, moment@^2.19.0, moment@^2.21.0:
   version "2.21.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.21.0.tgz#2a114b51d2a6ec9e6d83cf803f838a878d8a023a"
 
