@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react'
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
-import { NavigationScreenProps } from 'react-navigation'
+import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
 
-type Props = NavigationScreenProps<{}>
+type Props = NavigationScreenPropsWithOwnProps<{}>
 
 interface State {
   userToChat: string

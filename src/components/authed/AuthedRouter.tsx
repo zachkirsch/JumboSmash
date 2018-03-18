@@ -6,10 +6,11 @@ import {
   NavigationTabScreenOptions
 } from 'react-navigation'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
-import ProfileScreen from './ProfileScreen'
+import * as Profile from './profile'
 import { SwipeScreen } from './swipe'
 import MatchesList from './MatchesList'
 import ChatScreen from './ChatScreen'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 const styles = StyleSheet.create({
   iOSTabBar: {
@@ -19,6 +20,40 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
 })
+
+const profileScreen = StackNavigator({
+  ProfileScreen: {
+    screen: Profile.ProfileScreen,
+    navigationOptions: {
+      header: null, /* tslint:disable-line:no-null-keyword */
+    },
+  },
+  TagsScreen: {
+    screen: Profile.TagsScreen,
+    navigationOptions: {
+      title: 'Choose Tags',
+    },
+  },
+  BlockScreen: {
+    screen: Profile.BlockScreen,
+    navigationOptions: {
+      title: 'Block Users',
+    },
+  },
+}, {
+  headerMode: 'screen',
+  cardStyle: styles.stackCard,
+})
+
+const profileScreenNavigationOptions: NavigationTabScreenOptions = {
+  tabBarIcon: ({focused, tintColor}) => (
+    <Ionicons
+      name={focused ? 'ios-person' : 'ios-person-outline'}
+      size={35}
+      style={{ color: tintColor }}
+    />
+  ),
+}
 
 const matchesScreen = StackNavigator({
   MatchesList: { screen: MatchesList },
@@ -40,7 +75,8 @@ const matchesScreenNavigationOptions: NavigationTabScreenOptions = {
 
 export default TabNavigator({
   Profile: {
-    screen: ProfileScreen,
+    screen: profileScreen,
+    navigationOptions: profileScreenNavigationOptions,
   },
   Swipe: {
     screen: SwipeScreen,

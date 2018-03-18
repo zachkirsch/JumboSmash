@@ -6,10 +6,14 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import LinearGradient from 'react-native-linear-gradient'
 import Card from './Card'
-import CircleButton, { CircleButtonProps } from './CircleButton'
+import { CircleButton, CircleButtonProps } from '../../generic'
 
 interface Props {
-
+  preview?: {
+    name: string
+    imageUris: string[]
+    onCompleteSwipe: () => void
+  }
 }
 
 interface State {
@@ -88,13 +92,26 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private renderCard = (cardIndex: number) => {
 
+    if (this.props.preview && cardIndex !== 0) {
+      return null /* tslint:disable-line:no-null-keyword */
+    }
+
     const positionInDeck = (((cardIndex - this.state.index) % 3) + 3) % 3
     const globalIndex = (this.state.index + positionInDeck) % NAMES.length
 
+    let profile = NAMES[globalIndex]
+    if (this.props.preview) {
+      profile = {
+        name: this.props.preview.name,
+        imageUris: this.props.preview.imageUris,
+      }
+    }
+
     return (
       <Card
+        previewMode={!!this.props.preview}
         positionInDeck={positionInDeck}
-        {...NAMES[globalIndex]}
+        {...profile}
         onExpandCard={this.onExpandCard}
         onContractCard={this.onContractCard}
         onCompleteSwipe={this.onCompleteSwipe}
@@ -168,7 +185,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         iconColor: 'rgba(172,203,238,0.6)',
         onPress: () => this.topCard && this.topCard.swipeLeft(),
       }, {
-        left: '20%',
+        left: '15%',
       }
     )
   }
@@ -181,7 +198,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         iconColor: '#ACCBEE',
         onPress: () => this.topCard && this.topCard.swipeRight(),
       }, {
-        right: '20%',
+        right: '15%',
       }
     )
   }
@@ -207,9 +224,13 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private onCompleteSwipe = () => {
-    this.setState({
-      index: this.state.index + 1,
-    })
+    if (this.props.preview) {
+      this.props.preview.onCompleteSwipe()
+    } else {
+      this.setState({
+        index: this.state.index + 1,
+      })
+    }
   }
 }
 

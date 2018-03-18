@@ -1,4 +1,6 @@
-export { default as JSButton } from './JSButton'
-export { default as JSText } from './JSText'
+export { default as JSButton, JSButtonProps } from './JSButton'
+export { default as RectangleButton } from './RectangleButton'
+export { default as JSText, JSTextProps } from './JSText'
 export { default as JSTextInput, TextInputRef } from './JSTextInput'
+export { default as CircleButton, CircleButtonProps } from './CircleButton'
 export * from './scaling'
