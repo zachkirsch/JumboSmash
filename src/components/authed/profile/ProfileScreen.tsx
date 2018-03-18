@@ -302,7 +302,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       Animated.timing(
         this.state.saveButtonOpacity,
         {
-          toValue: saveRequired ? 1 : 0,
+          toValue: saveRequired ? 0.8 : 0,
           duration: 500,
         }
       ).start()
