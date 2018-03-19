@@ -21,7 +21,7 @@ interface DispatchProps {
 
 type Props = StateProps & DispatchProps
 
-const SHOULD_SHOW_COUNTDOWN = false
+const SHOULD_SHOW_COUNTDOWN = true
 
 class App extends PureComponent<Props, {}> {
 
