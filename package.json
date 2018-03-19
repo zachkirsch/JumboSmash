@@ -11,7 +11,7 @@
 				"build": "npm run clean && npm run copyassets && npm run tsc --",
 				"clean": "rimraf build",
 				"lint": "tslint --project tsconfig.json --config tslint.json",
-				"test": "npm run build && npm run lint && jest --coverage --silent",
+				"test": "npm run build && npm run lint && jest --coverage --silent --forceExit",
 				"copyassets": "mkdir -p build/assets && cp -r src/assets build"
 		},
 		"dependencies": {
