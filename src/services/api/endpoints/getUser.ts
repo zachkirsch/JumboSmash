@@ -20,7 +20,7 @@ interface Response {
 }
 
 export const getUser = new GetEndpoint<Request, Response, PathExtensionComponents>(
-  '/users/update_name',
+  '/users',
   true,
   constructUri)
 export type GetUserPathExtensionComponents = PathExtensionComponents

@@ -11,17 +11,22 @@ import {
   Keyboard,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { CircleButton, JSText, JSTextInput } from '../../generic'
-import { RootState } from '../../../redux'
-import { connect } from 'react-redux'
-import { Dispatch } from 'redux'
+import { connect, Dispatch } from 'react-redux'
 import { flatten } from 'lodash'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import { updatePreferredName, updateBio, updateMajor, updateImages, TagSectionType, ProfileReact } from '../../../services/profile'
+import {
+  updatePreferredName,
+  updateBio,
+  updateMajor,
+  updateImages,
+  TagSectionType,
+  ProfileReact
+} from '../../../services/profile'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import SwipeScreen from '../swipe/SwipeScreen'
-import { CodeOfConductScreen } from '../../login'
+import { CircleButton, JSText, JSTextInput } from '../../generic'
+import { RootState } from '../../../redux'
 import TagSection from './TagSection'
 import { Images } from '../../../assets'
 
@@ -77,7 +82,6 @@ class ProfileScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View>
-        {this.renderCoCModal()}
         {this.renderProfilePreviewModal()}
         <ScrollView keyboardShouldPersistTaps={'handled'}>
           <PhotosSection images={this.props.images} updateImages={this.props.updateImages}/>
@@ -86,7 +90,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           {this.renderReacts()}
           <SettingsSection
             block={() => this.props.navigation.navigate('BlockScreen')}
-            viewCoC={() => this.setState({ viewingCoC: true })}
+            viewCoC={() => this.props.navigation.navigate('ReviewCoCScreen')}
             previewProfile={() => this.setState({ previewingCard: true })}
           />
         </ScrollView>
@@ -110,20 +114,6 @@ class ProfileScreen extends PureComponent<Props, State> {
       />
     )
   }
-
-  private renderCoCModal = () => (
-    <Modal
-      animationType='slide'
-      transparent={false}
-      visible={this.state.viewingCoC}
-      onRequestClose={() => this.setState({viewingCoC: false})}
-    >
-      <CodeOfConductScreen
-        buttonLabel={'Go Back'}
-        onPress={() => this.setState({viewingCoC: false})}
-      />
-    </Modal>
-  )
 
   private renderProfilePreviewModal = () => (
     <Modal
@@ -210,13 +200,13 @@ class ProfileScreen extends PureComponent<Props, State> {
     <View>
       <JSText fontSize={13} bold style={styles.preferredNameTitle}>MY PREFERRED NAME</JSText>
       <View style={styles.preferredNameContainer}>
-        <JSTextInput maxLength={30} fontSize={22} style={styles.lastName}
+        <JSTextInput maxLength={30} fontSize={22} style={styles.preferredName}
           value={this.state.preferredName}
           onChangeText={this.updatePreferredName}
           autoCorrect={false}
           selectTextOnFocus
         />
-        <JSText style={styles.disabled} fontSize={22}>Zaninovich</JSText>
+        <JSText style={styles.lastName} fontSize={22}>Zaninovich</JSText>
       </View>
     </View>
   )
@@ -249,7 +239,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     />
   )
 
-  private renderPersonalInfo() {
+  private renderPersonalInfo = () => {
     // bio is *first* because flexDirection is reverse (so that shadow doesn't cover the bio)
     return (
       <View style={styles.personalInfoContainer}>
@@ -371,8 +361,13 @@ const styles = StyleSheet.create({
   preferredNameTitle: {
     marginBottom: 5,
   },
-  lastName: {
+  preferredName: {
     flexGrow: 1,
+    flexShrink: 1,
+    marginRight: 10,
+  },
+  lastName: {
+    color: 'gray',
   },
   tagsTitle: {
     marginBottom: 10,
@@ -412,9 +407,6 @@ const styles = StyleSheet.create({
   underline: {
     textDecorationLine: 'underline',
     textDecorationColor: '#D5DCE2',
-  },
-  disabled: {
-    color: 'gray',
   },
   saveButton: {
     position: 'absolute',

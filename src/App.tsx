@@ -1,21 +1,43 @@
 import React, { PureComponent } from 'react'
 import { View, StatusBar, StyleSheet } from 'react-native'
-import { connect } from 'react-redux'
+import { connect, Dispatch } from 'react-redux'
+import { Map } from 'immutable'
 import { RootState } from './redux'
 import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter} from './components'
+import { firebase } from './services/firebase'
+import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
 
 interface StateProps {
   isLoggedIn: boolean
   codeOfConductAccepted: boolean
   rehydrated: boolean
   networkRequestInProgress: boolean
+  chats: Map<string, Conversation>
 }
 
-type Props = StateProps
+interface DispatchProps {
+  receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
+}
+
+type Props = StateProps & DispatchProps
 
 const SHOULD_SHOW_COUNTDOWN = false
 
 class App extends PureComponent<Props, {}> {
+
+  componentDidMount() {
+    const path = 'messages/'
+    this.props.chats.keySeq().forEach(conversationId => {
+      const dbRef = firebase.database().ref(path.concat(conversationId))
+      dbRef.on('child_added', (firebaseMessage) => {
+        const message: GiftedChatMessage = {
+          ...firebaseMessage.val(),
+          createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
+        }
+        this.props.receiveMessages(conversationId, [message])
+      })
+    })
+  }
 
   public render() {
     return (
@@ -48,6 +70,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     codeOfConductAccepted: state.coc.codeOfConductAccepted,
     rehydrated: state.redux.rehydrated,
     networkRequestInProgress: networkRequestInProgress(state),
+    chats: state.matches.chats,
   }
 }
 
@@ -62,7 +85,15 @@ const networkRequestInProgress = (state: RootState) => {
   || state.profile.tags.loading
 }
 
-export default connect(mapStateToProps)(App)
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
+      dispatch(receiveMessages(conversationId, messages))
+    },
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)
 
 const styles = StyleSheet.create({
   container: {

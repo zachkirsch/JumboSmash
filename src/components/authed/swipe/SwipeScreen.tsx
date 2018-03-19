@@ -1,7 +1,5 @@
 import React, { PureComponent } from 'react'
 import { Animated, View, StyleSheet, ViewStyle, PanResponder, Platform } from 'react-native'
-import { NavigationTabScreenOptions } from 'react-navigation'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import LinearGradient from 'react-native-linear-gradient'
@@ -55,16 +53,6 @@ const NAMES = [
 ]
 
 class SwipeScreen extends PureComponent<Props, State> {
-
-  static navigationOptions: NavigationTabScreenOptions = {
-    tabBarIcon: ({focused, tintColor}) => (
-      <FontAwesome
-        name={focused ? 'heart' : 'heart-o'}
-        size={24}
-        style={{ color: tintColor }}
-      />
-    ),
-  }
 
   private topCard: Card
 

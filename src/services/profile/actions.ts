@@ -4,6 +4,8 @@ import { TagSectionType } from './types'
 
 export enum ProfileActionType {
 
+  SET_ID = 'SET_ID',
+
   ATTEMPT_UPDATE_PREFERRED_NAME = 'ATTEMPT_UPDATE_PREFERRED_NAME',
   UPDATE_PREFERRED_NAME_SUCCESS = 'UPDATE_PREFERRED_NAME_SUCCESS',
   UPDATE_PREFERRED_NAME_FAILURE = 'UPDATE_PREFERRED_NAME_FAILURE',
@@ -25,6 +27,11 @@ export enum ProfileActionType {
   UPDATE_TAGS_FAILURE = 'UPDATE_TAGS_FAILURE',
 
   OTHER_ACTION = '__any_other_action_type__',
+}
+
+export interface SetIdAction {
+  type: ProfileActionType.SET_ID
+  id: number
 }
 
 export interface AttemptUpdatePreferredNameAction {
@@ -108,7 +115,8 @@ export interface OtherAction {
   type: ProfileActionType.OTHER_ACTION
 }
 
-export type ProfileAction = AttemptUpdatePreferredNameAction
+export type ProfileAction = SetIdAction
+| AttemptUpdatePreferredNameAction
 | UpdatePreferredNameSuccessAction
 | UpdatePreferredNameFailureAction
 | AttemptUpdateMajorAction
@@ -126,6 +134,13 @@ export type ProfileAction = AttemptUpdatePreferredNameAction
 | OtherAction
 
 /* Action Creators */
+
+export const setID = (id: number): SetIdAction => {
+  return {
+    type: ProfileActionType.SET_ID,
+    id,
+  }
+}
 
 export const updatePreferredName = (preferredName: string): AttemptUpdatePreferredNameAction => {
   return {

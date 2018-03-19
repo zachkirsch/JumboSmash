@@ -61,6 +61,7 @@ class JSTextInput extends PureComponent<Props, State> {
           })
           this.props.onBlur && this.props.onBlur()
         }}
+        underlineColorAndroid={this.props.fancy ? 'transparent' : undefined}
       />
     )
   }
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '300',
     fontFamily: 'Avenir',
-    backgroundColor: 'white',
+    paddingVertical: 0,
     ...Platform.select({
       android: {
         textAlignVertical: 'top',
@@ -94,6 +95,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     paddingVertical: 15,
     textAlign: 'center',
+    backgroundColor: 'white',
   },
   underline: {
     borderBottomColor: '#D5DCE2',
