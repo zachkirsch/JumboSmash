@@ -8,6 +8,8 @@ interface Props extends TextInputProperties {
   style?: TextStyle | TextStyle[]
   textInputRef?: (instance: TextInputRef) => void
   fontSize?: number
+  fancy?: boolean // takes up more space, text is centered, has shadow on IOS. defaults to false
+  underline?: boolean // iOS only. defaults to opposite of fancy
 }
 
 interface State {
@@ -28,6 +30,14 @@ class JSTextInput extends PureComponent<Props, State> {
     const { textInputRef, placeholder, style, fontSize, ...otherProps } = this.props
 
     const textInputStyles: any[] = [styles.input] /* tslint:disable-line:no-any */
+    if (this.props.fancy) {
+      textInputStyles.push(styles.fancy)
+    }
+    const shouldUnderline = this.props.underline === undefined ? !this.props.fancy : this.props.underline
+    if (shouldUnderline) {
+      textInputStyles.push(styles.underline)
+    }
+
     textInputStyles.push(style)
     textInputStyles.push({
       fontSize: fontSize || DEFAULT_FONT_SIZE,
@@ -51,6 +61,7 @@ class JSTextInput extends PureComponent<Props, State> {
           })
           this.props.onBlur && this.props.onBlur()
         }}
+        underlineColorAndroid={this.props.fancy ? 'transparent' : undefined}
       />
     )
   }
@@ -60,19 +71,34 @@ export default JSTextInput
 
 const styles = StyleSheet.create({
   input: {
+    fontSize: 15,
+    fontWeight: '300',
+    fontFamily: 'Avenir',
+    paddingVertical: 0,
+    ...Platform.select({
+      android: {
+        textAlignVertical: 'top',
+      },
+    }),
+  },
+  fancy: {
     ...Platform.select({
       ios: {
         shadowColor: 'rgba(172, 203, 238, 0.75)',
         shadowOpacity: 1,
         shadowRadius: 50,
       },
+      android: {
+        elevation: 5,
+      },
     }),
     marginVertical: 5,
-    marginHorizontal: 45,
     paddingVertical: 15,
-    fontSize: 15,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
     textAlign: 'center',
+    backgroundColor: 'white',
+  },
+  underline: {
+    borderBottomColor: '#D5DCE2',
+    borderBottomWidth: 1,
   },
 })

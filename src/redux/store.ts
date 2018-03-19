@@ -1,6 +1,7 @@
 import {AsyncStorage} from 'react-native'
 import { compose, applyMiddleware, createStore } from 'redux'
-import logger from 'redux-logger'
+import { createLogger } from 'redux-logger'
+import { Iterable } from 'immutable'
 import createSagaMiddleware from 'redux-saga'
 import { autoRehydrate, persistStore } from 'redux-persist'
 import { rootSaga } from './rootSaga'
@@ -9,6 +10,22 @@ import { RootState } from './types'
 import { setRehydrated } from '../services/redux'
 
 const sagaMiddleware = createSagaMiddleware()
+
+/* logger */
+const logger = createLogger({
+  stateTransformer: (state: RootState) => {
+    let newState = Object.assign({}, state)
+    if (newState.matches && Iterable.isIterable(newState.matches.chats)) {
+      newState = {
+        ...newState,
+        matches: {
+          chats: newState.matches.chats.toJS(),
+        },
+      }
+    }
+    return newState
+  },
+})
 
 export const reduxStore = createStore(
   rootReducer,

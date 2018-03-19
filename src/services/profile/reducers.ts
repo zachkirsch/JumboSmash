@@ -1,7 +1,10 @@
 import { ProfileActionType, ProfileAction } from './actions'
 import { ProfileState } from './types'
+import TAGS from './TAGS'
+import REACTS from './REACTS'
 
 const initialState: ProfileState = {
+  id: -1,
   preferredName: {
     value: '',
     loading: false,
@@ -19,7 +22,11 @@ const initialState: ProfileState = {
     loading: false,
   },
   tags: {
-    value: [],
+    value: TAGS,
+    loading: false,
+  },
+  reacts: {
+    value: REACTS,
     loading: false,
   },
 }
@@ -27,6 +34,12 @@ const initialState: ProfileState = {
 export function profileReducer(state = initialState, action: ProfileAction): ProfileState {
   const newState = Object.assign({}, state)
   switch (action.type) {
+
+    case ProfileActionType.SET_ID:
+      return {
+        ...state,
+        id: action.id,
+      }
 
     /* Preferred Name */
 
@@ -114,7 +127,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_IMAGES_FAILURE:
       newState.images = {
         prevValue: undefined,
-        value: state.images.prevValue,
+        value: state.images.value, // TODO: prevValue?
         loading: false,
         errorMessage: action.errorMessage,
       }

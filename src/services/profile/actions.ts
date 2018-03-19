@@ -1,6 +1,10 @@
+import { TagSectionType } from './types'
+
 /* Actions */
 
 export enum ProfileActionType {
+
+  SET_ID = 'SET_ID',
 
   ATTEMPT_UPDATE_PREFERRED_NAME = 'ATTEMPT_UPDATE_PREFERRED_NAME',
   UPDATE_PREFERRED_NAME_SUCCESS = 'UPDATE_PREFERRED_NAME_SUCCESS',
@@ -23,6 +27,11 @@ export enum ProfileActionType {
   UPDATE_TAGS_FAILURE = 'UPDATE_TAGS_FAILURE',
 
   OTHER_ACTION = '__any_other_action_type__',
+}
+
+export interface SetIdAction {
+  type: ProfileActionType.SET_ID
+  id: number
 }
 
 export interface AttemptUpdatePreferredNameAction {
@@ -83,7 +92,7 @@ export interface UpdateImagesFailureAction {
 
 export interface AttemptUpdateTagsAction {
   type: ProfileActionType.ATTEMPT_UPDATE_TAGS
-  tags: string[]
+  tags: TagSectionType[]
 }
 
 export interface UpdateTagsSuccessAction {
@@ -106,7 +115,8 @@ export interface OtherAction {
   type: ProfileActionType.OTHER_ACTION
 }
 
-export type ProfileAction = AttemptUpdatePreferredNameAction
+export type ProfileAction = SetIdAction
+| AttemptUpdatePreferredNameAction
 | UpdatePreferredNameSuccessAction
 | UpdatePreferredNameFailureAction
 | AttemptUpdateMajorAction
@@ -124,6 +134,13 @@ export type ProfileAction = AttemptUpdatePreferredNameAction
 | OtherAction
 
 /* Action Creators */
+
+export const setID = (id: number): SetIdAction => {
+  return {
+    type: ProfileActionType.SET_ID,
+    id,
+  }
+}
 
 export const updatePreferredName = (preferredName: string): AttemptUpdatePreferredNameAction => {
   return {
@@ -153,7 +170,7 @@ export const updateImages = (images: string[]): AttemptUpdateImagesAction => {
   }
 }
 
-export const updateTags = (tags: string[]): AttemptUpdateTagsAction => {
+export const updateTags = (tags: TagSectionType[]): AttemptUpdateTagsAction => {
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_TAGS,
     tags,

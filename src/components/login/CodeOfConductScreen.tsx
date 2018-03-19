@@ -6,7 +6,7 @@ import {
   Platform,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { JSText, JSButton } from '../generic'
+import { JSText, RectangleButton } from '../generic'
 import { acceptCoC } from '../../services/coc'
 import { RootState } from '../../redux'
 
@@ -29,35 +29,43 @@ const COC_RULES: CoCRule[] = [
     description: "No identity theft. Don't pretend to be someone you're not.",
   },
   {
-    emojiTitle: '✅🙋🏽',
+    emojiTitle: '✅🙋',
     description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
   },
+  {
+    emojiTitle: '🔐💌',
+    description: 'Jumbosmash will delete all your data after graduation - we value your privacy!',
+  },
 ]
+
+interface OwnProps {
+  inNavigator?: boolean // defaults to false
+  buttonLabel?: string // defaults to "Accept"
+  onPress?: () => void // defaults to acceptCoc
+}
 
 interface DispatchProps {
   acceptCoC: () => void
 }
 
-type Props = DispatchProps
+type Props = OwnProps & DispatchProps
 
 class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
-      <View style={styles.container}>
-        <View style={styles.statusBar} />
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <View style={styles.rulesContainer}>
-            {this.renderTitle()}
+      <View style={styles.flex}>
+        {this.props.inNavigator || <View style={styles.statusBar} />}
+        <ScrollView>
+          <View style={styles.container}>
+            {this.props.inNavigator || this.renderTitle()}
             {this.renderDescription()}
             {this.renderRules()}
           </View>
-          <View style={styles.rulesContainer}>
+          <View style={styles.container}>
             {this.renderSignoff()}
           </View>
-          <View style={styles.buttonContainer}>
-            {this.renderAgreeButton()}
-          </View>
+          {this.props.inNavigator || this.renderButton()}
         </ScrollView>
       </View>
     )
@@ -70,8 +78,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   private renderDescription = () => {
     return (
       <JSText style={styles.description}>
-        In order to be a JumboSmash user, we ask that you agree to follow
-        a few simple rules
+        In order to be a JumboSmash user, we ask that you follow a few rules
       </JSText>
     )
   }
@@ -100,56 +107,43 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
     )
   }
 
-  private renderAgreeButton = () => {
+  private renderButton = () => {
     return (
-      <JSButton
-        onPress={this.props.acceptCoC}
-        label={"I agree. Let's smash!"}
-      />
+      <View style={styles.buttonContainer}>
+        <RectangleButton
+          onPress={this.props.onPress || this.props.acceptCoC}
+          label={this.props.buttonLabel || "I agree. Let's smash!"}
+        />
+      </View>
     )
   }
 
 }
 
 const styles = StyleSheet.create({
-
-  container: {
+  flex: {
     flex: 1,
   },
   statusBar: {
     height: Platform.OS === 'ios' ? 20 : 0, // space for iOS status bar
   },
-  scrollView: {
-    flex: 1,
-    justifyContent: 'space-around',
-  },
-
-  /* heading */
-
   title: {
     textAlign: 'center',
+    marginBottom: 10,
   },
   description: {
     color: '#7e7e7e',
-    marginTop: 10,
     textAlign: 'center',
   },
-
-  /* rules */
-
-  rulesContainer: {
+  container: {
     padding: 20,
   },
   rule: {
     marginTop: 20,
   },
-
-  /* buttons */
-
   buttonContainer: {
     marginTop: 10,
-    alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 50,
   },
 })
 

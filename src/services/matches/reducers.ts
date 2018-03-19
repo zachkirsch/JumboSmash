@@ -1,38 +1,167 @@
-import { MatchesActionType, MatchesAction } from './actions'
-import { MatchesState } from './types'
+import { Map, List, Set } from 'immutable'
+import {
+  MatchesActionType,
+  MatchesAction,
+  AttemptSendMessagesAction,
+  ReceiveMessagesAction,
+  SendMessagesSuccessAction,
+  SendMessagesFailureAction,
+} from './actions'
+import { MatchesState, Conversation } from './types'
 
 const initialState: MatchesState = {
-  matches: {},
+  chats: Map<string, Conversation>({
+    '2': {
+      conversationId: '2',
+      otherUsers: List([{
+        _id: 1,
+        name: 'Zach Kirsch',
+        avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
+                '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+      }]),
+      messages: List([
+        {
+          _id: 0,
+          text: 'This is Zach',
+          createdAt: new Date(),
+          user: {
+            _id: 1,
+            name: 'Zach Kirsch',
+            avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
+                    '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+          },
+          sending: false,
+          failedToSend: false,
+          sent: true,
+          received: true,
+          read: false,
+        },
+      ]),
+      messageIDs: Set([0]),
+      mostRecentMessage: 'This is Zach',
+      messagesUnread: true,
+    },
+    '4': {
+      conversationId: '4',
+      otherUsers: List([{
+        _id: 3,
+        name: 'Mewtwo',
+        avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
+      }]),
+      messages: List([]),
+      messageIDs: Set([]),
+      mostRecentMessage: '',
+      messagesUnread: false,
+    },
+  }),
+}
+
+const addMessagesToReduxState = (oldState: MatchesState,
+                                 action: AttemptSendMessagesAction | ReceiveMessagesAction,
+                                 sending: boolean) => {
+
+  const originalConversation = oldState.chats.get(action.conversationId)
+
+  let newMessages = originalConversation.messages.asImmutable()
+  let newMessageIDs = originalConversation.messageIDs.asImmutable()
+  action.messages.forEach((message) => {
+    if (!newMessageIDs.contains(message._id)) {
+      newMessageIDs = newMessageIDs.add(message._id)
+      newMessages = newMessages.unshift({
+        ...message,
+        failedToSend: false,
+        sending,
+      })
+    }
+  })
+
+  const newConversation: Conversation = {
+    conversationId: originalConversation.conversationId,
+    otherUsers: originalConversation.otherUsers.asImmutable(),
+    messages: newMessages,
+    messageIDs: newMessageIDs,
+    mostRecentMessage: newMessages.first().text,
+    messagesUnread: originalConversation.messagesUnread,
+  }
+
+  return {
+    chats: oldState.chats.set(action.conversationId, newConversation),
+  }
+}
+
+const updateSentStatus = (oldState: MatchesState,
+                          action: SendMessagesSuccessAction | SendMessagesFailureAction,
+                          success: boolean) => {
+
+  const originalConversation = oldState.chats.get(action.conversationId)
+
+  let newMessages = originalConversation.messages.asImmutable()
+  action.messages.forEach((message) => {
+    if (originalConversation.messageIDs.contains(message._id)) {
+      newMessages = newMessages.update(
+        newMessages.findIndex(messageInList => messageInList._id === message._id),
+        messageInList => ({
+          ...messageInList,
+          sending: false,
+          failedToSend: !success,
+        })
+      )
+    }
+  })
+
+  const newConversation: Conversation = {
+    conversationId: originalConversation.conversationId,
+    otherUsers: originalConversation.otherUsers.asImmutable(),
+    messages: newMessages,
+    messageIDs: originalConversation.messageIDs.asImmutable(),
+    mostRecentMessage: originalConversation.mostRecentMessage,
+    messagesUnread: originalConversation.messagesUnread,
+  }
+
+  return {
+    chats: oldState.chats.set(action.conversationId, newConversation),
+  }
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
-  const newState = Object.assign({}, state)
   switch (action.type) {
 
+    case MatchesActionType.RECEIVE_MESSAGES:
+      return addMessagesToReduxState(state, action, false)
+
     case MatchesActionType.ATTEMPT_SEND_MESSAGES:
-      const newMessages = action.messages.map((message) => {
-        message.sending = true
-        return message
-      })
-      newState.matches[action.toUser].messages.concat(newMessages)
-      return newState
+      return addMessagesToReduxState(state, action, true)
 
     case MatchesActionType.SEND_MESSAGES_SUCCESS:
-      const numMessages = newState.matches[action.toUser].messages.length
-      for (let i = numMessages - 1; i >= 0; i++) {
-        const message = action.messages.find((newMessage) => {
-          return newMessage._id === newState.matches[action.toUser].messages[i]._id
-        })
-        if (message) {
-          newState.matches[action.toUser].messages[i].sending = false
-          newState.matches[action.toUser].messages[i].sent = true
-        }
-      }
-      return newState
+      return updateSentStatus(state, action, true)
 
-    /* TODO: other actions, sagas */
+    case MatchesActionType.SEND_MESSAGES_FAILURE:
+      return updateSentStatus(state, action, false)
+
+    // this is a separate case because redux-persist stores immutables as plain JS
+    case MatchesActionType.REHYDRATE:
+
+      // for unit tests when root state is empty
+      if (!action.payload.matches) {
+        return state
+      }
+
+      let chats = Map<string, Conversation>()
+      Object.keys(action.payload.matches.chats).forEach((conversationId) => {
+        const originalConversation = (action.payload.matches.chats as any)[conversationId] /* tslint:disable-line:no-any */
+        const conversation: Conversation = {
+          conversationId,
+          otherUsers: List(originalConversation.otherUsers),
+          messages: List(originalConversation.messages),
+          messageIDs: Set(originalConversation.messageIDs),
+          mostRecentMessage: originalConversation.mostRecentMessage,
+          messagesUnread: originalConversation.messagesUnread,
+        }
+        chats = chats.set(conversationId, conversation)
+      })
+      return { chats }
 
     default:
-      return newState
+      return state
   }
 }

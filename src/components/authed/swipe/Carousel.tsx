@@ -50,7 +50,6 @@ class Carousel extends PureComponent<Props, State> {
           scrollEventThrottle={1}
           onScroll={this.onScroll}
           scrollEnabled={this.props.enabled}
-          bounces={false}
         >
           {this.renderImages()}
         </ScrollView>
@@ -104,7 +103,7 @@ export default Carousel
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'green',
+    backgroundColor: 'black',
   },
   image: {
     height: WIDTH,

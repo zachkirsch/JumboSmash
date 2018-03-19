@@ -1,3 +1,4 @@
+import { Platform } from 'react-native'
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 

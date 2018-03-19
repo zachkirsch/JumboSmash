@@ -5,6 +5,7 @@ import * as AuthActions from './actions'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { setCoCReadStatus } from '../coc'
 import { RootState } from '../../redux'
+import { setID } from '../profile'
 
 const getEmail = (state: RootState) => state.auth.email
 
@@ -65,14 +66,17 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
      * (e.g. accepted CoC, seen tutorial)
      */
     yield put(AuthActions.setSessionKey(response.session_key))
-    const userInfo: MeResponse = yield call(api.me)
-    yield put(setCoCReadStatus(userInfo.accepted_coc))
+    const meInfo: MeResponse = yield call(api.me)
+    yield put(setCoCReadStatus(meInfo.accepted_coc))
 
     // now set the user as 'logged in'
     yield handleEmailVerificationSuccess()
 
+    // set the user's ID
+    yield put(setID(meInfo.id))
+
     // and finally, connect to firebase
-    yield put(attemptConnectToFirebase(userInfo.firebase_token))
+    yield put(attemptConnectToFirebase(meInfo.firebase_token))
   } catch (error) {
     loginSuccess = false
     yield handleEmailVerificationError(error)

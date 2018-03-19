@@ -23,10 +23,13 @@ interface Props {
   positionInDeck: number
   name: string
   imageUris: string[]
-  onCompleteSwipe: () => void
+  previewMode?: boolean
+  onCompleteSwipe?: () => void
   onExpandCard?: () => void
   onContractCard?: () => void
 }
+
+export type CardProps = Props
 
 interface State {
   pan: Animated.ValueXY
@@ -173,7 +176,6 @@ class Card extends PureComponent<Props, State> {
   }
 
   render() {
-
     const outerContainerStyle = {
       zIndex: this.state.fullyExpanded ? 14 : 10 - this.props.positionInDeck,
       marginTop: this.state.margin.top,
@@ -216,6 +218,10 @@ class Card extends PureComponent<Props, State> {
       case 2:
         shadowStyle = styles.thirdCard
         break
+    }
+
+    if (this.props.previewMode) {
+      shadowStyle = styles.thirdCard
     }
 
     let [translateX, translateY] = [this.state.pan.x, this.state.pan.y]
@@ -320,17 +326,8 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderGradient = () => {
-    const gradientStyle = {
-      opacity: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
-    }
-
     return (
-      <Animated.View
-        style={[styles.overlay, gradientStyle]}
-      >
+      <View style={styles.overlay}>
         <LinearGradient
           colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.6)']}
           start={{x: 0, y: 0}} end={{x: 0, y: 0.5}}
@@ -338,7 +335,7 @@ class Card extends PureComponent<Props, State> {
         >
             <View style={styles.fill} />
         </LinearGradient>
-      </Animated.View>
+      </View>
     )
   }
 
@@ -411,10 +408,12 @@ class Card extends PureComponent<Props, State> {
   }
 
   private onCompleteSwipe = () => {
-    this.props.onCompleteSwipe()
-    this.carousel.reset(false)
-    this.state.pan.setValue({x: 0, y: 0})
-    this.state.panX.setValue(0)
+    this.props.onCompleteSwipe && this.props.onCompleteSwipe()
+    if (!this.props.previewMode) {
+      this.carousel.reset(false)
+      this.state.pan.setValue({x: 0, y: 0})
+      this.state.panX.setValue(0)
+    }
   }
 
   private setupGestureResponders = () => {
@@ -576,7 +575,11 @@ const styles = StyleSheet.create({
     height: '2%',
     bottom: 0,
     left: 0,
-    elevation: 9,
+    ...Platform.select({
+      android: {
+        elevation: 9,
+      },
+    }),
   },
   card: {
     minHeight: '100%',

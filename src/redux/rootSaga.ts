@@ -3,6 +3,7 @@ import { authSaga } from '../services/auth'
 import { cocSaga } from '../services/coc'
 import { firebaseSaga } from '../services/firebase'
 import { profileSaga } from '../services/profile'
+import { matchesSaga } from '../services/matches'
 
 export function* rootSaga () {
     yield all([
@@ -10,5 +11,6 @@ export function* rootSaga () {
         fork(cocSaga),
         fork(firebaseSaga),
         fork(profileSaga),
+        fork(matchesSaga),
     ])
 }

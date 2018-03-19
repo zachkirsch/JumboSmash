@@ -1,10 +1,9 @@
-import React from 'react'
-import { Platform, StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native'
 import {
   TabNavigator,
   StackNavigator,
-  NavigationTabScreenOptions
 } from 'react-navigation'
+<<<<<<< HEAD
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import ProfileScreen from './ProfileScreen'
 import ProfileEditScreen from './ProfileEditScreen'
@@ -18,8 +17,19 @@ import ReportScreen from './ReportScreen';
 import BlockScreen from './BlockScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import SettingsScreen from './SettingsScreen';
+=======
+import * as Profile from './profile'
+import { SwipeScreen } from './swipe'
+import {ChatScreen, MatchesList} from './chat'
+import TabBar from './TabBar'
+>>>>>>> 8a75548119471601f3ee47b83a0de3962c10cf9c
 
 const styles = StyleSheet.create({
+  tabBar: {
+    height: 55,
+    elevation: 5,
+
+  },
   iOSTabBar: {
     paddingTop: 15, // extra padding iOS because of status bar
   },
@@ -27,6 +37,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
 })
+<<<<<<< HEAD
 
 const profileScreen = StackNavigator({
   ProfileScreen: {screen: ProfileScreen},
@@ -75,20 +86,46 @@ export default TabNavigator({
   Profile: {
     screen: profileScreen,
     navigationOptions: profileScreenNavigationOptions
+=======
+const tabNavigator = TabNavigator({
+  Profile: {
+    screen: Profile.ProfileScreen,
+>>>>>>> 8a75548119471601f3ee47b83a0de3962c10cf9c
   },
   Swipe: {
     screen: SwipeScreen,
   },
   Matches: {
-    screen: matchesScreen,
-    navigationOptions: matchesScreenNavigationOptions,
+    screen: MatchesList,
   },
 }, {
+  tabBarComponent: TabBar,
   tabBarPosition: 'top',
+  animationEnabled: false,
   swipeEnabled: false,
   tabBarOptions: {
     showLabel: false,
     showIcon: true,
-    style: Platform.OS === 'ios' ? styles.iOSTabBar : undefined,
   },
+})
+
+export default StackNavigator({
+  Main: {
+    screen: tabNavigator,
+  },
+  TagsScreen: {
+    screen: Profile.TagsScreen,
+  },
+  BlockScreen: {
+    screen: Profile.BlockScreen,
+  },
+  ReviewCoCScreen: {
+    screen: Profile.ReviewCoCScreen,
+  },
+  Chat: {
+    screen: ChatScreen,
+  },
+}, {
+  headerMode: 'none',
+  cardStyle: styles.stackCard,
 })
