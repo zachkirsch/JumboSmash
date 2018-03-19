@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import update from 'immutability-helper'
-import { JSText } from '../../generic/index'
+import { JSText, HeaderBar } from '../../generic/index'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { TagSectionType, updateTags } from '../../../services/profile'
@@ -42,11 +42,12 @@ class TagsScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View style={styles.fill}>
-        <View style={styles.topContainer}>
-          <JSText style={styles.title}>
-            Tap the tags that apply to you. When swiping, you will see the tags you have in common with each student.
-          </JSText>
-        </View>
+          <HeaderBar title='Tags' goBack={this.props.navigation.goBack} />
+          <View style={styles.topContainer}>
+            <JSText style={styles.title}>
+              Tap the tags that apply to you. When swiping, you will see the tags you have in common with each student.
+            </JSText>
+          </View>
         <ScrollView contentContainerStyle={styles.scrollView}>
           {this.renderTags()}
         </ScrollView>

@@ -43,12 +43,12 @@ class CountdownScreen extends PureComponent<{}, State> {
         <CountDown
           until={this.launchDay}
           digitBgColor={'#ABCCED'}
-          onFinish={() => alert('finished')}
+          onFinish={() => alert('finished')} //TODO: change pages/change bool here?
           size={30}
         />
           <View style={styles.titleTextContainer}>
-            <JSText bold fontSize={40} style={styles.titleText}>LEFT UNTIL</JSText>
-            <JSText bold fontSize={40} style={styles.titleText}>LAUNCH</JSText>
+            <JSText bold fontSize={30} style={styles.titleText}>LEFT UNTIL</JSText>
+            <JSText bold fontSize={30} style={styles.titleText}>LAUNCH</JSText>
           </View>
         </View>
       </View>
