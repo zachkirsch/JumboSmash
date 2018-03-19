@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Animated, TouchableWithoutFeedback, StyleSheet } from 'react-native'
+import { Animated, TouchableWithoutFeedback, StyleSheet, Platform } from 'react-native'
 import { moderateScale } from './scaling'
 
 interface Props {
@@ -53,19 +53,28 @@ class CircleButton extends PureComponent<Props, State> {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: 'rgba(67, 80, 93, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 25,
     height: 60,
     width: 60,
     borderRadius: 60,
-    shadowColor: 'rgb(0, 0, 0)',
-    shadowRadius: 5,
-    shadowOpacity: 0.1,
-    shadowOffset: {width: 0, height: 0},
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowRadius: 5,
+        shadowOpacity: 0.1,
+        shadowOffset: {
+          width: 0,
+          height: 0,
+        },
+      },
+    }),
+    ...Platform.select({
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   icon: {
     marginTop: moderateScale(3),

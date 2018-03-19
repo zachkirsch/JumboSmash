@@ -1,5 +1,5 @@
 import { RootState } from '../../redux'
-import { Message } from './types'
+import { GiftedChatMessage } from './types'
 
 /* Actions */
 
@@ -15,26 +15,26 @@ export enum MatchesActionType {
 export interface AttemptSendMessagesAction {
   type: MatchesActionType.ATTEMPT_SEND_MESSAGES
   conversationId: string
-  messages: Message[]
+  messages: GiftedChatMessage[]
 }
 
 export interface SendMessagesSuccessAction {
   type: MatchesActionType.SEND_MESSAGES_SUCCESS
   conversationId: string
-  messages: Message[]
+  messages: GiftedChatMessage[]
 }
 
 export interface SendMessagesFailureAction {
   type: MatchesActionType.SEND_MESSAGES_FAILURE
   conversationId: string
-  messages: Message[]
+  messages: GiftedChatMessage[]
   errorMessage: string
 }
 
 export interface ReceiveMessagesAction {
   type: MatchesActionType.RECEIVE_MESSAGES
   conversationId: string
-  messages: Message[]
+  messages: GiftedChatMessage[]
 }
 
 // this is a separate case because redux-persist stores immutables as plain JS
@@ -64,7 +64,7 @@ AttemptSendMessagesAction
 
 /* Action Creators */
 
-export const sendMessages = (conversationId: string, messages: Message[]): AttemptSendMessagesAction => {
+export const sendMessages = (conversationId: string, messages: GiftedChatMessage[]): AttemptSendMessagesAction => {
   return {
     type: MatchesActionType.ATTEMPT_SEND_MESSAGES,
     conversationId,
@@ -72,7 +72,7 @@ export const sendMessages = (conversationId: string, messages: Message[]): Attem
   }
 }
 
-export const receiveMessages = (conversationId: string, messages: Message[]): ReceiveMessagesAction => {
+export const receiveMessages = (conversationId: string, messages: GiftedChatMessage[]): ReceiveMessagesAction => {
   return {
     type: MatchesActionType.RECEIVE_MESSAGES,
     conversationId,

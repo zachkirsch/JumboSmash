@@ -4,7 +4,7 @@ import { default as Entypo } from 'react-native-vector-icons/Entypo'
 import { default as FontAwesome } from 'react-native-vector-icons/FontAwesome'
 import LinearGradient from 'react-native-linear-gradient'
 import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
-import { JSText, JSTextInput } from '../../generic/index'
+import { HeaderBar, JSText, JSTextInput } from '../../generic'
 
 type Props = NavigationScreenPropsWithOwnProps<{}>
 
@@ -18,8 +18,6 @@ interface State {
 }
 
 class BlockScreen extends PureComponent<Props, State> {
-
-  private scrollView: any /* tslint:disable-line:no-any */
 
   constructor(props: Props) {
      super(props)
@@ -52,7 +50,8 @@ class BlockScreen extends PureComponent<Props, State> {
 
   render() {
     return (
-      <View>
+      <View style={styles.fill}>
+        <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
         <ScrollView contentContainerStyle={styles.container}>
           <View>
             <JSText fontSize={14} style={{textAlign: 'justify'}}>
@@ -138,8 +137,6 @@ class BlockScreen extends PureComponent<Props, State> {
   private blockUser = (email: string) => {
     const additionalBlockedUsers: BlockedUserMap = {}
     additionalBlockedUsers[email] = 'just_blocked'
-
-    this.scrollView.flashScrollIndicators()
 
     this.setState({
       blockedUsers: {

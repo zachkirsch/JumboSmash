@@ -1,36 +1,16 @@
-import { Map, List } from 'immutable'
-import { MatchesActionType, MatchesAction } from './actions'
+import { Map, List, Set } from 'immutable'
+import {
+  MatchesActionType,
+  MatchesAction,
+  AttemptSendMessagesAction,
+  ReceiveMessagesAction,
+  SendMessagesSuccessAction,
+  SendMessagesFailureAction,
+} from './actions'
 import { MatchesState, Conversation } from './types'
 
 const initialState: MatchesState = {
   chats: Map<string, Conversation>({
-    '1': {
-      conversationId: '1',
-      otherUsers: List([{
-        _id: 0,
-        name: 'Greg Aloupis',
-        avatar: 'http://www.cs.tufts.edu/people/faculty/images/GregAloupis.png',
-      }]),
-      messages: List([
-        {
-          _id: 0,
-          text: 'This is Greg',
-          createdAt: new Date(),
-          user: {
-            _id: 0,
-            name: 'Greg Aloupis',
-            avatar: 'http://www.cs.tufts.edu/people/faculty/images/GregAloupis.png',
-          },
-          sending: false,
-          failedToSend: false,
-          sent: true,
-          received: true,
-          read: true,
-        },
-      ]),
-      mostRecentMessage: 'This is Greg',
-      messagesUnread: false,
-    },
     '2': {
       conversationId: '2',
       otherUsers: List([{
@@ -57,36 +37,8 @@ const initialState: MatchesState = {
           read: false,
         },
       ]),
+      messageIDs: Set([0]),
       mostRecentMessage: 'This is Zach',
-      messagesUnread: true,
-    },
-    '3': {
-      conversationId: '3',
-      otherUsers: List([{
-        _id: 2,
-        name: 'Jeff Bezos',
-        avatar: 'http://mblogthumb3.phinf.naver.net/20160823_162/banddi95_14719406421210hOJW_JPEG/%B0%A1%C0' +
-                '%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
-      }]),
-      messages: List([
-        {
-          _id: 0,
-          text: 'This is Jeff',
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: 'Jeff Bezos',
-            avatar: 'http://mblogthumb3.phinf.naver.net/20160823_162/banddi95_14719406421210hOJW_JPEG/%B0%A1%C0' +
-                    '%E5_%C6%ED%C7%CF%B0%D4_%BD%C7%C6%D0%C7%D2_%BC%F6_%C0%D6%B4%C2_%C8%B8%BB%E7.jpg?type=w800',
-          },
-          sending: false,
-          failedToSend: false,
-          sent: true,
-          received: true,
-          read: false,
-        },
-      ]),
-      mostRecentMessage: 'This is Jeff',
       messagesUnread: true,
     },
     '4': {
@@ -97,49 +49,94 @@ const initialState: MatchesState = {
         avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
       }]),
       messages: List([]),
-      mostRecentMessage: '',
-      messagesUnread: false,
-    },
-    '5': {
-      conversationId: '5',
-      otherUsers: List([{
-        _id: 4,
-        name: 'Bane',
-        avatar: 'http://www.fitzness.com/blog/wp-content/uploads/Tom-Hardy-Bane-Head-Shot.jpeg',
-      }]),
-      messages: List([]),
+      messageIDs: Set([]),
       mostRecentMessage: '',
       messagesUnread: false,
     },
   }),
 }
 
-export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
-  let originalConversation: Conversation
+const addMessagesToReduxState = (oldState: MatchesState,
+                                 action: AttemptSendMessagesAction | ReceiveMessagesAction,
+                                 sending: boolean) => {
 
+  const originalConversation = oldState.chats.get(action.conversationId)
+
+  let newMessages = originalConversation.messages.asImmutable()
+  let newMessageIDs = originalConversation.messageIDs.asImmutable()
+  action.messages.forEach((message) => {
+    if (!newMessageIDs.contains(message._id)) {
+      newMessageIDs = newMessageIDs.add(message._id)
+      newMessages = newMessages.unshift({
+        ...message,
+        failedToSend: false,
+        sending,
+      })
+    }
+  })
+
+  const newConversation: Conversation = {
+    conversationId: originalConversation.conversationId,
+    otherUsers: originalConversation.otherUsers.asImmutable(),
+    messages: newMessages,
+    messageIDs: newMessageIDs,
+    mostRecentMessage: newMessages.first().text,
+    messagesUnread: originalConversation.messagesUnread,
+  }
+
+  return {
+    chats: oldState.chats.set(action.conversationId, newConversation),
+  }
+}
+
+const updateSentStatus = (oldState: MatchesState,
+                          action: SendMessagesSuccessAction | SendMessagesFailureAction,
+                          success: boolean) => {
+
+  const originalConversation = oldState.chats.get(action.conversationId)
+
+  let newMessages = originalConversation.messages.asImmutable()
+  action.messages.forEach((message) => {
+    if (originalConversation.messageIDs.contains(message._id)) {
+      newMessages = newMessages.update(
+        newMessages.findIndex(messageInList => messageInList._id === message._id),
+        messageInList => ({
+          ...messageInList,
+          sending: false,
+          failedToSend: !success,
+        })
+      )
+    }
+  })
+
+  const newConversation: Conversation = {
+    conversationId: originalConversation.conversationId,
+    otherUsers: originalConversation.otherUsers.asImmutable(),
+    messages: newMessages,
+    messageIDs: originalConversation.messageIDs.asImmutable(),
+    mostRecentMessage: originalConversation.mostRecentMessage,
+    messagesUnread: originalConversation.messagesUnread,
+  }
+
+  return {
+    chats: oldState.chats.set(action.conversationId, newConversation),
+  }
+}
+
+export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
   switch (action.type) {
 
     case MatchesActionType.RECEIVE_MESSAGES:
+      return addMessagesToReduxState(state, action, false)
+
     case MatchesActionType.ATTEMPT_SEND_MESSAGES:
-      console.log('THIS FIRED:', action)
-      originalConversation = state.chats.get(action.conversationId)
+      return addMessagesToReduxState(state, action, true)
 
-      let newMessages = originalConversation.messages.asImmutable()
-      action.messages.forEach((message) => {
-        newMessages = newMessages.unshift(message)
-      })
+    case MatchesActionType.SEND_MESSAGES_SUCCESS:
+      return updateSentStatus(state, action, true)
 
-      const newConversation: Conversation = {
-        conversationId: originalConversation.conversationId,
-        otherUsers: originalConversation.otherUsers.asImmutable(),
-        messages: newMessages,
-        mostRecentMessage: newMessages.first().text,
-        messagesUnread: false,
-      }
-
-      return {
-        chats: state.chats.set(action.conversationId, newConversation),
-      }
+    case MatchesActionType.SEND_MESSAGES_FAILURE:
+      return updateSentStatus(state, action, false)
 
     // this is a separate case because redux-persist stores immutables as plain JS
     case MatchesActionType.REHYDRATE:
@@ -151,22 +148,19 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
       let chats = Map<string, Conversation>()
       Object.keys(action.payload.matches.chats).forEach((conversationId) => {
-        originalConversation = (action.payload.matches.chats as any)[conversationId] /* tslint:disable-line:no-any */
+        const originalConversation = (action.payload.matches.chats as any)[conversationId] /* tslint:disable-line:no-any */
         const conversation: Conversation = {
           conversationId,
           otherUsers: List(originalConversation.otherUsers),
           messages: List(originalConversation.messages),
+          messageIDs: Set(originalConversation.messageIDs),
           mostRecentMessage: originalConversation.mostRecentMessage,
           messagesUnread: originalConversation.messagesUnread,
         }
         chats = chats.set(conversationId, conversation)
       })
-      return {
-        chats,
-      }
+      return { chats }
 
-    case MatchesActionType.SEND_MESSAGES_SUCCESS: // TODO: mark messages as sent
-    case MatchesActionType.SEND_MESSAGES_FAILURE: // TODO: mark messages as errored
     default:
       return state
   }

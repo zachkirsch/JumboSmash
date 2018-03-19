@@ -1,36 +1,45 @@
-import { put, takeEvery } from 'redux-saga/effects'
+import { put, call, takeEvery } from 'redux-saga/effects'
 import { firebase } from '../firebase'
 import {
   MatchesActionType,
   AttemptSendMessagesAction,
   SendMessagesSuccessAction,
+  SendMessagesFailureAction,
 } from './actions'
+import { GiftedChatMessage } from './types'
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
-  console.log('CONVOID:',action.conversationId)
-  const path = 'messages/'.concat(action.conversationId)
-  const dbRef = firebase.database().ref(path)
-
-  for (let message of action.messages) {
-    dbRef.push({
-      _id: message._id,
-      text: message.text,
-      user: {
-        _id: 1,
-        name: 'test',
-        avatar: '',
-      },
-      date: new Date().getTime(),
-      read: false,
+  function pushMessagetoFirebase(message: GiftedChatMessage) {
+    return new Promise(resolve => {
+      const path = 'messages/'.concat(action.conversationId)
+      const dbRef = firebase.database().ref(path)
+      dbRef.push({
+        ...message,
+        createdAt: message.createdAt.getTime(), // convert Date to number for firebase
+      }, resolve)
     })
   }
 
-  const successAction: SendMessagesSuccessAction = {
-    type: MatchesActionType.SEND_MESSAGES_SUCCESS,
-    conversationId: action.conversationId,
-    messages: action.messages,
+  for (let i = 0; i < action.messages.length; i++) {
+    const message = action.messages[i]
+    const error: Error = yield call(pushMessagetoFirebase, message)
+    if (error) {
+      const failureAction: SendMessagesFailureAction = {
+        type: MatchesActionType.SEND_MESSAGES_FAILURE,
+        conversationId: action.conversationId,
+        messages: [message],
+        errorMessage: error.message,
+      }
+      yield put(failureAction)
+    } else {
+      const successAction: SendMessagesSuccessAction = {
+        type: MatchesActionType.SEND_MESSAGES_SUCCESS,
+        conversationId: action.conversationId,
+        messages: [message],
+      }
+      yield put(successAction)
+    }
   }
-  yield put(successAction)
 }
 
 export function* matchesSaga() {

@@ -24,6 +24,7 @@ interface ImageProfileReact {
 export type ProfileReact = (EmojiProfileReact | ImageProfileReact) & { count: number }
 
 export interface ProfileState {
+  id: number
   preferredName: LoadableValue<string>
   major: LoadableValue<string>
   bio: LoadableValue<string>

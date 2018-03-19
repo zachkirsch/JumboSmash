@@ -39,6 +39,7 @@ const COC_RULES: CoCRule[] = [
 ]
 
 interface OwnProps {
+  inNavigator?: boolean // defaults to false
   buttonLabel?: string // defaults to "Accept"
   onPress?: () => void // defaults to acceptCoc
 }
@@ -53,20 +54,18 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
-      <View>
-        <View style={styles.statusBar} />
+      <View style={styles.flex}>
+        {this.props.inNavigator || <View style={styles.statusBar} />}
         <ScrollView>
           <View style={styles.container}>
-            {this.renderTitle()}
+            {this.props.inNavigator || this.renderTitle()}
             {this.renderDescription()}
             {this.renderRules()}
           </View>
           <View style={styles.container}>
             {this.renderSignoff()}
           </View>
-          <View style={styles.buttonContainer}>
-            {this.renderButton()}
-          </View>
+          {this.props.inNavigator || this.renderButton()}
         </ScrollView>
       </View>
     )
@@ -79,8 +78,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   private renderDescription = () => {
     return (
       <JSText style={styles.description}>
-        In order to be a JumboSmash user, we ask that you agree to follow
-        a few simple rules
+        In order to be a JumboSmash user, we ask that you follow a few rules
       </JSText>
     )
   }
@@ -111,25 +109,30 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   private renderButton = () => {
     return (
-      <RectangleButton
-        onPress={this.props.onPress || this.props.acceptCoC}
-        label={this.props.buttonLabel || "I agree. Let's smash!"}
-      />
+      <View style={styles.buttonContainer}>
+        <RectangleButton
+          onPress={this.props.onPress || this.props.acceptCoC}
+          label={this.props.buttonLabel || "I agree. Let's smash!"}
+        />
+      </View>
     )
   }
 
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   statusBar: {
     height: Platform.OS === 'ios' ? 20 : 0, // space for iOS status bar
   },
   title: {
     textAlign: 'center',
+    marginBottom: 10,
   },
   description: {
     color: '#7e7e7e',
-    marginTop: 10,
     textAlign: 'center',
   },
   container: {

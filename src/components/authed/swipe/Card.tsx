@@ -326,17 +326,8 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderGradient = () => {
-    const gradientStyle = {
-      opacity: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
-    }
-
     return (
-      <Animated.View
-        style={[styles.overlay, gradientStyle]}
-      >
+      <View style={styles.overlay}>
         <LinearGradient
           colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.6)']}
           start={{x: 0, y: 0}} end={{x: 0, y: 0.5}}
@@ -344,7 +335,7 @@ class Card extends PureComponent<Props, State> {
         >
             <View style={styles.fill} />
         </LinearGradient>
-      </Animated.View>
+      </View>
     )
   }
 

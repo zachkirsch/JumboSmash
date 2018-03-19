@@ -4,6 +4,7 @@ import TAGS from './TAGS'
 import REACTS from './REACTS'
 
 const initialState: ProfileState = {
+  id: -1,
   preferredName: {
     value: '',
     loading: false,
@@ -33,6 +34,12 @@ const initialState: ProfileState = {
 export function profileReducer(state = initialState, action: ProfileAction): ProfileState {
   const newState = Object.assign({}, state)
   switch (action.type) {
+
+    case ProfileActionType.SET_ID:
+      return {
+        ...state,
+        id: action.id,
+      }
 
     /* Preferred Name */
 
