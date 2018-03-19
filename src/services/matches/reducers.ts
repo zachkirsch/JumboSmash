@@ -10,6 +10,10 @@ import {
 import { MatchesState, Conversation } from './types'
 
 const initialState: MatchesState = {
+  allUsers: {
+    value: List(),
+    loading: false,
+  },
   chats: Map<string, Conversation>({
     '2': {
       conversationId: '2',
@@ -61,6 +65,9 @@ const addMessagesToReduxState = (oldState: MatchesState,
                                  sending: boolean) => {
 
   const originalConversation = oldState.chats.get(action.conversationId)
+  if (!originalConversation) {
+    return oldState
+  }
 
   let newMessages = originalConversation.messages.asImmutable()
   let newMessageIDs = originalConversation.messageIDs.asImmutable()
@@ -81,10 +88,11 @@ const addMessagesToReduxState = (oldState: MatchesState,
     messages: newMessages,
     messageIDs: newMessageIDs,
     mostRecentMessage: newMessages.first().text,
-    messagesUnread: originalConversation.messagesUnread,
+    messagesUnread: true,
   }
 
   return {
+    ...oldState,
     chats: oldState.chats.set(action.conversationId, newConversation),
   }
 }
@@ -94,6 +102,9 @@ const updateSentStatus = (oldState: MatchesState,
                           success: boolean) => {
 
   const originalConversation = oldState.chats.get(action.conversationId)
+  if (!originalConversation) {
+    return oldState
+  }
 
   let newMessages = originalConversation.messages.asImmutable()
   action.messages.forEach((message) => {
@@ -115,10 +126,11 @@ const updateSentStatus = (oldState: MatchesState,
     messages: newMessages,
     messageIDs: originalConversation.messageIDs.asImmutable(),
     mostRecentMessage: originalConversation.mostRecentMessage,
-    messagesUnread: originalConversation.messagesUnread,
+    messagesUnread: false,
   }
 
   return {
+    ...oldState,
     chats: oldState.chats.set(action.conversationId, newConversation),
   }
 }
@@ -137,6 +149,53 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
     case MatchesActionType.SEND_MESSAGES_FAILURE:
       return updateSentStatus(state, action, false)
+
+    case MatchesActionType.ATTEMPT_FETCH_ALL_USERS:
+      return {
+        ...state,
+        allUsers: {
+          value: state.allUsers.value,
+          loading: true,
+        },
+      }
+
+    case MatchesActionType.FETCH_ALL_USERS_SUCCESS:
+      return {
+        ...state,
+        allUsers: {
+          value: List(action.users),
+          loading: false,
+        },
+      }
+
+    case MatchesActionType.FETCH_ALL_USERS_FAILURE:
+      return {
+        ...state,
+        allUsers: {
+          value: state.allUsers.value,
+          loading: false,
+          errorMessage: action.errorMessage,
+        },
+      }
+
+    case MatchesActionType.CREATE_MATCH:
+      return {
+        ...state,
+        chats: state.chats.set(action.conversationId, {
+          conversationId: action.conversationId,
+          otherUsers: List([
+            {
+              _id: action.onUser.id,
+              name: action.onUser.preferredName,
+              avatar: action.onUser.images[0],
+            },
+          ]),
+          messages: List(),
+          messageIDs: Set(),
+          mostRecentMessage: '',
+          messagesUnread: false,
+        }),
+      }
 
     // this is a separate case because redux-persist stores immutables as plain JS
     case MatchesActionType.REHYDRATE:
@@ -159,7 +218,10 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         }
         chats = chats.set(conversationId, conversation)
       })
-      return { chats }
+      return {
+        ...state,
+        chats,
+      }
 
     default:
       return state

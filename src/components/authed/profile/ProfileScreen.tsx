@@ -124,8 +124,12 @@ class ProfileScreen extends PureComponent<Props, State> {
     >
       <SwipeScreen
         preview={{
-          name: this.state.preferredName,
-          imageUris: this.props.images.filter(image => image),
+          user: {
+            id: -1,
+            preferredName: this.state.preferredName,
+            bio: this.state.bio,
+            images: this.props.images.filter(image => image),
+          },
           onCompleteSwipe: () => this.setState({previewingCard: false}),
         }}
       />

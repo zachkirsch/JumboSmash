@@ -8,6 +8,7 @@ import { GiftedChatUser, Conversation, GiftedChatMessage, sendMessages } from '.
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { HeaderBar } from '../../generic'
+import { getFirstName } from '../../utils'
 
 interface OwnProps {
   conversationId: string,
@@ -54,7 +55,7 @@ class ChatScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.bannerProfile}>
         <Image source={{uri: user.avatar}} style={styles.avatarPhoto} />
-        <JSText fontSize={13}>{user.name.split(' ')[0]}</JSText>
+        <JSText fontSize={13}>{getFirstName(user.name)}</JSText>
       </View>
     )
   }

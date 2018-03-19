@@ -16,7 +16,7 @@ interface Response {
   email: string
   preferred_name?: string
   bio: string
-  images: string[]
+  images: {url: string}[]
 }
 
 export const getUser = new GetEndpoint<Request, Response, PathExtensionComponents>(

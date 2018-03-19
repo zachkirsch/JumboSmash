@@ -83,6 +83,7 @@ const networkRequestInProgress = (state: RootState) => {
   || state.profile.bio.loading
   || state.profile.images.loading
   || state.profile.tags.loading
+  || state.matches.allUsers.loading
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
