@@ -148,7 +148,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
                 </View>
                 <View style={styles.reactRow}>
                   <Image
-                    source={require('../../img/tonymonaco.png')}
+                    source={require('../img/tonymonaco.png')}
                     style={styles.smallReact}
                   />
                     <Text style={styles.reactNum}>x{this.state.react6}</Text>
@@ -195,7 +195,7 @@ class ProfileEditScreen extends PureComponent<Props, State> {
       <JSTextInput placeholder="240 chars max!" multiline={true} maxLength={240}
         onChangeText={(bio) => this.setState({bio})}
         onEndEditing={() => this.props.onSubmitBio(this.state.bio)}
-        >{this.state.bio}</JSTextInput> 
+        >{this.state.bio}</JSTextInput>
   </View>
   }
 

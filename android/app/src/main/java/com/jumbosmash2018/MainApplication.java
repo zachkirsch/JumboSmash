@@ -30,16 +30,10 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-<<<<<<< HEAD
-            new RNFSPackage(),
-            new ImageResizerPackage(),
-            new ImagePickerPackage(),
-=======
             new PickerPackage(),
             new RCTCameraPackage(),
             new RNFSPackage(),
             new ImageResizerPackage(),
->>>>>>> 8a75548119471601f3ee47b83a0de3962c10cf9c
             new LinearGradientPackage(),
             new FabricPackage(),
             new VectorIconsPackage()

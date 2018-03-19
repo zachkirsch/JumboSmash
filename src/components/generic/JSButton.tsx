@@ -46,11 +46,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 10,
     paddingHorizontal: 60,
-<<<<<<< HEAD
-    alignSelf: 'center'
-=======
     alignSelf: 'center',
->>>>>>> 8a75548119471601f3ee47b83a0de3962c10cf9c
   },
   text: {
     fontSize: 14,
