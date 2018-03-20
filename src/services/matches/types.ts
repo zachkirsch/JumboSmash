@@ -1,5 +1,5 @@
 import { Map, List, Set } from 'immutable'
-import { LoadableValue } from '../redux'
+import { User } from '../swipe'
 
 interface BaseMessage {
   _id: string
@@ -30,20 +30,6 @@ export interface GiftedChatUser {
   avatar: string
 }
 
-export interface User {
-  id: number
-  preferredName: string
-  bio: string
-  images: string[]
-}
-
-export interface Match {
-  conversation_uuid: string
-  createdAt: string
-  id: number
-  unmatched: boolean
-}
-
 export interface Conversation {
   conversationId: string
   otherUsers: List<GiftedChatUser>
@@ -54,6 +40,5 @@ export interface Conversation {
 }
 
 export interface MatchesState {
-  allUsers: LoadableValue<List<User>>
   chats: Map<string, Conversation> /* map from conversation ID to conversation */
 }

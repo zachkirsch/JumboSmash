@@ -31,6 +31,11 @@ class CircleButton extends PureComponent<Props, State> {
       borderWidth: 0,
     }
 
+    const iconStyle = {
+      marginTop: moderateScale(this.props.iconSize / 10),
+      backgroundColor: 'transparent',
+    }
+
     return (
       <TouchableWithoutFeedback
         onPress={this.props.onPress}
@@ -38,7 +43,7 @@ class CircleButton extends PureComponent<Props, State> {
         onPressOut={() => this.setState({buttonPressedIn: false})}>
         <Animated.View style={[styles.button, this.state.buttonPressedIn ? clickedButtonStyle : {}, this.props.style]}>
           <this.props.IconClass
-            style={styles.icon}
+            style={iconStyle}
             name={this.props.iconName}
             size={this.props.iconSize}
             color={this.state.buttonPressedIn ? 'white' : this.props.iconColor}
@@ -75,10 +80,6 @@ const styles = StyleSheet.create({
         elevation: 3,
       },
     }),
-  },
-  icon: {
-    marginTop: moderateScale(3),
-    backgroundColor: 'transparent',
   },
 })
 

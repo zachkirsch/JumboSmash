@@ -9,6 +9,7 @@ import {
   Modal,
   Platform,
   Keyboard,
+  Alert,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
@@ -18,9 +19,10 @@ import {
   updatePreferredName,
   updateBio,
   updateMajor,
-  updateImages,
+  updateImage,
+  swapImages,
   TagSectionType,
-  ProfileReact
+  ProfileReact,
 } from '../../../services/profile'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
@@ -55,7 +57,8 @@ interface DispatchProps {
   updatePreferredName: (name: string) => void,
   updateBio: (bio: string) => void,
   updateMajor: (major: string) => void,
-  updateImages: (images: string[]) => void,
+  updateImage: (index: number, imageUri: string, mime: string) => void,
+  swapImages: (index1: number, index2: number) => void
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
@@ -84,14 +87,17 @@ class ProfileScreen extends PureComponent<Props, State> {
       <View>
         {this.renderProfilePreviewModal()}
         <ScrollView keyboardShouldPersistTaps={'handled'}>
-          <PhotosSection images={this.props.images} updateImages={this.props.updateImages}/>
+          <PhotosSection
+              images={this.props.images}
+              swapImages={this.props.swapImages}
+              updateImage={this.props.updateImage}/>
           {this.renderPersonalInfo()}
           {this.renderTags()}
           {this.renderReacts()}
           <SettingsSection
             block={() => this.props.navigation.navigate('BlockScreen')}
             viewCoC={() => this.props.navigation.navigate('ReviewCoCScreen')}
-            previewProfile={() => this.setState({ previewingCard: true })}
+            previewProfile={this.previewProfile}
           />
         </ScrollView>
         {this.renderSaveButton()}
@@ -257,6 +263,20 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
+  private previewProfile = () => {
+    let alertText = ''
+    if (this.props.images.length === 0) {
+      alertText = 'You need to choose at least one image'
+    } else if (!this.state.preferredName) {
+      alertText = 'You need a first name!'
+    }
+    if (!alertText) {
+      this.setState({ previewingCard: true })
+    } else {
+      Alert.alert('Oops', alertText)
+    }
+  }
+
   private updateBio = (bio: string) => {
     this.setState({ bio })
     this.updateSavedStatus(this.saveRequired({
@@ -317,7 +337,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     bio: state.profile.bio.value,
     major: state.profile.major.value,
     tags: state.profile.tags.value,
-    images: state.profile.images.value,
+    images: state.profile.images.map(image => image.value.uri),
     reacts: state.profile.reacts.value,
   }
 }
@@ -327,7 +347,10 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     updatePreferredName: (name: string) => dispatch(updatePreferredName(name)),
     updateBio: (bio: string) => dispatch(updateBio(bio)),
     updateMajor: (major: string) => dispatch(updateMajor(major)),
-    updateImages: (images: string[]) => dispatch(updateImages(images)),
+    updateImage: (index: number, imageUri: string, mime: string) => {
+      dispatch(updateImage(index, imageUri, mime))
+    },
+    swapImages: (index1: number, index2: number) => dispatch(swapImages(index1, index2)),
   }
 }
 

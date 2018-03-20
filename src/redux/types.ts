@@ -4,6 +4,7 @@ import { ReduxState } from '../services/redux'
 import { FirebaseState } from '../services/firebase'
 import { ProfileState } from '../services/profile'
 import { MatchesState } from '../services/matches'
+import { SwipeState } from '../services/swipe'
 
 export interface RootState {
   auth: AuthState
@@ -12,4 +13,5 @@ export interface RootState {
   firebase: FirebaseState
   profile: ProfileState
   matches: MatchesState
+  swipe: SwipeState
 }

@@ -5,7 +5,9 @@ import * as AuthActions from './actions'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { setCoCReadStatus } from '../coc'
 import { RootState } from '../../redux'
-import { setID } from '../profile'
+import { initializeProfile, clearProfileState } from '../profile'
+import { fetchAllUsers, clearSwipeState } from '../swipe'
+import { clearMatchesState } from '../matches'
 
 const getEmail = (state: RootState) => state.auth.email
 
@@ -72,8 +74,11 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
     // now set the user as 'logged in'
     yield handleEmailVerificationSuccess()
 
-    // set the user's ID
-    yield put(setID(meInfo.id))
+    // rehydrate the user's profile
+    yield put(initializeProfile(meInfo.id, meInfo.preferred_name, meInfo.bio, meInfo.images.map(image => image.url)))
+
+    // fetch users
+    yield put(fetchAllUsers())
 
     // and finally, connect to firebase
     yield put(attemptConnectToFirebase(meInfo.firebase_token))
@@ -90,6 +95,9 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 function* logout(_: AuthActions.LogoutAction) {
   yield put(setCoCReadStatus(false))
   yield put(logoutFirebase())
+  yield put(clearProfileState())
+  yield put(clearSwipeState())
+  yield put(clearMatchesState())
 }
 
 export function* authSaga() {

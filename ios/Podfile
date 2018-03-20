@@ -20,6 +20,9 @@ target 'JumboSmash' do
 
   pod 'RNImageCropPicker', :path =>  '../node_modules/react-native-image-crop-picker'
 
+
+  pod 'react-native-fetch-blob', :path => '../node_modules/react-native-fetch-blob'
+
 end
 
 # very important to have, unless you removed React dependencies for Libraries

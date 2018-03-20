@@ -8,7 +8,7 @@ import { List } from 'immutable'
 import Card from './Card'
 import { CircleButton, CircleButtonProps, JSText } from '../../generic'
 import { RootState } from '../../../redux'
-import { User, fetchAllUsers, swipe } from '../../../services/matches'
+import { User, fetchAllUsers, swipe } from '../../../services/swipe'
 import NoMoreCards from './NoMoreCards'
 import { Direction } from '../../../services/api'
 import { mod } from '../../utils'
@@ -65,12 +65,14 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private renderCards = () => {
 
-    if (this.props.loadingAllUsers) {
-      return <JSText>Loading</JSText>
-    }
+    if (!this.props.preview) {
+      if (this.props.loadingAllUsers) {
+        return <JSText>Loading</JSText>
+      }
 
-    if (this.props.allUsers.size === 0) {
-      return <NoMoreCards requestMoreCards={this.props.fetchAllUsers}/>
+      if (this.props.allUsers.size === 0) {
+        return <NoMoreCards requestMoreCards={this.props.fetchAllUsers}/>
+      }
     }
 
     const cards = []
@@ -86,14 +88,21 @@ class SwipeScreen extends PureComponent<Props, State> {
       return null /* tslint:disable-line:no-null-keyword */
     }
 
-    const positionInDeck = mod(cardIndex - this.state.index, NUM_RENDERED_CARDS)
-    const globalIndex = (this.state.index + positionInDeck) % this.props.allUsers.size
+    let positionInDeck = 0
+    let globalIndex = 0
+    let profile
 
-    if (globalIndex < 0 || globalIndex >= this.props.allUsers.size) {
-      return null /* tslint:disable-line:no-null-keyword */
+    if (this.props.preview) {
+      profile = this.props.preview.user
+    } else {
+      positionInDeck = mod(cardIndex - this.state.index, NUM_RENDERED_CARDS)
+      globalIndex = (this.state.index + positionInDeck) % this.props.allUsers.size
+
+      if (globalIndex < 0 || globalIndex >= this.props.allUsers.size) {
+        return null /* tslint:disable-line:no-null-keyword */
+      }
+      profile = this.props.allUsers.get(globalIndex)
     }
-
-    const profile = this.props.preview ? this.props.preview.user : this.props.allUsers.get(globalIndex)
 
     return (
       <Card
@@ -226,8 +235,8 @@ class SwipeScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    allUsers: state.matches.allUsers.value,
-    loadingAllUsers: state.matches.allUsers.loading,
+    allUsers: List(state.swipe.allUsers.value.filter(user => user.images.length > 0)),
+    loadingAllUsers: state.swipe.allUsers.loading,
   }
 }
 

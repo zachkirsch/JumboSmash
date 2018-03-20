@@ -1,17 +1,10 @@
 import { RootState } from '../../redux'
-import { User, GiftedChatMessage } from './types'
-import { Direction } from '../api'
+import { GiftedChatMessage } from './types'
+import { User } from '../swipe'
 
 /* Actions */
 
 export enum MatchesActionType {
-  ATTEMPT_FETCH_ALL_USERS = 'ATTEMPT_FETCH_ALL_USERS',
-  FETCH_ALL_USERS_SUCCESS = 'FETCH_ALL_USERS_SUCCESS',
-  FETCH_ALL_USERS_FAILURE = 'FETCH_ALL_USERS_FAILURE',
-
-  ATTEMPT_SWIPE = 'ATTEMPT_SWIPE',
-  SWIPE_SUCCESS = 'SWIPE_SUCCESS',
-  SWIPE_FAILURE = 'SWIPE_FAILURE',
   CREATE_MATCH = 'CREATE_MATCH',
 
   ATTEMPT_SEND_MESSAGES = 'ATTEMPT_SEND_MESSAGES',
@@ -20,40 +13,8 @@ export enum MatchesActionType {
   RECEIVE_MESSAGES = 'RECEIVE_MESSAGES',
 
   REHYDRATE = 'persist/REHYDRATE',
+  CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
-}
-
-export interface AttemptFetchAllUsersAction {
-  type: MatchesActionType.ATTEMPT_FETCH_ALL_USERS
-}
-
-export interface FetchAllUsersSuccessAction {
-  type: MatchesActionType.FETCH_ALL_USERS_SUCCESS
-  users: User[]
-}
-
-export interface FetchAllUsersFailureAction {
-  type: MatchesActionType.FETCH_ALL_USERS_FAILURE
-  errorMessage: string
-}
-
-export interface AttemptSwipeAction {
-  type: MatchesActionType.ATTEMPT_SWIPE
-  direction: Direction
-  onUser: User
-}
-
-export interface SwipeSuccessAction {
-  type: MatchesActionType.ATTEMPT_SWIPE
-  direction: Direction
-  onUser: User
-}
-
-export interface SwipeFailureAction {
-  type: MatchesActionType.SWIPE_FAILURE
-  direction: Direction
-  onUser: User
-  errorMessage: string
 }
 
 export interface CreateMatchAction {
@@ -87,6 +48,10 @@ export interface ReceiveMessagesAction {
   messages: GiftedChatMessage[]
 }
 
+export interface ClearMatchesStateAction {
+  type: MatchesActionType.CLEAR_MATCHES_STATE
+}
+
 // this is a separate case because redux-persist stores immutables as plain JS
 export interface RehydrateAction {
   type: MatchesActionType.REHYDRATE
@@ -104,35 +69,16 @@ export interface OtherAction {
   type: MatchesActionType.OTHER_ACTION
 }
 
-export type MatchesAction = AttemptFetchAllUsersAction
-| FetchAllUsersSuccessAction
-| FetchAllUsersFailureAction
-| AttemptSwipeAction
-| SwipeSuccessAction
-| SwipeFailureAction
-| CreateMatchAction
-| AttemptSendMessagesAction
+export type MatchesAction = AttemptSendMessagesAction
 | SendMessagesSuccessAction
 | SendMessagesFailureAction
 | ReceiveMessagesAction
+| CreateMatchAction
 | RehydrateAction
+| ClearMatchesStateAction
 | OtherAction
 
 /* Action Creators */
-
-export const fetchAllUsers = (): AttemptFetchAllUsersAction => {
-  return {
-    type: MatchesActionType.ATTEMPT_FETCH_ALL_USERS,
-  }
-}
-
-export const swipe = (direction: Direction, onUser: User): AttemptSwipeAction => {
-  return {
-    type: MatchesActionType.ATTEMPT_SWIPE,
-    direction,
-    onUser,
-  }
-}
 
 export const sendMessages = (conversationId: string, messages: GiftedChatMessage[]): AttemptSendMessagesAction => {
   return {
@@ -147,5 +93,11 @@ export const receiveMessages = (conversationId: string, messages: GiftedChatMess
     type: MatchesActionType.RECEIVE_MESSAGES,
     conversationId,
     messages,
+  }
+}
+
+export const clearMatchesState = (): ClearMatchesStateAction => {
+  return {
+    type: MatchesActionType.CLEAR_MATCHES_STATE,
   }
 }

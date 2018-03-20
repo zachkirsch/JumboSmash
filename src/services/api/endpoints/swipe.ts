@@ -1,5 +1,5 @@
 import { PostEndpoint } from './Endpoint'
-import { Match } from '../../matches'
+import { Match } from '../../swipe'
 
 export type Direction = 'left' | 'right'
 

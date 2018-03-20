@@ -1,5 +1,5 @@
 import { GetEndpoint } from './Endpoint'
-import { Match } from '../../matches'
+import { Match } from '../../swipe'
 
 type Request = {
 }
