@@ -63,7 +63,7 @@ class Carousel extends PureComponent<Props, State> {
   }
 
   private renderImages = () => {
-    return this.props.imageUris.map((uri, i) => (
+    return this.props.imageUris.filter(imageUri => imageUri).map((uri, i) => (
       <TouchableWithoutFeedback key={`image-${i}`} onPress={this.props.enabled ? this.props.onTapImage : undefined}>
         <Image
           source={{uri}}

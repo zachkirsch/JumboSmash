@@ -6,6 +6,7 @@ import MatchesListItem from './MatchesListItem'
 import { Conversation } from '../../../services/matches'
 import { connect } from 'react-redux'
 import { RootState } from '../../../redux'
+import { getFirstName } from '../../utils'
 
 interface State { }
 
@@ -41,7 +42,7 @@ class MatchesList extends PureComponent<Props, State> {
   private renderItem = ({item}: {item: Conversation}) => {
     return (
       <MatchesListItem
-        name={item.otherUsers.first().name.split(' ')[0]}
+        name={getFirstName(item.otherUsers.first().name)}
         onPress={() => this.openChatScreen(item.conversationId)}
         lastMessage={item.mostRecentMessage}
         messageRead={!item.messagesUnread}

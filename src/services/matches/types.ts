@@ -1,4 +1,5 @@
 import { Map, List, Set } from 'immutable'
+import { User } from '../swipe'
 
 interface BaseMessage {
   _id: string
@@ -27,13 +28,6 @@ export interface GiftedChatUser {
   _id: number
   name: string
   avatar: string
-}
-
-export interface User {
-  id: number
-  preferredName: string
-  bio: string
-  images: string[]
 }
 
 export interface Conversation {

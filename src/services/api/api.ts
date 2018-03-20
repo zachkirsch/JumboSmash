@@ -24,7 +24,7 @@ export const api = {
   /* OTHERS */
 
   getAllUsers: () => Endpoints.getAllUsers.hit({}, {}),
-  swipe: (direction: 'left' | 'right', onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
+  swipe: (direction: Endpoints.Direction, onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
   getUser: (userId: number) => Endpoints.getUser.hit({}, {userId}),
 
 }

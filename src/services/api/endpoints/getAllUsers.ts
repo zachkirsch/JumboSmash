@@ -1,11 +1,13 @@
 import { GetEndpoint } from './Endpoint'
-import { User } from '../../matches'
+import { GetUserResponse } from './getUser'
 
 type Request = {
 }
 
 interface Response {
-  users: User[]
+  users: {
+    0: GetUserResponse[]
+  }
 }
 
 export const getAllUsers = new GetEndpoint<Request, Response>('/users', true)

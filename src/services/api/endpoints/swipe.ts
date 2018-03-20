@@ -1,7 +1,10 @@
 import { PostEndpoint } from './Endpoint'
+import { Match } from '../../swipe'
+
+export type Direction = 'left' | 'right'
 
 interface PathExtensionComponents {
-  direction: 'left' | 'right'
+  direction: Direction
   onUser: number
 }
 
@@ -9,11 +12,11 @@ const constructUri = (endpoint: string, pathExtensionComponents: PathExtensionCo
   return [endpoint, pathExtensionComponents.direction, pathExtensionComponents.onUser].join('/')
 }
 
-interface Request {
-}
+interface Request {}
 
-interface Response {
-
+type Response = { matched: false } | {
+  matched: true
+  match: Match
 }
 
 export const swipe = new PostEndpoint<Request, Response, PathExtensionComponents>('/swipe', true, constructUri)

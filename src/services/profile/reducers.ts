@@ -17,10 +17,7 @@ const initialState: ProfileState = {
     value: '',
     loading: false,
   },
-  images: {
-    value: [],
-    loading: false,
-  },
+  images: [],
   tags: {
     value: TAGS,
     loading: false,
@@ -31,14 +28,33 @@ const initialState: ProfileState = {
   },
 }
 
+const newImage = () => ({
+  value: {
+    uri: '',
+    isLocal: true,
+  },
+  loading: false,
+})
+
 export function profileReducer(state = initialState, action: ProfileAction): ProfileState {
   const newState = Object.assign({}, state)
   switch (action.type) {
 
-    case ProfileActionType.SET_ID:
+    case ProfileActionType.INITIALIZE_PROFILE:
       return {
         ...state,
         id: action.id,
+        preferredName: { value: action.preferredName, loading: false },
+        bio: { value: action.bio, loading: false },
+        images: action.images.map(imageUri => {
+          return {
+            value: {
+              uri: imageUri,
+              isLocal: false,
+            },
+            loading: false,
+          }
+        }),
       }
 
     /* Preferred Name */
@@ -112,26 +128,81 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     /* Images */
 
-    case ProfileActionType.ATTEMPT_UPDATE_IMAGES:
-      newState.images = {
-        prevValue: state.images.value,
-        value: action.images,
+    case ProfileActionType.ATTEMPT_UPDATE_IMAGE:
+
+      let newImages = []
+      for (let i = 0; i < Math.max(state.images.length, action.index + 1); i++) {
+        newImages.push(state.images[i] || newImage())
+      }
+
+      newImages[action.index] = {
+        prevValue: state.images[action.index] && state.images[action.index].value,
+        value: {
+          uri: action.imageUri,
+          isLocal: true,
+        },
         loading: true,
       }
-      return newState
 
-    case ProfileActionType.UPDATE_IMAGES_SUCCESS:
-      newState.images.loading = false
-      return newState
-
-    case ProfileActionType.UPDATE_IMAGES_FAILURE:
-      newState.images = {
-        prevValue: undefined,
-        value: state.images.value, // TODO: prevValue?
-        loading: false,
-        errorMessage: action.errorMessage,
+      return {
+        ...state,
+        images: newImages,
       }
-      return newState
+
+    case ProfileActionType.UPDATE_IMAGE_SUCCESS:
+      return {
+        ...state,
+        images: state.images.map((image, index) => {
+          if (index !== action.index) {
+            return image
+          }
+          return {
+            prevValue: undefined,
+            value: {
+              uri: action.imageUri,
+              isLocal: false,
+            },
+            loading: false,
+          }
+        }),
+      }
+
+    case ProfileActionType.UPDATE_IMAGE_FAILURE:
+      return {
+        ...state,
+        images: state.images.map((image, index) => {
+          if (index !== action.index) {
+            return image
+          }
+          return {
+            prevValue: undefined,
+            value: image.prevValue,
+            errorMessage: action.errorMessage,
+            loading: false,
+          }
+        }),
+      }
+
+    case ProfileActionType.SWAP_IMAGES:
+      if (action.index1 < 0 || action.index2 < 0) {
+        return state
+      }
+
+      newImages = []
+      for (let i = 0; i < Math.max(state.images.length, action.index1 + 1, action.index2 + 1); i++) {
+        let toPush = state.images[i]
+        if (i === action.index1) {
+          toPush = state.images[action.index2]
+        } else if (i === action.index2) {
+          toPush = state.images[action.index1]
+        }
+        newImages.push(toPush || newImage())
+      }
+
+      return {
+        ...state,
+        images: newImages,
+      }
 
     /* Tags */
 

@@ -28,8 +28,8 @@ interface State {
 
 const WIDTH = Dimensions.get('window').width
 
-const INDICATOR_WIDTH = WIDTH / 4
-const INDICATOR_HEIGHT = 2
+const INDICATOR_WIDTH = WIDTH / 5
+const INDICATOR_HEIGHT = 3
 
 class TabBar extends PureComponent<Props, State> {
 
@@ -126,9 +126,9 @@ class TabBar extends PureComponent<Props, State> {
     return (
         <Animated.View style={style} >
         <LinearGradient
-          colors={['#B1CAEF', 'rgba(231,240,253,1)']}
+          colors={['rgba(231,240,253,1)', '#B1CAEF', 'rgba(231,240,253,1)']}
           start={{x: 0, y: 1}} end={{x: 1, y: 0}}
-          locations={[0, 1]}
+          locations={[0, 0.5, 1]}
           style={{flex: 1}}
         />
       </Animated.View>

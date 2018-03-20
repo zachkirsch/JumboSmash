@@ -1,17 +1,21 @@
 import React, { PureComponent } from 'react'
-import { View, Image, StyleSheet, TouchableWithoutFeedback, Platform, Dimensions } from 'react-native'
+import { Alert, View, Image, StyleSheet, TouchableWithoutFeedback, Platform, Dimensions } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
 import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
 import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
 import { default as Feather } from 'react-native-vector-icons/Feather'
-import { ActionSheetOption, generateActionSheetOptions, lastIndexOf } from '../../utils'
+import { default as Entypo } from 'react-native-vector-icons/Entypo'
+import { ActionSheetOption, generateActionSheetOptions } from '../../utils'
+import { CircleButton } from '../../generic'
 
 interface OwnProps {
   images: string[]
-  updateImages: (images: string[]) => void
+  swapImages: (index1: number, index2: number) => void
+  updateImage: (index: number, imageUri: string, mime: string) => void,
 }
 
 interface State {
+  images: string[]
   swapping: boolean
   swappingIndex: number
 }
@@ -26,6 +30,7 @@ class PhotosSection extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
+      images: props.images,
       swapping: false,
       swappingIndex: -1,
     }
@@ -58,31 +63,27 @@ class PhotosSection extends PureComponent<Props, State> {
     const swappingBigPhotoAndRenderingEmptyPhoto = (
       this.state.swapping
       && this.state.swappingIndex === 0
-      && !this.props.images[index]
+      && !this.state.images[index]
     )
 
     if (this.state.swapping) {
-
-      const lastIndexOfNonemptyPhoto = lastIndexOf(this.props.images, (imageUri => !!imageUri))
-
-      touchableDisabled = true
-      if (this.props.images[index] || this.state.swappingIndex > 0 && index < lastIndexOfNonemptyPhoto) {
+      if (index === this.state.swappingIndex) {
+        touchableDisabled = true
+      } else {
         touchableDisabled = false
-        if (index !== this.state.swappingIndex) {
-          overlayIcon = (
-            <SimpleLineIcons
-              style={{backgroundColor: 'transparent'}}
-              name={'target'}
-              size={40}
-              color='rgba(172,203,238,0.6)'
-            />
-          )
-        }
+        overlayIcon = (
+          <SimpleLineIcons
+            style={{backgroundColor: 'transparent'}}
+            name={'target'}
+            size={40}
+            color='rgba(172,203,238,0.6)'
+          />
+        )
       }
-    } else if (!this.props.images[index]) {
-      let indexOfFirstEmpty = this.props.images.findIndex(imageUri => !imageUri)
+    } else if (!this.state.images[index]) {
+      let indexOfFirstEmpty = this.state.images.findIndex(imageUri => !imageUri)
       if (indexOfFirstEmpty === -1) {
-        indexOfFirstEmpty = this.props.images.length
+        indexOfFirstEmpty = this.state.images.length
       }
       if (indexOfFirstEmpty === index) {
         overlayIcon = (
@@ -99,10 +100,10 @@ class PhotosSection extends PureComponent<Props, State> {
     }
 
     let image
-    if (this.props.images[index]) {
+    if (this.state.images[index]) {
       image = (
         <Image
-          source={{uri: this.props.images[index]}}
+          source={{uri: this.state.images[index]}}
           resizeMode='cover'
           style={[
             styles.photo,
@@ -129,6 +130,16 @@ class PhotosSection extends PureComponent<Props, State> {
       )
     }
 
+    const deleteButton = this.canDeleteImage(index) && Platform.OS === 'ios' && ( // clipped on Android
+      <CircleButton
+        IconClass={Entypo}
+        iconName='cross'
+        iconSize={15}
+        iconColor='white'
+        onPress={() => this.deletePhoto(index, true)}
+        style={styles.deleteButton} />
+    )
+
     return (
       <View style={styles.shadow}>
         {image}
@@ -137,70 +148,109 @@ class PhotosSection extends PureComponent<Props, State> {
             {overlayIcon}
           </View>
         </TouchableWithoutFeedback>
+        {deleteButton}
       </View>
     )
   }
 
-  private onPressImage(index: number) {
+  private deletePhoto = (index: number, withConfirmation: boolean) => {
+
+    const deleteIt = () => {
+      this.props.updateImage(index, '', '')
+      const newImages = Array.from(this.state.images)
+      newImages[index] = ''
+      this.setState({
+        images: newImages,
+      })
+    }
+
+    if (!withConfirmation) {
+      deleteIt()
+    } else {
+      Alert.alert(
+        'Delete Photo',
+        'Are you sure you want to delete this photo?',
+        [
+          {text: 'No', style: 'cancel'},
+          {text: 'Yes', onPress: deleteIt, style: 'destructive'},
+        ]
+      )
+    }
+  }
+
+  private canDeleteImage = (index: number) => {
+    return !this.state.swapping
+    && !!this.state.images[index]
+    && this.state.images.filter((image: string) => image).length > 1
+  }
+
+  private canSwapImage = (index: number) => {
+    return !!this.state.images[index]
+  }
+
+  private onPressImage = (index: number) => {
 
     if (this.state.swapping) {
-      const newImages = Array.from(this.props.images)
-      const temp = newImages[index]
-      newImages[index] = newImages[this.state.swappingIndex]
-      newImages[this.state.swappingIndex] = temp
-      this.props.updateImages(newImages)
+      this.props.swapImages(index, this.state.swappingIndex)
+
+      const newImages = []
+      for (let i = 0; i < Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1); i++) {
+        let toPush = this.state.images[i]
+        if (i === index) {
+          toPush = this.state.images[this.state.swappingIndex]
+        } else if (i === this.state.swappingIndex) {
+          toPush = this.state.images[index]
+        }
+        newImages.push(toPush || '')
+      }
+
       this.setState({
         swapping: false,
+        images: newImages,
       })
       return
     }
 
     const buttons: ActionSheetOption[] = []
 
-    // CHOOSE PHOTO BUTTON
     buttons.push({
-      title: this.props.images[index] ? 'Change Photo' : 'Choose Photo',
+      title: this.state.images[index] ? 'Change Photo' : 'Choose Photo',
       onPress: () => ImagePicker.openPicker({
-        width: 1000,
-        height: 1000,
+        width: 2000,
+        height: 2000,
         cropping: true,
         mediaType: 'photo',
         cropperToolbarTitle: 'Move and Scale to Crop',
       }).then((image: ImagePickerImage) => {
-        const newImages = Array.from(this.props.images)
+        this.props.updateImage(index, image.path, image.mime)
+        const newImages = Array.from(this.state.images)
         newImages[index] = image.path
-        this.props.updateImages(newImages)
+        this.setState({
+          images: newImages,
+        })
       }),
     })
 
-    if (this.props.images[index]) {
+    if (this.canSwapImage(index)) {
+      buttons.push({
+        title: 'Swap Position',
+        onPress: () => {
+          this.setState({
+            swapping: true,
+            swappingIndex: index,
+          })
+        },
+      })
+    }
 
-      // SWAP POSITION BUTTON
-      const numPhotosChosen = this.props.images.filter((image: string) => image).length
-      if (index !== 0 || numPhotosChosen > 1) {
-        buttons.push({
-          title: 'Swap Position',
-          onPress: () => {
-            this.setState({
-              swapping: true,
-              swappingIndex: index,
-            })
-          },
-        })
-      }
-      if (index !== 0) {
-
-        // REMOVE PHOTO BUTTON
-        buttons.push({
-          title: 'Remove Photo',
-          onPress: () => {
-            const newImages = Array.from(this.props.images)
-            newImages[index] = undefined
-            this.props.updateImages(newImages)
-          },
-          destructive: true,
-        })
-      }
+    if (this.canDeleteImage(index)) {
+      buttons.push({
+        title: 'Remove Photo',
+        onPress: () => {
+          this.deletePhoto(index, false)
+        },
+        destructive: true,
+      })
     }
 
     const {options, callback} = generateActionSheetOptions(buttons)
@@ -279,5 +329,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'visible',
     zIndex: 5,
+  },
+  deleteButton: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginHorizontal: 0,
+    marginBottom: 3,
+    borderColor: 'gray',
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: '#0F52BA',
+    zIndex: 6,
   },
 })

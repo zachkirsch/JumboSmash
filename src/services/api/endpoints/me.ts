@@ -1,13 +1,7 @@
 import { GetEndpoint } from './Endpoint'
+import { Match } from '../../swipe'
 
 type Request = {
-}
-
-interface ActiveMatch {
-  conversation_uuid: string
-  createdAt: string
-  id: number
-  unmatched: boolean
 }
 
 interface Image {
@@ -16,7 +10,7 @@ interface Image {
 
 interface Response {
   accepted_coc: boolean
-  active_matches: ActiveMatch[]
+  active_matches: Match[]
   bio: string
   email: string
   firebase_token: string

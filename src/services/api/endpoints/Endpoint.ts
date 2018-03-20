@@ -1,4 +1,5 @@
 import { Platform } from 'react-native'
+import RNFetchBlob from 'react-native-fetch-blob'
 import { getEmail, getSessionKey } from '../../auth'
 import { ErrorResponse } from '../api'
 
@@ -24,6 +25,18 @@ const getToken = (): Token => ({
   session_key: getSessionKey(),
 })
 
+// required because wer're using RNFetchBlob
+const Fetch: any = RNFetchBlob.polyfill.Fetch /* tslint:disable-line:no-any */
+window.fetch = new Fetch({
+    auto : true,
+    binaryContentTypes : [
+        'image/',
+        'video/',
+        'audio/',
+        'foo/',
+    ],
+}).build()
+
 abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
   constructor(readonly endpoint: string,
@@ -42,10 +55,13 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     .then((response) => {
       if (response.ok) {
         return response.json()
+      } else if (response.status >= 500) {
+        throw Error('Server Error')
+      } else {
+        return response.json().then((errorJson: ErrorResponse) => {
+          throw Error(errorJson.message)
+        })
       }
-      return response.json().then((errorJson: ErrorResponse) => {
-        throw Error(errorJson.message)
-      })
     })
   }
 
@@ -53,9 +69,9 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
     const request: RequestInit = {
       method,
-      headers: new Headers({
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
     }
 
     if (method === 'POST') {

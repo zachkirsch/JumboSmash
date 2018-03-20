@@ -9,10 +9,10 @@ export function emailSupport(subject: string) {
 export function shuffleArray<T>(array: T[]) {
   let j, x
   for (let i = array.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1))
-      x = array[i]
-      array[i] = array[j]
-      array[j] = x
+    j = Math.floor(Math.random() * (i + 1))
+    x = array[i]
+    array[i] = array[j]
+    array[j] = x
   }
 }
 
@@ -33,6 +33,19 @@ export function lastIndexOf<T>(array: T[], predicate: (item: T) => boolean) {
     }
   }
   return -1
+}
+
+// return a % b (positive)
+export function mod(a: number, b: number) {
+  return ((a % b) + b) % b
+}
+
+export function getFirstName(fullName: string) {
+  if (fullName) {
+    return fullName.split(' ')[0]
+  } else {
+    return 'JumboSmash User'
+  }
 }
 
 /* Action Sheet */

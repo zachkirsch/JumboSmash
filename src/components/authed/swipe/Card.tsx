@@ -18,13 +18,14 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import Carousel from './Carousel'
 import { clamp } from '../../utils'
 import { JSText } from '../../generic'
+import { User } from '../../../services/swipe'
+import { Direction } from '../../../services/api'
 
 interface Props {
   positionInDeck: number
-  name: string
-  imageUris: string[]
+  profile: User
   previewMode?: boolean
-  onCompleteSwipe?: () => void
+  onCompleteSwipe?: (direction: Direction, onUser: User) => void
   onExpandCard?: () => void
   onContractCard?: () => void
 }
@@ -168,11 +169,11 @@ class Card extends PureComponent<Props, State> {
   }
 
   public swipeRight = () => {
-    this.swipe(true)
+    this.swipe('right')
   }
 
   public swipeLeft = () => {
-    this.swipe(false)
+    this.swipe('left')
   }
 
   render() {
@@ -259,7 +260,7 @@ class Card extends PureComponent<Props, State> {
               >
                 <Carousel
                   enabled={this.state.fullyExpanded}
-                  imageUris={this.props.imageUris}
+                  imageUris={this.props.profile.images}
                   onTapImage={this.contractCard}
                   ref={(ref) => this.carousel = ref}
                 />
@@ -286,7 +287,7 @@ class Card extends PureComponent<Props, State> {
       <Animated.View
         style={[styles.bottomContainer, bottomContainerStyle]}
       >
-        <JSText fontSize={20} bold style={styles.name}>{this.props.name}</JSText>
+        <JSText fontSize={20} bold style={styles.name}>{this.props.profile.preferredName}</JSText>
         <View style={styles.textContainer}>
           <JSText fontSize={14} style={styles.hash}>{'#'}</JSText>
           {
@@ -380,12 +381,12 @@ class Card extends PureComponent<Props, State> {
     }
   }
 
-  private swipe = (isRight: boolean) => {
+  private swipe = (direction: Direction) => {
     if (!this.canSwipe()) {
       return
     }
     this.isSwipingProgrammatically = true
-    let xValue = isRight ? this.cardWidth() * 2 : this.cardWidth() * -2
+    let xValue = direction === 'right' ? this.cardWidth() * 2 : this.cardWidth() * -2
     let yValue = 50
 
     Animated.parallel([
@@ -403,12 +404,12 @@ class Card extends PureComponent<Props, State> {
       ),
     ]).start(() => {
       this.isSwipingProgrammatically = false
-      this.onCompleteSwipe()
+      this.onCompleteSwipe(direction)
     })
   }
 
-  private onCompleteSwipe = () => {
-    this.props.onCompleteSwipe && this.props.onCompleteSwipe()
+  private onCompleteSwipe = (direction: Direction) => {
+    this.props.onCompleteSwipe && this.props.onCompleteSwipe(direction, this.props.profile)
     if (!this.props.previewMode) {
       this.carousel.reset(false)
       this.state.pan.setValue({x: 0, y: 0})
@@ -475,7 +476,7 @@ class Card extends PureComponent<Props, State> {
                 duration: 200,
               }
             ),
-          ]).start(this.onCompleteSwipe)
+          ]).start(() => this.onCompleteSwipe(isRight ? 'right' : 'left'))
         } else {
           Animated.parallel([
             Animated.spring( this.state.pan, {

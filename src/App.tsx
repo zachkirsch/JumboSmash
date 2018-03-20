@@ -4,7 +4,7 @@ import { connect, Dispatch } from 'react-redux'
 import { Map } from 'immutable'
 import { RootState } from './redux'
 import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter} from './components'
-import { firebase } from './services/firebase'
+import { getRefToChatMessages } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
 
 interface StateProps {
@@ -26,9 +26,8 @@ const SHOULD_SHOW_COUNTDOWN = false
 class App extends PureComponent<Props, {}> {
 
   componentDidMount() {
-    const path = 'messages/'
     this.props.chats.keySeq().forEach(conversationId => {
-      const dbRef = firebase.database().ref(path.concat(conversationId))
+      const dbRef = getRefToChatMessages(conversationId)
       dbRef.on('child_added', (firebaseMessage) => {
         const message: GiftedChatMessage = {
           ...firebaseMessage.val(),
@@ -81,7 +80,7 @@ const networkRequestInProgress = (state: RootState) => {
   || state.profile.preferredName.loading
   || state.profile.major.loading
   || state.profile.bio.loading
-  || state.profile.images.loading
+  || state.profile.images.find(image => image.loading) !== undefined
   || state.profile.tags.loading
 }
 
