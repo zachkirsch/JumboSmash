@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, TouchableOpacity } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 import { JSText } from '../../common'
 
 interface Props {

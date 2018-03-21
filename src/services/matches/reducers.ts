@@ -1,17 +1,18 @@
-import { Map, List, Set } from 'immutable'
+import { List, Map, Set } from 'immutable'
 import {
-  MatchesActionType,
-  MatchesAction,
   AttemptSendMessagesAction,
+  MatchesAction,
+  MatchesActionType,
   ReceiveMessagesAction,
-  SendMessagesSuccessAction,
   SendMessagesFailureAction,
+  SendMessagesSuccessAction,
 } from './actions'
-import { MatchesState, Conversation } from './types'
+import { ReduxActionType } from '../redux'
+import { Conversation, MatchesState } from './types'
 
 const initialState: MatchesState = {
   chats: Map<string, Conversation>({
-    '2': {
+    2: {
       conversationId: '2',
       otherUsers: List([{
         _id: 1,
@@ -41,7 +42,7 @@ const initialState: MatchesState = {
       mostRecentMessage: 'This is Zach',
       messagesUnread: true,
     },
-    '4': {
+    4: {
       conversationId: '4',
       otherUsers: List([{
         _id: 3,
@@ -105,8 +106,8 @@ const updateSentStatus = (oldState: MatchesState,
   action.messages.forEach((message) => {
     if (originalConversation.messageIDs.contains(message._id)) {
       newMessages = newMessages.update(
-        newMessages.findIndex(messageInList => messageInList._id === message._id),
-        messageInList => ({
+        newMessages.findIndex((messageInList) => messageInList._id === message._id),
+        (messageInList) => ({
           ...messageInList,
           sending: false,
           failedToSend: !success,
@@ -161,7 +162,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       }
 
     // this is a separate case because redux-persist stores immutables as plain JS
-    case MatchesActionType.REHYDRATE:
+    case ReduxActionType.REHYDRATE:
 
       // for unit tests when root state is empty
       if (!action.payload.matches) {

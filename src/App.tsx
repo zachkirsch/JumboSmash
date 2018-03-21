@@ -1,9 +1,9 @@
-import React, { PureComponent } from 'react'
-import { View, StatusBar, StyleSheet } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
 import { Map } from 'immutable'
+import React, { PureComponent } from 'react'
+import { StatusBar, StyleSheet, View } from 'react-native'
+import { connect, Dispatch } from 'react-redux'
+import { AuthedRouter, CodeOfConductScreen, CountdownScreen, LoginRouter} from './components'
 import { RootState } from './redux'
-import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter} from './components'
 import { getRefToChatMessages } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
 
@@ -26,7 +26,7 @@ const SHOULD_SHOW_COUNTDOWN = false
 class App extends PureComponent<Props, {}> {
 
   componentDidMount() {
-    this.props.chats.keySeq().forEach(conversationId => {
+    this.props.chats.keySeq().forEach((conversationId) => {
       const dbRef = getRefToChatMessages(conversationId)
       dbRef.on('child_added', (firebaseMessage) => {
         const message: GiftedChatMessage = {
@@ -80,7 +80,7 @@ const networkRequestInProgress = (state: RootState) => {
   || state.profile.preferredName.loading
   || state.profile.major.loading
   || state.profile.bio.loading
-  || state.profile.images.find(image => image.loading) !== undefined
+  || state.profile.images.find((image) => image.loading) !== undefined
   || state.profile.tags.loading
 }
 

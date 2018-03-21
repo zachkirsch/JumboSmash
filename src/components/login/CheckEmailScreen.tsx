@@ -1,8 +1,16 @@
 import React, { PureComponent } from 'react'
-import { View, KeyboardAvoidingView, ScrollView, TouchableOpacity, StyleSheet, Platform, ActivityIndicator } from 'react-native'
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from 'react-native'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
-import { JSText, JSTextInput, TextInputRef, scale } from '../common'
+import { JSText, JSTextInput, scale, TextInputRef } from '../common'
 import EmailUsFooter from './EmailUsFooter'
 
 interface Props {
@@ -31,7 +39,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   private resendCodeTimer: number
   private textInputRef: TextInputRef
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = INITIAL_STATE
   }
@@ -59,7 +67,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   public render() {
     const instructions = 'Please type in the six digit code we just emailed to '
 
-    let inputStyle = [styles.input]
+    const inputStyle = [styles.input]
     let underlineColorAndroid
     if (this.props.authError === AuthError.BAD_CODE) {
       inputStyle.push(styles.badCode)
@@ -123,7 +131,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 fontSize={30}
                 enablesReturnKeyAutomatically
                 fancy
-                textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
+                textInputRef={this.setTextInputRef}
               />
             </View>
             <View style={styles.resendLinkContainer} >
@@ -143,6 +151,8 @@ class CheckEmailScreen extends PureComponent<Props, State> {
       </ScrollView>
     )
   }
+
+  private setTextInputRef = (ref: TextInputRef) => this.textInputRef = ref
 
   private onChangeCode = (code: string) => {
     this.setState({

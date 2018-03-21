@@ -11,7 +11,7 @@ const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' :
 
 type HttpMethod = 'GET' | 'POST'
 
-type HttpGetRequest = {
+export interface HttpGetRequest {
   [key: string]: string | number
 }
 
@@ -76,7 +76,7 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
     if (method === 'POST') {
       if (this.requiresToken) {
-        const bodyWithAuth = Object.assign({}, body, getToken())
+        const bodyWithAuth = Object.assign(body, getToken())
         request.body = JSON.stringify(bodyWithAuth)
       } else {
         request.body = JSON.stringify(body || {})

@@ -1,11 +1,11 @@
 import { StyleSheet } from 'react-native'
 import {
-  TabNavigator,
   StackNavigator,
+  TabNavigator,
 } from 'react-navigation'
+import {ChatScreen, MatchesList} from './chat'
 import * as Profile from './profile'
 import { SwipeScreen } from './swipe'
-import {ChatScreen, MatchesList} from './chat'
 import TabBar from './TabBar'
 
 const styles = StyleSheet.create({

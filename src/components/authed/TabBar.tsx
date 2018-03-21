@@ -1,15 +1,15 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, Animated, Easing, TouchableWithoutFeedback, Dimensions, Platform } from 'react-native'
-import {
-  NavigationScreenProp,
-  NavigationState,
-  NavigationRoute,
-} from 'react-navigation'
-import SafeAreaView from 'react-native-safe-area-view'
+import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import SafeAreaView from 'react-native-safe-area-view'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import {
+  NavigationRoute,
+  NavigationScreenProp,
+  NavigationState,
+} from 'react-navigation'
 
 interface Props {
   navigation: NavigationScreenProp<NavigationState>
@@ -127,7 +127,8 @@ class TabBar extends PureComponent<Props, State> {
         <Animated.View style={style} >
         <LinearGradient
           colors={['rgba(231,240,253,1)', '#B1CAEF', 'rgba(231,240,253,1)']}
-          start={{x: 0, y: 1}} end={{x: 1, y: 0}}
+          start={{x: 0, y: 1}}
+          end={{x: 1, y: 0}}
           locations={[0, 0.5, 1]}
           style={{flex: 1}}
         />

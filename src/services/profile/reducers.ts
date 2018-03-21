@@ -1,8 +1,9 @@
-import { ProfileActionType, ProfileAction } from './actions'
-import { ProfileState } from './types'
 import { LoadableValue } from '../redux'
-import TAGS from './TAGS'
+import { ProfileAction, ProfileActionType } from './actions'
+import { ReduxActionType } from '../redux'
 import REACTS from './REACTS'
+import TAGS from './TAGS'
+import { ProfileState } from './types'
 
 const initialState: ProfileState = {
   id: -1,
@@ -38,7 +39,7 @@ const newImage = () => ({
 })
 
 export function profileReducer(state = initialState, action: ProfileAction): ProfileState {
-  const newState = Object.assign({}, state)
+  const newState = {...state}
   switch (action.type) {
 
     case ProfileActionType.INITIALIZE_PROFILE:
@@ -47,7 +48,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         id: action.id,
         preferredName: { value: action.preferredName, loading: false },
         bio: { value: action.bio, loading: false },
-        images: action.images.map(imageUri => {
+        images: action.images.map((imageUri) => {
           return {
             value: {
               uri: imageUri,
@@ -250,7 +251,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
       return newState
 
-    case ProfileActionType.REHYDRATE:
+    case ReduxActionType.REHYDRATE:
 
       // for unit tests when root state is empty
       if (!action.payload.profile) {
@@ -271,7 +272,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
         major: getValue(action.payload.profile.major, initialState.major.value),
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
-        images: action.payload.profile.images.map(image => getValue(image, {uri: '', isLocal: true})),
+        images: action.payload.profile.images.map((image) => getValue(image, {uri: '', isLocal: true})),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),
         reacts: getValue(action.payload.profile.reacts, initialState.reacts.value),
       }

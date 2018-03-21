@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux'
 import { authReducer } from '../services/auth'
 import { cocReducer } from '../services/coc'
-import { reduxReducer } from '../services/redux'
 import { firebaseReducer } from '../services/firebase'
-import { profileReducer } from '../services/profile'
 import { matchesReducer } from '../services/matches'
+import { profileReducer } from '../services/profile'
+import { reduxReducer } from '../services/redux'
 import { swipeReducer } from '../services/swipe'
 
 export const rootReducer = combineReducers({

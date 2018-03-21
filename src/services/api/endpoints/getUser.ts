@@ -1,4 +1,4 @@
-import { GetEndpoint } from './Endpoint'
+import { GetEndpoint, HttpGetRequest } from './Endpoint'
 
 interface PathExtensionComponents {
   userId: number
@@ -8,7 +8,7 @@ const constructUri = (endpoint: string, pathExtensionComponents: PathExtensionCo
   return endpoint + '/' + pathExtensionComponents.userId
 }
 
-type Request = {
+interface Request extends HttpGetRequest {
 }
 
 interface Response {
@@ -16,7 +16,7 @@ interface Response {
   email: string
   preferred_name?: string
   bio: string
-  images: {url: string}[]
+  images: Array<{url: string}>
 }
 
 export const getUser = new GetEndpoint<Request, Response, PathExtensionComponents>(

@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, ScrollView, Linking, TouchableOpacity } from 'react-native'
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import LinearGradient from 'react-native-linear-gradient'
 import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
 import { HeaderBar, JSText, JSTextInput } from '../../common'
 
@@ -16,6 +16,10 @@ interface State {
   blockedUsers: BlockedUserMap,
   textInput: string,
 }
+
+const INSTRUCTIONS_START = "You won't see the users you block anywhere on the app, and they won't see you."
+  + ' To block a user, enter their Tufts email address below.'
+  + ' You can use the '
 
 class BlockScreen extends PureComponent<Props, State> {
 
@@ -49,19 +53,18 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   render() {
+
     return (
       <View style={styles.fill}>
         <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
         <ScrollView contentContainerStyle={styles.container}>
           <View>
             <JSText fontSize={14} style={{textAlign: 'justify'}}>
-              {"You won't see the users you block anywhere on the app, and they won't see you."
-               + ' To block a user, enter their Tufts email address below.'
-               + ' You can use the '}
+              {INSTRUCTIONS_START}
               <JSText
                 fontSize={14}
                 style={styles.underline}
-                onPress={() => Linking.openURL('https://whitepages.tufts.edu/')}
+                onPress={this.openWhitePages}
               >
                 {'Tufts Whitepages'}
               </JSText>
@@ -76,8 +79,8 @@ class BlockScreen extends PureComponent<Props, State> {
               autoCorrect={false}
               value={this.state.textInput}
               style={styles.input}
-              onChangeText = {(value) => {this.setState({textInput: value})}}
-              onSubmitEditing ={() => this.blockUser(this.state.textInput)}
+              onChangeText={this.onChangeText}
+              onSubmitEditing={this.blockUser(this.state.textInput)}
             />
             <JSText fontSize={15} bold>Currently Blocked:</JSText>
           </View>
@@ -89,7 +92,7 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   private renderBlockedUsers = () => {
-    return Object.keys(this.state.blockedUsers).sort().map(email => {
+    return Object.keys(this.state.blockedUsers).sort().map((email) => {
 
       if (!this.state.blockedUsers.hasOwnProperty(email)) {
         return null /* tslint:disable-line:no-null-keyword */
@@ -111,7 +114,7 @@ class BlockScreen extends PureComponent<Props, State> {
 
       return (
         <View style={styles.blockedUser} key={email}>
-          <TouchableOpacity onPress={() => this.toggleUser(email)} style={styles.iconContainer}>
+          <TouchableOpacity onPress={this.toggleUser(email)} style={styles.iconContainer}>
             {icon}
           </TouchableOpacity>
           <JSText style={textStyles}>{email}</JSText>
@@ -125,7 +128,8 @@ class BlockScreen extends PureComponent<Props, State> {
       <View style={styles.overlay}>
         <LinearGradient
           colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
-          start={{x: 0, y: 0}} end={{x: 0, y: 1}}
+          start={{x: 0, y: 0}}
+          end={{x: 0, y: 1}}
           style={styles.fill}
         >
             <View style={styles.fill} />
@@ -134,7 +138,11 @@ class BlockScreen extends PureComponent<Props, State> {
     )
   }
 
-  private blockUser = (email: string) => {
+  private openWhitePages = () => Linking.openURL('https://whitepages.tufts.edu/')
+
+  private onChangeText = (value: string) => {this.setState({textInput: value})}
+
+  private blockUser = (email: string) => () => {
     const additionalBlockedUsers: BlockedUserMap = {}
     additionalBlockedUsers[email] = 'just_blocked'
 
@@ -147,8 +155,8 @@ class BlockScreen extends PureComponent<Props, State> {
     })
   }
 
-  private toggleUser = (email: string) => {
-    const blockedUsers = Object.assign({}, this.state.blockedUsers)
+  private toggleUser = (email: string) => () => {
+    const blockedUsers = {...this.state.blockedUsers}
     switch (this.state.blockedUsers[email]) {
       case 'blocked':
         blockedUsers[email] = 'just_unblocked'
@@ -163,12 +171,12 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   private saveChanges = () => {
-    Object.keys(this.state.blockedUsers).forEach(email => {
+    Object.keys(this.state.blockedUsers).forEach((email) => {
       if (this.state.blockedUsers.hasOwnProperty(email)) {
         const status = this.state.blockedUsers[email]
         if (status === 'just_blocked') {
           // TODO: block user
-        } else if (status === 'just_unblocked' ) {
+        } else if (status === 'just_unblocked') {
           // TODO: unblock user
         }
       }

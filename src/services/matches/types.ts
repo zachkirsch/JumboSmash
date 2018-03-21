@@ -1,4 +1,4 @@
-import { Map, List, Set } from 'immutable'
+import { List, Map, Set } from 'immutable'
 import { User } from '../swipe'
 
 interface BaseMessage {

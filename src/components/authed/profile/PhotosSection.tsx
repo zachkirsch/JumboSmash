@@ -1,17 +1,18 @@
+import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
-import { Alert, View, Image, StyleSheet, TouchableWithoutFeedback, Platform, Dimensions } from 'react-native'
+import { Alert, Dimensions, Image, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
-import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
-import Foundation from 'react-native-vector-icons/Foundation'
-import Feather from 'react-native-vector-icons/Feather'
 import Entypo from 'react-native-vector-icons/Entypo'
-import { ActionSheetOption, generateActionSheetOptions } from '../../utils'
-import { CircleButton } from '../../common'
-import { LoadableValue } from '../../../services/redux'
+import Feather from 'react-native-vector-icons/Feather'
+import Foundation from 'react-native-vector-icons/Foundation'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
+import { LoadableValue } from '../../../services/redux'
+import { CircleButton } from '../../common'
+import { ActionSheetOption, generateActionSheetOptions } from '../../utils'
 
 interface OwnProps {
-  images: LoadableValue<ImageUri>[]
+  images: Array<LoadableValue<ImageUri>>
   swapImages: (index1: number, index2: number) => void
   updateImage: (index: number, imageUri: string, mime: string) => void,
 }
@@ -27,6 +28,11 @@ interface ImageWithStatus {
   uploading: boolean
 }
 
+const EMPTY_IMAGE = {
+  uri: '',
+  uploading: false,
+}
+
 const WIDTH = Dimensions.get('window').width
 
 type Props = ActionSheetProps<OwnProps>
@@ -37,7 +43,7 @@ class PhotosSection extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      images: props.images.map(image => image.value.uri),
+      images: props.images.map((image) => image.value.uri),
       swapping: false,
       swappingIndex: -1,
     }
@@ -65,10 +71,7 @@ class PhotosSection extends PureComponent<Props, State> {
   private renderPhoto = (index: number) => {
 
     const allImages = this.getImages()
-    const image = allImages[index] || {
-      uri: '',
-      uploading: false,
-    }
+    const image = allImages[index] || EMPTY_IMAGE
 
     let touchableDisabled = false
     let overlayIcon
@@ -88,7 +91,7 @@ class PhotosSection extends PureComponent<Props, State> {
         )
       }
     } else if (!image.uri) {
-      let indexOfFirstEmpty = allImages.findIndex(imageWithStatus => !imageWithStatus.uri)
+      let indexOfFirstEmpty = allImages.findIndex((imageWithStatus) => !imageWithStatus.uri)
       if (indexOfFirstEmpty === -1) {
         indexOfFirstEmpty = allImages.length
       }
@@ -108,63 +111,53 @@ class PhotosSection extends PureComponent<Props, State> {
 
     let imageToRender
     if (image.uri) {
-      imageToRender = (
-        <Image
-          source={{uri: image.uri}}
-          resizeMode='cover'
-          style={[
-            styles.photo,
-            index === 0 ? styles.bigPhoto : styles.smallPhoto,
-            this.state.swapping && this.state.swappingIndex === index && styles.semiTransparent,
-          ]}>
-        </Image>
-      )
+      const imageStyles = [
+        styles.photo,
+        index === 0 ? styles.bigPhoto : styles.smallPhoto,
+        this.state.swapping && this.state.swappingIndex === index && styles.semiTransparent,
+      ]
+      imageToRender = <Image source={{uri: image.uri}} resizeMode='cover' style={imageStyles} />
     } else {
-      imageToRender = (
-        <View
-          style={[
-            {
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-            styles.photo,
-            index === 0 ? styles.bigPhoto : styles.smallPhoto,
-            styles.emptyPhoto,
-          ]}
-        >
-        </View>
-      )
+      const imageStyles = [
+        styles.photo,
+        index === 0 ? styles.bigPhoto : styles.smallPhoto,
+        styles.emptyPhoto,
+      ]
+      imageToRender = <View style={imageStyles} />
     }
 
-    let cornerButton: JSX.Element
+    let cornerButton
     if (Platform.OS === 'ios' && image.uri) {
-      if (image.uploading) {
-        cornerButton = (
-          <CircleButton
-            IconClass={Feather}
-            iconName='upload'
-            iconSize={10}
-            iconColor='white'
-            onPress={() => this.cancelUpload(index)}
-            style={styles.cornerButton} />
-        )
-      } else if (this.canDeleteImage(index, allImages)) {
-        cornerButton = (
-          <CircleButton
-            IconClass={Entypo}
-            iconName='cross'
-            iconSize={15}
-            iconColor='white'
-            onPress={() => this.deletePhoto(index, {})}
-            style={styles.cornerButton} />
-        )
-      }
+        if (image.uploading) {
+          cornerButton = (
+            <CircleButton
+              IconClass={Ionicons}
+              iconName={'md-sync'}
+              iconSize={13}
+              iconColor='white'
+              onPress={this.cancelUpload(index)}
+              style={styles.cornerButton}
+              rotate
+            />
+          )
+        } else if (this.canDeleteImage(index, allImages)) {
+          cornerButton = (
+            <CircleButton
+              IconClass={Entypo}
+              iconName={'cross'}
+              iconSize={15}
+              iconColor='white'
+              onPress={this.deletePhoto(index, {})}
+              style={styles.cornerButton}
+            />
+          )
+        }
     }
 
     return (
-      <View style={styles.shadow}>
+      <View style={styles.imageContainer}>
         {imageToRender}
-        <TouchableWithoutFeedback disabled={touchableDisabled} onPress={() => this.onPressImage(index)}>
+        <TouchableWithoutFeedback disabled={touchableDisabled} onPress={this.onPressImage(index)}>
           <View style={styles.photoOverlay}>
             {overlayIcon}
           </View>
@@ -196,15 +189,15 @@ class PhotosSection extends PureComponent<Props, State> {
     return this.state.images.map((_, index) => this.getImageByIndex(index))
   }
 
-  private cancelUpload = (index: number, withConfirmation = true) => {
+  private cancelUpload = (index: number, withConfirmation = true) => () => {
     const alertInfo = withConfirmation && {
       title: 'Cancel Upload',
       message: 'Are you sure you want to cancel the upload?',
     }
-    this.deletePhoto(index, alertInfo)
+    this.deletePhoto(index, alertInfo)()
   }
 
-  private deletePhoto = (index: number, withConfirmation?: {title?: string, message?: string}) => {
+  private deletePhoto = (index: number, withConfirmation?: {title?: string, message?: string}) => () => {
 
     const deleteIt = () => {
       this.props.updateImage(index, '', '')
@@ -230,18 +223,18 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private canDeleteImage = (index: number, allImages?: ImageWithStatus[]) => {
-    const image = allImages ? allImages[index] : this.getImageByIndex(index)
+    const image = (allImages ? allImages[index] : this.getImageByIndex(index)) || EMPTY_IMAGE
     return !this.state.swapping
     && !!image.uri
     && !image.uploading
-    && (allImages || this.getImages()).filter(i => i.uri && !i.uploading).length > 1
+    && (allImages || this.getImages()).filter((i) => i.uri && !i.uploading).length > 1
   }
 
   private canSwapImage = (index: number) => {
     return !!this.state.images[index]
   }
 
-  private onPressImage = (index: number) => {
+  private onPressImage = (index: number) => () => {
 
     if (this.state.swapping) {
       this.props.swapImages(index, this.state.swappingIndex)
@@ -307,7 +300,7 @@ class PhotosSection extends PureComponent<Props, State> {
     if (this.getImageByIndex(index).uploading) {
       buttons.push({
         title: 'Cancel Upload',
-        onPress: () => this.cancelUpload(index, false),
+        onPress: this.cancelUpload(index, false),
         destructive: true,
       })
     }
@@ -344,9 +337,10 @@ const styles = StyleSheet.create({
   photo: {
     borderRadius: 5,
   },
-  shadow: {
+  imageContainer: {
     borderRadius: 5,
     backgroundColor: 'white',
+    overflow: 'visible',
     ...Platform.select({
       ios: {
         shadowColor: 'rgb(172, 203, 238)',
@@ -374,6 +368,8 @@ const styles = StyleSheet.create({
   },
   emptyPhoto: {
     backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   semiTransparent: {
     opacity: 0.4,
@@ -404,6 +400,7 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: StyleSheet.hairlineWidth,
     backgroundColor: '#0F52BA',
-    zIndex: 6,
+    zIndex: 600,
+    elevation: 600,
   },
 })

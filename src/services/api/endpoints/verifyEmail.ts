@@ -1,6 +1,6 @@
-import { GetEndpoint } from './Endpoint'
+import { GetEndpoint, HttpGetRequest } from './Endpoint'
 
-type Request = {
+interface Request extends HttpGetRequest {
   email: string
   code: string
 }

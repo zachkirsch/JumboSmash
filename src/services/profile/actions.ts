@@ -1,5 +1,5 @@
 import { TagSectionType } from './types'
-import { RootState } from '../../redux'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
@@ -28,7 +28,6 @@ export enum ProfileActionType {
   UPDATE_TAGS_SUCCESS = 'UPDATE_TAGS_SUCCESS',
   UPDATE_TAGS_FAILURE = 'UPDATE_TAGS_FAILURE',
 
-  REHYDRATE = 'persist/REHYDRATE',
   CLEAR_PROFILE_STATE = 'CLEAR_PROFILE_STATE',
 
   OTHER_ACTION = '__any_other_action_type__',
@@ -127,11 +126,6 @@ export interface UpdateTagsFailureAction {
 
 export interface ClearProfileStateAction {
   type: ProfileActionType.CLEAR_PROFILE_STATE
-}
-
-export interface RehydrateAction {
-  type: ProfileActionType.REHYDRATE
-  payload: RootState
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't

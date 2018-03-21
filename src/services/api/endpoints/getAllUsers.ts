@@ -1,7 +1,7 @@
-import { GetEndpoint } from './Endpoint'
+import { GetEndpoint, HttpGetRequest } from './Endpoint'
 import { GetUserResponse } from './getUser'
 
-type Request = {
+interface Request extends HttpGetRequest {
 }
 
 interface Response {

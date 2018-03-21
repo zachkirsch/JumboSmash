@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
-import { View, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native'
-import { emailSupport } from '../utils'
+import { StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native'
 import { JSText } from '../common'
+import { emailSupport } from '../utils'
 
 interface Props {
   emailSubject?: string

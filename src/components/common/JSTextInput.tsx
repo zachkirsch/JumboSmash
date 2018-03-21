@@ -1,5 +1,5 @@
-import React, { PureComponent, Component, ComponentState } from 'react'
-import { TextInput, TextInputProperties, StyleSheet, TextInputStatic, TextStyle, Platform } from 'react-native'
+import React, { Component, ComponentState, PureComponent } from 'react'
+import { Platform, StyleSheet, TextInput, TextInputProperties, TextInputStatic, TextStyle } from 'react-native'
 import { DEFAULT_FONT_SIZE } from './scaling'
 
 export type TextInputRef = TextInputStatic & Component<TextInputProperties, ComponentState>
@@ -49,21 +49,25 @@ class JSTextInput extends PureComponent<Props, State> {
         ref={textInputRef}
         style={textInputStyles}
         placeholder={this.state.showPlaceholder ? placeholder : undefined}
-        onFocus={() => {
-          this.setState({
-            showPlaceholder: Platform.OS === 'android',
-          })
-          this.props.onFocus && this.props.onFocus()
-        }}
-        onBlur={() => {
-          this.setState({
-            showPlaceholder: true,
-          })
-          this.props.onBlur && this.props.onBlur()
-        }}
-        underlineColorAndroid={this.props.fancy ? 'transparent' : undefined}
+        onFocus={this.onFocus}
+        onBlur={this.onBlur}
+        underlineColorAndroid={'transparent'}
       />
     )
+  }
+
+  private onFocus = () => {
+    this.setState({
+      showPlaceholder: Platform.OS === 'android',
+    })
+    this.props.onFocus && this.props.onFocus()
+  }
+
+  private onBlur = () => {
+    this.setState({
+      showPlaceholder: true,
+    })
+    this.props.onBlur && this.props.onBlur()
   }
 }
 

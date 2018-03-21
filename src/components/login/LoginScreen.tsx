@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react'
-import { ScrollView, View, KeyboardAvoidingView, StyleSheet, Platform } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { requestVerification, Credentials } from '../../services/auth'
+import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
+import { Credentials, requestVerification } from '../../services/auth'
 import { JSButton, JSText, JSTextInput, TextInputRef } from '../common'
 import EmailUsFooter from './EmailUsFooter'
 
@@ -41,7 +41,7 @@ class LoginScreen extends PureComponent<Props, State> {
 
   private textInputRef: TextInputRef
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     const initialCredentials: Credentials = {
       email: this.props.email || '',
@@ -91,7 +91,7 @@ class LoginScreen extends PureComponent<Props, State> {
               enablesReturnKeyAutomatically
               selectTextOnFocus
               fancy
-              textInputRef={(ref: TextInputRef) => this.textInputRef = ref}
+              textInputRef={this.setTextInputRef}
             />
           </View>
         </KeyboardAvoidingView>
@@ -104,6 +104,8 @@ class LoginScreen extends PureComponent<Props, State> {
       </ScrollView>
     )
   }
+
+  private setTextInputRef = (ref: TextInputRef) => this.textInputRef = ref
 
   private onChangeCredentials = (credentials: Credentials) => {
     const couldBeTuftsEmail = this.couldBeTuftsEmail(credentials.email)
@@ -178,7 +180,7 @@ const mapStateToProps = (state: RootState): StateProps => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials)),
   }

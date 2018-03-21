@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { StyleSheet, View, TextStyle, ViewStyle } from 'react-native'
+import { StyleSheet, TextStyle, View, ViewStyle } from 'react-native'
 import { Tag } from '../../../services/profile'
 import { JSText } from '../../common'
 
@@ -11,9 +11,10 @@ interface Props {
   selectedTagStyle?: TextStyle
   unselectedTagStyle?: TextStyle
   containerStyle?: ViewStyle
+  alignLeft?: boolean
 }
 
-class TagSection extends PureComponent<Props, {}> {
+class TagsSection extends PureComponent<Props, {}> {
 
   render() {
     const toRender = this.props.tags.map((tag, tagIndex) => {
@@ -35,8 +36,14 @@ class TagSection extends PureComponent<Props, {}> {
       )
     })
 
+    const containerStyle = [
+      styles.container,
+      this.props.alignLeft ? styles.flexStart : styles.spaceBetween,
+      this.props.containerStyle,
+    ]
+
     return (
-      <View style={[styles.container, this.props.containerStyle]}>
+      <View style={containerStyle}>
         {toRender}
         <View style={styles.lastLine} />
       </View>
@@ -44,14 +51,19 @@ class TagSection extends PureComponent<Props, {}> {
   }
 }
 
-export default TagSection
+export default TagsSection
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     flexWrap: 'wrap',
     alignItems: 'center',
+  },
+  flexStart: {
+    justifyContent: 'flex-start',
+  },
+  spaceBetween: {
+    justifyContent: 'space-between',
   },
   lastLine: {
     flexGrow: 1,

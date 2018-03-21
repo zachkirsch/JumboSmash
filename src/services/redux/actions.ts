@@ -1,8 +1,16 @@
+import { RootState } from '../../redux'
+
 /* Actions */
 
 export enum ReduxActionType {
+  REHYDRATE = 'persist/REHYDRATE',
   SET_REHYDRATED = 'SET_REHYDRATED',
   OTHER_ACTION = '__any_other_action_type__',
+}
+
+export interface RehydrateAction {
+  type: ReduxActionType.REHYDRATE
+  payload: RootState
 }
 
 export interface SetRehydratedAction {
@@ -21,7 +29,8 @@ export interface OtherAction {
 }
 
 export type ReduxAction =
-  SetRehydratedAction
+  RehydrateAction
+| SetRehydratedAction
 | OtherAction
 
 /* Action Creators */

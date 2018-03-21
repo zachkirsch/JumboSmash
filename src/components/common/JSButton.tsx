@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { TouchableOpacity, TouchableOpacityProperties, StyleSheet } from 'react-native'
+import { StyleSheet, TouchableOpacity, TouchableOpacityProperties } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import JSText from './JSText'
 
@@ -20,7 +20,8 @@ class JSButton extends PureComponent<Props, {}> {
     return (
       <LinearGradient
         colors={this.props.colors || ['rgba(231,240,253,0.67)', 'rgba(172,203,238,0.47)']}
-        start={{x: 0, y: 1}} end={{x: 1, y: 1}}
+        start={{x: 0, y: 1}}
+        end={{x: 1, y: 1}}
         locations={[0, 1]}
         style={[styles.container, this.props.containerStyle]}
       >

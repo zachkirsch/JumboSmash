@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
-import { StyleSheet, Platform, TouchableOpacity } from 'react-native'
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import SafeAreaView from 'react-native-safe-area-view'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import JSText from './JSText'
 
 interface Props {
@@ -15,24 +15,27 @@ class HeaderBar extends PureComponent<Props, {}> {
   render() {
     return (
       <SafeAreaView style={styles.container}>
-        {this.props.renderTitle ? this.props.renderTitle() : <JSText bold fontSize={22}>{this.props.title}</JSText>}
-        <TouchableOpacity onPress={() => this.props.goBack()} style={styles.backButton}>
+        <TouchableOpacity onPress={this.goBack} style={styles.sideView}>
           <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
         </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          {this.props.renderTitle ? this.props.renderTitle() : <JSText bold fontSize={22}>{this.props.title}</JSText>}
+        </View>
+        <View style={styles.sideView} />
       </SafeAreaView>
     )
   }
 
+  private goBack = () => this.props.goBack()
 }
 
 export default HeaderBar
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
     height: 66,
     zIndex: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
     ...Platform.select({
       ios: {
         shadowColor: 'gray',
@@ -47,12 +50,14 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  backButton: {
-    position: 'absolute',
-    top: Platform.select({
-      ios: 36,
-      android: 20,
-    }),
-    left: 15,
+  sideView: {
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    flex: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })

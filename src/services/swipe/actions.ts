@@ -1,6 +1,6 @@
-import { User } from './types'
 import { Direction } from '../api'
-import { RootState } from '../../redux'
+import { User } from './types'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
@@ -13,7 +13,6 @@ export enum SwipeActionType {
   SWIPE_SUCCESS = 'SWIPE_SUCCESS',
   SWIPE_FAILURE = 'SWIPE_FAILURE',
 
-  REHYDRATE = 'persist/REHYDRATE',
   CLEAR_SWIPE_STATE = 'CLEAR_SWIPE_STATE',
 
   OTHER_ACTION = '__any_other_action_type__',
@@ -54,11 +53,6 @@ export interface SwipeFailureAction {
 
 export interface ClearSwipeStateAction {
   type: SwipeActionType.CLEAR_SWIPE_STATE
-}
-
-export interface RehydrateAction {
-  type: SwipeActionType.REHYDRATE
-  payload: RootState
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't

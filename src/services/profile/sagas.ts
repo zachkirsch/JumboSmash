@@ -1,12 +1,12 @@
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import RNFetchBlob from 'react-native-fetch-blob'
+import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
+import { RootState } from '../../redux'
 import * as api from '../api'
+import { firebase } from '../firebase'
+import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { ImageUri } from './types'
-import { LoadableValue } from '../redux'
-import { RootState } from '../../redux'
-import { firebase } from '../firebase'
 // import { flatten } from 'lodash'
 
 const getImages = (state: RootState) => state.profile.images
@@ -130,10 +130,10 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       const imageRef = firebase.storage().ref('images').child('profilePictures').child(uuid.v4())
 
       fs.readFile(payload.imageUri, 'base64')
-      .then(data => {
+      .then((data) => {
         return (Blob as any).build(data, { type: `${payload.mime};BASE64` })
       })
-      .then(blob => {
+      .then((blob) => {
         uploadBlob = blob
         return imageRef.put(blob, { contentType: payload.mime })
       })
@@ -141,10 +141,10 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
         uploadBlob.close()
         return imageRef.getDownloadURL()
       })
-      .then(url => {
+      .then((url) => {
         resolve(url)
       })
-      .catch(error => {
+      .catch((error) => {
         reject(error)
       })
     })
@@ -155,7 +155,7 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
     const firebaseUrl = yield call(uploadImageToFirebase)
 
     // send images to server
-    const images: LoadableValue<ImageUri>[] = yield select(getImages)
+    const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
     yield call(
       api.api.updateImages,
       images.map((image, index) => index === payload.index ? firebaseUrl : !image.value.isLocal ? image.value.uri : '')
@@ -194,14 +194,14 @@ function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
   }
 }
 
-function* rehydrateProfileFromServer(_: ProfileActions.RehydrateAction) {
+function* rehydrateProfileFromServer(_: RehydrateAction) {
   try {
     const meInfo: api.MeResponse = yield call(api.api.me)
     yield put(ProfileActions.initializeProfile(
       meInfo.id,
       meInfo.preferred_name,
       meInfo.bio,
-      meInfo.images.map(image => image.url)
+      meInfo.images.map((image) => image.url)
     ))
   } catch (e) {} /* tslint:disable-line:no-empty */
 }
@@ -214,5 +214,5 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
-  yield takeLatest(ProfileActions.ProfileActionType.REHYDRATE, rehydrateProfileFromServer)
+  yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
 }

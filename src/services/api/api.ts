@@ -1,6 +1,6 @@
 import { Credentials } from '../auth'
-import * as Endpoints from './endpoints'
 import { getEmail } from '../auth'
+import * as Endpoints from './endpoints'
 
 export interface ErrorResponse {
   message: string
