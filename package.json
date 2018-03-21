@@ -29,7 +29,6 @@
 				"@types/react-native-vector-icons": "^4.4.2",
 				"@types/react-navigation": "^1.0.22",
 				"@types/react-redux": "^5.0.13",
-				"@types/react-test-renderer": "^16.0.0",
 				"@types/redux-logger": "^3.0.5",
 				"babel-core": "^6.26.0",
 				"firebase": "^4.10.1",
@@ -64,31 +63,10 @@
 				"tslint-react": "^3.5.1"
 		},
 		"devDependencies": {
-				"@types/jest": "^21.1.2",
-				"babel-jest": "21.2.0",
 				"babel-preset-react-native": "4.0.0",
-				"jest": "21.2.1",
-				"react-test-renderer": "16.0.0-beta.5",
 				"rimraf": "^2.6.2",
 				"tslint": "^5.7.0",
 				"typescript": "^2.5.3"
-		},
-		"jest": {
-				"preset": "react-native",
-				"testRegex": "build/__tests__/.+\\.js$",
-				"coverageDirectory": "coverage",
-				"coverageReporters": [
-						"text-summary",
-						"html"
-				],
-				"collectCoverageFrom": [
-						"build/**/*.js",
-						"!build/**/*.spec.js",
-						"!build/**/*.index.js"
-				],
-				"transformIgnorePatterns": [
-						"node_modules/(?!(jest-)?react-native|react-navigation|@expo/react-native-action-sheet)"
-				]
 		},
 		"rnpm": {
 				"assets": [
