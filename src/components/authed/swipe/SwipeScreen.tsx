@@ -1,17 +1,17 @@
+import { List } from 'immutable'
 import React, { PureComponent } from 'react'
-import { Animated, View, StyleSheet, ViewStyle, PanResponder, Platform } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
+import { Animated, PanResponder, Platform, StyleSheet, View, ViewStyle } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import LinearGradient from 'react-native-linear-gradient'
-import { List } from 'immutable'
-import Card from './Card'
-import { CircleButton, CircleButtonProps, JSText } from '../../generic'
+import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
-import { User, fetchAllUsers, swipe } from '../../../services/swipe'
-import NoMoreCards from './NoMoreCards'
 import { Direction } from '../../../services/api'
+import { fetchAllUsers, swipe, User } from '../../../services/swipe'
+import { CircleButton, CircleButtonProps, JSText } from '../../common'
 import { mod } from '../../utils'
+import Card from './Card'
+import NoMoreCards from './NoMoreCards'
 
 interface OwnProps {
   preview?: {
@@ -113,11 +113,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         onContractCard={this.onContractCard}
         onCompleteSwipe={this.onCompleteSwipe}
         key={cardIndex}
-        ref={(ref: Card) => {
-          if (positionInDeck === 0) {
-            this.topCard = ref
-          }
-        }}
+        ref={this.assignCardRef(positionInDeck)}
       />
     )
   }
@@ -149,7 +145,8 @@ class SwipeScreen extends PureComponent<Props, State> {
       >
         <LinearGradient
           colors={['rgba(217,228,239,0)', 'rgba(217,228,239,1)']}
-          start={{x: 0, y: 0}} end={{x: 0, y: 0.75}}
+          start={{x: 0, y: 0}}
+          end={{x: 0, y: 0.75}}
           style={styles.fill}
         >
             <View style={styles.fill}/>
@@ -201,6 +198,12 @@ class SwipeScreen extends PureComponent<Props, State> {
     )
   }
 
+  private assignCardRef = (positionInDeck: number) => (ref: Card) => {
+    if (positionInDeck === 0) {
+      this.topCard = ref
+    }
+  }
+
   private onExpandCard = () => {
     Animated.timing(
       this.state.expansion,
@@ -235,7 +238,7 @@ class SwipeScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    allUsers: List(state.swipe.allUsers.value.filter(user => user.images.length > 0)),
+    allUsers: List(state.swipe.allUsers.value.filter((user) => user.images.length > 0)),
     loadingAllUsers: state.swipe.allUsers.loading,
   }
 }

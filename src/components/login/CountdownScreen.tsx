@@ -1,8 +1,8 @@
-import React, { PureComponent } from 'react'
-import { View, Image, StyleSheet, Dimensions } from 'react-native'
 import moment from 'moment'
-import { JSText } from '../generic'
+import React, { PureComponent } from 'react'
+import { Dimensions, Image, StyleSheet, View } from 'react-native'
 import { Images } from '../../assets'
+import { JSText } from '../common'
 
 interface State {
   seconds: number,

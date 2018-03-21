@@ -1,12 +1,12 @@
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import RNFetchBlob from 'react-native-fetch-blob'
+import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
+import { RootState } from '../../redux'
 import * as api from '../api'
+import { firebase } from '../firebase'
+import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { ImageUri } from './types'
-import { LoadableValue } from '../redux'
-import { RootState } from '../../redux'
-import { firebase } from '../firebase'
 // import { flatten } from 'lodash'
 
 const getImages = (state: RootState) => state.profile.images
@@ -91,19 +91,21 @@ function* attemptUpdateBio(payload: ProfileActions.AttemptUpdateBioAction) {
 
 /* Images */
 
-function* handleUpdateImagesSuccess(index: number, imageUri: string) {
+function* handleUpdateImagesSuccess(index: number, localUri: string, remoteUri: string) {
   const successAction: ProfileActions.UpdateImageSuccessAction = {
     type: ProfileActions.ProfileActionType.UPDATE_IMAGE_SUCCESS,
-    imageUri,
+    localUri,
+    remoteUri,
     index,
   }
   yield put(successAction)
 }
 
-function* handleUpdateImagesFailure(error: Error, index: number) {
+function* handleUpdateImagesFailure(error: Error, index: number, localUri: string) {
   const failureAction: ProfileActions.UpdateImageFailureAction = {
     type: ProfileActions.ProfileActionType.UPDATE_IMAGE_FAILURE,
     index,
+    localUri,
     errorMessage: error.message,
   }
   yield put(failureAction)
@@ -128,10 +130,10 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       const imageRef = firebase.storage().ref('images').child('profilePictures').child(uuid.v4())
 
       fs.readFile(payload.imageUri, 'base64')
-      .then(data => {
+      .then((data) => {
         return (Blob as any).build(data, { type: `${payload.mime};BASE64` })
       })
-      .then(blob => {
+      .then((blob) => {
         uploadBlob = blob
         return imageRef.put(blob, { contentType: payload.mime })
       })
@@ -139,10 +141,10 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
         uploadBlob.close()
         return imageRef.getDownloadURL()
       })
-      .then(url => {
+      .then((url) => {
         resolve(url)
       })
-      .catch(error => {
+      .catch((error) => {
         reject(error)
       })
     })
@@ -153,15 +155,15 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
     const firebaseUrl = yield call(uploadImageToFirebase)
 
     // send images to server
-    const images: LoadableValue<ImageUri>[] = yield select(getImages)
+    const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
     yield call(
       api.api.updateImages,
       images.map((image, index) => index === payload.index ? firebaseUrl : !image.value.isLocal ? image.value.uri : '')
     )
 
-    yield handleUpdateImagesSuccess(payload.index, firebaseUrl)
+    yield handleUpdateImagesSuccess(payload.index, payload.imageUri, firebaseUrl)
   } catch (error) {
-    yield handleUpdateImagesFailure(error, payload.index)
+    yield handleUpdateImagesFailure(error, payload.index, payload.imageUri)
   }
 }
 
@@ -192,6 +194,18 @@ function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
   }
 }
 
+function* rehydrateProfileFromServer(_: RehydrateAction) {
+  try {
+    const meInfo: api.MeResponse = yield call(api.api.me)
+    yield put(ProfileActions.initializeProfile(
+      meInfo.id,
+      meInfo.preferred_name,
+      meInfo.bio,
+      meInfo.images.map((image) => image.url)
+    ))
+  } catch (e) {} /* tslint:disable-line:no-empty */
+}
+
 /* main saga */
 
 export function* profileSaga() {
@@ -200,4 +214,5 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
+  yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
 }

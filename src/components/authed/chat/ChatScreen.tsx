@@ -1,13 +1,13 @@
-import React, { PureComponent } from 'react'
-import { View, StyleSheet, Image } from 'react-native'
-import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { GiftedChat } from 'react-native-gifted-chat'
 import { Map } from 'immutable'
-import {JSText } from '../../generic'
-import { GiftedChatUser, Conversation, GiftedChatMessage, sendMessages } from '../../../services/matches'
+import React, { PureComponent } from 'react'
+import { Image, StyleSheet, View } from 'react-native'
+import { GiftedChat } from 'react-native-gifted-chat'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
-import { HeaderBar } from '../../generic'
+import { Conversation, GiftedChatMessage, GiftedChatUser, sendMessages } from '../../../services/matches'
+import {JSText } from '../../common'
+import { HeaderBar } from '../../common'
 import { getFirstName } from '../../utils'
 
 interface OwnProps {
@@ -39,11 +39,11 @@ class ChatScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.container}>
-        <HeaderBar renderTitle={() => this.renderHeaderBarTitle(user)} goBack={this.props.navigation.goBack} />
+        <HeaderBar renderTitle={this.renderHeaderBarTitle(user)} goBack={this.props.navigation.goBack} />
         <View style={styles.chat}>
           <GiftedChat
             messages={messages}
-            onSend={this.onSend.bind(this)}
+            onSend={this.onSend as any} /* tslint:disable-line:no-any */
             user={this.props.me}
           />
         </View>
@@ -51,19 +51,18 @@ class ChatScreen extends PureComponent<Props, State> {
     )
   }
 
-  private renderHeaderBarTitle = (user: GiftedChatUser) => {
-    return (
-      <View style={styles.bannerProfile}>
-        <Image source={{uri: user.avatar}} style={styles.avatarPhoto} />
-        <JSText fontSize={13}>{getFirstName(user.name)}</JSText>
-      </View>
-    )
-  }
+  private renderHeaderBarTitle = (user: GiftedChatUser) => () => (
+    <View style={styles.bannerProfile}>
+      <Image source={{uri: user.avatar}} style={styles.avatarPhoto} />
+      <JSText fontSize={13}>{getFirstName(user.name)}</JSText>
+    </View>
+  )
 
-  private onSend(messages: GiftedChatMessage[] = []) {
+  private onSend = (messages: GiftedChatMessage[] = []) => {
     this.props.sendMessages(this.props.navigation.state.params.conversationId, messages)
   }
 }
+
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     me: {

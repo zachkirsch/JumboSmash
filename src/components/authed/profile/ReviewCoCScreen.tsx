@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { View } from 'react-native'
 import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
-import { HeaderBar } from '../../generic'
+import { HeaderBar } from '../../common'
 import { CodeOfConductScreen } from '../../login'
 
 interface OwnProps {

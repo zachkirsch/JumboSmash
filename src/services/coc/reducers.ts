@@ -1,4 +1,4 @@
-import { CoCActionType, CoCAction } from './actions'
+import { CoCAction, CoCActionType } from './actions'
 import { CoCState } from './types'
 
 const initialState: CoCState = {

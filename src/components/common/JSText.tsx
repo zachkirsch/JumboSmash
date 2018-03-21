@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Text, TextProperties, StyleSheet } from 'react-native'
+import { StyleSheet, Text, TextProperties } from 'react-native'
 import { DEFAULT_FONT_SIZE } from './scaling'
 
 interface Props extends TextProperties {
@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
   default: {
     fontWeight: '300',
     fontFamily: 'Avenir',
-    fontSize: 25,
     color: 'black',
     backgroundColor: 'transparent',
   },

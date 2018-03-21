@@ -1,25 +1,26 @@
 import React, { PureComponent } from 'react'
 import {
   Animated,
-  Easing,
-  View,
-  StyleSheet,
-  Platform,
-  PanResponder,
-  PanResponderInstance,
-  PanResponderGestureState,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  TouchableOpacity,
   Dimensions,
+  Easing,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  PanResponder,
+  PanResponderGestureState,
+  PanResponderInstance,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
-import Carousel from './Carousel'
-import { clamp } from '../../utils'
-import { JSText } from '../../generic'
-import { User } from '../../../services/swipe'
 import { Direction } from '../../../services/api'
+import { User } from '../../../services/swipe'
+import { JSText } from '../../common'
+import { clamp, shuffle } from '../../utils'
+import { TagsSection } from '../profile'
+import Carousel from './Carousel'
 
 interface Props {
   positionInDeck: number
@@ -48,28 +49,22 @@ interface State {
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
 const TAGS = [
-  'Japanese',
-  'jobless af',
-  'Chinese',
-  'has a lot of tags',
-  'did porn to pay for tuition',
-  'tags mcgee',
-  'call me taggart',
-  'is this tag good',
-  'tag1',
-  'tag2',
-  'tag3',
-  'Japanese',
-  'jobless af',
-  'Chinese',
-  'did porn to pay for tuition',
-  'has a lot of tags',
-  'tags mcgee',
-  'call me taggart',
-  'is this tag good',
-  'tag1',
-  'tag2',
-  'tag3',
+  { name: '🏳️‍🌈', emoji: true },
+  { name: '👫', emoji: true },
+  { name: '👬', emoji: true },
+  { name: '👭', emoji: true },
+  { name: 'taken af' },
+  { name: 'single af' },
+  { name: 'open relationship' },
+  { name: 'poly' },
+  { name: 'complicated' },
+  { name: 'married' },
+  { name: 'single' },
+  { name: "it's cuffing szn" },
+  { name: 'one night stands' },
+  { name: 'I do CS' },
+  { name: "can't afford a relationship" },
+  { name: 'here for the memes' },
 ]
 
 const BOTTOM_SWIPE_AWAY_ENABLED = false
@@ -225,19 +220,21 @@ class Card extends PureComponent<Props, State> {
       shadowStyle = styles.thirdCard
     }
 
-    let [translateX, translateY] = [this.state.pan.x, this.state.pan.y]
-    let rotate = this.state.panX.interpolate({inputRange: [-200, 0, 200], outputRange: ['-10deg', '0deg', '10deg']})
-    let translationStyle = {transform: [{translateX}, {translateY}, {rotate}]}
+    const [translateX, translateY] = [this.state.pan.x, this.state.pan.y]
+    const rotate = this.state.panX.interpolate({inputRange: [-200, 0, 200], outputRange: ['-10deg', '0deg', '10deg']})
+    const translationStyle = {transform: [{translateX}, {translateY}, {rotate}]}
+
+    const outerContainerStyleList = [
+      styles.outerContainer,
+      shadowStyle,
+      translationStyle,
+      outerContainerStyle,
+      borderRadiusStyle,
+    ]
 
     return (
       <Animated.View
-        style={[
-          styles.outerContainer,
-          shadowStyle,
-          translationStyle,
-          outerContainerStyle,
-          borderRadiusStyle,
-        ]}
+        style={outerContainerStyleList}
         {...this.cardPanResponder.panHandlers}
       >
         <Animated.View
@@ -289,12 +286,7 @@ class Card extends PureComponent<Props, State> {
       >
         <JSText fontSize={20} bold style={styles.name}>{this.props.profile.preferredName}</JSText>
         <View style={styles.textContainer}>
-          <JSText fontSize={14} style={styles.hash}>{'#'}</JSText>
-          {
-            TAGS.map((tag, i) => {
-              return <JSText fontSize={14} style={styles.tag} key={i}>{tag}</JSText>
-            })
-          }
+          <TagsSection tags={shuffle(TAGS)} tagStyle={styles.tag} alignLeft />
           <JSText fontSize={14} style={styles.bio}>
             This is my bio. It is very long. I am such a long writer. Look at me go!
             Soon I will have reached a few lines, and then BAM, I'm almost on line 5.
@@ -327,16 +319,24 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderGradient = () => {
+    const gradientStyle = {
+      height: this.state.expansion.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['20%', '3%'],
+      }),
+    }
+
     return (
-      <View style={styles.overlay}>
+      <Animated.View style={[styles.overlay, gradientStyle]}>
         <LinearGradient
           colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.6)']}
-          start={{x: 0, y: 0}} end={{x: 0, y: 0.5}}
+          start={{x: 0, y: 0}}
+          end={{x: 0, y: 0.5}}
           style={styles.fill}
         >
             <View style={styles.fill} />
         </LinearGradient>
-      </View>
+      </Animated.View>
     )
   }
 
@@ -386,8 +386,8 @@ class Card extends PureComponent<Props, State> {
       return
     }
     this.isSwipingProgrammatically = true
-    let xValue = direction === 'right' ? this.cardWidth() * 2 : this.cardWidth() * -2
-    let yValue = 50
+    const xValue = direction === 'right' ? this.cardWidth() * 2 : this.cardWidth() * -2
+    const yValue = 50
 
     Animated.parallel([
       Animated.timing(
@@ -479,7 +479,7 @@ class Card extends PureComponent<Props, State> {
           ]).start(() => this.onCompleteSwipe(isRight ? 'right' : 'left'))
         } else {
           Animated.parallel([
-            Animated.spring( this.state.pan, {
+            Animated.spring(this.state.pan, {
                 toValue: {x: 0, y: 0},
                 friction: 4,
               }
@@ -573,7 +573,6 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     width: '100%',
-    height: '2%',
     bottom: 0,
     left: 0,
     ...Platform.select({
@@ -606,9 +605,6 @@ const styles = StyleSheet.create({
   },
   tag: {
     color: '#9B9B9B',
-    textDecorationLine: 'underline',
-    textDecorationColor: '#9B9B9B',
-    marginRight: 5,
   },
   bio: {
     marginTop: 15,

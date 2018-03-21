@@ -1,16 +1,17 @@
+import update from 'immutability-helper'
 import React, { PureComponent } from 'react'
 import {
-  View,
   ScrollView,
   StyleSheet,
+  View,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import update from 'immutability-helper'
-import { JSText } from '../../generic/index'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { TagSectionType, updateTags } from '../../../services/profile'
-import TagSection from './TagSection'
+import { HeaderBar } from '../../common'
+import { JSText } from '../../common/index'
+import TagsSection from './TagsSection'
 
 interface State {
   tags: TagSectionType[]
@@ -42,13 +43,16 @@ class TagsScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View style={styles.fill}>
-        <View style={styles.topContainer}>
-          <JSText style={styles.title}>
-            Tap the tags that apply to you. When swiping, you will see the tags you have in common with each student.
-          </JSText>
-        </View>
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          {this.renderTags()}
+        <HeaderBar title='Choose Tags' goBack={this.props.navigation.goBack} />
+        <ScrollView>
+          <View style={styles.topContainer}>
+            <JSText style={styles.title}>
+              Tap the tags that apply to you. When swiping, you will see the tags you have in common with each student.
+            </JSText>
+          </View>
+          <View style={styles.tagsContainer}>
+            {this.renderTags()}
+          </View>
         </ScrollView>
       </View>
     )
@@ -59,9 +63,9 @@ class TagsScreen extends PureComponent<Props, State> {
       return (
         <View key={section.name}>
           <JSText bold fontSize={16}>{section.name}</JSText>
-          <TagSection
+          <TagsSection
             tags={section.tags}
-            onPress={(tagIndex) => this.toggleTag(sectionIndex, tagIndex)}
+            onPress={this.toggleTag(sectionIndex)}
             tagStyle={styles.tag}
             selectedTagStyle={styles.chosenTag}
             containerStyle={styles.tagSection}
@@ -76,7 +80,7 @@ class TagsScreen extends PureComponent<Props, State> {
     this.props.navigation.goBack()
   }
 
-  private toggleTag = (sectionIndex: number, tagIndex: number) => {
+  private toggleTag = (sectionIndex: number) => (tagIndex: number) => {
     const updateConfig: any = {} /* tslint:disable-line:no-any */
     updateConfig[sectionIndex] = {
       tags: {},
@@ -114,9 +118,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'rgb(250, 250, 250)',
   },
-  scrollView: {
-    padding: 20,
-  },
   tag: {
     color: 'black',
     marginBottom: 5,
@@ -135,5 +136,8 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     fontWeight: 'bold', alignSelf: 'center',
+  },
+  tagsContainer: {
+    padding: 20,
   },
 })

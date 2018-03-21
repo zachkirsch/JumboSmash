@@ -1,7 +1,9 @@
-import { ProfileActionType, ProfileAction } from './actions'
-import { ProfileState } from './types'
-import TAGS from './TAGS'
+import { LoadableValue } from '../redux'
+import { ProfileAction, ProfileActionType } from './actions'
+import { ReduxActionType } from '../redux'
 import REACTS from './REACTS'
+import TAGS from './TAGS'
+import { ProfileState } from './types'
 
 const initialState: ProfileState = {
   id: -1,
@@ -37,7 +39,7 @@ const newImage = () => ({
 })
 
 export function profileReducer(state = initialState, action: ProfileAction): ProfileState {
-  const newState = Object.assign({}, state)
+  const newState = {...state}
   switch (action.type) {
 
     case ProfileActionType.INITIALIZE_PROFILE:
@@ -46,7 +48,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         id: action.id,
         preferredName: { value: action.preferredName, loading: false },
         bio: { value: action.bio, loading: false },
-        images: action.images.map(imageUri => {
+        images: action.images.map((imageUri) => {
           return {
             value: {
               uri: imageUri,
@@ -61,7 +63,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     case ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME:
       newState.preferredName = {
-        prevValue: state.preferredName.value,
+        prevValue: state.preferredName.loading ? state.preferredName.prevValue : state.preferredName.value,
         value: action.preferredName,
         loading: true,
       }
@@ -84,7 +86,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     case ProfileActionType.ATTEMPT_UPDATE_MAJOR:
       newState.major = {
-        prevValue: state.major.value,
+        prevValue: state.major.loading ? state.major.prevValue : state.major.value,
         value: action.major,
         loading: true,
       }
@@ -107,7 +109,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     case ProfileActionType.ATTEMPT_UPDATE_BIO:
       newState.bio = {
-        prevValue: state.bio.value,
+        prevValue: state.bio.loading ? state.bio.prevValue : state.bio.value,
         value: action.bio,
         loading: true,
       }
@@ -135,8 +137,17 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         newImages.push(state.images[i] || newImage())
       }
 
+      let prevValue
+      if (state.images[action.index]) {
+        if (state.images[action.index].loading) {
+          prevValue = state.images[action.index].prevValue
+        } else {
+          prevValue = state.images[action.index].value
+        }
+      }
+
       newImages[action.index] = {
-        prevValue: state.images[action.index] && state.images[action.index].value,
+        prevValue,
         value: {
           uri: action.imageUri,
           isLocal: true,
@@ -150,6 +161,11 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
 
     case ProfileActionType.UPDATE_IMAGE_SUCCESS:
+
+      if (action.localUri !== state.images[action.index].value.uri) {
+        return state
+      }
+
       return {
         ...state,
         images: state.images.map((image, index) => {
@@ -159,7 +175,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           return {
             prevValue: undefined,
             value: {
-              uri: action.imageUri,
+              uri: action.remoteUri,
               isLocal: false,
             },
             loading: false,
@@ -168,6 +184,11 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
 
     case ProfileActionType.UPDATE_IMAGE_FAILURE:
+
+      if (action.localUri !== state.images[action.index].value.uri) {
+        return state
+      }
+
       return {
         ...state,
         images: state.images.map((image, index) => {
@@ -176,7 +197,10 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           }
           return {
             prevValue: undefined,
-            value: image.prevValue,
+            value: {
+              uri: image.prevValue ? image.prevValue.uri : '',
+              isLocal: image.prevValue ? image.prevValue.isLocal : true,
+            },
             errorMessage: action.errorMessage,
             loading: false,
           }
@@ -208,7 +232,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     case ProfileActionType.ATTEMPT_UPDATE_TAGS:
       newState.tags = {
-        prevValue: state.tags.value,
+        prevValue: state.tags.loading ? state.tags.prevValue : state.tags.value,
         value: action.tags,
         loading: true,
       }
@@ -226,6 +250,32 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         errorMessage: action.errorMessage,
       }
       return newState
+
+    case ReduxActionType.REHYDRATE:
+
+      // for unit tests when root state is empty
+      if (!action.payload.profile) {
+        return state
+      }
+
+      function getValue<T>(oldStateValue: LoadableValue<T>, defaultValue: T): LoadableValue<T> {
+        const wasLoading = oldStateValue.loading
+        return {
+          value: wasLoading ? oldStateValue.prevValue || defaultValue : oldStateValue.value,
+          loading: false,
+          errorMessage: wasLoading ? 'Failed to Upload' : '',
+        }
+      }
+
+      return {
+        id: action.payload.profile.id,
+        preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
+        major: getValue(action.payload.profile.major, initialState.major.value),
+        bio: getValue(action.payload.profile.bio, initialState.bio.value),
+        images: action.payload.profile.images.map((image) => getValue(image, {uri: '', isLocal: true})),
+        tags: getValue(action.payload.profile.tags, initialState.tags.value),
+        reacts: getValue(action.payload.profile.reacts, initialState.reacts.value),
+      }
 
     default:
       return state

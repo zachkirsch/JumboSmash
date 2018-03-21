@@ -1,24 +1,24 @@
-import { put, call, takeEvery, takeLatest } from 'redux-saga/effects'
-import {
-  SwipeActionType,
-  FetchAllUsersSuccessAction,
-  FetchAllUsersFailureAction,
-  AttemptSwipeAction,
-} from './actions'
-import { MatchesActionType, CreateMatchAction } from '../matches'
-import { createChat } from '../firebase'
+import { call, put, takeEvery, takeLatest } from 'redux-saga/effects'
 import { api, GetAllUsersResponse, SwipeResponse } from '../api'
+import { createChat } from '../firebase'
+import { CreateMatchAction, MatchesActionType } from '../matches'
+import {
+  AttemptSwipeAction,
+  FetchAllUsersFailureAction,
+  FetchAllUsersSuccessAction,
+  SwipeActionType,
+} from './actions'
 
 function* attemptFetchUsers() {
   try {
     const users: GetAllUsersResponse = yield call(api.getAllUsers)
     const successAction: FetchAllUsersSuccessAction = {
       type: SwipeActionType.FETCH_ALL_USERS_SUCCESS,
-      users: users.users[0].map(user => ({
+      users: users.users[0].map((user) => ({
         id: user.id,
         bio: user.bio,
         preferredName: user.preferred_name,
-        images: user.images.map(image => image.url),
+        images: user.images.map((image) => image.url),
       })),
     }
     yield put(successAction)

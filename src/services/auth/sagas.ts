@@ -1,13 +1,13 @@
-import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { Answers } from 'react-native-fabric'
-import { api, VerifyEmailResponse, RequestVerificationResponse, MeResponse } from '../api'
-import * as AuthActions from './actions'
-import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
-import { setCoCReadStatus } from '../coc'
+import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { RootState } from '../../redux'
-import { initializeProfile, clearProfileState } from '../profile'
-import { fetchAllUsers, clearSwipeState } from '../swipe'
+import { api, MeResponse, RequestVerificationResponse, VerifyEmailResponse } from '../api'
+import { setCoCReadStatus } from '../coc'
+import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { clearMatchesState } from '../matches'
+import { clearProfileState, initializeProfile } from '../profile'
+import { clearSwipeState, fetchAllUsers } from '../swipe'
+import * as AuthActions from './actions'
 
 const getEmail = (state: RootState) => state.auth.email
 
@@ -75,7 +75,7 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
     yield handleEmailVerificationSuccess()
 
     // rehydrate the user's profile
-    yield put(initializeProfile(meInfo.id, meInfo.preferred_name, meInfo.bio, meInfo.images.map(image => image.url)))
+    yield put(initializeProfile(meInfo.id, meInfo.preferred_name, meInfo.bio, meInfo.images.map((image) => image.url)))
 
     // fetch users
     yield put(fetchAllUsers())

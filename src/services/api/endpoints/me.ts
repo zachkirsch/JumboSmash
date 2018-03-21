@@ -1,7 +1,7 @@
-import { GetEndpoint } from './Endpoint'
 import { Match } from '../../swipe'
+import { GetEndpoint, HttpGetRequest } from './Endpoint'
 
-type Request = {
+interface Request extends HttpGetRequest {
 }
 
 interface Image {

@@ -1,11 +1,11 @@
+import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
+import { Alert, StyleSheet, View} from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { Alert, View, StyleSheet} from 'react-native'
-import { RectangleButton } from '../../generic/index'
-import { logout } from '../../../services/auth'
-import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
 import { RootState } from '../../../redux'
-import { emailSupport, ActionSheetOption, generateActionSheetOptions } from '../../utils'
+import { logout } from '../../../services/auth'
+import { RectangleButton } from '../../common/index'
+import { ActionSheetOption, emailSupport, generateActionSheetOptions } from '../../utils'
 
 interface OwnProps {
   previewProfile: () => void

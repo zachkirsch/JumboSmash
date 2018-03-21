@@ -73,10 +73,10 @@ const tags: TagSectionType[] = [
   {
     name: 'relationships',
     tags: [
-      { name: '🏳️‍🌈' },
-      { name: '👫' },
-      { name: '👬' },
-      { name: '👭' },
+      { name: '🏳️‍🌈', emoji: true },
+      { name: '👫', emoji: true },
+      { name: '👬', emoji: true },
+      { name: '👭', emoji: true },
       { name: 'taken af' },
       { name: 'single af' },
       { name: 'open relationship' },

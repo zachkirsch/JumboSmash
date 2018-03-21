@@ -1,6 +1,6 @@
-import { RootState } from '../../redux'
-import { GiftedChatMessage } from './types'
 import { User } from '../swipe'
+import { GiftedChatMessage } from './types'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
@@ -12,7 +12,6 @@ export enum MatchesActionType {
   SEND_MESSAGES_FAILURE = 'SEND_MESSAGES_FAILURE',
   RECEIVE_MESSAGES = 'RECEIVE_MESSAGES',
 
-  REHYDRATE = 'persist/REHYDRATE',
   CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
 }
@@ -52,12 +51,6 @@ export interface ClearMatchesStateAction {
   type: MatchesActionType.CLEAR_MATCHES_STATE
 }
 
-// this is a separate case because redux-persist stores immutables as plain JS
-export interface RehydrateAction {
-  type: MatchesActionType.REHYDRATE
-  payload: RootState
-}
-
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
 * have a default case when processing actions. We will never dispatch
 * OtherAction, but we do need a default case for the other Actions that are
@@ -76,6 +69,7 @@ export type MatchesAction = AttemptSendMessagesAction
 | CreateMatchAction
 | RehydrateAction
 | ClearMatchesStateAction
+| RehydrateAction
 | OtherAction
 
 /* Action Creators */

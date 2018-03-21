@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, TouchableWithoutFeedback, ScrollView, Image, StyleSheet, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
+import { Dimensions, Image, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 
 interface Props {
   imageUris: string[]
@@ -63,7 +63,7 @@ class Carousel extends PureComponent<Props, State> {
   }
 
   private renderImages = () => {
-    return this.props.imageUris.filter(imageUri => imageUri).map((uri, i) => (
+    return this.props.imageUris.filter((imageUri) => imageUri).map((uri, i) => (
       <TouchableWithoutFeedback key={`image-${i}`} onPress={this.props.enabled ? this.props.onTapImage : undefined}>
         <Image
           source={{uri}}
@@ -78,15 +78,14 @@ class Carousel extends PureComponent<Props, State> {
     if (!this.props.enabled || this.props.imageUris.length <= 1) {
       return undefined
     }
-    return this.props.imageUris.map((_, i) => (
-      <View
-        key={`dot-${i}`}
-        style={[styles.dot, {
-          backgroundColor: this.state.carouselIndex === i ? 'black' : 'white',
-          borderColor:     this.state.carouselIndex === i ? 'white' : 'black',
-        }]
-      }/>
-    ))
+
+    return this.props.imageUris.map((_, i) => {
+      const style = [styles.dot, {
+        backgroundColor: this.state.carouselIndex === i ? 'black' : 'white',
+        borderColor:     this.state.carouselIndex === i ? 'white' : 'black',
+      }]
+      return <View key={`dot-${i}`} style={style} />
+    })
   }
 
   private onScroll = (event: ScrollEvent) => {

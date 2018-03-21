@@ -1,4 +1,5 @@
 import { TagSectionType } from './types'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
@@ -92,12 +93,14 @@ export interface AttemptUpdateImageAction {
 export interface UpdateImageSuccessAction {
   type: ProfileActionType.UPDATE_IMAGE_SUCCESS
   index: number
-  imageUri: string
+  localUri: string
+  remoteUri: string
 }
 
 export interface UpdateImageFailureAction {
   type: ProfileActionType.UPDATE_IMAGE_FAILURE
   index: number
+  localUri: string
   errorMessage: string
 }
 
@@ -154,6 +157,7 @@ export type ProfileAction = InitializeProfileAciton
 | UpdateTagsSuccessAction
 | UpdateTagsFailureAction
 | ClearProfileStateAction
+| RehydrateAction
 | OtherAction
 
 /* Action Creators */

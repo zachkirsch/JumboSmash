@@ -1,36 +1,38 @@
+import { flatten } from 'lodash'
 import React, { PureComponent } from 'react'
 import {
+  Alert,
   Animated,
-  View,
-  TouchableOpacity,
   Image,
-  StyleSheet,
-  ScrollView,
+  Keyboard,
   Modal,
   Platform,
-  Keyboard,
-  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native'
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
-import { flatten } from 'lodash'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import { Images } from '../../../assets'
+import { RootState } from '../../../redux'
 import {
-  updatePreferredName,
-  updateBio,
-  updateMajor,
-  updateImage,
+  ImageUri,
+  ProfileReact,
   swapImages,
   TagSectionType,
-  ProfileReact,
+  updateBio,
+  updateImage,
+  updateMajor,
+  updatePreferredName,
 } from '../../../services/profile'
+import { LoadableValue } from '../../../services/redux'
+import { CircleButton, JSText, JSTextInput } from '../../common'
+import SwipeScreen from '../swipe/SwipeScreen'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
-import SwipeScreen from '../swipe/SwipeScreen'
-import { CircleButton, JSText, JSTextInput } from '../../generic'
-import { RootState } from '../../../redux'
-import TagSection from './TagSection'
-import { Images } from '../../../assets'
+import TagsSection from './TagsSection'
 
 interface State {
   previewingCard: boolean
@@ -45,7 +47,7 @@ interface State {
 interface OwnProps {}
 
 interface StateProps {
-  images: string[]
+  images: Array<LoadableValue<ImageUri>>
   preferredName: string
   bio: string
   major: string
@@ -62,6 +64,8 @@ interface DispatchProps {
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
+
+const MAX_BIO_LENGTH = 1000
 
 class ProfileScreen extends PureComponent<Props, State> {
 
@@ -90,19 +94,24 @@ class ProfileScreen extends PureComponent<Props, State> {
           <PhotosSection
               images={this.props.images}
               swapImages={this.props.swapImages}
-              updateImage={this.props.updateImage}/>
+              updateImage={this.props.updateImage}
+          />
           {this.renderPersonalInfo()}
           {this.renderTags()}
           {this.renderReacts()}
           <SettingsSection
-            block={() => this.props.navigation.navigate('BlockScreen')}
-            viewCoC={() => this.props.navigation.navigate('ReviewCoCScreen')}
+            block={this.navigateTo('BlockScreen')}
+            viewCoC={this.navigateTo('ReviewCoCScreen')}
             previewProfile={this.previewProfile}
           />
         </ScrollView>
         {this.renderSaveButton()}
       </View>
     )
+  }
+
+  private navigateTo = (screen: string) => () => {
+    () => this.props.navigation.navigate(screen)
   }
 
   private renderSaveButton = () => {
@@ -121,33 +130,43 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
-  private renderProfilePreviewModal = () => (
-    <Modal
-      animationType='fade'
-      transparent={false}
-      visible={this.state.previewingCard}
-      onRequestClose={() => this.setState({previewingCard: false})}
-    >
-      <SwipeScreen
-        preview={{
-          user: {
-            id: -1,
-            preferredName: this.state.preferredName,
-            bio: this.state.bio,
-            images: this.props.images.filter(image => image),
-          },
-          onCompleteSwipe: () => this.setState({previewingCard: false}),
-        }}
-      />
-    </Modal>
-  )
+  private renderProfilePreviewModal = () => {
+    const preview = {
+      user: {
+        id: -1,
+        preferredName: this.state.preferredName,
+        bio: this.state.bio,
+        images: this.props.images.map((image) => image.value.uri).filter((image) => image),
+      },
+      onCompleteSwipe: this.setPreviewState(false),
+    }
+
+    return (
+      <Modal
+        animationType='fade'
+        transparent={false}
+        visible={this.state.previewingCard}
+        onRequestClose={this.setPreviewState(false)}
+      >
+        <SwipeScreen
+          preview={preview}
+        />
+      </Modal>
+    )
+  }
+
+  private setPreviewState = (previewingCard: boolean) => () => {
+    this.setState({
+      previewingCard,
+    })
+  }
 
   private renderTags = () => {
-    let tags = flatten(this.props.tags.map(section => section.tags.filter(tag => tag.selected)))
+    const tags = flatten(this.props.tags.map((section) => section.tags.filter((tag) => tag.selected)))
 
     let toRender
     if (tags.length > 0) {
-      toRender = <TagSection tags={tags} />
+      toRender = <TagsSection tags={tags} />
     } else {
       toRender = <JSText style={styles.underline}>Tap to edit</JSText>
     }
@@ -155,7 +174,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.personalInfo}>
         <JSText fontSize={13} bold style={styles.tagsTitle}>TAGS</JSText>
-        <TouchableOpacity onPress={() => this.props.navigation.navigate('TagsScreen')}>
+        <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
           {toRender}
         </TouchableOpacity>
       </View>
@@ -198,19 +217,24 @@ class ProfileScreen extends PureComponent<Props, State> {
       )
     }
 
-    return <View style={styles.personalInfo}>
-    <JSText fontSize={13} bold style={styles.reactsTitle}>REACTS RECEIVED</JSText>
-      <View style={styles.reactColumns}>
-        {reactColumns}
+    return (
+      <View style={styles.personalInfo}>
+        <JSText fontSize={13} bold style={styles.reactsTitle}>REACTS RECEIVED</JSText>
+        <View style={styles.reactColumns}>
+          {reactColumns}
+        </View>
       </View>
-    </View>
+    )
   }
 
   private renderPreferredName = () => (
     <View>
       <JSText fontSize={13} bold style={styles.preferredNameTitle}>MY PREFERRED NAME</JSText>
       <View style={styles.preferredNameContainer}>
-        <JSTextInput maxLength={30} fontSize={22} style={styles.preferredName}
+        <JSTextInput
+          maxLength={30}
+          fontSize={22}
+          style={styles.preferredName}
           value={this.state.preferredName}
           onChangeText={this.updatePreferredName}
           autoCorrect={false}
@@ -224,7 +248,9 @@ class ProfileScreen extends PureComponent<Props, State> {
   private renderMajor = () => (
     <View>
       <JSText fontSize={13} bold style={styles.majorTitle}>MAJOR AND MINOR</JSText>
-      <JSTextInput maxLength={30} fontSize={22}
+      <JSTextInput
+        maxLength={30}
+        fontSize={22}
         value={this.state.major}
         onChangeText={this.updateMajor}
         autoCorrect={false}
@@ -235,18 +261,23 @@ class ProfileScreen extends PureComponent<Props, State> {
   )
 
   private renderBio = () => (
-    <JSTextInput
-      multiline
-      maxLength={1000}
-      value={this.state.bio}
-      onChangeText={this.updateBio}
-      placeholder={'Actually, Monaco and I...'}
-      fontSize={17}
-      fancy
-      autoCorrect={false}
-      style={styles.bio}
-      underlineColorAndroid='transparent'
-    />
+    <View>
+      <JSTextInput
+        multiline
+        maxLength={MAX_BIO_LENGTH}
+        value={this.state.bio}
+        onChangeText={this.updateBio}
+        placeholder={'Actually, Monaco and I...'}
+        fontSize={17}
+        fancy
+        autoCorrect={false}
+        style={styles.bio}
+        underlineColorAndroid='transparent'
+      />
+      <JSText style={styles.bioCharacterCount}>
+        {MAX_BIO_LENGTH - this.state.bio.length}
+      </JSText>
+    </View>
   )
 
   private renderPersonalInfo = () => {
@@ -317,7 +348,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         this.state.saveButtonOpacity,
         {
           toValue: saveRequired ? 0.8 : 0,
-          duration: 500,
+          duration: 100,
         }
       ).start()
     }
@@ -337,7 +368,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     bio: state.profile.bio.value,
     major: state.profile.major.value,
     tags: state.profile.tags.value,
-    images: state.profile.images.map(image => image.value.uri),
+    images: state.profile.images,
     reacts: state.profile.reacts.value,
   }
 }
@@ -360,9 +391,17 @@ const styles = StyleSheet.create({
   bio: {
     marginHorizontal: 0,
     textAlign: 'left',
-    padding: 20,
     paddingTop: 15,
+    paddingLeft: 20,
+    paddingBottom: 20,
+    paddingRight: 25,
     height: 175,
+  },
+  bioCharacterCount: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    color: 'gray',
   },
   personalInfoContainer: {
     flex: 1,

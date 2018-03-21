@@ -33,7 +33,7 @@ export interface ProfileState {
   preferredName: LoadableValue<string>
   major: LoadableValue<string>
   bio: LoadableValue<string>
-  images: LoadableValue<ImageUri>[]
+  images: Array<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
   reacts: LoadableValue<ProfileReact[]>
 }

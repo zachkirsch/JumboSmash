@@ -10,15 +10,17 @@ class RectangleButton extends PureComponent<Props, {}> {
 
   render() {
 
-    const { containerStyle, colors, ...otherProps } = this.props
+    const { containerStyle, ...otherProps } = this.props
+
+    const colors = this.props.active
+                   ? ['rgba(231, 240, 253, 1)', '#B1CAEF']
+                   : ['rgba(211, 224, 240, 0.5)', 'rgba(211, 224, 240, 0.8)']
 
     return (
       <JSButton
         {...otherProps}
         containerStyle={[styles.buttonContainer, containerStyle]}
-        colors={this.props.active
-                ? ['rgba(231, 240, 253, 1)', '#B1CAEF']
-                : ['rgba(211, 224, 240, 0.5)', 'rgba(211, 224, 240, 0.8)']}
+        colors={colors}
       />
     )
   }

@@ -1,5 +1,6 @@
-import { User } from './types'
 import { Direction } from '../api'
+import { User } from './types'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
@@ -72,6 +73,7 @@ export type SwipeAction = AttemptFetchAllUsersAction
 | SwipeSuccessAction
 | SwipeFailureAction
 | ClearSwipeStateAction
+| RehydrateAction
 | OtherAction
 
 /* Action Creators */

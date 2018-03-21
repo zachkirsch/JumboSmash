@@ -6,7 +6,7 @@ export function emailSupport(subject: string) {
   Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)
 }
 
-export function shuffleArray<T>(array: T[]) {
+export function shuffle<T>(array: T[]) {
   let j, x
   for (let i = array.length - 1; i > 0; i--) {
     j = Math.floor(Math.random() * (i + 1))
@@ -14,6 +14,7 @@ export function shuffleArray<T>(array: T[]) {
     array[i] = array[j]
     array[j] = x
   }
+  return array
 }
 
 export function clamp(value: number, min: number, max: number) {
@@ -67,9 +68,9 @@ export function generateActionSheetOptions(options: ActionSheetOption[], onCance
 
   return {
     options: {
-      options: optionsWithCancel.map(option => option.title),
+      options: optionsWithCancel.map((option) => option.title),
       cancelButtonIndex: options.length,
-      destructiveButtonIndex: options.findIndex(option => option.destructive),
+      destructiveButtonIndex: options.findIndex((option) => option.destructive),
     },
     callback: (buttonIndex: number) => {
       optionsWithCancel[buttonIndex].onPress && optionsWithCancel[buttonIndex].onPress()
