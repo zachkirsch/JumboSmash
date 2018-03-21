@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { Alert, View, StyleSheet} from 'react-native'
-import { RectangleButton } from '../../generic/index'
+import { RectangleButton } from '../../common/index'
 import { logout } from '../../../services/auth'
 import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
 import { RootState } from '../../../redux'

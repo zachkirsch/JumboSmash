@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { View, TouchableWithoutFeedback, Image, StyleSheet, Dimensions } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
-import { JSText } from '../../generic'
+import { JSText } from '../../common'
 
 interface Props {
   name: string

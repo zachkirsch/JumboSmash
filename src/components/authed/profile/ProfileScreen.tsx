@@ -23,11 +23,13 @@ import {
   swapImages,
   TagSectionType,
   ProfileReact,
+  ImageUri,
 } from '../../../services/profile'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import SwipeScreen from '../swipe/SwipeScreen'
-import { CircleButton, JSText, JSTextInput } from '../../generic'
+import { CircleButton, JSText, JSTextInput } from '../../common'
+import { LoadableValue } from '../../../services/redux'
 import { RootState } from '../../../redux'
 import TagSection from './TagSection'
 import { Images } from '../../../assets'
@@ -45,7 +47,7 @@ interface State {
 interface OwnProps {}
 
 interface StateProps {
-  images: string[]
+  images: LoadableValue<ImageUri>[]
   preferredName: string
   bio: string
   major: string
@@ -134,7 +136,7 @@ class ProfileScreen extends PureComponent<Props, State> {
             id: -1,
             preferredName: this.state.preferredName,
             bio: this.state.bio,
-            images: this.props.images.filter(image => image),
+            images: this.props.images.map(image => image.value.uri).filter(image => image),
           },
           onCompleteSwipe: () => this.setState({previewingCard: false}),
         }}
@@ -317,7 +319,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         this.state.saveButtonOpacity,
         {
           toValue: saveRequired ? 0.8 : 0,
-          duration: 500,
+          duration: 100,
         }
       ).start()
     }
@@ -337,7 +339,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     bio: state.profile.bio.value,
     major: state.profile.major.value,
     tags: state.profile.tags.value,
-    images: state.profile.images.map(image => image.value.uri),
+    images: state.profile.images,
     reacts: state.profile.reacts.value,
   }
 }

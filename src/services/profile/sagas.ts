@@ -91,19 +91,21 @@ function* attemptUpdateBio(payload: ProfileActions.AttemptUpdateBioAction) {
 
 /* Images */
 
-function* handleUpdateImagesSuccess(index: number, imageUri: string) {
+function* handleUpdateImagesSuccess(index: number, localUri: string, remoteUri: string) {
   const successAction: ProfileActions.UpdateImageSuccessAction = {
     type: ProfileActions.ProfileActionType.UPDATE_IMAGE_SUCCESS,
-    imageUri,
+    localUri,
+    remoteUri,
     index,
   }
   yield put(successAction)
 }
 
-function* handleUpdateImagesFailure(error: Error, index: number) {
+function* handleUpdateImagesFailure(error: Error, index: number, localUri: string) {
   const failureAction: ProfileActions.UpdateImageFailureAction = {
     type: ProfileActions.ProfileActionType.UPDATE_IMAGE_FAILURE,
     index,
+    localUri,
     errorMessage: error.message,
   }
   yield put(failureAction)
@@ -159,9 +161,9 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       images.map((image, index) => index === payload.index ? firebaseUrl : !image.value.isLocal ? image.value.uri : '')
     )
 
-    yield handleUpdateImagesSuccess(payload.index, firebaseUrl)
+    yield handleUpdateImagesSuccess(payload.index, payload.imageUri, firebaseUrl)
   } catch (error) {
-    yield handleUpdateImagesFailure(error, payload.index)
+    yield handleUpdateImagesFailure(error, payload.index, payload.imageUri)
   }
 }
 
@@ -192,6 +194,18 @@ function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
   }
 }
 
+function* rehydrateProfileFromServer(_: ProfileActions.RehydrateAction) {
+  try {
+    const meInfo: api.MeResponse = yield call(api.api.me)
+    yield put(ProfileActions.initializeProfile(
+      meInfo.id,
+      meInfo.preferred_name,
+      meInfo.bio,
+      meInfo.images.map(image => image.url)
+    ))
+  } catch (e) {} /* tslint:disable-line:no-empty */
+}
+
 /* main saga */
 
 export function* profileSaga() {
@@ -200,4 +214,5 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
+  yield takeLatest(ProfileActions.ProfileActionType.REHYDRATE, rehydrateProfileFromServer)
 }

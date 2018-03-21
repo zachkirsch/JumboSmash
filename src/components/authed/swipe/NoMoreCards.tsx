@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
 import { View, TouchableOpacity } from 'react-native'
-import { JSText } from '../../generic'
+import { JSText } from '../../common'
 
 interface Props {
   requestMoreCards: () => void

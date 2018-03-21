@@ -43,6 +43,21 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
     case SwipeActionType.CLEAR_SWIPE_STATE:
       return initialState
 
+    case SwipeActionType.REHYDRATE:
+
+      // for unit tests when root state is empty
+      if (!action.payload.profile) {
+        return state
+      }
+
+      return {
+        allUsers: {
+          ...action.payload.swipe.allUsers,
+          loading: false,
+          errorMessage: action.payload.swipe.allUsers.loading ? 'Failed to fetch users' : '',
+        },
+      }
+
     default:
       return state
   }

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { View, Image, StyleSheet, Dimensions } from 'react-native'
 import moment from 'moment'
-import { JSText } from '../generic'
+import { JSText } from '../common'
 import { Images } from '../../assets'
 
 interface State {

@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react'
 import { View, StyleSheet, ScrollView, Linking, TouchableOpacity } from 'react-native'
-import { default as Entypo } from 'react-native-vector-icons/Entypo'
-import { default as FontAwesome } from 'react-native-vector-icons/FontAwesome'
+import Entypo from 'react-native-vector-icons/Entypo'
+import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import LinearGradient from 'react-native-linear-gradient'
 import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
-import { HeaderBar, JSText, JSTextInput } from '../../generic'
+import { HeaderBar, JSText, JSTextInput } from '../../common'
 
 type Props = NavigationScreenPropsWithOwnProps<{}>
 

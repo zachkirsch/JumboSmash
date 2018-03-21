@@ -2,14 +2,16 @@ import React, { PureComponent } from 'react'
 import { Alert, View, Image, StyleSheet, TouchableWithoutFeedback, Platform, Dimensions } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
 import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
-import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
-import { default as Feather } from 'react-native-vector-icons/Feather'
-import { default as Entypo } from 'react-native-vector-icons/Entypo'
+import Foundation from 'react-native-vector-icons/Foundation'
+import Feather from 'react-native-vector-icons/Feather'
+import Entypo from 'react-native-vector-icons/Entypo'
 import { ActionSheetOption, generateActionSheetOptions } from '../../utils'
-import { CircleButton } from '../../generic'
+import { CircleButton } from '../../common'
+import { LoadableValue } from '../../../services/redux'
+import { ImageUri } from '../../../services/profile'
 
 interface OwnProps {
-  images: string[]
+  images: LoadableValue<ImageUri>[]
   swapImages: (index1: number, index2: number) => void
   updateImage: (index: number, imageUri: string, mime: string) => void,
 }
@@ -18,6 +20,11 @@ interface State {
   images: string[]
   swapping: boolean
   swappingIndex: number
+}
+
+interface ImageWithStatus {
+  uri: string
+  uploading: boolean
 }
 
 const WIDTH = Dimensions.get('window').width
@@ -30,7 +37,7 @@ class PhotosSection extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      images: props.images,
+      images: props.images.map(image => image.value.uri),
       swapping: false,
       swappingIndex: -1,
     }
@@ -57,14 +64,14 @@ class PhotosSection extends PureComponent<Props, State> {
 
   private renderPhoto = (index: number) => {
 
+    const allImages = this.getImages()
+    const image = allImages[index] || {
+      uri: '',
+      uploading: false,
+    }
+
     let touchableDisabled = false
     let overlayIcon
-
-    const swappingBigPhotoAndRenderingEmptyPhoto = (
-      this.state.swapping
-      && this.state.swappingIndex === 0
-      && !this.state.images[index]
-    )
 
     if (this.state.swapping) {
       if (index === this.state.swappingIndex) {
@@ -72,23 +79,23 @@ class PhotosSection extends PureComponent<Props, State> {
       } else {
         touchableDisabled = false
         overlayIcon = (
-          <SimpleLineIcons
-            style={{backgroundColor: 'transparent'}}
-            name={'target'}
+          <Foundation
+            style={styles.overlayIcon}
+            name={'target-two'}
             size={40}
             color='rgba(172,203,238,0.6)'
           />
         )
       }
-    } else if (!this.state.images[index]) {
-      let indexOfFirstEmpty = this.state.images.findIndex(imageUri => !imageUri)
+    } else if (!image.uri) {
+      let indexOfFirstEmpty = allImages.findIndex(imageWithStatus => !imageWithStatus.uri)
       if (indexOfFirstEmpty === -1) {
-        indexOfFirstEmpty = this.state.images.length
+        indexOfFirstEmpty = allImages.length
       }
       if (indexOfFirstEmpty === index) {
         overlayIcon = (
           <Feather
-            style={{backgroundColor: 'transparent'}}
+            style={styles.overlayIcon}
             name={'plus'}
             size={50}
             color='rgba(172,203,238,0.6)'
@@ -99,11 +106,11 @@ class PhotosSection extends PureComponent<Props, State> {
       }
     }
 
-    let image
-    if (this.state.images[index]) {
-      image = (
+    let imageToRender
+    if (image.uri) {
+      imageToRender = (
         <Image
-          source={{uri: this.state.images[index]}}
+          source={{uri: image.uri}}
           resizeMode='cover'
           style={[
             styles.photo,
@@ -113,7 +120,7 @@ class PhotosSection extends PureComponent<Props, State> {
         </Image>
       )
     } else {
-      image = (
+      imageToRender = (
         <View
           style={[
             {
@@ -123,37 +130,81 @@ class PhotosSection extends PureComponent<Props, State> {
             styles.photo,
             index === 0 ? styles.bigPhoto : styles.smallPhoto,
             styles.emptyPhoto,
-            swappingBigPhotoAndRenderingEmptyPhoto && styles.semiTransparent,
           ]}
         >
         </View>
       )
     }
 
-    const deleteButton = this.canDeleteImage(index) && Platform.OS === 'ios' && ( // clipped on Android
-      <CircleButton
-        IconClass={Entypo}
-        iconName='cross'
-        iconSize={15}
-        iconColor='white'
-        onPress={() => this.deletePhoto(index, true)}
-        style={styles.deleteButton} />
-    )
+    let cornerButton: JSX.Element
+    if (Platform.OS === 'ios' && image.uri) {
+      if (image.uploading) {
+        cornerButton = (
+          <CircleButton
+            IconClass={Feather}
+            iconName='upload'
+            iconSize={10}
+            iconColor='white'
+            onPress={() => this.cancelUpload(index)}
+            style={styles.cornerButton} />
+        )
+      } else if (this.canDeleteImage(index, allImages)) {
+        cornerButton = (
+          <CircleButton
+            IconClass={Entypo}
+            iconName='cross'
+            iconSize={15}
+            iconColor='white'
+            onPress={() => this.deletePhoto(index, {})}
+            style={styles.cornerButton} />
+        )
+      }
+    }
 
     return (
       <View style={styles.shadow}>
-        {image}
+        {imageToRender}
         <TouchableWithoutFeedback disabled={touchableDisabled} onPress={() => this.onPressImage(index)}>
           <View style={styles.photoOverlay}>
             {overlayIcon}
           </View>
         </TouchableWithoutFeedback>
-        {deleteButton}
+        {cornerButton}
       </View>
     )
   }
 
-  private deletePhoto = (index: number, withConfirmation: boolean) => {
+  private getImageByIndex = (index: number): ImageWithStatus => {
+    let uri: string
+    let uploading: boolean
+
+    if (this.props.images[index] && this.props.images[index].errorMessage) {
+      uploading = false
+      uri = this.props.images[index].value.uri
+    } else {
+      uri = this.state.images[index]
+      uploading = uri && this.props.images[index] && this.props.images[index].loading
+    }
+
+    return {
+      uri,
+      uploading,
+    }
+  }
+
+  private getImages = (): ImageWithStatus[] => {
+    return this.state.images.map((_, index) => this.getImageByIndex(index))
+  }
+
+  private cancelUpload = (index: number, withConfirmation = true) => {
+    const alertInfo = withConfirmation && {
+      title: 'Cancel Upload',
+      message: 'Are you sure you want to cancel the upload?',
+    }
+    this.deletePhoto(index, alertInfo)
+  }
+
+  private deletePhoto = (index: number, withConfirmation?: {title?: string, message?: string}) => {
 
     const deleteIt = () => {
       this.props.updateImage(index, '', '')
@@ -168,8 +219,8 @@ class PhotosSection extends PureComponent<Props, State> {
       deleteIt()
     } else {
       Alert.alert(
-        'Delete Photo',
-        'Are you sure you want to delete this photo?',
+        withConfirmation.title || 'Delete Photo',
+        withConfirmation.message || 'Are you sure you want to delete this photo?',
         [
           {text: 'No', style: 'cancel'},
           {text: 'Yes', onPress: deleteIt, style: 'destructive'},
@@ -178,10 +229,12 @@ class PhotosSection extends PureComponent<Props, State> {
     }
   }
 
-  private canDeleteImage = (index: number) => {
+  private canDeleteImage = (index: number, allImages?: ImageWithStatus[]) => {
+    const image = allImages ? allImages[index] : this.getImageByIndex(index)
     return !this.state.swapping
-    && !!this.state.images[index]
-    && this.state.images.filter((image: string) => image).length > 1
+    && !!image.uri
+    && !image.uploading
+    && (allImages || this.getImages()).filter(i => i.uri && !i.uploading).length > 1
   }
 
   private canSwapImage = (index: number) => {
@@ -246,9 +299,15 @@ class PhotosSection extends PureComponent<Props, State> {
     if (this.canDeleteImage(index)) {
       buttons.push({
         title: 'Remove Photo',
-        onPress: () => {
-          this.deletePhoto(index, false)
-        },
+        onPress: () => this.deletePhoto(index),
+        destructive: true,
+      })
+    }
+
+    if (this.getImageByIndex(index).uploading) {
+      buttons.push({
+        title: 'Cancel Upload',
+        onPress: () => this.cancelUpload(index, false),
         destructive: true,
       })
     }
@@ -330,7 +389,10 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     zIndex: 5,
   },
-  deleteButton: {
+  overlayIcon: {
+    backgroundColor: 'transparent',
+  },
+  cornerButton: {
     position: 'absolute',
     bottom: -5,
     right: -5,

@@ -4,7 +4,7 @@ import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { requestVerification, Credentials } from '../../services/auth'
 import { RootState } from '../../redux'
-import { JSButton, JSText, JSTextInput, TextInputRef } from '../generic'
+import { JSButton, JSText, JSTextInput, TextInputRef } from '../common'
 import EmailUsFooter from './EmailUsFooter'
 
 interface StateProps {

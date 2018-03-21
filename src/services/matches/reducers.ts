@@ -170,11 +170,18 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
       let chats = Map<string, Conversation>()
       Object.keys(action.payload.matches.chats).forEach((conversationId) => {
-        const originalConversation = (action.payload.matches.chats as any)[conversationId] /* tslint:disable-line:no-any */
+        /* tslint:disable-next-line:no-any */
+        const originalConversation: Conversation = (action.payload.matches.chats as any)[conversationId]
         const conversation: Conversation = {
           conversationId,
           otherUsers: List(originalConversation.otherUsers),
-          messages: List(originalConversation.messages),
+          messages: List(originalConversation.messages.map((message) => {
+            return {
+              ...message,
+              sending: false,
+              failedToSend: message.sending || message.failedToSend,
+            }
+          })),
           messageIDs: Set(originalConversation.messageIDs),
           mostRecentMessage: originalConversation.mostRecentMessage,
           messagesUnread: originalConversation.messagesUnread,

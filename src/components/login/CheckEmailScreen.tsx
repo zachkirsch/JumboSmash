@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react'
 import { View, KeyboardAvoidingView, ScrollView, TouchableOpacity, StyleSheet, Platform, ActivityIndicator } from 'react-native'
-import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
-import { JSText, JSTextInput, TextInputRef, scale } from '../generic'
+import { JSText, JSTextInput, TextInputRef, scale } from '../common'
 import EmailUsFooter from './EmailUsFooter'
 
 interface Props {

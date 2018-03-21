@@ -6,7 +6,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LinearGradient from 'react-native-linear-gradient'
 import { List } from 'immutable'
 import Card from './Card'
-import { CircleButton, CircleButtonProps, JSText } from '../../generic'
+import { CircleButton, CircleButtonProps, JSText } from '../../common'
 import { RootState } from '../../../redux'
 import { User, fetchAllUsers, swipe } from '../../../services/swipe'
 import NoMoreCards from './NoMoreCards'

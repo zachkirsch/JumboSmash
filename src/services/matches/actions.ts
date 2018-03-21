@@ -52,7 +52,6 @@ export interface ClearMatchesStateAction {
   type: MatchesActionType.CLEAR_MATCHES_STATE
 }
 
-// this is a separate case because redux-persist stores immutables as plain JS
 export interface RehydrateAction {
   type: MatchesActionType.REHYDRATE
   payload: RootState

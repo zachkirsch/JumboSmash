@@ -10,14 +10,14 @@ import {
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
-import { default as MaterialIcons } from 'react-native-vector-icons/MaterialIcons'
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { RootState } from '../../redux'
 import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } from '../../services/auth'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
-import { JSText, scale } from '../generic'
+import { JSText, scale } from '../common'
 
 interface OwnProps {
   focusKeyboardOnLoginScreen?: () => void

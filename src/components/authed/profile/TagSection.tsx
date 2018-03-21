@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { StyleSheet, View, TextStyle, ViewStyle } from 'react-native'
 import { Tag } from '../../../services/profile'
-import { JSText } from '../../generic'
+import { JSText } from '../../common'
 
 interface Props {
   tags: Tag[]

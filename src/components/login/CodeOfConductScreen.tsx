@@ -6,7 +6,7 @@ import {
   Platform,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { JSText, RectangleButton } from '../generic'
+import { JSText, RectangleButton } from '../common'
 import { acceptCoC } from '../../services/coc'
 import { RootState } from '../../redux'
 

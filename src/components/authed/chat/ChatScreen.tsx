@@ -3,11 +3,11 @@ import { View, StyleSheet, Image } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { GiftedChat } from 'react-native-gifted-chat'
 import { Map } from 'immutable'
-import {JSText } from '../../generic'
+import {JSText } from '../../common'
 import { GiftedChatUser, Conversation, GiftedChatMessage, sendMessages } from '../../../services/matches'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
-import { HeaderBar } from '../../generic'
+import { HeaderBar } from '../../common'
 import { getFirstName } from '../../utils'
 
 interface OwnProps {

@@ -17,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Carousel from './Carousel'
 import { clamp } from '../../utils'
-import { JSText } from '../../generic'
+import { JSText } from '../../common'
 import { User } from '../../../services/swipe'
 import { Direction } from '../../../services/api'
 

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
 import { View, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native'
 import { emailSupport } from '../utils'
-import { JSText } from '../generic'
+import { JSText } from '../common'
 
 interface Props {
   emailSubject?: string
@@ -14,9 +14,7 @@ class EmailUsFooter extends PureComponent<Props, {}> {
   public render() {
     return (
       <View style={[styles.emailUsContainer, this.props.containerStyle]}>
-        <TouchableOpacity
-          onPress={this.sendUsEmail}
-        >
+        <TouchableOpacity onPress={this.sendUsEmail}>
           <JSText style={styles.emailUsText}>
             {this.props.label || 'Got a question? Email us.'}
           </JSText>

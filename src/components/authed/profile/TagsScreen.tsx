@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import update from 'immutability-helper'
-import { JSText } from '../../generic/index'
+import { JSText } from '../../common/index'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { TagSectionType, updateTags } from '../../../services/profile'
