@@ -52,7 +52,7 @@ const initialState: MatchesState = {
       messages: List([]),
       messageIDs: Set([]),
       mostRecentMessage: '',
-      messagesUnread: false,
+      messagesUnread: true,
     },
   }),
 }
@@ -144,6 +144,15 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
     case MatchesActionType.SEND_MESSAGES_FAILURE:
       return updateSentStatus(state, action, false)
+
+    case MatchesActionType.SET_CONVERSATION_AS_READ:
+      let newConversation = state.chats.get(action.conversationId)
+      return {
+        chats: state.chats.set(action.conversationId, {
+          ...newConversation,
+          messagesUnread: false,
+        }),
+      }
 
     case MatchesActionType.CREATE_MATCH:
       return {

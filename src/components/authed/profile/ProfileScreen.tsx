@@ -15,6 +15,7 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
+import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { Images } from '../../../assets'
 import { RootState } from '../../../redux'
 import {
@@ -63,11 +64,14 @@ interface DispatchProps {
   swapImages: (index1: number, index2: number) => void
 }
 
-type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
+type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
 
 const MAX_BIO_LENGTH = 1000
 
+@connectActionSheet
 class ProfileScreen extends PureComponent<Props, State> {
+
+  private photosSection: PhotosSection
 
   constructor(props: Props) {
     super(props)
@@ -83,7 +87,10 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    this.props.navigation.addListener('didBlur', Keyboard.dismiss)
+    this.props.navigation.addListener('didBlur', () => {
+      Keyboard.dismiss()
+      this.photosSection.collapseImages()
+    })
   }
 
   render() {
@@ -92,9 +99,11 @@ class ProfileScreen extends PureComponent<Props, State> {
         {this.renderProfilePreviewModal()}
         <ScrollView keyboardShouldPersistTaps={'handled'}>
           <PhotosSection
-              images={this.props.images}
-              swapImages={this.props.swapImages}
-              updateImage={this.props.updateImage}
+            images={this.props.images}
+            swapImages={this.props.swapImages}
+            updateImage={this.props.updateImage}
+            showActionSheetWithOptions={this.props.showActionSheetWithOptions}
+            ref={ref => this.photosSection = ref}
           />
           {this.renderPersonalInfo()}
           {this.renderTags()}
@@ -300,7 +309,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       alertText = 'You need a first name!'
     }
     if (!alertText) {
-      this.setState({ previewingCard: true })
+      this.setState({ previewingCard: true }, () => this.photosSection.collapseImages())
     } else {
       Alert.alert('Oops', alertText)
     }

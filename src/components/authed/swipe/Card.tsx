@@ -207,7 +207,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     if (this.props.previewMode) {
-      shadowStyle = styles.thirdCard
+      shadowStyle = styles.secondCard
     }
 
     const [translateX, translateY] = [this.state.pan.x, this.state.pan.y]
