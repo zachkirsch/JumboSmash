@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mainContainer: {
-    marginTop: 100,
+    paddingTop: 100,
     flex: 2,
   },
   messageContainer: {

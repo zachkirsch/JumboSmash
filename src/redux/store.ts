@@ -1,6 +1,6 @@
 import { Iterable } from 'immutable'
-import {AsyncStorage} from 'react-native'
-import { applyMiddleware, compose, createStore } from 'redux'
+import { AsyncStorage } from 'react-native'
+import { Store, applyMiddleware, compose, createStore } from 'redux'
 import { createLogger } from 'redux-logger'
 import { autoRehydrate, persistStore } from 'redux-persist'
 import createSagaMiddleware from 'redux-saga'
@@ -8,6 +8,7 @@ import { setRehydrated } from '../services/redux'
 import { rootReducer } from './rootReducer'
 import { rootSaga } from './rootSaga'
 import { RootState } from './types'
+import { TokenService } from '../services/api'
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -34,12 +35,11 @@ export const reduxStore = createStore(
     applyMiddleware(sagaMiddleware, logger),
     autoRehydrate()
   )
-)
+) as Store<RootState>
 
 persistStore(reduxStore, {storage: AsyncStorage}, () => {
   reduxStore.dispatch(setRehydrated())
 })
 
-export const getState = (): RootState => reduxStore.getState() as RootState
-
+TokenService.setStore(reduxStore)
 sagaMiddleware.run(rootSaga)

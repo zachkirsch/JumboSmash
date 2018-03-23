@@ -172,8 +172,8 @@ class PhotosSection extends PureComponent<Props, State> {
     let uploading: boolean
 
     if (this.props.images[index] && this.props.images[index].errorMessage) {
-      uploading = false
       uri = this.props.images[index].value.uri
+      uploading = false
     } else {
       uri = this.state.images[index]
       uploading = uri && this.props.images[index] && this.props.images[index].loading
@@ -292,7 +292,7 @@ class PhotosSection extends PureComponent<Props, State> {
     if (this.canDeleteImage(index)) {
       buttons.push({
         title: 'Remove Photo',
-        onPress: () => this.deletePhoto(index),
+        onPress: this.deletePhoto(index),
         destructive: true,
       })
     }

@@ -1,10 +1,21 @@
 import React, { PureComponent } from 'react'
-import { Dimensions, Image, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import {
+  Dimensions,
+  Animated,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+  Platform,
+} from 'react-native'
 
 interface Props {
   imageUris: string[]
   enabled: boolean
   onTapImage?: () => void
+  imageContainerStyle: any /* tslint:disable-line:no-any */
 }
 
 interface State {
@@ -18,6 +29,7 @@ const WIDTH = Dimensions.get('window').width
 class Carousel extends PureComponent<Props, State> {
 
   private carouselScrollView: any /* tslint:disable-line:no-any */
+  private isScrolling: boolean = false
 
   constructor(props: Props) {
     super(props)
@@ -34,28 +46,22 @@ class Carousel extends PureComponent<Props, State> {
   }
 
   render() {
-
-    const containerStyle = {
-      minWidth: WIDTH * this.props.imageUris.length,
-    }
-
     return (
       <View style={styles.container}>
         <ScrollView
-          contentContainerStyle={containerStyle}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           ref={(ref) => this.carouselScrollView = ref}
           scrollEventThrottle={1}
           onScroll={this.onScroll}
+          onTouchMove={this.onScrollBeginDrag}
+          onTouchEnd={this.onScrollEndDrag}
           scrollEnabled={this.props.enabled}
         >
           {this.renderImages()}
         </ScrollView>
-        <View
-          style={styles.dotsContainer}
-        >
+        <View style={styles.dotsContainer}>
           {this.renderDots()}
         </View>
       </View>
@@ -64,13 +70,15 @@ class Carousel extends PureComponent<Props, State> {
 
   private renderImages = () => {
     return this.props.imageUris.filter((imageUri) => imageUri).map((uri, i) => (
-      <TouchableWithoutFeedback key={`image-${i}`} onPress={this.props.enabled ? this.props.onTapImage : undefined}>
-        <Image
-          source={{uri}}
-          resizeMode={'cover'}
-          style={styles.image}
-        />
-      </TouchableWithoutFeedback>
+      <Animated.View key={i} style={this.props.imageContainerStyle}>
+        <TouchableWithoutFeedback onPress={this.onTap}>
+          <Animated.Image
+            source={{uri}}
+            style={[styles.image]}
+            resizeMode={'stretch'}
+          />
+        </TouchableWithoutFeedback>
+      </Animated.View>
     ))
   }
 
@@ -88,6 +96,19 @@ class Carousel extends PureComponent<Props, State> {
     })
   }
 
+  private onTap = () => {
+    if (!this.props.enabled || !this.props.onTapImage) {
+      return
+    }
+    if (Platform.OS === 'android' && this.isScrolling) {
+      return
+    }
+    this.props.onTapImage()
+  }
+
+  private onScrollBeginDrag = () => this.isScrolling = true
+  private onScrollEndDrag = () => this.isScrolling = false
+
   private onScroll = (event: ScrollEvent) => {
     const { layoutMeasurement, contentOffset } = event.nativeEvent
     let photoIndex = Math.round(contentOffset.x / layoutMeasurement.width)
@@ -102,11 +123,14 @@ export default Carousel
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'black',
+    backgroundColor: 'white',
   },
   image: {
-    height: WIDTH,
-    width: WIDTH,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
   },
   dotsContainer: {
     flexDirection: 'row',
@@ -119,7 +143,7 @@ const styles = StyleSheet.create({
     width: WIDTH,
   },
   dot: {
-    borderWidth: 0.5,
+    borderWidth: 0,
     marginHorizontal: 5,
     width: 10,
     height: 10,

@@ -110,9 +110,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
-  private navigateTo = (screen: string) => () => {
-    () => this.props.navigation.navigate(screen)
-  }
+  private navigateTo = (screen: string) => () => this.props.navigation.navigate(screen)
 
   private renderSaveButton = () => {
     const style = [styles.saveButton, {
