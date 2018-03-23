@@ -5,7 +5,13 @@ import { GiftedChat } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
-import { Conversation, GiftedChatMessage, GiftedChatUser, sendMessages } from '../../../services/matches'
+import {
+  Conversation,
+  GiftedChatMessage,
+  GiftedChatUser,
+  sendMessages,
+  setConversationAsRead,
+} from '../../../services/matches'
 import {JSText } from '../../common'
 import { HeaderBar } from '../../common'
 import { getFirstName } from '../../utils'
@@ -24,6 +30,7 @@ interface StateProps {
 
 interface DispatchProps {
   sendMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
+  setConversationAsRead: () => void
 }
 
 interface State { }
@@ -32,10 +39,22 @@ type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps
 
 class ChatScreen extends PureComponent<Props, State> {
 
+  componentDidMount() {
+    this.props.setConversationAsRead()
+  }
+
+  componentWillReceiveProps(_: Props, newProps: Props) {
+    if (newProps.chats) {
+      if (this.getConversation(newProps).messagesUnread) {
+        this.props.setConversationAsRead()
+      }
+    }
+  }
+
   public render() {
-    const conversationId: string = this.props.navigation.state.params.conversationId
-    const messages = this.props.chats.get(conversationId).messages.toArray()
-    const user = this.props.chats.get(conversationId).otherUsers.first()
+    const conversation = this.getConversation()
+    const messages = conversation.messages.toArray()
+    const user = conversation.otherUsers.first()
 
     return (
       <View style={styles.container}>
@@ -59,7 +78,15 @@ class ChatScreen extends PureComponent<Props, State> {
   )
 
   private onSend = (messages: GiftedChatMessage[] = []) => {
-    this.props.sendMessages(this.props.navigation.state.params.conversationId, messages)
+    this.props.sendMessages(this.getConversationId(), messages)
+  }
+
+  private getConversationId = () => {
+    return this.props.navigation.state.params.conversationId
+  }
+
+  private getConversation = (props?: Props) => {
+    return (props || this.props).chats.get(this.getConversationId())
   }
 }
 
@@ -73,11 +100,12 @@ const mapStateToProps = (state: RootState): StateProps => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch<RootState>, ownProps: Props): DispatchProps => {
   return {
     sendMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
       dispatch(sendMessages(conversationId, messages))
     },
+    setConversationAsRead: () => dispatch(setConversationAsRead(ownProps.navigation.state.params.conversationId)),
   }
 }
 

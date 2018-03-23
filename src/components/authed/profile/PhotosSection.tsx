@@ -1,4 +1,4 @@
-import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
+import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
 import { Alert, Dimensions, Image, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
@@ -14,11 +14,24 @@ import { ActionSheetOption, generateActionSheetOptions } from '../../utils'
 interface OwnProps {
   images: Array<LoadableValue<ImageUri>>
   swapImages: (index1: number, index2: number) => void
-  updateImage: (index: number, imageUri: string, mime: string) => void,
+  updateImage: (index: number, imageUri: string, mime: string) => void
+  showActionSheetWithOptions?: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
+}
+
+type Props = OwnProps
+
+interface LocalImage {
+  uri: string
+  mime: string
+}
+
+const EMPTY_LOCAL_IMAGE = {
+  uri: '',
+  mime: '',
 }
 
 interface State {
-  images: string[]
+  images: LocalImage[]
   swapping: boolean
   swappingIndex: number
 }
@@ -28,25 +41,35 @@ interface ImageWithStatus {
   uploading: boolean
 }
 
-const EMPTY_IMAGE = {
+const EMPTY_IMAGE_WITH_STATUS = {
   uri: '',
   uploading: false,
 }
 
 const WIDTH = Dimensions.get('window').width
 
-type Props = ActionSheetProps<OwnProps>
-
-@connectActionSheet
 class PhotosSection extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
     this.state = {
-      images: props.images.map((image) => image.value.uri),
+      images: props.images.map((image) => ({uri: image.value.uri, mime: ''})),
       swapping: false,
       swappingIndex: -1,
     }
+  }
+
+  collapseImages = () => {
+    const newImages = this.state.images.filter(image => image.uri)
+
+    for (let i = 0; i < this.state.images.length; i++) {
+      let image = newImages[i] || EMPTY_LOCAL_IMAGE
+      if (this.state.images[i].uri !== image.uri) {
+        this.props.updateImage(i, image.uri, image.mime)
+      }
+    }
+
+    this.setState({ images: newImages })
   }
 
   render() {
@@ -71,7 +94,7 @@ class PhotosSection extends PureComponent<Props, State> {
   private renderPhoto = (index: number) => {
 
     const allImages = this.getImages()
-    const image = allImages[index] || EMPTY_IMAGE
+    const image = allImages[index] || EMPTY_IMAGE_WITH_STATUS
 
     let touchableDisabled = false
     let overlayIcon
@@ -172,10 +195,10 @@ class PhotosSection extends PureComponent<Props, State> {
     let uploading: boolean
 
     if (this.props.images[index] && this.props.images[index].errorMessage) {
-      uploading = false
       uri = this.props.images[index].value.uri
+      uploading = false
     } else {
-      uri = this.state.images[index]
+      uri = this.state.images[index] ? this.state.images[index].uri : ''
       uploading = uri && this.props.images[index] && this.props.images[index].loading
     }
 
@@ -202,7 +225,7 @@ class PhotosSection extends PureComponent<Props, State> {
     const deleteIt = () => {
       this.props.updateImage(index, '', '')
       const newImages = Array.from(this.state.images)
-      newImages[index] = ''
+      newImages[index] = EMPTY_LOCAL_IMAGE
       this.setState({
         images: newImages,
       })
@@ -223,7 +246,7 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private canDeleteImage = (index: number, allImages?: ImageWithStatus[]) => {
-    const image = (allImages ? allImages[index] : this.getImageByIndex(index)) || EMPTY_IMAGE
+    const image = (allImages ? allImages[index] : this.getImageByIndex(index)) || EMPTY_IMAGE_WITH_STATUS
     return !this.state.swapping
     && !!image.uri
     && !image.uploading
@@ -247,7 +270,7 @@ class PhotosSection extends PureComponent<Props, State> {
         } else if (i === this.state.swappingIndex) {
           toPush = this.state.images[index]
         }
-        newImages.push(toPush || '')
+        newImages.push(toPush || EMPTY_LOCAL_IMAGE)
       }
 
       this.setState({
@@ -262,19 +285,19 @@ class PhotosSection extends PureComponent<Props, State> {
     buttons.push({
       title: this.state.images[index] ? 'Change Photo' : 'Choose Photo',
       onPress: () => ImagePicker.openPicker({
-        width: 2000,
-        height: 2000,
-        cropping: true,
-        mediaType: 'photo',
-        cropperToolbarTitle: 'Move and Scale to Crop',
-      }).then((image: ImagePickerImage) => {
-        this.props.updateImage(index, image.path, image.mime)
-        const newImages = Array.from(this.state.images)
-        newImages[index] = image.path
-        this.setState({
-          images: newImages,
-        })
-      }),
+          width: 2000,
+          height: 2000,
+          cropping: true,
+          mediaType: 'photo',
+          cropperToolbarTitle: 'Move and Scale to Crop',
+        }).then((image: ImagePickerImage) => {
+          this.props.updateImage(index, image.path, image.mime)
+          const newImages = Array.from(this.state.images)
+          newImages[index] = { uri: image.path, mime: image.mime }
+          this.setState({
+            images: newImages,
+          })
+        }),
     })
 
     if (this.canSwapImage(index)) {
@@ -292,7 +315,7 @@ class PhotosSection extends PureComponent<Props, State> {
     if (this.canDeleteImage(index)) {
       buttons.push({
         title: 'Remove Photo',
-        onPress: () => this.deletePhoto(index),
+        onPress: this.deletePhoto(index),
         destructive: true,
       })
     }
@@ -346,10 +369,6 @@ const styles = StyleSheet.create({
         shadowColor: 'rgb(172, 203, 238)',
         shadowOpacity: 0.75,
         shadowRadius: .02 * WIDTH,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
       },
     }),
     ...Platform.select({

@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react'
 import {
   Animated,
   Dimensions,
-  Easing,
   NativeScrollEvent,
   NativeSyntheticEvent,
   PanResponder,
@@ -11,6 +10,7 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
@@ -19,7 +19,7 @@ import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { JSText } from '../../common'
 import { clamp, shuffle } from '../../utils'
-import { TagsSection } from '../profile'
+import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 
 interface Props {
@@ -42,7 +42,7 @@ interface State {
     top: Animated.Value
     bottom: Animated.Value
   }
-  shouldBounce: boolean // scrollView should bounce at the top, but not the bottom
+  scrollViewBackgroundColor: string
   isMomentumScrolling: boolean
 }
 
@@ -69,7 +69,9 @@ const TAGS = [
 
 const BOTTOM_SWIPE_AWAY_ENABLED = false
 const WIDTH = Dimensions.get('window').width
-const MAX_MARGIN = 20
+const HEIGHT = Dimensions.get('window').height
+const MAX_VERTICAL_MARGIN = WIDTH / 12
+const MAX_HORIZONTAL_MARGIN = WIDTH / 15
 
 class Card extends PureComponent<Props, State> {
 
@@ -87,10 +89,10 @@ class Card extends PureComponent<Props, State> {
       expansion: new Animated.Value(0),
       fullyExpanded: false,
       margin: {
-        top: new Animated.Value(MAX_MARGIN),
-        bottom: new Animated.Value(MAX_MARGIN),
+        top: new Animated.Value(MAX_VERTICAL_MARGIN),
+        bottom: new Animated.Value(MAX_VERTICAL_MARGIN),
       },
-      shouldBounce: true,
+      scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
     }
     this.setupGestureResponders()
@@ -105,62 +107,38 @@ class Card extends PureComponent<Props, State> {
   public expandCard = () => {
     this.props.onExpandCard && this.props.onExpandCard()
     Animated.parallel([
-      Animated.timing(
-        this.state.expansion,
-        {
-          toValue: 1,
-          duration: 150,
-          easing: Easing.inOut(Easing.cubic),
-        }
-      ),
-      Animated.timing(
-        this.state.margin.top,
-        {
-          toValue: 0,
-          duration: 150,
-        }
-      ),
-      Animated.timing(
-        this.state.margin.bottom,
-        {
-          toValue: 0,
-          duration: 150,
-        }
-      )]
-    ).start()
-    this.setState({
-      fullyExpanded: true,
+      Animated.timing(this.state.expansion, { toValue: 1, duration: 100 }),
+      Animated.timing(this.state.margin.top, { toValue: 0, duration: 100 }),
+      Animated.timing(this.state.margin.bottom, { toValue: 0, duration: 100 }),
+    ]).start(() => {
+      this.setState({
+        fullyExpanded: true,
+      })
     })
   }
 
-  public contractCard = () => {
+  public contractCard = (fast: boolean) => {
     this.props.onContractCard && this.props.onContractCard()
     this.setState({
       fullyExpanded: false,
     })
-    Animated.parallel([
-      Animated.timing(
-        this.state.expansion,
-        {
-          toValue: 0,
-          duration: 175,
-        }
-      ),
-      Animated.spring(
-        this.state.margin.top,
-        {
-          toValue: MAX_MARGIN,
-          friction: 4,
-        }
-      ),
-      Animated.spring(
-        this.state.margin.bottom,
-        {
-          toValue: MAX_MARGIN,
-          friction: 4,
-        }
-      )]
-    ).start()
+
+    let animations = [
+      Animated.timing(this.state.expansion, { toValue: 0, duration: fast ? 100 : 175 }),
+    ]
+    if (fast) {
+      animations = animations.concat([
+        Animated.timing(this.state.margin.top,    { toValue: MAX_VERTICAL_MARGIN, duration: 100 } ),
+        Animated.timing(this.state.margin.bottom, { toValue: MAX_VERTICAL_MARGIN, duration: 100 } ),
+      ])
+    } else {
+      animations = animations.concat([
+        Animated.spring(this.state.margin.top, { toValue: MAX_VERTICAL_MARGIN, friction: 4 } ),
+        Animated.spring(this.state.margin.bottom, { toValue: MAX_VERTICAL_MARGIN, friction: 4 } ),
+      ])
+    }
+    this.carousel.reset(false)
+    Animated.parallel(animations).start()
   }
 
   public swipeRight = () => {
@@ -172,13 +150,25 @@ class Card extends PureComponent<Props, State> {
   }
 
   render() {
+
     const outerContainerStyle = {
       zIndex: this.state.fullyExpanded ? 14 : 10 - this.props.positionInDeck,
       marginTop: this.state.margin.top,
       marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [MAX_MARGIN, 0],
+        outputRange: [MAX_HORIZONTAL_MARGIN, 0],
+      }),
+    }
+
+    const imageContainerStyle = {
+      height: this.state.expansion.interpolate({
+        inputRange: [0, 1],
+        outputRange: [WIDTH - 2 * MAX_HORIZONTAL_MARGIN, WIDTH],
+      }),
+      width: this.state.expansion.interpolate({
+        inputRange: [0, 1],
+        outputRange: [WIDTH - 2 * MAX_HORIZONTAL_MARGIN, WIDTH],
       }),
     }
 
@@ -190,7 +180,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     const scrollViewStyle = {
-      backgroundColor: this.state.shouldBounce ? 'transparent' : 'white',
+      backgroundColor: this.state.scrollViewBackgroundColor,
     }
 
     let shadowStyle
@@ -201,8 +191,8 @@ class Card extends PureComponent<Props, State> {
           Platform.select({
             ios: {
               shadowOpacity: this.state.panX.interpolate({
-                inputRange: [-50, 0, 50],
-                outputRange: [0.5, 0, 0.5],
+                inputRange: [-1000, -5, 0, 5, 1000],
+                outputRange: [0.25, 0.25, 0, 0.25, 0.25],
               }),
             },
           }),
@@ -217,7 +207,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     if (this.props.previewMode) {
-      shadowStyle = styles.thirdCard
+      shadowStyle = styles.secondCard
     }
 
     const [translateX, translateY] = [this.state.pan.x, this.state.pan.y]
@@ -252,13 +242,12 @@ class Card extends PureComponent<Props, State> {
               bounces
               ref={(ref: any) => this.mainScrollView = ref} /* tslint:disable-line:no-any */
             >
-              <View
-                style={styles.card}
-              >
+              <View style={styles.card}>
                 <Carousel
                   enabled={this.state.fullyExpanded}
                   imageUris={this.props.profile.images}
-                  onTapImage={this.contractCard}
+                  onTapImage={this.exitExpandedCard}
+                  imageContainerStyle={imageContainerStyle}
                   ref={(ref) => this.carousel = ref}
                 />
                 {this.renderBottom()}
@@ -276,28 +265,22 @@ class Card extends PureComponent<Props, State> {
     const bottomContainerStyle = {
       paddingHorizontal: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [10, 10 + MAX_MARGIN],
+        outputRange: [20, 20],
       }),
     }
 
     return (
-      <Animated.View
-        style={[styles.bottomContainer, bottomContainerStyle]}
-      >
+      <TouchableWithoutFeedback onPress={this.exitExpandedCard}>
+      <Animated.View style={[styles.bottomContainer, bottomContainerStyle]}>
         <JSText fontSize={20} bold style={styles.name}>{this.props.profile.preferredName}</JSText>
         <View style={styles.textContainer}>
           <TagsSection tags={shuffle(TAGS)} tagStyle={styles.tag} alignLeft />
           <JSText fontSize={14} style={styles.bio}>
-            This is my bio. It is very long. I am such a long writer. Look at me go!
-            Soon I will have reached a few lines, and then BAM, I'm almost on line 5.
-            Come on, you can do it. You've trained your whole life for this.
-            Don't mess up now... yeah baby!! This is my bio. It is very long.
-            I am such a long writer. Look at me go! Soon I will have reached a few lines, and then BAM,
-            I'm almost on line 5. Come on, you can do it. You've trained your whole life for this.
-            Don't mess up now... yeah baby!!
+            {this.props.profile.bio}
           </JSText>
         </View>
       </Animated.View>
+    </TouchableWithoutFeedback>
     )
   }
 
@@ -311,7 +294,7 @@ class Card extends PureComponent<Props, State> {
 
     return (
       <Animated.View style={[styles.exitContainer, containerStyle]}>
-        <TouchableOpacity onPress={this.contractCard}>
+        <TouchableOpacity onPress={this.exitExpandedCard}>
           <Entypo name='cross' size={40} style={styles.exitIcon} />
         </TouchableOpacity>
       </Animated.View>
@@ -322,16 +305,16 @@ class Card extends PureComponent<Props, State> {
     const gradientStyle = {
       height: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: ['20%', '3%'],
+        outputRange: ['10%', '3%'],
       }),
     }
 
     return (
-      <Animated.View style={[styles.overlay, gradientStyle]}>
+      <Animated.View pointerEvents='none' style={[styles.overlay, gradientStyle]}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.6)']}
+          colors={['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 1)']}
           start={{x: 0, y: 0}}
-          end={{x: 0, y: 0.5}}
+          end={{x: 0, y: 1}}
           style={styles.fill}
         >
             <View style={styles.fill} />
@@ -340,7 +323,7 @@ class Card extends PureComponent<Props, State> {
     )
   }
 
-  private cardWidth = () => WIDTH - 2 * MAX_MARGIN
+  private cardWidth = () => WIDTH - 2 * MAX_HORIZONTAL_MARGIN
 
   private canSwipe = () => !this.state.fullyExpanded
                            && this.props.positionInDeck === 0
@@ -357,7 +340,7 @@ class Card extends PureComponent<Props, State> {
     return Math.max(0, contentOffset.y + layoutMeasurement.height - contentSize.height)
   }
 
-  private setMarginFromScrollviewBounce = (event: ScrollEvent) => {
+  private setMarginFromScrollViewBounce = (event: ScrollEvent) => {
     this.state.margin.top.setValue(this.getMarginTopFromScrollviewBounce(event))
     this.state.margin.bottom.setValue(this.getMarginBottomFromScrollviewBounce(event))
   }
@@ -368,17 +351,38 @@ class Card extends PureComponent<Props, State> {
 
     const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
 
+    /* if the user is scrolling the card and is closer to the top,
+     * then the background of the ScrollView should be transparent so that
+     * when the user scrolls past the top of the card, the background (the
+     * other cards) are visible. Otherwise, the background should be white,
+     * since we don't want anything shown in the background when the user
+     * scrolls past the bottom
+     */
+    let closerToTop: boolean
+    if (contentSize.height < HEIGHT) {
+      closerToTop = contentOffset.y <= 0
+    } else {
+      closerToTop = contentOffset.y < (contentSize.height - layoutMeasurement.height) / 2
+    }
     this.setState({
-      shouldBounce: contentOffset.y < (contentSize.height - layoutMeasurement.height) / 2,
+      scrollViewBackgroundColor: closerToTop ? 'transparent' : 'white',
     })
 
     const swipedDown = contentOffset.y < -90
     const swipedUp = contentOffset.y + layoutMeasurement.height > contentSize.height + 100
     if (swipedDown || BOTTOM_SWIPE_AWAY_ENABLED && swipedUp) {
       this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
-      this.setMarginFromScrollviewBounce(event)
-      this.contractCard()
+      this.setMarginFromScrollViewBounce(event)
+      this.contractCard(false)
     }
+  }
+
+  private exitExpandedCard = () => {
+    if (this.state.fullyExpanded) {
+      this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+      this.contractCard(true)
+    }
+
   }
 
   private swipe = (direction: Direction) => {
@@ -421,11 +425,11 @@ class Card extends PureComponent<Props, State> {
 
     this.cardPanResponder = PanResponder.create({
 
-      onStartShouldSetPanResponder: () => !this.state.fullyExpanded && this.canSwipe(),
-      onStartShouldSetPanResponderCapture: () => !this.state.fullyExpanded && this.canSwipe(),
+      onStartShouldSetPanResponder: () => this.canSwipe(),
+      onStartShouldSetPanResponderCapture: () => this.canSwipe(),
 
       onPanResponderMove: (event, gestureState) => {
-        if (!this.state.fullyExpanded && this.canSwipe() && this.isSwipe(gestureState)) {
+        if (this.canSwipe() && this.isSwipe(gestureState)) {
           this.isSwiping = true
           const updatePan = Animated.event([undefined, {dx: this.state.pan.x, dy: this.state.pan.y}])
           const updatePanX = Animated.event([undefined, {dx: this.state.panX}])
@@ -521,11 +525,6 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: 'black',
         shadowRadius: 5,
-        shadowOpacity: 0.5,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
       },
     }),
     ...Platform.select({
@@ -539,11 +538,7 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: 'black',
         shadowRadius: 5,
-        shadowOpacity: 0.5,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
+        shadowOpacity: 0.1,
       },
     }),
     ...Platform.select({
@@ -553,22 +548,6 @@ const styles = StyleSheet.create({
     }),
   },
   thirdCard: {
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowRadius: 5,
-        shadowOpacity: 0.3,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
-      },
-    }),
-    ...Platform.select({
-      android: {
-        elevation: 1,
-      },
-    }),
   },
   overlay: {
     position: 'absolute',
@@ -584,10 +563,11 @@ const styles = StyleSheet.create({
   card: {
     minHeight: '100%',
     flex: 1,
+    backgroundColor: 'white',
   },
   bottomContainer: {
-    justifyContent: 'flex-end',
-    backgroundColor: 'white',
+    flex: 1,
+    justifyContent: 'flex-start',
     paddingVertical: 10,
   },
   textContainer: {

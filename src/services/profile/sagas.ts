@@ -152,7 +152,12 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
   }
 
   try {
-    const firebaseUrl = yield call(uploadImageToFirebase)
+    let firebaseUrl: string
+    if (payload.imageUri.startsWith('http')) { // already a remote url
+      firebaseUrl = payload.imageUri
+    } else {
+      firebaseUrl = yield call(uploadImageToFirebase)
+    }
 
     // send images to server
     const images: Array<LoadableValue<ImageUri>> = yield select(getImages)

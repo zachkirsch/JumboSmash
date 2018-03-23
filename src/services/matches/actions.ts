@@ -11,6 +11,7 @@ export enum MatchesActionType {
   SEND_MESSAGES_SUCCESS = 'SEND_MESSAGES_SUCCESS',
   SEND_MESSAGES_FAILURE = 'SEND_MESSAGES_FAILURE',
   RECEIVE_MESSAGES = 'RECEIVE_MESSAGES',
+  SET_CONVERSATION_AS_READ = 'SET_CONVERSATION_AS_READ',
 
   CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
@@ -47,6 +48,11 @@ export interface ReceiveMessagesAction {
   messages: GiftedChatMessage[]
 }
 
+export interface SetConversationAsReadAction {
+  type: MatchesActionType.SET_CONVERSATION_AS_READ
+  conversationId: string
+}
+
 export interface ClearMatchesStateAction {
   type: MatchesActionType.CLEAR_MATCHES_STATE
 }
@@ -62,12 +68,12 @@ export interface OtherAction {
   type: MatchesActionType.OTHER_ACTION
 }
 
-export type MatchesAction = AttemptSendMessagesAction
+export type MatchesAction = CreateMatchAction
+| AttemptSendMessagesAction
 | SendMessagesSuccessAction
 | SendMessagesFailureAction
 | ReceiveMessagesAction
-| CreateMatchAction
-| RehydrateAction
+| SetConversationAsReadAction
 | ClearMatchesStateAction
 | RehydrateAction
 | OtherAction
@@ -87,6 +93,13 @@ export const receiveMessages = (conversationId: string, messages: GiftedChatMess
     type: MatchesActionType.RECEIVE_MESSAGES,
     conversationId,
     messages,
+  }
+}
+
+export const setConversationAsRead = (conversationId: string): SetConversationAsReadAction => {
+  return {
+    type: MatchesActionType.SET_CONVERSATION_AS_READ,
+    conversationId,
   }
 }
 

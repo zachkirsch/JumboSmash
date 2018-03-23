@@ -26,7 +26,7 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🚫👯',
-    description: "No identity theft. Don't pretend to be someone you're not.",
+    description: "Don't pretend to be someone you're not.",
   },
   {
     emojiTitle: '✅🙋',
@@ -34,7 +34,7 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🔐💌',
-    description: 'Jumbosmash will delete all your data after graduation - we value your privacy!',
+    description: 'We value your privacy! Jumbosmash will delete all your data after graduation.',
   },
 ]
 

@@ -142,6 +142,7 @@ class SwipeScreen extends PureComponent<Props, State> {
           },
         }).panHandlers}
         style={[styles.overlay, gradientStyle]}
+        pointerEvents='none'
       >
         <LinearGradient
           colors={['rgba(217,228,239,0)', 'rgba(217,228,239,1)']}

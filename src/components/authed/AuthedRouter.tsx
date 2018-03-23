@@ -32,6 +32,7 @@ const tabNavigator = TabNavigator({
     screen: MatchesList,
   },
 }, {
+  lazy: false,
   tabBarComponent: TabBar,
   tabBarPosition: 'top',
   animationEnabled: false,
