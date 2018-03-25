@@ -1,5 +1,5 @@
 import RNFetchBlob from 'react-native-fetch-blob'
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
+import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
 import { RootState } from '../../redux'
 import * as api from '../api'
@@ -18,6 +18,14 @@ const updateProfileInFirebase = (updateObject: Partial<FirebaseProfile>) => {
 }
 
 /* Preferred Name */
+
+function* onChangePreferredNameTextInput(action: ProfileActions.OnChangePreferredNameTextInputAction) {
+  const updateLocallyAction: ProfileActions.UpdatePreferredNameLocallyAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_PREFERRED_NAME_LOCALLY,
+    preferredName: action.preferredName,
+  }
+  yield put(updateLocallyAction)
+}
 
 function* handleUpdatePreferredNameSuccess() {
   const successAction: ProfileActions.UpdatePreferredNameSuccessAction = {
@@ -46,6 +54,14 @@ function* attemptUpdatePreferredName(payload: ProfileActions.AttemptUpdatePrefer
 
 /* Major */
 
+function* onChangeMajorTextInput(action: ProfileActions.OnChangeMajorTextInputAction) {
+  const updateLocallyAction: ProfileActions.UpdateMajorLocallyAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_LOCALLY,
+    major: action.major,
+  }
+  yield put(updateLocallyAction)
+}
+
 function* handleUpdateMajorSuccess() {
   const successAction: ProfileActions.UpdateMajorSuccessAction = {
     type: ProfileActions.ProfileActionType.UPDATE_MAJOR_SUCCESS,
@@ -72,6 +88,14 @@ function* attemptUpdateMajor(payload: ProfileActions.AttemptUpdateMajorAction) {
 }
 
 /* Bio */
+
+function* onChangeBioTextInput(action: ProfileActions.OnChangeBioTextInputAction) {
+  const updateLocallyAction: ProfileActions.UpdateBioLocallyAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_BIO_LOCALLY,
+    bio: action.bio,
+  }
+  yield put(updateLocallyAction)
+}
 
 function* handleUpdateBioSuccess() {
   const successAction: ProfileActions.UpdateBioSuccessAction = {
@@ -250,4 +274,19 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
   yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
+  yield throttle(
+    500,
+    ProfileActions.ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
+    onChangePreferredNameTextInput
+  )
+  yield throttle(
+    500,
+    ProfileActions.ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
+    onChangeMajorTextInput
+  )
+  yield throttle(
+    500,
+    ProfileActions.ProfileActionType.ON_CHANGE_BIO_TEXTINPUT,
+    onChangeBioTextInput
+  )
 }

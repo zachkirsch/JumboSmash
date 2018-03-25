@@ -24,6 +24,9 @@ import {
   updateImage,
   updateMajor,
   updatePreferredName,
+  onChangePreferredNameTextInput,
+  onChangeMajorTextInput,
+  onChangeBioTextInput,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { JSText, JSTextInput } from '../../common'
@@ -53,10 +56,13 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updatePreferredName: (name: string) => void,
-  updateBio: (bio: string) => void,
-  updateMajor: (major: string) => void,
-  updateImage: (index: number, imageUri: string, mime: string) => void,
+  onChangePreferredNameTextInput: (preferredName: string) => void
+  onChangeMajorTextInput: (major: string) => void
+  onChangeBioTextInput: (bio: string) => void
+  updatePreferredName: (preferredName: string) => void
+  updateBio: (bio: string) => void
+  updateMajor: (major: string) => void
+  updateImage: (index: number, imageUri: string, mime: string) => void
   swapImages: (index1: number, index2: number) => void
 }
 
@@ -71,12 +77,21 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
+
+    function getInitialValue<T>(item: LoadableValue<T>) {
+      if (item.localValue === undefined) {
+        return item.value
+      } else {
+        return item.localValue
+      }
+    }
+
     this.state = {
       previewingCard: false,
       viewingCoC: false,
-      preferredName: props.preferredName.value,
-      major: props.major.value,
-      bio: props.bio.value,
+      preferredName: getInitialValue(props.preferredName),
+      major: getInitialValue(props.major),
+      bio: getInitialValue(props.bio),
     }
   }
 
@@ -298,9 +313,20 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
   }
 
-  private updateBio = (bio: string) => this.setState({ bio })
-  private updateMajor = (major: string) => this.setState({ major })
-  private updatePreferredName = (preferredName: string) => this.setState({ preferredName })
+  private updatePreferredName = (preferredName: string) => {
+    this.setState({ preferredName })
+    this.props.onChangePreferredNameTextInput(preferredName)
+  }
+
+  private updateMajor = (major: string) => {
+    this.setState({ major })
+    this.props.onChangeMajorTextInput(major)
+  }
+
+  private updateBio = (bio: string) => {
+    this.setState({ bio })
+    this.props.onChangeBioTextInput(bio)
+  }
 
   private saveRequired = () => this.props.bio.value !== this.state.bio
     || this.props.major.value !== this.state.major
@@ -332,7 +358,10 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    updatePreferredName: (name: string) => dispatch(updatePreferredName(name)),
+    onChangePreferredNameTextInput: (preferredName: string) => dispatch(onChangePreferredNameTextInput(preferredName)),
+    onChangeMajorTextInput: (major: string) => dispatch(onChangeMajorTextInput(major)),
+    onChangeBioTextInput: (bio: string) => dispatch(onChangeBioTextInput(bio)),
+    updatePreferredName: (preferredName: string) => dispatch(updatePreferredName(preferredName)),
     updateBio: (bio: string) => dispatch(updateBio(bio)),
     updateMajor: (major: string) => dispatch(updateMajor(major)),
     updateImage: (index: number, imageUri: string, mime: string) => {

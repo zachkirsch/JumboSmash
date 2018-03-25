@@ -7,14 +7,20 @@ export enum ProfileActionType {
 
   INITIALIZE_PROFILE = 'INITIALIZE_PROFILE',
 
+  ON_CHANGE_PREFERRED_NAME_TEXTINPUT = 'ON_CHANGE_PREFERRED_NAME_TEXTINPUT',
+  UPDATE_PREFERRED_NAME_LOCALLY = 'UPDATE_PREFERRED_NAME_LOCALLY',
   ATTEMPT_UPDATE_PREFERRED_NAME = 'ATTEMPT_UPDATE_PREFERRED_NAME',
   UPDATE_PREFERRED_NAME_SUCCESS = 'UPDATE_PREFERRED_NAME_SUCCESS',
   UPDATE_PREFERRED_NAME_FAILURE = 'UPDATE_PREFERRED_NAME_FAILURE',
 
+  ON_CHANGE_MAJOR_TEXTINPUT = 'ON_CHANGE_MAJOR_TEXTINPUT',
+  UPDATE_MAJOR_LOCALLY = 'UPDATE_MAJOR_LOCALLY',
   ATTEMPT_UPDATE_MAJOR = 'ATTEMPT_UPDATE_MAJOR',
   UPDATE_MAJOR_SUCCESS = 'UPDATE_MAJOR_SUCCESS',
   UPDATE_MAJOR_FAILURE = 'UPDATE_MAJOR_FAILURE',
 
+  ON_CHANGE_BIO_TEXTINPUT = 'ON_CHANGE_BIO_TEXTINPUT',
+  UPDATE_BIO_LOCALLY = 'UPDATE_BIO_LOCALLY',
   ATTEMPT_UPDATE_BIO = 'ATTEMPT_UPDATE_BIO',
   UPDATE_BIO_SUCCESS = 'UPDATE_BIO_SUCCESS',
   UPDATE_BIO_FAILURE = 'UPDATE_BIO_FAILURE',
@@ -41,6 +47,16 @@ export interface InitializeProfileAciton {
   images: string[]
 }
 
+export interface OnChangePreferredNameTextInputAction {
+  type: ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
+  preferredName: string,
+}
+
+export interface UpdatePreferredNameLocallyAction {
+  type: ProfileActionType.UPDATE_PREFERRED_NAME_LOCALLY
+  preferredName: string
+}
+
 export interface AttemptUpdatePreferredNameAction {
   type: ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME
   preferredName: string
@@ -55,6 +71,16 @@ export interface UpdatePreferredNameFailureAction {
   errorMessage: string
 }
 
+export interface OnChangeMajorTextInputAction {
+  type: ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
+  major: string,
+}
+
+export interface UpdateMajorLocallyAction {
+  type: ProfileActionType.UPDATE_MAJOR_LOCALLY
+  major: string
+}
+
 export interface AttemptUpdateMajorAction {
   type: ProfileActionType.ATTEMPT_UPDATE_MAJOR
   major: string
@@ -67,6 +93,16 @@ export interface UpdateMajorSuccessAction {
 export interface UpdateMajorFailureAction {
   type: ProfileActionType.UPDATE_MAJOR_FAILURE
   errorMessage: string
+}
+
+export interface OnChangeBioTextInputAction {
+  type: ProfileActionType.ON_CHANGE_BIO_TEXTINPUT,
+  bio: string,
+}
+
+export interface UpdateBioLocallyAction {
+  type: ProfileActionType.UPDATE_BIO_LOCALLY
+  bio: string
 }
 
 export interface AttemptUpdateBioAction {
@@ -140,12 +176,18 @@ export interface OtherAction {
 }
 
 export type ProfileAction = InitializeProfileAciton
+| OnChangePreferredNameTextInputAction
+| UpdatePreferredNameLocallyAction
 | AttemptUpdatePreferredNameAction
 | UpdatePreferredNameSuccessAction
 | UpdatePreferredNameFailureAction
+| OnChangeMajorTextInputAction
+| UpdateMajorLocallyAction
 | AttemptUpdateMajorAction
 | UpdateMajorSuccessAction
 | UpdateMajorFailureAction
+| OnChangeBioTextInputAction
+| UpdateBioLocallyAction
 | AttemptUpdateBioAction
 | UpdateBioSuccessAction
 | UpdateBioFailureAction
@@ -173,6 +215,13 @@ export const initializeProfile = (id: number, preferredName: string,
   }
 }
 
+export const onChangePreferredNameTextInput = (preferredName: string): OnChangePreferredNameTextInputAction => {
+  return {
+    type: ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
+    preferredName,
+  }
+}
+
 export const updatePreferredName = (preferredName: string): AttemptUpdatePreferredNameAction => {
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME,
@@ -180,10 +229,24 @@ export const updatePreferredName = (preferredName: string): AttemptUpdatePreferr
   }
 }
 
+export const onChangeMajorTextInput = (major: string): OnChangeMajorTextInputAction => {
+  return {
+    type: ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
+    major,
+  }
+}
+
 export const updateMajor = (major: string): AttemptUpdateMajorAction => {
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_MAJOR,
     major,
+  }
+}
+
+export const onChangeBioTextInput = (bio: string): OnChangeBioTextInputAction => {
+  return {
+    type: ProfileActionType.ON_CHANGE_BIO_TEXTINPUT,
+    bio,
   }
 }
 

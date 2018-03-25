@@ -10,6 +10,7 @@ interface Props {
   onPress: () => void
   style?: any /* tslint:disable-line:no-any */
   rotate?: boolean
+  disabled?: boolean
 }
 
 interface State {
@@ -68,6 +69,7 @@ class CircleButton extends PureComponent<Props, State> {
         onPress={this.props.onPress}
         onPressIn={this.onPressIn}
         onPressOut={this.onPressOut}
+        disabled={this.props.disabled}
       >
         <Animated.View style={containerStyle}>
           <this.props.IconClass

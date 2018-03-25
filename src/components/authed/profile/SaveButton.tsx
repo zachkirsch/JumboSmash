@@ -68,10 +68,6 @@ const styles = StyleSheet.create({
         shadowColor: 'rgba(172, 203, 238, 0.75)',
         shadowRadius: 10,
         shadowOpacity: 1,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
       },
     }),
     ...Platform.select({
