@@ -259,11 +259,19 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
 
       function getValue<T>(oldStateValue: LoadableValue<T>, defaultValue: T): LoadableValue<T> {
-        const wasLoading = oldStateValue.loading
+        let value: T
+        if (oldStateValue.loading) {
+          if (oldStateValue.prevValue !== undefined) {
+            value = oldStateValue.prevValue
+          } else {
+            value = defaultValue
+          }
+        } else {
+          value = oldStateValue.value
+        }
         return {
-          value: wasLoading ? oldStateValue.prevValue || defaultValue : oldStateValue.value,
+          value,
           loading: false,
-          errorMessage: wasLoading ? 'Failed to Upload' : '',
         }
       }
 

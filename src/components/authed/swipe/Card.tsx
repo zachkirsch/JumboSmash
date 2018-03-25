@@ -18,6 +18,8 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { JSText } from '../../common'
+import { getRefToProfile } from '../../../services/firebase'
+import { FirebaseProfile } from '../../../services/profile'
 import { clamp, shuffle } from '../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
@@ -44,30 +46,31 @@ interface State {
   }
   scrollViewBackgroundColor: string
   isMomentumScrolling: boolean
+  loadingProfile: boolean
+  profile: FirebaseProfile
 }
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
 const TAGS = [
-  { name: '🏳️‍🌈', emoji: true },
-  { name: '👫', emoji: true },
-  { name: '👬', emoji: true },
-  { name: '👭', emoji: true },
-  { name: 'taken af' },
-  { name: 'single af' },
-  { name: 'open relationship' },
-  { name: 'poly' },
-  { name: 'complicated' },
-  { name: 'married' },
-  { name: 'single' },
-  { name: "it's cuffing szn" },
-  { name: 'one night stands' },
-  { name: 'I do CS' },
-  { name: "can't afford a relationship" },
-  { name: 'here for the memes' },
+  { id: 0, name: '🏳️‍🌈', emoji: true },
+  { id: 1, name: '👫', emoji: true },
+  { id: 2, name: '👬', emoji: true },
+  { id: 3, name: '👭', emoji: true },
+  { id: 4, name: 'taken af' },
+  { id: 5, name: 'single af' },
+  { id: 6, name: 'open relationship' },
+  { id: 7, name: 'poly' },
+  { id: 8, name: 'complicated' },
+  { id: 9, name: 'married' },
+  { id: 10, name: 'single' },
+  { id: 11, name: "it's cuffing szn" },
+  { id: 12, name: 'one night stands' },
+  { id: 13, name: 'I do CS' },
+  { id: 14, name: "can't afford a relationship" },
+  { id: 15, name: 'here for the memes' },
 ]
 
-const BOTTOM_SWIPE_AWAY_ENABLED = false
 const WIDTH = Dimensions.get('window').width
 const HEIGHT = Dimensions.get('window').height
 const MAX_VERTICAL_MARGIN = WIDTH / 12
@@ -83,19 +86,14 @@ class Card extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {
-      pan: new Animated.ValueXY(),
-      panX: new Animated.Value(0),
-      expansion: new Animated.Value(0),
-      fullyExpanded: false,
-      margin: {
-        top: new Animated.Value(MAX_VERTICAL_MARGIN),
-        bottom: new Animated.Value(MAX_VERTICAL_MARGIN),
-      },
-      scrollViewBackgroundColor: 'transparent',
-      isMomentumScrolling: false,
-    }
+    this.state = this.getInitialState()
     this.setupGestureResponders()
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (this.state.loadingProfile || this.props.profile.id !== nextProps.profile.id || nextProps.positionInDeck !== 0) {
+      this.getProfileFromFirebase('f6f191aa-a798-4560-8280-9c819930fbd6')
+    }
   }
 
   public tap = () => {
@@ -223,13 +221,8 @@ class Card extends PureComponent<Props, State> {
     ]
 
     return (
-      <Animated.View
-        style={outerContainerStyleList}
-        {...this.cardPanResponder.panHandlers}
-      >
-        <Animated.View
-          style={[styles.innerContainer, borderRadiusStyle]}
-        >
+      <Animated.View style={outerContainerStyleList} {...this.cardPanResponder.panHandlers}>
+        <Animated.View style={[styles.innerContainer, borderRadiusStyle]}>
             <Animated.ScrollView
               scrollEventThrottle={1}
               scrollEnabled={this.state.fullyExpanded}
@@ -245,7 +238,7 @@ class Card extends PureComponent<Props, State> {
               <View style={styles.card}>
                 <Carousel
                   enabled={this.state.fullyExpanded}
-                  imageUris={this.props.profile.images}
+                  imageUris={this.state.profile.imageUris.filter(image => image)}
                   onTapImage={this.exitExpandedCard}
                   imageContainerStyle={imageContainerStyle}
                   ref={(ref) => this.carousel = ref}
@@ -272,11 +265,13 @@ class Card extends PureComponent<Props, State> {
     return (
       <TouchableWithoutFeedback onPress={this.exitExpandedCard}>
       <Animated.View style={[styles.bottomContainer, bottomContainerStyle]}>
-        <JSText fontSize={20} bold style={styles.name}>{this.props.profile.preferredName}</JSText>
+        <JSText fontSize={20} bold style={styles.name}>
+          {this.state.loadingProfile ? 'LOADING' : this.state.profile.preferredName}
+        </JSText>
         <View style={styles.textContainer}>
           <TagsSection tags={shuffle(TAGS)} tagStyle={styles.tag} alignLeft />
           <JSText fontSize={14} style={styles.bio}>
-            {this.props.profile.bio}
+            {this.state.profile.bio}
           </JSText>
         </View>
       </Animated.View>
@@ -323,6 +318,22 @@ class Card extends PureComponent<Props, State> {
     )
   }
 
+  private getProfileFromFirebase = (firebaseUid: string) => {
+    this.setState({
+      loadingProfile: true,
+    }, () => {
+      getRefToProfile(firebaseUid).once('value', (snapshot) => {
+        this.setState({
+          loadingProfile: false,
+          profile: {
+            ...this.getInitialState().profile,
+            ...snapshot.val(),
+          },
+        })
+      })
+    })
+  }
+
   private cardWidth = () => WIDTH - 2 * MAX_HORIZONTAL_MARGIN
 
   private canSwipe = () => !this.state.fullyExpanded
@@ -330,7 +341,7 @@ class Card extends PureComponent<Props, State> {
                            && !this.isSwipingProgrammatically
 
   private isSwipe = (gestureState: PanResponderGestureState) => {
-    return Math.abs(gestureState.dx) > 1 || Math.abs(gestureState.dx) > 1
+    return Math.abs(gestureState.dx) > 1 || Math.abs(gestureState.dy) > 1
   }
 
   private getMarginTopFromScrollviewBounce = (event: ScrollEvent) => Math.max(0, -event.nativeEvent.contentOffset.y)
@@ -349,15 +360,21 @@ class Card extends PureComponent<Props, State> {
 
   private onScrollCard = (event: ScrollEvent) => {
 
-    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
-
     /* if the user is scrolling the card and is closer to the top,
      * then the background of the ScrollView should be transparent so that
      * when the user scrolls past the top of the card, the background (the
      * other cards) are visible. Otherwise, the background should be white,
      * since we don't want anything shown in the background when the user
-     * scrolls past the bottom
+     * scrolls past the bottom. This only applies to IOS since ScrollViews
+     * don't bounce on Android
      */
+
+    if (Platform.OS !== 'ios') {
+     return
+    }
+
+    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
+
     let closerToTop: boolean
     if (contentSize.height < HEIGHT) {
       closerToTop = contentOffset.y <= 0
@@ -368,10 +385,9 @@ class Card extends PureComponent<Props, State> {
       scrollViewBackgroundColor: closerToTop ? 'transparent' : 'white',
     })
 
-    const swipedDown = contentOffset.y < -90
-    const swipedUp = contentOffset.y + layoutMeasurement.height > contentSize.height + 100
-    if (swipedDown || BOTTOM_SWIPE_AWAY_ENABLED && swipedUp) {
-      this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+    /* if the user has pulled the card down enough, then contract the card */
+    const pulledDownEnough = contentOffset.y < -90
+    if (pulledDownEnough) {
       this.setMarginFromScrollViewBounce(event)
       this.contractCard(false)
     }
@@ -390,22 +406,12 @@ class Card extends PureComponent<Props, State> {
       return
     }
     this.isSwipingProgrammatically = true
-    const xValue = direction === 'right' ? this.cardWidth() * 2 : this.cardWidth() * -2
+    const xValue = this.cardWidth() * 2 * (direction === 'right' ? 1 : -1)
     const yValue = 50
 
     Animated.parallel([
-      Animated.timing(
-        this.state.pan, {
-          toValue: {x: xValue, y: yValue},
-          duration: 300,
-        }
-      ),
-      Animated.timing(
-        this.state.panX, {
-          toValue: xValue,
-          duration: 300,
-        }
-      ),
+      Animated.timing(this.state.pan, { toValue: {x: xValue, y: yValue}, duration: 300 }),
+      Animated.timing(this.state.panX, { toValue: xValue, duration: 300 }),
     ]).start(() => {
       this.isSwipingProgrammatically = false
       this.onCompleteSwipe(direction)
@@ -431,10 +437,8 @@ class Card extends PureComponent<Props, State> {
       onPanResponderMove: (event, gestureState) => {
         if (this.canSwipe() && this.isSwipe(gestureState)) {
           this.isSwiping = true
-          const updatePan = Animated.event([undefined, {dx: this.state.pan.x, dy: this.state.pan.y}])
-          const updatePanX = Animated.event([undefined, {dx: this.state.panX}])
-          updatePan(event, gestureState)
-          updatePanX(event, gestureState)
+          Animated.event([undefined, {dx: this.state.pan.x, dy: this.state.pan.y}])(event, gestureState)
+          Animated.event([undefined, {dx: this.state.panX}])(event, gestureState)
         }
       },
 
@@ -465,41 +469,40 @@ class Card extends PureComponent<Props, State> {
           const destX = (clampedVx + 0.5) * WIDTH * (isRight ? 1 : -1)
           const destY = (clampedVy - 0.3) * WIDTH
           Animated.parallel([
-            Animated.timing(
-              this.state.pan, {
-                toValue: {
-                  x: destX,
-                  y: destY,
-                },
-                duration: 200,
-              }
-            ),
-            Animated.timing(
-              this.state.panX, {
-                toValue: destX,
-                duration: 200,
-              }
-            ),
+            Animated.timing(this.state.pan, { toValue: { x: destX, y: destY, }, duration: 200 }),
+            Animated.timing(this.state.panX, { toValue: destX, duration: 200 }),
           ]).start(() => this.onCompleteSwipe(isRight ? 'right' : 'left'))
         } else {
+          // spring card back
           Animated.parallel([
-            Animated.spring(this.state.pan, {
-                toValue: {x: 0, y: 0},
-                friction: 4,
-              }
-            ),
-            Animated.spring(
-              this.state.panX, {
-                toValue: 0,
-                friction: 4,
-              }
-            ),
+            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 4 }),
+            Animated.spring(this.state.panX, { toValue: 0, friction: 4 }),
           ]).start()
         }
       },
-
     })
   }
+
+  private getInitialState = (): State => ({
+      pan: new Animated.ValueXY(),
+      panX: new Animated.Value(0),
+      expansion: new Animated.Value(0),
+      fullyExpanded: false,
+      margin: {
+        top: new Animated.Value(MAX_VERTICAL_MARGIN),
+        bottom: new Animated.Value(MAX_VERTICAL_MARGIN),
+      },
+      scrollViewBackgroundColor: 'transparent',
+      isMomentumScrolling: false,
+      loadingProfile: true,
+      profile: {
+        preferredName: '',
+        major: '',
+        bio: '',
+        imageUris: [],
+        tags: {},
+      },
+  })
 }
 
 export default Card

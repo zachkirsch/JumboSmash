@@ -3,13 +3,19 @@ import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
 import { RootState } from '../../redux'
 import * as api from '../api'
-import { firebase } from '../firebase'
+import { firebase, getRefToProfile } from '../firebase'
 import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
-import { ImageUri } from './types'
-// import { flatten } from 'lodash'
+import { ImageUri, FirebaseProfile, Tag } from './types'
 
 const getImages = (state: RootState) => state.profile.images
+
+const updateProfileInFirebase = (updateObject: Partial<FirebaseProfile>) => {
+  return new Promise((resolve, reject) => {
+    const dbRef = getRefToProfile(firebase.auth().currentUser.uid)
+    dbRef.update(updateObject, error => error ? reject(error) : resolve())
+  })
+}
 
 /* Preferred Name */
 
@@ -30,6 +36,7 @@ function* handleUpdatePreferredNameFailure(error: Error) {
 
 function* attemptUpdatePreferredName(payload: ProfileActions.AttemptUpdatePreferredNameAction) {
   try {
+    yield call(updateProfileInFirebase, { preferredName: payload.preferredName })
     yield call(api.api.updateName, payload.preferredName)
     yield handleUpdatePreferredNameSuccess()
   } catch (error) {
@@ -54,8 +61,9 @@ function* handleUpdateMajorFailure(error: Error) {
   yield put(failureAction)
 }
 
-function* attemptUpdateMajor(_: ProfileActions.AttemptUpdateMajorAction) {
+function* attemptUpdateMajor(payload: ProfileActions.AttemptUpdateMajorAction) {
   try {
+    yield call(updateProfileInFirebase, { major: payload.major })
     // yield call(api.api.updateMajor, payload.major) TODO: update major via API
     yield handleUpdateMajorSuccess()
   } catch (error) {
@@ -82,6 +90,7 @@ function* handleUpdateBioFailure(error: Error) {
 
 function* attemptUpdateBio(payload: ProfileActions.AttemptUpdateBioAction) {
   try {
+    yield call(updateProfileInFirebase, { bio: payload.bio })
     yield call(api.api.updateBio, payload.bio)
     yield handleUpdateBioSuccess()
   } catch (error) {
@@ -159,12 +168,21 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       firebaseUrl = yield call(uploadImageToFirebase)
     }
 
-    // send images to server
     const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
-    yield call(
-      api.api.updateImages,
-      images.map((image, index) => index === payload.index ? firebaseUrl : !image.value.isLocal ? image.value.uri : '')
-    )
+    const newImages = images.map((image, index) => {
+      if (index === payload.index) {
+        return firebaseUrl
+      } else if (image.value.isLocal) {
+        return ''
+      } else {
+        return image.value.uri
+      }
+    })
+
+    yield call(updateProfileInFirebase, { imageUris: newImages })
+
+    // send images to server
+    yield call(api.api.updateImages, newImages)
 
     yield handleUpdateImagesSuccess(payload.index, payload.imageUri, firebaseUrl)
   } catch (error) {
@@ -189,9 +207,21 @@ function* handleUpdateTagsFailure(error: Error) {
   yield put(failureAction)
 }
 
-function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
+function* attemptUpdateTags(action: ProfileActions.AttemptUpdateTagsAction) {
   try {
-    // const chosenTags = flatten(payload.tags.map(section => section.tags.filter(tag => tag.selected)))
+
+    // selectedTags is a map from tag ID to the tag itself, for uploading to firebase
+    const selectedTags: { [tagId: number]: Tag } = {}
+    action.tags.forEach(tagSection => {
+      tagSection.tags.forEach(tag => {
+        selectedTags[tag.id] = {
+          ...tag,
+          selected: !!tag.selected, // since tag.selected can be undefined
+        }
+      })
+    })
+    yield call(updateProfileInFirebase, { tags: selectedTags })
+
     // yield call(api.api.updateTags, payload.tags) TODO: use API to update tags
     yield handleUpdateTagsSuccess()
   } catch (error) {

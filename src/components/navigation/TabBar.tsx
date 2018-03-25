@@ -14,11 +14,7 @@ import {
 interface Props {
   navigation: NavigationScreenProp<NavigationState>
   navigationState: {
-    routes: any[] /* tslint:disable-line:no-any */
     index: number
-    isTransitioning: boolean
-    routeName: string
-    key: string
   }
 }
 

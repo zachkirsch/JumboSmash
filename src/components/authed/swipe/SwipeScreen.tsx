@@ -37,7 +37,7 @@ interface State {
   expansion: Animated.Value
 }
 
-const NUM_RENDERED_CARDS = 3
+const NUM_RENDERED_CARDS = 6
 
 class SwipeScreen extends PureComponent<Props, State> {
 
@@ -239,7 +239,7 @@ class SwipeScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    allUsers: List(state.swipe.allUsers.value.filter((user) => user.images.length > 0)),
+    allUsers: List(state.swipe.allUsers.value.filter((user) => user.images.filter(image => image).length > 0)),
     loadingAllUsers: state.swipe.allUsers.loading,
   }
 }

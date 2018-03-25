@@ -1,6 +1,7 @@
 import { LoadableValue } from '../redux'
 
 export interface Tag {
+  id: number
   name: string
   emoji?: boolean
   selected?: boolean
@@ -27,6 +28,14 @@ export interface ImageUri {
 }
 
 export type ProfileReact = (EmojiProfileReact | ImageProfileReact) & { count: number }
+
+export interface FirebaseProfile {
+  preferredName: string
+  major: string
+  bio: string
+  imageUris: string[]
+  tags: { [tagId: string]: Tag }
+}
 
 export interface ProfileState {
   id: number

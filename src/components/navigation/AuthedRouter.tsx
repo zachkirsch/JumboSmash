@@ -3,9 +3,9 @@ import {
   StackNavigator,
   TabNavigator,
 } from 'react-navigation'
-import {ChatScreen, MatchesList} from './chat'
-import * as Profile from './profile'
-import { SwipeScreen } from './swipe'
+import { ChatScreen, MatchesList } from '../authed/chat'
+import * as Profile from '../authed/profile'
+import { SwipeScreen } from '../authed/swipe'
 import TabBar from './TabBar'
 
 const styles = StyleSheet.create({

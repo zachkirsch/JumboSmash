@@ -2,17 +2,14 @@ import { flatten } from 'lodash'
 import React, { PureComponent } from 'react'
 import {
   Alert,
-  Animated,
   Image,
   Keyboard,
   Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
@@ -29,11 +26,12 @@ import {
   updatePreferredName,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { CircleButton, JSText, JSTextInput } from '../../common'
+import { JSText, JSTextInput } from '../../common'
 import SwipeScreen from '../swipe/SwipeScreen'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
+import SaveButton from './SaveButton'
 
 interface State {
   previewingCard: boolean
@@ -41,17 +39,15 @@ interface State {
   preferredName: string
   major: string
   bio: string
-  saveRequired: boolean
-  saveButtonOpacity: Animated.Value
 }
 
 interface OwnProps {}
 
 interface StateProps {
   images: Array<LoadableValue<ImageUri>>
-  preferredName: string
-  bio: string
-  major: string
+  preferredName: LoadableValue<string>
+  bio: LoadableValue<string>
+  major: LoadableValue<string>
   tags: TagSectionType[]
   reacts: ProfileReact[]
 }
@@ -78,11 +74,9 @@ class ProfileScreen extends PureComponent<Props, State> {
     this.state = {
       previewingCard: false,
       viewingCoC: false,
-      preferredName: props.preferredName,
-      major: props.major,
-      bio: props.bio,
-      saveRequired: false,
-      saveButtonOpacity: new Animated.Value(0),
+      preferredName: props.preferredName.value,
+      major: props.major.value,
+      bio: props.bio.value,
     }
   }
 
@@ -114,28 +108,17 @@ class ProfileScreen extends PureComponent<Props, State> {
             previewProfile={this.previewProfile}
           />
         </ScrollView>
-        {this.renderSaveButton()}
+        <SaveButton
+          save={this.save}
+          saving={this.saving()}
+          saveRequired={this.saveRequired()}
+          saveFailed={this.saveFailed()}
+        />
       </View>
     )
   }
 
   private navigateTo = (screen: string) => () => this.props.navigation.navigate(screen)
-
-  private renderSaveButton = () => {
-    const style = [styles.saveButton, {
-      opacity: this.state.saveButtonOpacity,
-    }]
-    return (
-      <CircleButton
-        IconClass={FontAwesome}
-        iconName='save'
-        iconColor={'lightgray'}
-        iconSize={20}
-        style={style}
-        onPress={this.save}
-      />
-    )
-  }
 
   private renderProfilePreviewModal = () => {
     const preview = {
@@ -315,65 +298,32 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
   }
 
-  private updateBio = (bio: string) => {
-    this.setState({ bio })
-    this.updateSavedStatus(this.saveRequired({
-      major: this.state.major,
-      preferredName: this.state.preferredName,
-      bio,
-    }))
-  }
+  private updateBio = (bio: string) => this.setState({ bio })
+  private updateMajor = (major: string) => this.setState({ major })
+  private updatePreferredName = (preferredName: string) => this.setState({ preferredName })
 
-  private updateMajor = (major: string) => {
-    this.setState({ major })
-    this.updateSavedStatus(this.saveRequired({
-      bio: this.state.bio,
-      preferredName: this.state.preferredName,
-      major,
-    }))
-  }
+  private saveRequired = () => this.props.bio.value !== this.state.bio
+    || this.props.major.value !== this.state.major
+    || this.props.preferredName.value !== this.state.preferredName
 
-  private updatePreferredName = (preferredName: string) => {
-    this.setState({ preferredName })
-    this.updateSavedStatus(this.saveRequired({
-      major: this.state.major,
-      bio: this.state.bio,
-      preferredName,
-    }))
-  }
+  private saving = () => this.props.bio.loading || this.props.major.loading || this.props.preferredName.loading
 
-  private saveRequired = (currentState: {bio: string, major: string, preferredName: string}) => {
-    return this.props.bio !== currentState.bio
-      || this.props.major !== currentState.major
-      || this.props.preferredName !== currentState.preferredName
-  }
-
-  private updateSavedStatus = (saveRequired: boolean) => {
-    if (saveRequired !== this.state.saveRequired) {
-      this.setState({saveRequired})
-      Animated.timing(
-        this.state.saveButtonOpacity,
-        {
-          toValue: saveRequired ? 0.8 : 0,
-          duration: 100,
-        }
-      ).start()
-    }
-  }
+  private saveFailed = () => !!this.props.bio.errorMessage
+    || !!this.props.major.errorMessage
+    || !!this.props.preferredName.errorMessage
 
   private save = () => {
     this.props.updateBio(this.state.bio)
     this.props.updateMajor(this.state.major)
     this.props.updatePreferredName(this.state.preferredName)
-    this.updateSavedStatus(false)
   }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    preferredName: state.profile.preferredName.value,
-    bio: state.profile.bio.value,
-    major: state.profile.major.value,
+    preferredName: state.profile.preferredName,
+    bio: state.profile.bio,
+    major: state.profile.major,
     tags: state.profile.tags.value,
     images: state.profile.images,
     reacts: state.profile.reacts.value,
@@ -480,32 +430,5 @@ const styles = StyleSheet.create({
   underline: {
     textDecorationLine: 'underline',
     textDecorationColor: '#D5DCE2',
-  },
-  saveButton: {
-    position: 'absolute',
-    paddingBottom: 5,
-    marginHorizontal: 0,
-    height: 40,
-    width: 40,
-    top: 20,
-    right: 20,
-    borderRadius: 20,
-    backgroundColor: '#0F52BA',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(172, 203, 238, 0.75)',
-        shadowRadius: 10,
-        shadowOpacity: 1,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
-      },
-    }),
-    ...Platform.select({
-      android: {
-        elevation: 5,
-      },
-    }),
   },
 })

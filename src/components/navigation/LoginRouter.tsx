@@ -1,7 +1,7 @@
 import { TabNavigator } from 'react-navigation'
-import CodeOfConductScreen from './CodeOfConductScreen'
-import LoginScreen from './LoginScreen'
-import VerifyEmailScreen from './VerifyEmailScreen'
+import CodeOfConductScreen from '../login/CodeOfConductScreen'
+import LoginScreen from '../login/LoginScreen'
+import VerifyEmailScreen from '../login/VerifyEmailScreen'
 
 export default TabNavigator({
   LoginScreen: {
