@@ -17,7 +17,7 @@ declare module 'react-native-shimmer-placeholder' {
 
   export default class ShimmerPlaceHolder extends Component<Properties, {}> {
 
-    public getAnimated?: () => Animated
+    public getAnimated?: () => Animated.CompositeAnimation
 
   }
 }
