@@ -181,7 +181,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     let toRender
     switch (react.type) {
       case 'emoji':
-        toRender = <JSText fontSize={20} style={styles.reacts}>{react.emoji}</JSText>
+        toRender = <JSText fontSize={23} style={styles.reacts}>{react.emoji}</JSText>
         break
       case 'image':
         toRender = (
@@ -402,6 +402,8 @@ const styles = StyleSheet.create({
   },
   reactColumn: {
     flex: 1,
+    height: 80,
+    justifyContent: 'space-around',
   },
   reactColumns: {
     flex: 1,

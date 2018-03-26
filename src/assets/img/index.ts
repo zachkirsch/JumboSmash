@@ -1,5 +1,5 @@
 const images: { [imageName: string]: any } = { /* tslint:disable-line:no-any */
-  acornhead: require('./acornhead.jpg'),
+  acornhead: require('./acornhead.png'),
   goBos: require('./goBos.png'),
   tonymonaco: require('./tonymonaco.png'),
   jumbo2018: require('./jumbo2018.png'),

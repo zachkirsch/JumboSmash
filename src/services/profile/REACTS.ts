@@ -2,8 +2,8 @@ import { ProfileReact } from './types'
 
 const reacts: ProfileReact[] = [
   {
-    type: 'emoji',
-    emoji: '❤️',
+    type: 'image',
+    imageName: 'acornhead',
     count: 10,
   },
   {
