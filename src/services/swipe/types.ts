@@ -8,6 +8,7 @@ export interface User {
   bio: string
   images: string[]
   tags: Tag[]
+  stale?: boolean
 }
 
 export interface Match {

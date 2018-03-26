@@ -40,7 +40,7 @@ interface State {
   profiles: { [cardIndex: number]: RenderedUser }
 }
 
-const NUM_RENDERED_CARDS = 6
+const NUM_RENDERED_CARDS = 3
 
 class SwipeScreen extends PureComponent<Props, State> {
 
@@ -57,7 +57,7 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   public render() {
     if (!this.props.preview) {
-      if (this.props.allUsers.value.count() === 0) {
+      if (this.props.allUsers.value.size === 0) {
         if (this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
           return <Card loading />
         } else {
@@ -77,7 +77,6 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private renderCards = () => {
-
     const cards = []
     for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
       cards.push(this.renderCard(i))
@@ -232,14 +231,13 @@ class SwipeScreen extends PureComponent<Props, State> {
     this.props.swipe(direction, onUser)
 
     if (!this.props.allUsers.loading) {
-      const numUserUntilEnd = this.props.allUsers.value.count() - this.props.indexOfUserOnTop
-      const secondsSinceFetched = (Date.now() - this.props.lastFetched) / 1000
-      if (numUserUntilEnd <= 10 && secondsSinceFetched >= 60) {
+      const numUserUntilEnd = this.props.allUsers.value.size - this.props.indexOfUserOnTop
+      const beenLongEnough = this.props.lastFetched === undefined || (Date.now() - this.props.lastFetched) / 1000 >= 10
+      if (numUserUntilEnd <= 10 && beenLongEnough) {
         this.fetchUsers()
       }
     }
 
-    // update profiles in state
     let newProfiles: { [cardIndex: string]: RenderedUser } = {}
     for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
       newProfiles[i] = this.getNextCard(i)
@@ -250,7 +248,7 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private getInitialCardForIndex = (cardIndex: number): RenderedUser => {
-    const indexOfUser = cardIndex % this.props.allUsers.value.count()
+    const indexOfUser = cardIndex % this.props.allUsers.value.size
     return {
       user: this.props.allUsers.value.get(indexOfUser),
       positionInStack: cardIndex,
@@ -269,7 +267,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     const currentCard = this.state.profiles[cardIndex] || this.getInitialCardForIndex(cardIndex)
     switch (currentCard.positionInStack) {
       case 0:
-        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.allUsers.value.count()
+        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.allUsers.value.size
         return {
           user: this.props.allUsers.value.get(indexOfUser),
           positionInStack: NUM_RENDERED_CARDS - 1,
