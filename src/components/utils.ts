@@ -36,11 +36,6 @@ export function lastIndexOf<T>(array: T[], predicate: (item: T) => boolean) {
   return -1
 }
 
-// return a % b (positive)
-export function mod(a: number, b: number) {
-  return ((a % b) + b) % b
-}
-
 export function getFirstName(fullName: string) {
   if (fullName) {
     return fullName.split(' ')[0]

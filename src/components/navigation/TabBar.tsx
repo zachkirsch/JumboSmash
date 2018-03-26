@@ -36,6 +36,18 @@ class TabBar extends PureComponent<Props, State> {
     }
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (this.props.navigationState.index !== nextProps.navigationState.index) {
+      Animated.timing(
+        this.state.indicatorLeftMargin,
+        {
+          toValue: this.calculateIndicatorLeftMargin(nextProps.navigationState.index),
+          easing: Easing.elastic(1.3),
+        }
+      ).start()
+    }
+  }
+
   render() {
     return (
       <SafeAreaView style={styles.container}>
@@ -91,7 +103,7 @@ class TabBar extends PureComponent<Props, State> {
       }
 
       return (
-        <TouchableWithoutFeedback key={route.routeName} onPress={this.generateOnPress(route, index)}>
+        <TouchableWithoutFeedback key={route.routeName} onPress={this.generateOnPress(route)}>
           <View style={styles.iconContainer}>
             {icon}
           </View>
@@ -100,18 +112,7 @@ class TabBar extends PureComponent<Props, State> {
     })
   }
 
-  private generateOnPress = (route: NavigationRoute, index: number) => {
-    return () => {
-      Animated.timing(
-        this.state.indicatorLeftMargin,
-        {
-          toValue: this.calculateIndicatorLeftMargin(index),
-          easing: Easing.elastic(1.3),
-        }
-      ).start()
-      this.props.navigation.navigate(route.routeName)
-    }
-  }
+  private generateOnPress = (route: NavigationRoute) => () => this.props.navigation.navigate(route.routeName)
 
   private renderIndicator = () => {
     const style = {

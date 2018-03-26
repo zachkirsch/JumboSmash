@@ -204,7 +204,9 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       }
 
     case MatchesActionType.CLEAR_MATCHES_STATE:
-      return initialState
+      return {
+        ...initialState,
+      }
 
     default:
       return state

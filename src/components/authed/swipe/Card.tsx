@@ -15,22 +15,22 @@ import {
 } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
+import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { JSText } from '../../common'
-import { getRefToProfile } from '../../../services/firebase'
-import { FirebaseProfile } from '../../../services/profile'
-import { clamp, shuffle } from '../../utils'
+import { clamp } from '../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 
-interface Props {
-  positionInDeck: number
-  profile: User
+type Props = {
+  loading?: boolean
+  positionInStack?: number
+  profile?: User
   previewMode?: boolean
   onCompleteSwipe?: (direction: Direction, onUser: User) => void
   onExpandCard?: () => void
-  onContractCard?: () => void
+  onExitExpandedView?: () => void
 }
 
 export type CardProps = Props
@@ -46,30 +46,9 @@ interface State {
   }
   scrollViewBackgroundColor: string
   isMomentumScrolling: boolean
-  loadingProfile: boolean
-  profile: FirebaseProfile
 }
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
-
-const TAGS = [
-  { id: 0, name: '🏳️‍🌈', emoji: true },
-  { id: 1, name: '👫', emoji: true },
-  { id: 2, name: '👬', emoji: true },
-  { id: 3, name: '👭', emoji: true },
-  { id: 4, name: 'taken af' },
-  { id: 5, name: 'single af' },
-  { id: 6, name: 'open relationship' },
-  { id: 7, name: 'poly' },
-  { id: 8, name: 'complicated' },
-  { id: 9, name: 'married' },
-  { id: 10, name: 'single' },
-  { id: 11, name: "it's cuffing szn" },
-  { id: 12, name: 'one night stands' },
-  { id: 13, name: 'I do CS' },
-  { id: 14, name: "can't afford a relationship" },
-  { id: 15, name: 'here for the memes' },
-]
 
 const WIDTH = Dimensions.get('window').width
 const HEIGHT = Dimensions.get('window').height
@@ -83,6 +62,7 @@ class Card extends PureComponent<Props, State> {
   private carousel: Carousel
   private isSwipingProgrammatically: boolean = false
   private isSwiping: boolean = false
+  private shimmerRows: ShimmerPlaceHolder[] = []
 
   constructor(props: Props) {
     super(props)
@@ -90,14 +70,30 @@ class Card extends PureComponent<Props, State> {
     this.setupGestureResponders()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.state.loadingProfile || this.props.profile.id !== nextProps.profile.id || nextProps.positionInDeck !== 0) {
-      this.getProfileFromFirebase('f6f191aa-a798-4560-8280-9c819930fbd6')
+  componentDidMount() {
+    // run shimmers together
+    if (this.props.loading) {
+      const threeRowAnimated = Animated.parallel(
+        this.shimmerRows.map(row => {
+          if (row && row.getAnimated) {
+            return row.getAnimated()
+          }
+          return null /* tslint:disable-line:no-null-keyword */
+        }),
+        {
+          stopTogether: false,
+        }
+      )
+      Animated.loop(threeRowAnimated).start()
     }
   }
 
   public tap = () => {
-    if (!this.state.fullyExpanded) {
+    if (!this.canTapOrSwipe()) {
+      return
+    } else if (this.state.fullyExpanded) {
+      this.contractCard(true)
+    } else {
       this.expandCard()
     }
   }
@@ -116,7 +112,10 @@ class Card extends PureComponent<Props, State> {
   }
 
   public contractCard = (fast: boolean) => {
-    this.props.onContractCard && this.props.onContractCard()
+    this.props.onExitExpandedView && this.props.onExitExpandedView()
+    if (this.props.previewMode) {
+      return
+    }
     this.setState({
       fullyExpanded: false,
     })
@@ -148,25 +147,13 @@ class Card extends PureComponent<Props, State> {
   }
 
   render() {
-
     const outerContainerStyle = {
-      zIndex: this.state.fullyExpanded ? 14 : 10 - this.props.positionInDeck,
+      zIndex: this.state.fullyExpanded ? 14 : 10 - this.props.positionInStack,
       marginTop: this.state.margin.top,
       marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.expansion.interpolate({
         inputRange: [0, 1],
         outputRange: [MAX_HORIZONTAL_MARGIN, 0],
-      }),
-    }
-
-    const imageContainerStyle = {
-      height: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [WIDTH - 2 * MAX_HORIZONTAL_MARGIN, WIDTH],
-      }),
-      width: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [WIDTH - 2 * MAX_HORIZONTAL_MARGIN, WIDTH],
       }),
     }
 
@@ -182,7 +169,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     let shadowStyle
-    switch (this.props.positionInDeck) {
+    switch (this.props.positionInStack) {
       case 0:
         shadowStyle = [
           styles.firstCard,
@@ -204,7 +191,7 @@ class Card extends PureComponent<Props, State> {
         break
     }
 
-    if (this.props.previewMode) {
+    if (this.props.previewMode || this.props.loading) {
       shadowStyle = styles.secondCard
     }
 
@@ -223,59 +210,102 @@ class Card extends PureComponent<Props, State> {
     return (
       <Animated.View style={outerContainerStyleList} {...this.cardPanResponder.panHandlers}>
         <Animated.View style={[styles.innerContainer, borderRadiusStyle]}>
-            <Animated.ScrollView
-              scrollEventThrottle={1}
-              scrollEnabled={this.state.fullyExpanded}
-              onScroll={this.onScrollCard}
-              onMomentumScrollBegin={this.onMomentumScrollCard(true)}
-              onMomentumScrollEnd={this.onMomentumScrollCard(false)}
-              style={[styles.scrollView, scrollViewStyle]}
-              showsVerticalScrollIndicator={false}
-              scrollsToTop={false}
-              bounces
-              ref={(ref: any) => this.mainScrollView = ref} /* tslint:disable-line:no-any */
-            >
-              <View style={styles.card}>
-                <Carousel
-                  enabled={this.state.fullyExpanded}
-                  imageUris={this.state.profile.imageUris.filter(image => image)}
-                  onTapImage={this.exitExpandedCard}
-                  imageContainerStyle={imageContainerStyle}
-                  ref={(ref) => this.carousel = ref}
-                />
-                {this.renderBottom()}
-              </View>
-              {this.renderExitButton()}
-            </Animated.ScrollView>
-            {this.renderGradient()}
+          <Animated.ScrollView
+            scrollEventThrottle={1}
+            scrollEnabled={this.state.fullyExpanded}
+            onScroll={this.onScrollCard}
+            onMomentumScrollBegin={this.onMomentumScrollCard(true)}
+            onMomentumScrollEnd={this.onMomentumScrollCard(false)}
+            style={[styles.scrollView, scrollViewStyle]}
+            showsVerticalScrollIndicator={false}
+            scrollsToTop={false}
+            bounces={this.state.fullyExpanded}
+            ref={(ref: any) => this.mainScrollView = ref} /* tslint:disable-line:no-any */
+          >
+            {this.renderCard()}
+            {this.renderExitButton()}
+          </Animated.ScrollView>
+          {this.renderGradient()}
         </Animated.View>
       </Animated.View>
     )
   }
 
-  private renderBottom = () => {
+  private renderCard = () => {
 
-    const bottomContainerStyle = {
-      paddingHorizontal: this.state.expansion.interpolate({
+    const imageContainerStyle = {
+      height: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [20, 20],
+        outputRange: [WIDTH - 2 * MAX_HORIZONTAL_MARGIN, WIDTH],
+      }),
+      width: this.state.expansion.interpolate({
+        inputRange: [0, 1],
+        outputRange: [WIDTH - 2 * MAX_HORIZONTAL_MARGIN, WIDTH],
       }),
     }
 
+    if (this.props.loading) {
+
+      const tagPlaceholders = []
+      for (let i = 0; i < 5; i++) {
+        tagPlaceholders.push((
+          <ShimmerPlaceHolder
+            ref={ref => this.shimmerRows.push(ref)}
+            key={i}
+            duration={1000}
+            height={15}
+            width={'100%'}
+            style={styles.tagPlaceholder}
+          />
+        ))
+      }
+
+      return (
+        <View style={styles.card}>
+          <View style={styles.imagePlaceholder} />
+          <View style={styles.bottomContainer}>
+            <ShimmerPlaceHolder
+              ref={ref => this.shimmerRows.push(ref)}
+              duration={1000}
+              height={20}
+              style={styles.namePlaceholder}
+            />
+            {tagPlaceholders}
+          </View>
+        </View>
+      )
+    } else {
+      return (
+        <View style={styles.card}>
+          <Carousel
+            enabled={this.state.fullyExpanded}
+            imageUris={this.props.profile.images.filter(image => image)}
+            onTapImage={this.tap}
+            imageContainerStyle={imageContainerStyle}
+            ref={(ref) => this.carousel = ref}
+          />
+          {this.renderCardBottom()}
+        </View>
+      )
+    }
+  }
+
+  private renderCardBottom = () => {
+
     return (
-      <TouchableWithoutFeedback onPress={this.exitExpandedCard}>
-      <Animated.View style={[styles.bottomContainer, bottomContainerStyle]}>
-        <JSText fontSize={20} bold style={styles.name}>
-          {this.state.loadingProfile ? 'LOADING' : this.state.profile.preferredName}
-        </JSText>
-        <View style={styles.textContainer}>
-          <TagsSection tags={shuffle(TAGS)} tagStyle={styles.tag} alignLeft />
+      <TouchableWithoutFeedback onPress={this.tap}>
+        <View style={styles.bottomContainer}>
+          <JSText fontSize={20} bold style={styles.name}>
+            {this.props.profile.preferredName}
+          </JSText>
+          <View style={styles.textContainer}>
+            <TagsSection tags={this.props.profile.tags} tagStyle={styles.tag} alignLeft />
+          </View>
           <JSText fontSize={14} style={styles.bio}>
-            {this.state.profile.bio}
+            {this.props.profile.bio}
           </JSText>
         </View>
-      </Animated.View>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
     )
   }
 
@@ -318,27 +348,14 @@ class Card extends PureComponent<Props, State> {
     )
   }
 
-  private getProfileFromFirebase = (firebaseUid: string) => {
-    this.setState({
-      loadingProfile: true,
-    }, () => {
-      getRefToProfile(firebaseUid).once('value', (snapshot) => {
-        this.setState({
-          loadingProfile: false,
-          profile: {
-            ...this.getInitialState().profile,
-            ...snapshot.val(),
-          },
-        })
-      })
-    })
-  }
-
   private cardWidth = () => WIDTH - 2 * MAX_HORIZONTAL_MARGIN
 
-  private canSwipe = () => !this.state.fullyExpanded
-                           && this.props.positionInDeck === 0
+  private canSwipe = () => this.canTapOrSwipe()
+                           && !this.state.fullyExpanded
+                           && this.props.positionInStack === 0
                            && !this.isSwipingProgrammatically
+
+  private canTapOrSwipe = () => !this.props.loading && !this.props.previewMode
 
   private isSwipe = (gestureState: PanResponderGestureState) => {
     return Math.abs(gestureState.dx) > 1 || Math.abs(gestureState.dy) > 1
@@ -366,10 +383,10 @@ class Card extends PureComponent<Props, State> {
      * other cards) are visible. Otherwise, the background should be white,
      * since we don't want anything shown in the background when the user
      * scrolls past the bottom. This only applies to IOS since ScrollViews
-     * don't bounce on Android
+     * don't bounce on Android.
      */
 
-    if (Platform.OS !== 'ios') {
+    if (Platform.OS !== 'ios' || !this.canTapOrSwipe()) {
      return
     }
 
@@ -486,22 +503,14 @@ class Card extends PureComponent<Props, State> {
   private getInitialState = (): State => ({
       pan: new Animated.ValueXY(),
       panX: new Animated.Value(0),
-      expansion: new Animated.Value(0),
-      fullyExpanded: false,
+      expansion: new Animated.Value(this.props.previewMode ? 1 : 0),
+      fullyExpanded: !!this.props.previewMode,
       margin: {
-        top: new Animated.Value(MAX_VERTICAL_MARGIN),
-        bottom: new Animated.Value(MAX_VERTICAL_MARGIN),
+        top: new Animated.Value(this.props.previewMode ? 0 : MAX_VERTICAL_MARGIN),
+        bottom: new Animated.Value(this.props.previewMode ? 0 : MAX_VERTICAL_MARGIN),
       },
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
-      loadingProfile: true,
-      profile: {
-        preferredName: '',
-        major: '',
-        bio: '',
-        imageUris: [],
-        tags: {},
-      },
   })
 }
 
@@ -572,6 +581,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   textContainer: {
     flexDirection: 'row',
@@ -613,5 +623,17 @@ const styles = StyleSheet.create({
         },
       },
     }),
+  },
+  imagePlaceholder: {
+    backgroundColor: 'rgb(240, 240, 240)',
+    height: WIDTH - 2 * MAX_HORIZONTAL_MARGIN,
+    width: WIDTH - 2 * MAX_HORIZONTAL_MARGIN,
+  },
+  namePlaceholder: {
+    marginTop: 12,
+    marginBottom: 17,
+  },
+  tagPlaceholder: {
+    marginBottom: 5,
   },
 })

@@ -11,5 +11,3 @@ export const createChat = (conversationId: string) => {
   permissionsObject[firebase.auth().currentUser.uid] = 'owner'
   dbRef.push(permissionsObject)
 }
-
-export const getRefToProfile = (uid: string) => firebase.database().ref('profiles').child(uid)

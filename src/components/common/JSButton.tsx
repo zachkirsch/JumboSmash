@@ -47,15 +47,14 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 10,
     paddingHorizontal: 60,
-    alignSelf: 'center',
   },
   text: {
+    textAlign: 'center',
     fontSize: 14,
     lineHeight: 19,
     backgroundColor: 'transparent',
     fontFamily: 'Avenir',
     marginVertical: 5,
     color: '#4A4A4A',
-
   },
 })

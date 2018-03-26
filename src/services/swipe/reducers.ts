@@ -2,16 +2,24 @@ import { List } from 'immutable'
 import { SwipeAction, SwipeActionType } from './actions'
 import { SwipeState } from './types'
 import { ReduxActionType } from '../redux'
+import { shuffle } from '../../components/utils'
 
 const initialState: SwipeState = {
   allUsers: {
     value: List(),
     loading: false,
   },
+  indexOfUserOnTop: 0,
 }
 
 export function swipeReducer(state = initialState, action: SwipeAction): SwipeState {
   switch (action.type) {
+
+    case SwipeActionType.ATTEMPT_SWIPE:
+      return {
+        ...state,
+        indexOfUserOnTop: (state.indexOfUserOnTop + 1) % state.allUsers.value.count(),
+      }
 
     case SwipeActionType.ATTEMPT_FETCH_ALL_USERS:
       return {
@@ -24,9 +32,9 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
 
     case SwipeActionType.FETCH_ALL_USERS_SUCCESS:
       return {
-        ...state,
+        indexOfUserOnTop: 0,
         allUsers: {
-          value: List(action.users),
+          value: state.allUsers.value.slice(state.indexOfUserOnTop).concat(shuffle(action.users)).toList(),
           loading: false,
         },
       }
@@ -52,11 +60,7 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
       return {
-        allUsers: {
-          ...action.payload.swipe.allUsers,
-          loading: false,
-          errorMessage: action.payload.swipe.allUsers.loading ? 'Failed to fetch users' : '',
-        },
+        ...initialState,
       }
 
     default:

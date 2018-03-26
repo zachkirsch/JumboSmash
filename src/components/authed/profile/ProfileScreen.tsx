@@ -1,10 +1,8 @@
-import { flatten } from 'lodash'
 import React, { PureComponent } from 'react'
 import {
   Alert,
   Image,
   Keyboard,
-  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -13,6 +11,7 @@ import {
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
+import { flatten } from 'lodash'
 import { Images } from '../../../assets'
 import { RootState } from '../../../redux'
 import {
@@ -30,7 +29,6 @@ import {
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { JSText, JSTextInput } from '../../common'
-import SwipeScreen from '../swipe/SwipeScreen'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
@@ -105,7 +103,6 @@ class ProfileScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View>
-        {this.renderProfilePreviewModal()}
         <ScrollView keyboardShouldPersistTaps={'handled'}>
           <PhotosSection
             images={this.props.images}
@@ -120,7 +117,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           <SettingsSection
             block={this.navigateTo('BlockScreen')}
             viewCoC={this.navigateTo('ReviewCoCScreen')}
-            previewProfile={this.previewProfile}
+            previewProfile={this.previewProfile()}
           />
         </ScrollView>
         <SaveButton
@@ -133,37 +130,30 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
-  private navigateTo = (screen: string) => () => this.props.navigation.navigate(screen)
-
-  private renderProfilePreviewModal = () => {
-    const preview = {
-      user: {
-        id: -1,
-        preferredName: this.state.preferredName,
-        bio: this.state.bio,
-        images: this.props.images.map((image) => image.value.uri).filter((image) => image),
-      },
-      onCompleteSwipe: this.setPreviewState(false),
-    }
-
-    return (
-      <Modal
-        animationType='fade'
-        transparent={false}
-        visible={this.state.previewingCard}
-        onRequestClose={this.setPreviewState(false)}
-      >
-        <SwipeScreen
-          preview={preview}
-        />
-      </Modal>
-    )
+  private navigateTo<T>(screen: string, props?: T) {
+    return () => this.props.navigation.navigate(screen, props)
   }
 
-  private setPreviewState = (previewingCard: boolean) => () => {
-    this.setState({
-      previewingCard,
-    })
+  private previewProfile = () => () => {
+    let alertText = ''
+    if (this.props.images.length === 0) {
+      alertText = 'You need to choose at least one image'
+    } else if (!this.state.preferredName) {
+      alertText = 'You need a first name!'
+    }
+    if (!alertText) {
+      this.navigateTo('ProfilePreviewScreen', {
+        preview: {
+          id: -1,
+          preferredName: this.state.preferredName,
+          bio: this.state.bio,
+          images: this.props.images.map((image) => image.value.uri).filter((image) => image),
+          tags: flatten(this.props.tags.map(section => section.tags)).filter(tag => tag.selected),
+        },
+      })()
+    } else {
+      Alert.alert('Oops', alertText)
+    }
   }
 
   private renderTags = () => {
@@ -297,20 +287,6 @@ class ProfileScreen extends PureComponent<Props, State> {
         </View>
       </View>
     )
-  }
-
-  private previewProfile = () => {
-    let alertText = ''
-    if (this.props.images.length === 0) {
-      alertText = 'You need to choose at least one image'
-    } else if (!this.state.preferredName) {
-      alertText = 'You need a first name!'
-    }
-    if (!alertText) {
-      this.setState({ previewingCard: true }, () => this.photosSection.collapseImages())
-    } else {
-      Alert.alert('Oops', alertText)
-    }
   }
 
   private updatePreferredName = (preferredName: string) => {

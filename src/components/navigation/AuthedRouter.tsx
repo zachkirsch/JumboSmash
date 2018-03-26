@@ -23,7 +23,18 @@ const styles = StyleSheet.create({
 })
 const tabNavigator = TabNavigator({
   Profile: {
-    screen: Profile.ProfileScreen,
+    screen: StackNavigator({
+      ProfileEditScreen: {
+        screen: Profile.ProfileScreen,
+      },
+      ProfilePreviewScreen: {
+        screen: Profile.ProfilePreviewScreen,
+      },
+    }, {
+      mode: 'modal',
+      headerMode: 'none',
+      cardStyle: styles.stackCard,
+    }),
   },
   Swipe: {
     screen: SwipeScreen,

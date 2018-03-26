@@ -32,7 +32,9 @@ export function firebaseReducer(state = initialState, action: FirebaseAction): F
       return newState
 
     case FirebaseActionType.LOGOUT_FIREBASE:
-      return initialState
+      return {
+        ...initialState
+      }
 
     default:
       return state
