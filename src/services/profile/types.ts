@@ -1,6 +1,7 @@
 import { LoadableValue } from '../redux'
 
 export interface Tag {
+  id: number
   name: string
   emoji?: boolean
   selected?: boolean

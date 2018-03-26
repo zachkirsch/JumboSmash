@@ -20,7 +20,21 @@ const logger = createLogger({
       newState = {
         ...newState,
         matches: {
+          ...newState.matches,
           chats: newState.matches.chats.toJS(),
+        },
+      }
+    }
+    if (newState.swipe) {
+      newState = {
+        ...newState,
+        swipe: {
+          ...newState.swipe,
+          allUsers: {
+            ...newState.swipe.allUsers,
+            value: newState.swipe.allUsers.value.toJS(),
+            prevValue: newState.swipe.allUsers.prevValue && newState.swipe.allUsers.prevValue.toJS(),
+          },
         },
       }
     }

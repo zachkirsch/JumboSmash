@@ -13,6 +13,8 @@ export enum MatchesActionType {
   RECEIVE_MESSAGES = 'RECEIVE_MESSAGES',
   SET_CONVERSATION_AS_READ = 'SET_CONVERSATION_AS_READ',
 
+  REHYDRATE_MATCHES_FROM_SERVER = 'REHYDRATE_MATCHES_FROM_SERVER',
+
   CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
 }
@@ -53,6 +55,11 @@ export interface SetConversationAsReadAction {
   conversationId: string
 }
 
+export interface RehydrateMatchesFromServerAction {
+  type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
+  conversationIds: string[]
+}
+
 export interface ClearMatchesStateAction {
   type: MatchesActionType.CLEAR_MATCHES_STATE
 }
@@ -75,10 +82,18 @@ export type MatchesAction = CreateMatchAction
 | ReceiveMessagesAction
 | SetConversationAsReadAction
 | ClearMatchesStateAction
+| RehydrateMatchesFromServerAction
 | RehydrateAction
 | OtherAction
 
 /* Action Creators */
+
+export const rehydrateMatchesFromServer = (conversationIds: string[]): RehydrateMatchesFromServerAction => {
+  return {
+    type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
+    conversationIds,
+  }
+}
 
 export const sendMessages = (conversationId: string, messages: GiftedChatMessage[]): AttemptSendMessagesAction => {
   return {

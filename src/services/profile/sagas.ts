@@ -1,17 +1,25 @@
 import RNFetchBlob from 'react-native-fetch-blob'
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
+import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
 import { RootState } from '../../redux'
 import * as api from '../api'
 import { firebase } from '../firebase'
 import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
+import { rehydrateMatchesFromServer } from '../matches'
 import { ImageUri } from './types'
-// import { flatten } from 'lodash'
 
 const getImages = (state: RootState) => state.profile.images
 
 /* Preferred Name */
+
+function* onChangePreferredNameTextInput(action: ProfileActions.OnChangePreferredNameTextInputAction) {
+  const updateLocallyAction: ProfileActions.UpdatePreferredNameLocallyAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_PREFERRED_NAME_LOCALLY,
+    preferredName: action.preferredName,
+  }
+  yield put(updateLocallyAction)
+}
 
 function* handleUpdatePreferredNameSuccess() {
   const successAction: ProfileActions.UpdatePreferredNameSuccessAction = {
@@ -39,6 +47,14 @@ function* attemptUpdatePreferredName(payload: ProfileActions.AttemptUpdatePrefer
 
 /* Major */
 
+function* onChangeMajorTextInput(action: ProfileActions.OnChangeMajorTextInputAction) {
+  const updateLocallyAction: ProfileActions.UpdateMajorLocallyAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_LOCALLY,
+    major: action.major,
+  }
+  yield put(updateLocallyAction)
+}
+
 function* handleUpdateMajorSuccess() {
   const successAction: ProfileActions.UpdateMajorSuccessAction = {
     type: ProfileActions.ProfileActionType.UPDATE_MAJOR_SUCCESS,
@@ -64,6 +80,14 @@ function* attemptUpdateMajor(_: ProfileActions.AttemptUpdateMajorAction) {
 }
 
 /* Bio */
+
+function* onChangeBioTextInput(action: ProfileActions.OnChangeBioTextInputAction) {
+  const updateLocallyAction: ProfileActions.UpdateBioLocallyAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_BIO_LOCALLY,
+    bio: action.bio,
+  }
+  yield put(updateLocallyAction)
+}
 
 function* handleUpdateBioSuccess() {
   const successAction: ProfileActions.UpdateBioSuccessAction = {
@@ -159,12 +183,19 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       firebaseUrl = yield call(uploadImageToFirebase)
     }
 
-    // send images to server
     const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
-    yield call(
-      api.api.updateImages,
-      images.map((image, index) => index === payload.index ? firebaseUrl : !image.value.isLocal ? image.value.uri : '')
-    )
+    const newImages = images.map((image, index) => {
+      if (index === payload.index) {
+        return firebaseUrl
+      } else if (image.value.isLocal) {
+        return ''
+      } else {
+        return image.value.uri
+      }
+    })
+
+    // send images to server
+    yield call(api.api.updateImages, newImages)
 
     yield handleUpdateImagesSuccess(payload.index, payload.imageUri, firebaseUrl)
   } catch (error) {
@@ -191,7 +222,6 @@ function* handleUpdateTagsFailure(error: Error) {
 
 function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
   try {
-    // const chosenTags = flatten(payload.tags.map(section => section.tags.filter(tag => tag.selected)))
     // yield call(api.api.updateTags, payload.tags) TODO: use API to update tags
     yield handleUpdateTagsSuccess()
   } catch (error) {
@@ -208,6 +238,7 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
       meInfo.bio,
       meInfo.images.map((image) => image.url)
     ))
+    yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => match.conversation_uuid)))
   } catch (e) {} /* tslint:disable-line:no-empty */
 }
 
@@ -220,4 +251,19 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
   yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
+  yield throttle(
+    500,
+    ProfileActions.ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
+    onChangePreferredNameTextInput
+  )
+  yield throttle(
+    500,
+    ProfileActions.ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
+    onChangeMajorTextInput
+  )
+  yield throttle(
+    500,
+    ProfileActions.ProfileActionType.ON_CHANGE_BIO_TEXTINPUT,
+    onChangeBioTextInput
+  )
 }

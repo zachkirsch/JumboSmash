@@ -1,1 +1,1 @@
-export {default as SwipeScreen } from './SwipeScreen'
+export { default as SwipeScreen, SwipeScreenProps } from './SwipeScreen'

@@ -14,11 +14,7 @@ import {
 interface Props {
   navigation: NavigationScreenProp<NavigationState>
   navigationState: {
-    routes: any[] /* tslint:disable-line:no-any */
     index: number
-    isTransitioning: boolean
-    routeName: string
-    key: string
   }
 }
 
@@ -37,6 +33,18 @@ class TabBar extends PureComponent<Props, State> {
     super(props)
     this.state = {
       indicatorLeftMargin: new Animated.Value(this.calculateIndicatorLeftMargin(props.navigationState.index)),
+    }
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (this.props.navigationState.index !== nextProps.navigationState.index) {
+      Animated.timing(
+        this.state.indicatorLeftMargin,
+        {
+          toValue: this.calculateIndicatorLeftMargin(nextProps.navigationState.index),
+          easing: Easing.elastic(1.3),
+        }
+      ).start()
     }
   }
 
@@ -95,7 +103,7 @@ class TabBar extends PureComponent<Props, State> {
       }
 
       return (
-        <TouchableWithoutFeedback key={route.routeName} onPress={this.generateOnPress(route, index)}>
+        <TouchableWithoutFeedback key={route.routeName} onPress={this.generateOnPress(route)}>
           <View style={styles.iconContainer}>
             {icon}
           </View>
@@ -104,18 +112,7 @@ class TabBar extends PureComponent<Props, State> {
     })
   }
 
-  private generateOnPress = (route: NavigationRoute, index: number) => {
-    return () => {
-      Animated.timing(
-        this.state.indicatorLeftMargin,
-        {
-          toValue: this.calculateIndicatorLeftMargin(index),
-          easing: Easing.elastic(1.3),
-        }
-      ).start()
-      this.props.navigation.navigate(route.routeName)
-    }
-  }
+  private generateOnPress = (route: NavigationRoute) => () => this.props.navigation.navigate(route.routeName)
 
   private renderIndicator = () => {
     const style = {

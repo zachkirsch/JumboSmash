@@ -10,12 +10,12 @@ import { GiftedChatMessage } from './types'
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
   function pushMessagetoFirebase(message: GiftedChatMessage) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({
         ...message,
         createdAt: message.createdAt.getTime(), // convert Date to number for firebase
-      }, resolve)
+      }, error => error ? reject(error) : resolve())
     })
   }
 

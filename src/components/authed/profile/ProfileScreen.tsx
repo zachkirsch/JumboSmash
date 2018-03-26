@@ -1,21 +1,17 @@
-import { flatten } from 'lodash'
 import React, { PureComponent } from 'react'
 import {
   Alert,
-  Animated,
   Image,
   Keyboard,
-  Modal,
-  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
+import { flatten } from 'lodash'
 import { Images } from '../../../assets'
 import { RootState } from '../../../redux'
 import {
@@ -27,13 +23,16 @@ import {
   updateImage,
   updateMajor,
   updatePreferredName,
+  onChangePreferredNameTextInput,
+  onChangeMajorTextInput,
+  onChangeBioTextInput,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { CircleButton, JSText, JSTextInput } from '../../common'
-import SwipeScreen from '../swipe/SwipeScreen'
+import { JSText, JSTextInput } from '../../common'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
+import SaveButton from './SaveButton'
 
 interface State {
   previewingCard: boolean
@@ -41,26 +40,27 @@ interface State {
   preferredName: string
   major: string
   bio: string
-  saveRequired: boolean
-  saveButtonOpacity: Animated.Value
 }
 
 interface OwnProps {}
 
 interface StateProps {
   images: Array<LoadableValue<ImageUri>>
-  preferredName: string
-  bio: string
-  major: string
+  preferredName: LoadableValue<string>
+  bio: LoadableValue<string>
+  major: LoadableValue<string>
   tags: TagSectionType[]
   reacts: ProfileReact[]
 }
 
 interface DispatchProps {
-  updatePreferredName: (name: string) => void,
-  updateBio: (bio: string) => void,
-  updateMajor: (major: string) => void,
-  updateImage: (index: number, imageUri: string, mime: string) => void,
+  onChangePreferredNameTextInput: (preferredName: string) => void
+  onChangeMajorTextInput: (major: string) => void
+  onChangeBioTextInput: (bio: string) => void
+  updatePreferredName: (preferredName: string) => void
+  updateBio: (bio: string) => void
+  updateMajor: (major: string) => void
+  updateImage: (index: number, imageUri: string, mime: string) => void
   swapImages: (index1: number, index2: number) => void
 }
 
@@ -75,14 +75,21 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
+
+    function getInitialValue<T>(item: LoadableValue<T>) {
+      if (item.localValue === undefined) {
+        return item.value
+      } else {
+        return item.localValue
+      }
+    }
+
     this.state = {
       previewingCard: false,
       viewingCoC: false,
-      preferredName: props.preferredName,
-      major: props.major,
-      bio: props.bio,
-      saveRequired: false,
-      saveButtonOpacity: new Animated.Value(0),
+      preferredName: getInitialValue(props.preferredName),
+      major: getInitialValue(props.major),
+      bio: getInitialValue(props.bio),
     }
   }
 
@@ -96,7 +103,6 @@ class ProfileScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View>
-        {this.renderProfilePreviewModal()}
         <ScrollView keyboardShouldPersistTaps={'handled'}>
           <PhotosSection
             images={this.props.images}
@@ -111,61 +117,43 @@ class ProfileScreen extends PureComponent<Props, State> {
           <SettingsSection
             block={this.navigateTo('BlockScreen')}
             viewCoC={this.navigateTo('ReviewCoCScreen')}
-            previewProfile={this.previewProfile}
+            previewProfile={this.previewProfile()}
           />
         </ScrollView>
-        {this.renderSaveButton()}
+        <SaveButton
+          save={this.save}
+          saving={this.saving()}
+          saveRequired={this.saveRequired()}
+          saveFailed={this.saveFailed()}
+        />
       </View>
     )
   }
 
-  private navigateTo = (screen: string) => () => this.props.navigation.navigate(screen)
-
-  private renderSaveButton = () => {
-    const style = [styles.saveButton, {
-      opacity: this.state.saveButtonOpacity,
-    }]
-    return (
-      <CircleButton
-        IconClass={FontAwesome}
-        iconName='save'
-        iconColor={'lightgray'}
-        iconSize={20}
-        style={style}
-        onPress={this.save}
-      />
-    )
+  private navigateTo<T>(screen: string, props?: T) {
+    return () => this.props.navigation.navigate(screen, props)
   }
 
-  private renderProfilePreviewModal = () => {
-    const preview = {
-      user: {
-        id: -1,
-        preferredName: this.state.preferredName,
-        bio: this.state.bio,
-        images: this.props.images.map((image) => image.value.uri).filter((image) => image),
-      },
-      onCompleteSwipe: this.setPreviewState(false),
+  private previewProfile = () => () => {
+    let alertText = ''
+    if (this.props.images.length === 0) {
+      alertText = 'You need to choose at least one image'
+    } else if (!this.state.preferredName) {
+      alertText = 'You need a first name!'
     }
-
-    return (
-      <Modal
-        animationType='fade'
-        transparent={false}
-        visible={this.state.previewingCard}
-        onRequestClose={this.setPreviewState(false)}
-      >
-        <SwipeScreen
-          preview={preview}
-        />
-      </Modal>
-    )
-  }
-
-  private setPreviewState = (previewingCard: boolean) => () => {
-    this.setState({
-      previewingCard,
-    })
+    if (!alertText) {
+      this.navigateTo('ProfilePreviewScreen', {
+        preview: {
+          id: -1,
+          preferredName: this.state.preferredName,
+          bio: this.state.bio,
+          images: this.props.images.map((image) => image.value.uri).filter((image) => image),
+          tags: flatten(this.props.tags.map(section => section.tags)).filter(tag => tag.selected),
+        },
+      })()
+    } else {
+      Alert.alert('Oops', alertText)
+    }
   }
 
   private renderTags = () => {
@@ -301,79 +289,43 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
-  private previewProfile = () => {
-    let alertText = ''
-    if (this.props.images.length === 0) {
-      alertText = 'You need to choose at least one image'
-    } else if (!this.state.preferredName) {
-      alertText = 'You need a first name!'
-    }
-    if (!alertText) {
-      this.setState({ previewingCard: true }, () => this.photosSection.collapseImages())
-    } else {
-      Alert.alert('Oops', alertText)
-    }
-  }
-
-  private updateBio = (bio: string) => {
-    this.setState({ bio })
-    this.updateSavedStatus(this.saveRequired({
-      major: this.state.major,
-      preferredName: this.state.preferredName,
-      bio,
-    }))
+  private updatePreferredName = (preferredName: string) => {
+    this.setState({ preferredName })
+    this.props.onChangePreferredNameTextInput(preferredName)
   }
 
   private updateMajor = (major: string) => {
     this.setState({ major })
-    this.updateSavedStatus(this.saveRequired({
-      bio: this.state.bio,
-      preferredName: this.state.preferredName,
-      major,
-    }))
+    this.props.onChangeMajorTextInput(major)
   }
 
-  private updatePreferredName = (preferredName: string) => {
-    this.setState({ preferredName })
-    this.updateSavedStatus(this.saveRequired({
-      major: this.state.major,
-      bio: this.state.bio,
-      preferredName,
-    }))
+  private updateBio = (bio: string) => {
+    this.setState({ bio })
+    this.props.onChangeBioTextInput(bio)
   }
 
-  private saveRequired = (currentState: {bio: string, major: string, preferredName: string}) => {
-    return this.props.bio !== currentState.bio
-      || this.props.major !== currentState.major
-      || this.props.preferredName !== currentState.preferredName
-  }
+  private saveRequired = () => this.props.bio.value !== this.state.bio
+    || this.props.major.value !== this.state.major
+    || this.props.preferredName.value !== this.state.preferredName
 
-  private updateSavedStatus = (saveRequired: boolean) => {
-    if (saveRequired !== this.state.saveRequired) {
-      this.setState({saveRequired})
-      Animated.timing(
-        this.state.saveButtonOpacity,
-        {
-          toValue: saveRequired ? 0.8 : 0,
-          duration: 100,
-        }
-      ).start()
-    }
-  }
+  private saving = () => this.props.bio.loading || this.props.major.loading || this.props.preferredName.loading
+
+  private saveFailed = () => !!this.props.bio.errorMessage
+    || !!this.props.major.errorMessage
+    || !!this.props.preferredName.errorMessage
 
   private save = () => {
     this.props.updateBio(this.state.bio)
     this.props.updateMajor(this.state.major)
     this.props.updatePreferredName(this.state.preferredName)
-    this.updateSavedStatus(false)
   }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    preferredName: state.profile.preferredName.value,
-    bio: state.profile.bio.value,
-    major: state.profile.major.value,
+    preferredName: state.profile.preferredName,
+    bio: state.profile.bio,
+    major: state.profile.major,
     tags: state.profile.tags.value,
     images: state.profile.images,
     reacts: state.profile.reacts.value,
@@ -382,7 +334,10 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    updatePreferredName: (name: string) => dispatch(updatePreferredName(name)),
+    onChangePreferredNameTextInput: (preferredName: string) => dispatch(onChangePreferredNameTextInput(preferredName)),
+    onChangeMajorTextInput: (major: string) => dispatch(onChangeMajorTextInput(major)),
+    onChangeBioTextInput: (bio: string) => dispatch(onChangeBioTextInput(bio)),
+    updatePreferredName: (preferredName: string) => dispatch(updatePreferredName(preferredName)),
     updateBio: (bio: string) => dispatch(updateBio(bio)),
     updateMajor: (major: string) => dispatch(updateMajor(major)),
     updateImage: (index: number, imageUri: string, mime: string) => {
@@ -482,32 +437,5 @@ const styles = StyleSheet.create({
   underline: {
     textDecorationLine: 'underline',
     textDecorationColor: '#D5DCE2',
-  },
-  saveButton: {
-    position: 'absolute',
-    paddingBottom: 5,
-    marginHorizontal: 0,
-    height: 40,
-    width: 40,
-    top: 20,
-    right: 20,
-    borderRadius: 20,
-    backgroundColor: '#0F52BA',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'rgba(172, 203, 238, 0.75)',
-        shadowRadius: 10,
-        shadowOpacity: 1,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
-      },
-    }),
-    ...Platform.select({
-      android: {
-        elevation: 5,
-      },
-    }),
   },
 })

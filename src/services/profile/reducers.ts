@@ -61,6 +61,13 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     /* Preferred Name */
 
+    case ProfileActionType.UPDATE_PREFERRED_NAME_LOCALLY:
+      newState.preferredName = {
+        ...newState.preferredName,
+        localValue: action.preferredName,
+      }
+      return newState
+
     case ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME:
       newState.preferredName = {
         prevValue: state.preferredName.loading ? state.preferredName.prevValue : state.preferredName.value,
@@ -84,6 +91,13 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     /* Major */
 
+    case ProfileActionType.UPDATE_MAJOR_LOCALLY:
+      newState.major = {
+        ...newState.major,
+        localValue: action.major,
+      }
+      return newState
+
     case ProfileActionType.ATTEMPT_UPDATE_MAJOR:
       newState.major = {
         prevValue: state.major.loading ? state.major.prevValue : state.major.value,
@@ -106,6 +120,13 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       return newState
 
     /* Bio */
+
+    case ProfileActionType.UPDATE_BIO_LOCALLY:
+      newState.bio = {
+        ...newState.bio,
+        localValue: action.bio,
+      }
+      return newState
 
     case ProfileActionType.ATTEMPT_UPDATE_BIO:
       newState.bio = {
@@ -259,11 +280,20 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
 
       function getValue<T>(oldStateValue: LoadableValue<T>, defaultValue: T): LoadableValue<T> {
-        const wasLoading = oldStateValue.loading
+        let value: T
+        if (oldStateValue.loading) {
+          if (oldStateValue.prevValue !== undefined) {
+            value = oldStateValue.prevValue
+          } else {
+            value = defaultValue
+          }
+        } else {
+          value = oldStateValue.value
+        }
         return {
-          value: wasLoading ? oldStateValue.prevValue || defaultValue : oldStateValue.value,
+          value,
+          localValue: oldStateValue.localValue,
           loading: false,
-          errorMessage: wasLoading ? 'Failed to Upload' : '',
         }
       }
 

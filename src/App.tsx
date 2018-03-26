@@ -2,7 +2,7 @@ import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
 import { StatusBar, StyleSheet, View } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { AuthedRouter, CodeOfConductScreen, CountdownScreen, LoginRouter} from './components'
+import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen } from './components'
 import { RootState } from './redux'
 import { getRefToChatMessages } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
@@ -25,8 +25,11 @@ const SHOULD_SHOW_COUNTDOWN = false
 
 class App extends PureComponent<Props, {}> {
 
+  private conversationIds: string[] = []
+
   componentDidMount() {
-    this.props.chats.keySeq().forEach((conversationId) => {
+    this.conversationIds = this.props.chats.keySeq().toArray()
+    this.conversationIds.forEach((conversationId) => {
       const dbRef = getRefToChatMessages(conversationId)
       dbRef.on('child_added', (firebaseMessage) => {
         const message: GiftedChatMessage = {
@@ -35,6 +38,13 @@ class App extends PureComponent<Props, {}> {
         }
         this.props.receiveMessages(conversationId, [message])
       })
+    })
+  }
+
+  componentWillUnmount() {
+    this.conversationIds.forEach((conversationId) => {
+      const dbRef = getRefToChatMessages(conversationId)
+      dbRef.off('child_added')
     })
   }
 
