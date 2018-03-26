@@ -20,4 +20,5 @@ export interface Match {
 export interface SwipeState {
   allUsers: LoadableValue<List<User>>
   indexOfUserOnTop: number
+  lastFetched?: number // Unix timestamp
 }

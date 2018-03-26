@@ -4,11 +4,9 @@ import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { connect, Dispatch } from 'react-redux'
-import { List } from 'immutable'
 import { RootState } from '../../../redux'
 import { Direction } from '../../../services/api'
-import { fetchAllUsers, swipe, User } from '../../../services/swipe'
-import { LoadableValue } from '../../../services/redux'
+import { fetchAllUsers, swipe, User, SwipeState } from '../../../services/swipe'
 import { CircleButton, CircleButtonProps } from '../../common'
 import Card from './Card'
 import NoMoreCards from './NoMoreCards'
@@ -22,10 +20,7 @@ interface OwnProps {
 
 export type SwipeScreenProps = OwnProps
 
-interface StateProps {
-  allUsers: LoadableValue<List<User>>
-  indexOfUserOnTop: number
-}
+type StateProps = SwipeState
 
 interface DispatchProps {
   swipe: (direction: Direction, onUser: User) => void
@@ -234,12 +229,14 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private onCompleteSwipe = (direction: Direction, onUser: User) => {
 
-    // swipe on user
     this.props.swipe(direction, onUser)
 
-    // if there's only 10 cards left the list of users to swipe on, fetch some more!
-    if (this.props.allUsers.value.count() - this.props.indexOfUserOnTop < 10) {
-      this.props.fetchAllUsers()
+    if (!this.props.allUsers.loading) {
+      const numUserUntilEnd = this.props.allUsers.value.count() - this.props.indexOfUserOnTop
+      const secondsSinceFetched = (Date.now() - this.props.lastFetched) / 1000
+      if (numUserUntilEnd <= 10 && secondsSinceFetched >= 60) {
+        this.fetchUsers()
+      }
     }
 
     // update profiles in state
@@ -288,10 +285,7 @@ class SwipeScreen extends PureComponent<Props, State> {
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
-  return {
-    indexOfUserOnTop: state.swipe.indexOfUserOnTop,
-    allUsers: state.swipe.allUsers,
-  }
+  return state.swipe
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {

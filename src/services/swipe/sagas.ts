@@ -33,6 +33,7 @@ const TAGS: Tag[] = [
 ]
 
 function* attemptFetchUsers(_: AttemptFetchAllUsersAction | RehydrateAction) {
+
   try {
     const users: GetAllUsersResponse = yield call(api.getAllUsers)
     const successAction: FetchAllUsersSuccessAction = {

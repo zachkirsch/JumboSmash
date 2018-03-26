@@ -37,6 +37,7 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           value: state.allUsers.value.slice(state.indexOfUserOnTop).concat(shuffle(action.users)).toList(),
           loading: false,
         },
+        lastFetched: Date.now(),
       }
 
     case SwipeActionType.FETCH_ALL_USERS_FAILURE:
