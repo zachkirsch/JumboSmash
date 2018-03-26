@@ -33,7 +33,7 @@ export function firebaseReducer(state = initialState, action: FirebaseAction): F
 
     case FirebaseActionType.LOGOUT_FIREBASE:
       return {
-        ...initialState
+        ...initialState,
       }
 
     default:
