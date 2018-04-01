@@ -1,56 +1,46 @@
 import React, { PureComponent } from 'react'
-import { Animated, View, StyleSheet, ViewStyle, PanResponder, Platform } from 'react-native'
+import { Animated, Platform, StyleSheet, View, ViewStyle } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import LinearGradient from 'react-native-linear-gradient'
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../../redux'
+import { Direction } from '../../../services/api'
+import { fetchAllUsers, swipe, User, SwipeState } from '../../../services/swipe'
+import { CircleButton, CircleButtonProps } from '../../common'
 import Card from './Card'
-import { CircleButton, CircleButtonProps } from '../../generic'
+import NoMoreCards from './NoMoreCards'
 
-interface Props {
+interface OwnProps {
   preview?: {
-    name: string
-    imageUris: string[]
-    onCompleteSwipe: () => void
+    user: User
+    onExit: () => void
   }
 }
 
-interface State {
-  index: number
-  expansion: Animated.Value
+export type SwipeScreenProps = OwnProps
+
+type StateProps = SwipeState
+
+interface DispatchProps {
+  swipe: (direction: Direction, onUser: User) => void
+  fetchAllUsers: () => void
 }
 
-const IMAGES = [
-  'https://www.howtophotographyourlife.com/wp-content/uploads/2015/06/mary-2-1.jpg',
-  'https://blog.linkedin.com/content/dam/blog/en-us/corporate/blog/2014/07/Anais_Saint-Jude_L4388_SQ.jpg.jpeg',
-  'https://www.travelingphotographer.com/images/DENTIST-square-headshot-3.jpg',
-]
+type Props = OwnProps & StateProps & DispatchProps
 
-const NAMES = [
-  {
-    name: 'Sally',
-    imageUris: [IMAGES[0], IMAGES[1], IMAGES[2]],
-  },
-  {
-    name: 'Harriett',
-    imageUris: [IMAGES[1], IMAGES[2], IMAGES[0]],
-  },
-  {
-    name: 'George',
-    imageUris: [IMAGES[2], IMAGES[0], IMAGES[1]],
-  },
-  {
-    name: 'Stella',
-    imageUris: [IMAGES[0], IMAGES[1], IMAGES[2]],
-  },
-  {
-    name: 'Harry',
-    imageUris: [IMAGES[1], IMAGES[2], IMAGES[0]],
-  },
-  {
-    name: 'James',
-    imageUris: [IMAGES[2], IMAGES[0], IMAGES[1]],
-  },
-]
+interface RenderedUser {
+  user: User
+  positionInStack: number
+}
+
+interface State {
+  mustShowLoadingScreen: boolean
+  expansion: Animated.Value
+  profiles: { [cardIndex: number]: RenderedUser }
+}
+
+const NUM_RENDERED_CARDS = 3
 
 class SwipeScreen extends PureComponent<Props, State> {
 
@@ -59,23 +49,39 @@ class SwipeScreen extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      index: 0,
-      expansion: new Animated.Value(0),
+      expansion: new Animated.Value(props.preview ? 1 : 0),
+      profiles: {},
+      mustShowLoadingScreen: false,
     }
   }
 
   public render() {
+    if (!this.props.preview) {
+      if (this.props.allUsers.value.size === 0) {
+        if (this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
+          return <Card loading />
+        } else {
+          return <NoMoreCards requestMoreCards={this.fetchUsers}/>
+        }
+      }
+    }
 
     return (
       <View style={styles.fill}>
-        {this.renderCard(0)}
-        {this.renderCard(1)}
-        {this.renderCard(2)}
+        {this.renderCards()}
         {this.renderGradient()}
         {this.renderCrossButton()}
         {this.renderHeartButton()}
       </View>
     )
+  }
+
+  private renderCards = () => {
+    const cards = []
+    for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
+      cards.push(this.renderCard(i))
+    }
+    return cards
   }
 
   private renderCard = (cardIndex: number) => {
@@ -84,30 +90,27 @@ class SwipeScreen extends PureComponent<Props, State> {
       return null /* tslint:disable-line:no-null-keyword */
     }
 
-    const positionInDeck = (((cardIndex - this.state.index) % 3) + 3) % 3
-    const globalIndex = (this.state.index + positionInDeck) % NAMES.length
+    let positionInStack
+    let profile
 
-    let profile = NAMES[globalIndex]
     if (this.props.preview) {
-      profile = {
-        name: this.props.preview.name,
-        imageUris: this.props.preview.imageUris,
-      }
+      profile = this.props.preview.user
+    } else {
+      const card = this.getCard(cardIndex)
+      positionInStack = card.positionInStack
+      profile = card.user
     }
 
     return (
       <Card
         previewMode={!!this.props.preview}
-        positionInDeck={positionInDeck}
-        {...profile}
+        positionInStack={positionInStack}
+        profile={profile}
         onExpandCard={this.onExpandCard}
-        onContractCard={this.onContractCard}
+        onExitExpandedView={this.onExitExpandedView}
         onCompleteSwipe={this.onCompleteSwipe}
-        ref={(ref: Card) => {
-          if (positionInDeck === 0) {
-            this.topCard = ref
-          }
-        }}
+        key={cardIndex}
+        ref={this.assignCardRef(positionInStack)}
       />
     )
   }
@@ -126,20 +129,11 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
 
     return (
-      <Animated.View
-        {...PanResponder.create({
-          onStartShouldSetPanResponder: () => true,
-          onPanResponderRelease: (_, gestureState) => {
-            if (gestureState.moveX === 0 && gestureState.moveY === 0) {
-              this.topCard.tap()
-            }
-          },
-        }).panHandlers}
-        style={[styles.overlay, gradientStyle]}
-      >
+      <Animated.View style={[styles.overlay, gradientStyle]} pointerEvents='none'>
         <LinearGradient
           colors={['rgba(217,228,239,0)', 'rgba(217,228,239,1)']}
-          start={{x: 0, y: 0}} end={{x: 0, y: 0.75}}
+          start={{x: 0, y: 0}}
+          end={{x: 0, y: 0.75}}
           style={styles.fill}
         >
             <View style={styles.fill}/>
@@ -191,6 +185,23 @@ class SwipeScreen extends PureComponent<Props, State> {
     )
   }
 
+  private fetchUsers = () => {
+    this.props.fetchAllUsers()
+    this.setState({
+      mustShowLoadingScreen: true,
+    }, () => setTimeout(() => {
+      this.setState({
+        mustShowLoadingScreen: false,
+      })
+    }, 2000))
+  }
+
+  private assignCardRef = (positionInStack: number) => (ref: Card) => {
+    if (positionInStack === 0) {
+      this.topCard = ref
+    }
+  }
+
   private onExpandCard = () => {
     Animated.timing(
       this.state.expansion,
@@ -201,7 +212,11 @@ class SwipeScreen extends PureComponent<Props, State> {
     ).start()
   }
 
-  private onContractCard = () => {
+  private onExitExpandedView = () => {
+    if (this.props.preview) {
+      this.props.preview.onExit()
+      return
+    }
     Animated.timing(
       this.state.expansion,
       {
@@ -211,18 +226,74 @@ class SwipeScreen extends PureComponent<Props, State> {
     ).start()
   }
 
-  private onCompleteSwipe = () => {
-    if (this.props.preview) {
-      this.props.preview.onCompleteSwipe()
+  private onCompleteSwipe = (direction: Direction, onUser: User) => {
+
+    this.props.swipe(direction, onUser)
+
+    if (!this.props.allUsers.loading) {
+      const numUserUntilEnd = this.props.allUsers.value.size - this.props.indexOfUserOnTop
+      const beenLongEnough = this.props.lastFetched === undefined || (Date.now() - this.props.lastFetched) / 1000 >= 10
+      if (numUserUntilEnd <= 10 && beenLongEnough) {
+        this.fetchUsers()
+      }
+    }
+
+    let newProfiles: { [cardIndex: string]: RenderedUser } = {}
+    for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
+      newProfiles[i] = this.getNextCard(i)
+    }
+    this.setState({
+      profiles: newProfiles,
+    })
+  }
+
+  private getInitialCardForIndex = (cardIndex: number): RenderedUser => {
+    const indexOfUser = cardIndex % this.props.allUsers.value.size
+    return {
+      user: this.props.allUsers.value.get(indexOfUser),
+      positionInStack: cardIndex,
+    }
+  }
+
+  private getCard = (cardIndex: number): RenderedUser => {
+    if (this.state.profiles[cardIndex]) {
+      return this.state.profiles[cardIndex]
     } else {
-      this.setState({
-        index: this.state.index + 1,
-      })
+      return this.getInitialCardForIndex(cardIndex)
+    }
+  }
+
+  private getNextCard = (cardIndex: number): RenderedUser => {
+    const currentCard = this.state.profiles[cardIndex] || this.getInitialCardForIndex(cardIndex)
+    switch (currentCard.positionInStack) {
+      case 0:
+        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.allUsers.value.size
+        return {
+          user: this.props.allUsers.value.get(indexOfUser),
+          positionInStack: NUM_RENDERED_CARDS - 1,
+        }
+      default:
+        const card = this.getCard(cardIndex)
+        return {
+          ...card,
+          positionInStack: card.positionInStack - 1,
+        }
     }
   }
 }
 
-export default SwipeScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return state.swipe
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    fetchAllUsers: () => dispatch(fetchAllUsers()),
+    swipe: (direction: Direction, onUser: User) => dispatch(swipe(direction, onUser)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SwipeScreen)
 
 const styles = StyleSheet.create({
   fill: {

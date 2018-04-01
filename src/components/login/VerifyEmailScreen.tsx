@@ -1,23 +1,23 @@
 import React, { PureComponent } from 'react'
 import {
-  View,
   ActivityIndicator,
-  TouchableOpacity,
-  StyleSheet,
+  Keyboard,
   Linking,
   Platform,
-  Keyboard,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { default as Ionicons } from 'react-native-vector-icons/Ionicons'
-import { default as MaterialIcons } from 'react-native-vector-icons/MaterialIcons'
+import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
-import { verifyEmail, requestVerification, clearAuthErrorMessage, Credentials } from '../../services/auth'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
+import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } from '../../services/auth'
+import { JSText, scale } from '../common'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
-import { JSText, scale } from '../generic'
 
 interface OwnProps {
   focusKeyboardOnLoginScreen?: () => void
@@ -80,7 +80,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
     // listen for verification link
     if (Platform.OS === 'android') {
-      Linking.getInitialURL().then(url => {
+      Linking.getInitialURL().then((url) => {
         if (url !== null) {
           this.handleOpenURL(url)
         }
@@ -148,7 +148,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         break
     }
 
-    let bottomSection: JSX.Element = undefined
+    let bottomSection: JSX.Element
     if (this.props.authError === AuthError.NOT_SENIOR) {
       bottomSection = (
         <EmailUsFooter

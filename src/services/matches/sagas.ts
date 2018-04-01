@@ -1,22 +1,21 @@
-import { put, call, takeEvery } from 'redux-saga/effects'
-import { firebase } from '../firebase'
+import { call, put, takeEvery } from 'redux-saga/effects'
+import { getRefToChatMessages } from '../firebase'
 import {
-  MatchesActionType,
   AttemptSendMessagesAction,
-  SendMessagesSuccessAction,
+  MatchesActionType,
   SendMessagesFailureAction,
+  SendMessagesSuccessAction,
 } from './actions'
 import { GiftedChatMessage } from './types'
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
   function pushMessagetoFirebase(message: GiftedChatMessage) {
-    return new Promise(resolve => {
-      const path = 'messages/'.concat(action.conversationId)
-      const dbRef = firebase.database().ref(path)
+    return new Promise((resolve, reject) => {
+      const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({
         ...message,
         createdAt: message.createdAt.getTime(), // convert Date to number for firebase
-      }, resolve)
+      }, error => error ? reject(error) : resolve())
     })
   }
 

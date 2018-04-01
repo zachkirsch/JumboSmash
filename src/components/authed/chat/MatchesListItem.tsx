@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
-import { View, TouchableWithoutFeedback, Image, StyleSheet, Dimensions } from 'react-native'
+import { Dimensions, Image, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
-import { JSText } from '../../generic'
+import { JSText } from '../../common'
 
 interface Props {
   name: string
@@ -30,10 +30,7 @@ class MatchesListItem extends PureComponent<Props, State> {
   public render() {
     return (
     <View style={styles.container}>
-      {this.props.messageRead && !this.props.newMatch
-        ? this.renderItem(false)
-        : this.renderUnreadItem()
-      }
+      {this.props.messageRead && !this.props.newMatch ? this.renderItem(false) : this.renderUnreadItem()}
     </View>
     )
   }
@@ -56,8 +53,8 @@ class MatchesListItem extends PureComponent<Props, State> {
 
     return (
       <TouchableWithoutFeedback
-        onPressIn={() => this.setState({ pressedIn: true })}
-        onPressOut={() => this.setState({ pressedIn: false })}
+        onPressIn={this.onPressIn}
+        onPressOut={this.onPressOut}
         onPress={this.props.onPress}
       >
         <View style={containerStyle}>
@@ -76,10 +73,10 @@ class MatchesListItem extends PureComponent<Props, State> {
     let opacities = [0.4, 0.2]
 
     if (this.props.newMatch) {
-      opacities = opacities.map(opacity => 0.5 + opacity / 2)
+      opacities = opacities.map((opacity) => 0.5 + opacity / 2)
     }
     if (this.state.pressedIn) {
-      opacities = opacities.map(opacity => 0.5 + opacity / 2)
+      opacities = opacities.map((opacity) => 0.5 + opacity / 2)
     }
 
     const colors = [
@@ -90,7 +87,8 @@ class MatchesListItem extends PureComponent<Props, State> {
     return (
       <LinearGradient
         colors={colors}
-        start={{x: 0, y: 1}} end={{x: 1, y: 1}}
+        start={{x: 0, y: 1}}
+        end={{x: 1, y: 1}}
         locations={[0, 1]}
         style={styles.gradient}
       >
@@ -98,6 +96,9 @@ class MatchesListItem extends PureComponent<Props, State> {
       </LinearGradient>
     )
   }
+
+  private onPressIn = () => this.setState({ pressedIn: true })
+  private onPressOut = () => this.setState({ pressedIn: false })
 
 }
 

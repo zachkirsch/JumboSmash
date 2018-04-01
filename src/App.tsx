@@ -1,10 +1,10 @@
-import React, { PureComponent } from 'react'
-import { View, StatusBar, StyleSheet } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
 import { Map } from 'immutable'
+import React, { PureComponent } from 'react'
+import { StatusBar, StyleSheet, View } from 'react-native'
+import { connect, Dispatch } from 'react-redux'
+import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen } from './components'
 import { RootState } from './redux'
-import { CountdownScreen, CodeOfConductScreen, AuthedRouter, LoginRouter} from './components'
-import { firebase } from './services/firebase'
+import { getRefToChatMessages } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
 
 interface StateProps {
@@ -25,10 +25,12 @@ const SHOULD_SHOW_COUNTDOWN = true
 
 class App extends PureComponent<Props, {}> {
 
+  private conversationIds: string[] = []
+
   componentDidMount() {
-    const path = 'messages/'
-    this.props.chats.keySeq().forEach(conversationId => {
-      const dbRef = firebase.database().ref(path.concat(conversationId))
+    this.conversationIds = this.props.chats.keySeq().toArray()
+    this.conversationIds.forEach((conversationId) => {
+      const dbRef = getRefToChatMessages(conversationId)
       dbRef.on('child_added', (firebaseMessage) => {
         const message: GiftedChatMessage = {
           ...firebaseMessage.val(),
@@ -36,6 +38,13 @@ class App extends PureComponent<Props, {}> {
         }
         this.props.receiveMessages(conversationId, [message])
       })
+    })
+  }
+
+  componentWillUnmount() {
+    this.conversationIds.forEach((conversationId) => {
+      const dbRef = getRefToChatMessages(conversationId)
+      dbRef.off('child_added')
     })
   }
 
@@ -81,7 +90,7 @@ const networkRequestInProgress = (state: RootState) => {
   || state.profile.preferredName.loading
   || state.profile.major.loading
   || state.profile.bio.loading
-  || state.profile.images.loading
+  || state.profile.images.find((image) => image.loading) !== undefined
   || state.profile.tags.loading
 }
 

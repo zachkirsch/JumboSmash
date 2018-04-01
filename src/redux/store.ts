@@ -1,25 +1,40 @@
-import {AsyncStorage} from 'react-native'
-import { compose, applyMiddleware, createStore } from 'redux'
-import { createLogger } from 'redux-logger'
 import { Iterable } from 'immutable'
-import createSagaMiddleware from 'redux-saga'
+import { AsyncStorage } from 'react-native'
+import { Store, applyMiddleware, compose, createStore } from 'redux'
+import { createLogger } from 'redux-logger'
 import { autoRehydrate, persistStore } from 'redux-persist'
-import { rootSaga } from './rootSaga'
-import { rootReducer } from './rootReducer'
-import { RootState } from './types'
+import createSagaMiddleware from 'redux-saga'
 import { setRehydrated } from '../services/redux'
+import { rootReducer } from './rootReducer'
+import { rootSaga } from './rootSaga'
+import { RootState } from './types'
+import { TokenService } from '../services/api'
 
 const sagaMiddleware = createSagaMiddleware()
 
 /* logger */
 const logger = createLogger({
   stateTransformer: (state: RootState) => {
-    let newState = Object.assign({}, state)
+    let newState = {...state}
     if (newState.matches && Iterable.isIterable(newState.matches.chats)) {
       newState = {
         ...newState,
         matches: {
+          ...newState.matches,
           chats: newState.matches.chats.toJS(),
+        },
+      }
+    }
+    if (newState.swipe) {
+      newState = {
+        ...newState,
+        swipe: {
+          ...newState.swipe,
+          allUsers: {
+            ...newState.swipe.allUsers,
+            value: newState.swipe.allUsers.value.toJS(),
+            prevValue: newState.swipe.allUsers.prevValue && newState.swipe.allUsers.prevValue.toJS(),
+          },
         },
       }
     }
@@ -34,12 +49,11 @@ export const reduxStore = createStore(
     applyMiddleware(sagaMiddleware, logger),
     autoRehydrate()
   )
-)
+) as Store<RootState>
 
 persistStore(reduxStore, {storage: AsyncStorage}, () => {
   reduxStore.dispatch(setRehydrated())
 })
 
-export const getState = (): RootState => reduxStore.getState() as RootState
-
+TokenService.setStore(reduxStore)
 sagaMiddleware.run(rootSaga)

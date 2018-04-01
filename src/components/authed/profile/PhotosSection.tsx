@@ -1,34 +1,79 @@
+import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
-import { View, Image, StyleSheet, TouchableWithoutFeedback, Platform, Dimensions } from 'react-native'
+import { Alert, Dimensions, Image, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
-import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
-import { default as SimpleLineIcons } from 'react-native-vector-icons/SimpleLineIcons'
-import { default as Feather } from 'react-native-vector-icons/Feather'
-import { ActionSheetOption, generateActionSheetOptions, lastIndexOf } from '../../utils'
+import Entypo from 'react-native-vector-icons/Entypo'
+import Feather from 'react-native-vector-icons/Feather'
+import Foundation from 'react-native-vector-icons/Foundation'
+import Ionicons from 'react-native-vector-icons/Ionicons'
+import { ImageUri } from '../../../services/profile'
+import { LoadableValue } from '../../../services/redux'
+import { CircleButton } from '../../common'
+import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
 
-interface OwnProps {
-  images: string[]
-  updateImages: (images: string[]) => void
+interface Props {
+  images: Array<LoadableValue<ImageUri>>
+  swapImages: (index1: number, index2: number) => void
+  updateImage: (index: number, imageUri: string, mime: string) => void
+  saveRequired: () => void
+  showActionSheetWithOptions?: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
+}
+
+interface LocalImage {
+  uri: string
+  mime: string
+}
+
+const EMPTY_LOCAL_IMAGE = {
+  uri: '',
+  mime: '',
 }
 
 interface State {
+  images: LocalImage[]
   swapping: boolean
   swappingIndex: number
 }
 
+interface ImageWithStatus {
+  uri: string
+  uploading: boolean
+}
+
+const EMPTY_IMAGE_WITH_STATUS = {
+  uri: '',
+  uploading: false,
+}
+
 const WIDTH = Dimensions.get('window').width
 
-type Props = ActionSheetProps<OwnProps>
-
-@connectActionSheet
 class PhotosSection extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {
-      swapping: false,
-      swappingIndex: -1,
+    this.state = this.getInitialState()
+  }
+
+  collapseImages = (onComplete?: () => void) => {
+    const numImages = this.state.images.length
+    const newImages = this.state.images.filter(image => image.uri)
+    for (let i = newImages.length; i < numImages; i++) {
+      newImages.push(EMPTY_LOCAL_IMAGE)
     }
+    this.setState({ images: newImages }, onComplete)
+  }
+
+  save = () => {
+    this.collapseImages(() => {
+      for (let i = 0; i < this.state.images.length; i++) {
+        const image = this.state.images[i] || EMPTY_LOCAL_IMAGE
+        this.props.updateImage(i, image.uri, image.mime)
+      }
+    })
+  }
+
+  revert = () => {
+    this.setState(this.getInitialState())
   }
 
   render() {
@@ -52,42 +97,35 @@ class PhotosSection extends PureComponent<Props, State> {
 
   private renderPhoto = (index: number) => {
 
+    const allImages = this.getImages()
+    const image = allImages[index] || EMPTY_IMAGE_WITH_STATUS
+
     let touchableDisabled = false
     let overlayIcon
 
-    const swappingBigPhotoAndRenderingEmptyPhoto = (
-      this.state.swapping
-      && this.state.swappingIndex === 0
-      && !this.props.images[index]
-    )
-
     if (this.state.swapping) {
-
-      const lastIndexOfNonemptyPhoto = lastIndexOf(this.props.images, (imageUri => !!imageUri))
-
-      touchableDisabled = true
-      if (this.props.images[index] || this.state.swappingIndex > 0 && index < lastIndexOfNonemptyPhoto) {
+      if (index === this.state.swappingIndex) {
+        touchableDisabled = true
+      } else {
         touchableDisabled = false
-        if (index !== this.state.swappingIndex) {
-          overlayIcon = (
-            <SimpleLineIcons
-              style={{backgroundColor: 'transparent'}}
-              name={'target'}
-              size={40}
-              color='rgba(172,203,238,0.6)'
-            />
-          )
-        }
+        overlayIcon = (
+          <Foundation
+            style={styles.overlayIcon}
+            name={'target-two'}
+            size={40}
+            color='rgba(172,203,238,0.6)'
+          />
+        )
       }
-    } else if (!this.props.images[index]) {
-      let indexOfFirstEmpty = this.props.images.findIndex(imageUri => !imageUri)
+    } else if (!image.uri) {
+      let indexOfFirstEmpty = allImages.findIndex((imageWithStatus) => !imageWithStatus.uri)
       if (indexOfFirstEmpty === -1) {
-        indexOfFirstEmpty = this.props.images.length
+        indexOfFirstEmpty = allImages.length
       }
       if (indexOfFirstEmpty === index) {
         overlayIcon = (
           <Feather
-            style={{backgroundColor: 'transparent'}}
+            style={styles.overlayIcon}
             name={'plus'}
             size={50}
             color='rgba(172,203,238,0.6)'
@@ -98,114 +136,214 @@ class PhotosSection extends PureComponent<Props, State> {
       }
     }
 
-    let image
-    if (this.props.images[index]) {
-      image = (
-        <Image
-          source={{uri: this.props.images[index]}}
-          resizeMode='cover'
-          style={[
-            styles.photo,
-            index === 0 ? styles.bigPhoto : styles.smallPhoto,
-            this.state.swapping && this.state.swappingIndex === index && styles.semiTransparent,
-          ]}>
-        </Image>
-      )
+    let imageToRender
+    if (image.uri) {
+      const imageStyles = [
+        styles.photo,
+        index === 0 ? styles.bigPhoto : styles.smallPhoto,
+        this.state.swapping && this.state.swappingIndex === index && styles.semiTransparent,
+      ]
+      imageToRender = <Image source={{uri: image.uri}} resizeMode='cover' style={imageStyles} />
     } else {
-      image = (
-        <View
-          style={[
-            {
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-            styles.photo,
-            index === 0 ? styles.bigPhoto : styles.smallPhoto,
-            styles.emptyPhoto,
-            swappingBigPhotoAndRenderingEmptyPhoto && styles.semiTransparent,
-          ]}
-        >
-        </View>
-      )
+      const imageStyles = [
+        styles.photo,
+        index === 0 ? styles.bigPhoto : styles.smallPhoto,
+        styles.emptyPhoto,
+      ]
+      imageToRender = <View style={imageStyles} />
+    }
+
+    let cornerButton
+    if (Platform.OS === 'ios' && image.uri) {
+        if (image.uploading) {
+          cornerButton = (
+            <CircleButton
+              IconClass={Ionicons}
+              iconName={'md-sync'}
+              iconSize={13}
+              iconColor='white'
+              onPress={this.cancelUpload(index)}
+              style={styles.cornerButton}
+              rotate
+            />
+          )
+        } else if (this.canDeleteImage(index, allImages)) {
+          cornerButton = (
+            <CircleButton
+              IconClass={Entypo}
+              iconName={'cross'}
+              iconSize={15}
+              iconColor='white'
+              onPress={this.deletePhoto(index, {})}
+              style={styles.cornerButton}
+            />
+          )
+        }
     }
 
     return (
-      <View style={styles.shadow}>
-        {image}
-        <TouchableWithoutFeedback disabled={touchableDisabled} onPress={() => this.onPressImage(index)}>
+      <View style={styles.imageContainer}>
+        {imageToRender}
+        <TouchableWithoutFeedback disabled={touchableDisabled} onPress={this.onPressImage(index)}>
           <View style={styles.photoOverlay}>
             {overlayIcon}
           </View>
         </TouchableWithoutFeedback>
+        {cornerButton}
       </View>
     )
   }
 
-  private onPressImage(index: number) {
+  private getImageByIndex = (index: number): ImageWithStatus => {
+    let uri: string
+    let uploading: boolean
+
+    if (this.props.images[index] && this.props.images[index].errorMessage) {
+      uri = this.props.images[index].value.uri
+      uploading = false
+    } else {
+      uri = this.state.images[index] ? this.state.images[index].uri : ''
+      uploading = uri && this.props.images[index] && this.props.images[index].loading
+    }
+
+    return {
+      uri,
+      uploading,
+    }
+  }
+
+  private getImages = (): ImageWithStatus[] => {
+    return this.state.images.map((_, index) => this.getImageByIndex(index))
+  }
+
+  private cancelUpload = (index: number, withConfirmation = true) => () => {
+    const alertInfo = withConfirmation && {
+      title: 'Cancel Upload',
+      message: 'Are you sure you want to cancel the upload?',
+    }
+    this.deletePhoto(index, alertInfo)()
+  }
+
+  private deletePhoto = (index: number, withConfirmation?: {title?: string, message?: string}) => () => {
+
+    const deleteIt = () => {
+      // this.props.updateImage(index, '', '')
+      this.props.saveRequired()
+      const newImages = Array.from(this.state.images)
+      newImages[index] = EMPTY_LOCAL_IMAGE
+      this.setState({
+        images: newImages,
+      })
+    }
+
+    if (!withConfirmation) {
+      deleteIt()
+    } else {
+      Alert.alert(
+        withConfirmation.title || 'Delete Photo',
+        withConfirmation.message || 'Are you sure you want to delete this photo?',
+        [
+          {text: 'No', style: 'cancel'},
+          {text: 'Yes', onPress: deleteIt, style: 'destructive'},
+        ]
+      )
+    }
+  }
+
+  private canDeleteImage = (index: number, allImages?: ImageWithStatus[]) => {
+    const image = (allImages ? allImages[index] : this.getImageByIndex(index)) || EMPTY_IMAGE_WITH_STATUS
+    return !this.state.swapping
+    && !!image.uri
+    && !image.uploading
+    && (allImages || this.getImages()).filter((i) => i.uri && !i.uploading).length > 1
+  }
+
+  private canSwapImage = (index: number) => {
+    return this.state.images[index] && this.state.images[index].uri
+  }
+
+  private onPressImage = (index: number) => () => {
 
     if (this.state.swapping) {
-      const newImages = Array.from(this.props.images)
-      const temp = newImages[index]
-      newImages[index] = newImages[this.state.swappingIndex]
-      newImages[this.state.swappingIndex] = temp
-      this.props.updateImages(newImages)
+      // this.props.swapImages(index, this.state.swappingIndex)
+      this.props.saveRequired()
+
+      const newImages = []
+      for (let i = 0; i < Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1); i++) {
+        let toPush = this.state.images[i]
+        if (i === index) {
+          toPush = this.state.images[this.state.swappingIndex]
+        } else if (i === this.state.swappingIndex) {
+          toPush = this.state.images[index]
+        }
+        newImages.push(toPush || EMPTY_LOCAL_IMAGE)
+      }
+
       this.setState({
         swapping: false,
+        images: newImages,
       })
       return
     }
 
     const buttons: ActionSheetOption[] = []
 
-    // CHOOSE PHOTO BUTTON
     buttons.push({
-      title: this.props.images[index] ? 'Change Photo' : 'Choose Photo',
+      title: this.state.images[index] && this.state.images[index].uri ? 'Change Photo' : 'Choose Photo',
       onPress: () => ImagePicker.openPicker({
-        width: 1000,
-        height: 1000,
-        cropping: true,
-        mediaType: 'photo',
-        cropperToolbarTitle: 'Move and Scale to Crop',
-      }).then((image: ImagePickerImage) => {
-        const newImages = Array.from(this.props.images)
-        newImages[index] = image.path
-        this.props.updateImages(newImages)
-      }),
+          width: 2000,
+          height: 2000,
+          cropping: true,
+          mediaType: 'photo',
+          cropperToolbarTitle: 'Move and Scale to Crop',
+        }).then((image: ImagePickerImage) => {
+          // this.props.updateImage(index, image.path, image.mime)
+          this.props.saveRequired()
+          const newImages = Array.from(this.state.images)
+          newImages[index] = { uri: image.path, mime: image.mime }
+          this.setState({
+            images: newImages,
+          })
+        }),
     })
 
-    if (this.props.images[index]) {
+    if (this.canSwapImage(index)) {
+      buttons.push({
+        title: 'Swap Position',
+        onPress: () => {
+          this.setState({
+            swapping: true,
+            swappingIndex: index,
+          })
+        },
+      })
+    }
 
-      // SWAP POSITION BUTTON
-      const numPhotosChosen = this.props.images.filter((image: string) => image).length
-      if (index !== 0 || numPhotosChosen > 1) {
-        buttons.push({
-          title: 'Swap Position',
-          onPress: () => {
-            this.setState({
-              swapping: true,
-              swappingIndex: index,
-            })
-          },
-        })
-      }
-      if (index !== 0) {
+    if (this.canDeleteImage(index)) {
+      buttons.push({
+        title: 'Remove Photo',
+        onPress: this.deletePhoto(index),
+        destructive: true,
+      })
+    }
 
-        // REMOVE PHOTO BUTTON
-        buttons.push({
-          title: 'Remove Photo',
-          onPress: () => {
-            const newImages = Array.from(this.props.images)
-            newImages[index] = undefined
-            this.props.updateImages(newImages)
-          },
-          destructive: true,
-        })
-      }
+    if (this.getImageByIndex(index).uploading) {
+      buttons.push({
+        title: 'Cancel Upload',
+        onPress: this.cancelUpload(index, false),
+        destructive: true,
+      })
     }
 
     const {options, callback} = generateActionSheetOptions(buttons)
     this.props.showActionSheetWithOptions(options, callback)
   }
+
+  private getInitialState = () => ({
+    images: this.props.images.map((image) => ({uri: image.value.uri, mime: ''})),
+    swapping: false,
+    swappingIndex: -1,
+  })
 }
 
 export default PhotosSection
@@ -235,18 +373,15 @@ const styles = StyleSheet.create({
   photo: {
     borderRadius: 5,
   },
-  shadow: {
+  imageContainer: {
     borderRadius: 5,
     backgroundColor: 'white',
+    overflow: 'visible',
     ...Platform.select({
       ios: {
         shadowColor: 'rgb(172, 203, 238)',
         shadowOpacity: 0.75,
         shadowRadius: .02 * WIDTH,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
       },
     }),
     ...Platform.select({
@@ -265,6 +400,8 @@ const styles = StyleSheet.create({
   },
   emptyPhoto: {
     backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   semiTransparent: {
     opacity: 0.4,
@@ -279,5 +416,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'visible',
     zIndex: 5,
+  },
+  overlayIcon: {
+    backgroundColor: 'transparent',
+  },
+  cornerButton: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginHorizontal: 0,
+    marginBottom: 3,
+    borderColor: 'gray',
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: '#0F52BA',
+    zIndex: 600,
+    elevation: 600,
   },
 })

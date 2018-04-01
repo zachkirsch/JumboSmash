@@ -1,12 +1,12 @@
 import { put, takeLatest } from 'redux-saga/effects'
-import { firebase } from './firebase'
 import {
-  FirebaseActionType,
   AttemptConnectToFirebaseAction,
-  ConnectToFirebaseSuccessAction,
   ConnectToFirebaseFailureAction,
+  ConnectToFirebaseSuccessAction,
+  FirebaseActionType,
   LogoutFirebaseAction,
 } from './actions'
+import { firebase } from './firebase'
 
 function* attemptConnectToFirebase(action: AttemptConnectToFirebaseAction) {
   try {

@@ -1,11 +1,13 @@
-import { GetEndpoint } from './Endpoint'
-import { User } from '../../matches'
+import { GetEndpoint, HttpGetRequest } from './Endpoint'
+import { GetUserResponse } from './getUser'
 
-type Request = {
+interface Request extends HttpGetRequest {
 }
 
 interface Response {
-  users: User[]
+  users: {
+    0: GetUserResponse[]
+  }
 }
 
 export const getAllUsers = new GetEndpoint<Request, Response>('/users', true)

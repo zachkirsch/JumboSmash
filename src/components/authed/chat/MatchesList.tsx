@@ -1,11 +1,12 @@
-import React, { PureComponent } from 'react'
-import { View, StyleSheet, FlatList } from 'react-native'
-import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { Map } from 'immutable'
-import MatchesListItem from './MatchesListItem'
-import { Conversation } from '../../../services/matches'
+import React, { PureComponent } from 'react'
+import { FlatList, StyleSheet, View } from 'react-native'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect } from 'react-redux'
 import { RootState } from '../../../redux'
+import { Conversation } from '../../../services/matches'
+import { getFirstName } from '../../../utils'
+import MatchesListItem from './MatchesListItem'
 
 interface State { }
 
@@ -26,13 +27,15 @@ class MatchesList extends PureComponent<Props, State> {
           contentContainerStyle={styles.list}
           data={this.props.chats.toArray()}
           renderItem={this.renderItem}
-          keyExtractor={(item: Conversation) => item.conversationId}
+          keyExtractor={this.extractConversationId}
         />
       </View>
     )
   }
 
-  private openChatScreen = (conversationId: string) => {
+  private extractConversationId = (item: Conversation) => item.conversationId
+
+  private openChatScreen = (conversationId: string) => () => {
     this.props.navigation.navigate('Chat', {
       conversationId,
     })
@@ -41,8 +44,8 @@ class MatchesList extends PureComponent<Props, State> {
   private renderItem = ({item}: {item: Conversation}) => {
     return (
       <MatchesListItem
-        name={item.otherUsers.first().name.split(' ')[0]}
-        onPress={() => this.openChatScreen(item.conversationId)}
+        name={getFirstName(item.otherUsers.first().name)}
+        onPress={this.openChatScreen(item.conversationId)}
         lastMessage={item.mostRecentMessage}
         messageRead={!item.messagesUnread}
         avatar={item.otherUsers.first().avatar}

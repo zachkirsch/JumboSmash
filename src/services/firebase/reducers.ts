@@ -1,4 +1,4 @@
-import { FirebaseActionType, FirebaseAction } from './actions'
+import { FirebaseAction, FirebaseActionType } from './actions'
 import { FirebaseState } from './types'
 
 const initialState: FirebaseState = {
@@ -9,7 +9,7 @@ const initialState: FirebaseState = {
 }
 
 export function firebaseReducer(state = initialState, action: FirebaseAction): FirebaseState {
-  const newState = Object.assign({}, state)
+  const newState = {...state}
   switch (action.type) {
 
     case FirebaseActionType.ATTEMPT_CONNECT_TO_FIREBASE:
@@ -32,7 +32,9 @@ export function firebaseReducer(state = initialState, action: FirebaseAction): F
       return newState
 
     case FirebaseActionType.LOGOUT_FIREBASE:
-      return initialState
+      return {
+        ...initialState,
+      }
 
     default:
       return state

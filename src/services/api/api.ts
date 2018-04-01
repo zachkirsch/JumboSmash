@@ -1,6 +1,5 @@
 import { Credentials } from '../auth'
 import * as Endpoints from './endpoints'
-import { getEmail } from '../auth'
 
 export interface ErrorResponse {
   message: string
@@ -11,7 +10,7 @@ export const api = {
   /* LOGIN */
 
   requestVerification: (credentials: Credentials) => Endpoints.requestVerification.hit(credentials, {}),
-  verifyEmail: (code: string) => Endpoints.verifyEmail.hit({email: getEmail(), code}, {}),
+  verifyEmail: (code: string) => Endpoints.verifyEmail.hit({email: Endpoints.TokenService.getToken().email, code}, {}),
   acceptCoC: () => Endpoints.acceptCoC.hit({}, {}),
 
   /* ME */
@@ -24,7 +23,7 @@ export const api = {
   /* OTHERS */
 
   getAllUsers: () => Endpoints.getAllUsers.hit({}, {}),
-  swipe: (direction: 'left' | 'right', onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
+  swipe: (direction: Endpoints.Direction, onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
   getUser: (userId: number) => Endpoints.getUser.hit({}, {userId}),
 
 }

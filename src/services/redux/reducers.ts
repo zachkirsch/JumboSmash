@@ -1,4 +1,4 @@
-import { ReduxActionType, ReduxAction } from './actions'
+import { ReduxAction, ReduxActionType } from './actions'
 import { ReduxState } from './types'
 
 const initialState: ReduxState = {

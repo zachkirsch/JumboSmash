@@ -1,5 +1,7 @@
 import { Platform } from 'react-native'
-import { getEmail, getSessionKey } from '../../auth'
+import { Store } from 'redux'
+import RNFetchBlob from 'react-native-fetch-blob'
+import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
 
 const LOCAL_SERVER = true
@@ -10,7 +12,7 @@ const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' :
 
 type HttpMethod = 'GET' | 'POST'
 
-type HttpGetRequest = {
+export interface HttpGetRequest {
   [key: string]: string | number
 }
 
@@ -19,10 +21,32 @@ interface Token {
   session_key: string
 }
 
-const getToken = (): Token => ({
-  email: getEmail(),
-  session_key: getSessionKey(),
-})
+export const TokenService = { /* tslint:disable-line:variable-name */
+  setStore: (store: Store<RootState>) => this.store = store,
+  getToken: (): Token => {
+    if (!this.store) {
+      return undefined
+    } else {
+      const store: Store<RootState> = this.store
+      return {
+        email: store.getState().auth.email,
+        session_key: store.getState().auth.sessionKey,
+      }
+    }
+  },
+}
+
+// required because wer're using RNFetchBlob
+const Fetch: any = RNFetchBlob.polyfill.Fetch /* tslint:disable-line:no-any */
+window.fetch = new Fetch({
+    auto : true,
+    binaryContentTypes : [
+        'image/',
+        'video/',
+        'audio/',
+        'foo/',
+    ],
+}).build()
 
 abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
@@ -42,10 +66,13 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     .then((response) => {
       if (response.ok) {
         return response.json()
+      } else if (response.status >= 500) {
+        throw Error('Server Error')
+      } else {
+        return response.json().then((errorJson: ErrorResponse) => {
+          throw Error(errorJson.message)
+        })
       }
-      return response.json().then((errorJson: ErrorResponse) => {
-        throw Error(errorJson.message)
-      })
     })
   }
 
@@ -53,14 +80,14 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
     const request: RequestInit = {
       method,
-      headers: new Headers({
+      headers: {
         'Content-Type': 'application/json',
-      }),
+      },
     }
 
     if (method === 'POST') {
       if (this.requiresToken) {
-        const bodyWithAuth = Object.assign({}, body, getToken())
+        const bodyWithAuth = Object.assign(body, TokenService.getToken())
         request.body = JSON.stringify(bodyWithAuth)
       } else {
         request.body = JSON.stringify(body || {})
@@ -91,7 +118,7 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
     let uri = endpoint + '?'
 
     if (this.requiresToken) {
-      const {email, session_key} = getToken()
+      const {email, session_key} = TokenService.getToken()
       uri += this.getQueryString({email, session_key})
     }
 

@@ -1,11 +1,13 @@
-import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { Answers } from 'react-native-fabric'
-import { api, VerifyEmailResponse, RequestVerificationResponse, MeResponse } from '../api'
-import * as AuthActions from './actions'
-import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
-import { setCoCReadStatus } from '../coc'
+import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { RootState } from '../../redux'
-import { setID } from '../profile'
+import { api, MeResponse, RequestVerificationResponse, VerifyEmailResponse } from '../api'
+import { setCoCReadStatus } from '../coc'
+import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
+import { clearMatchesState } from '../matches'
+import { clearProfileState, initializeProfile } from '../profile'
+import { clearSwipeState, fetchAllUsers } from '../swipe'
+import * as AuthActions from './actions'
 
 const getEmail = (state: RootState) => state.auth.email
 
@@ -72,8 +74,11 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
     // now set the user as 'logged in'
     yield handleEmailVerificationSuccess()
 
-    // set the user's ID
-    yield put(setID(meInfo.id))
+    // rehydrate the user's profile
+    yield put(initializeProfile(meInfo.id, meInfo.preferred_name, meInfo.bio, meInfo.images.map((image) => image.url)))
+
+    // fetch users
+    yield put(fetchAllUsers())
 
     // and finally, connect to firebase
     yield put(attemptConnectToFirebase(meInfo.firebase_token))
@@ -90,6 +95,9 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 function* logout(_: AuthActions.LogoutAction) {
   yield put(setCoCReadStatus(false))
   yield put(logoutFirebase())
+  yield put(clearProfileState())
+  yield put(clearSwipeState())
+  yield put(clearMatchesState())
 }
 
 export function* authSaga() {

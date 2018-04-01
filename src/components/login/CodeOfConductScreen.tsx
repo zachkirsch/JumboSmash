@@ -1,14 +1,14 @@
 import React, { PureComponent } from 'react'
 import {
-  View,
+  Platform,
   ScrollView,
   StyleSheet,
-  Platform,
+  View,
 } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { JSText, RectangleButton } from '../generic'
-import { acceptCoC } from '../../services/coc'
 import { RootState } from '../../redux'
+import { acceptCoC } from '../../services/coc'
+import { JSText, RectangleButton } from '../common'
 
 interface CoCRule {
   emojiTitle: string
@@ -26,7 +26,7 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🚫👯',
-    description: "No identity theft. Don't pretend to be someone you're not.",
+    description: "Don't pretend to be someone you're not.",
   },
   {
     emojiTitle: '✅🙋',
@@ -34,7 +34,7 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🔐💌',
-    description: 'Jumbosmash will delete all your data after graduation - we value your privacy!',
+    description: 'We value your privacy! Jumbosmash will delete all your data after graduation.',
   },
 ]
 
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
 })
 
-const mapDispatchToProps = (dispatch: Dispatch<RootState> ): DispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     acceptCoC: () => dispatch(acceptCoC()),
   }

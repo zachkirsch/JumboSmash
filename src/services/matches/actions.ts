@@ -1,15 +1,28 @@
-import { RootState } from '../../redux'
+import { User } from '../swipe'
 import { GiftedChatMessage } from './types'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
 export enum MatchesActionType {
+  CREATE_MATCH = 'CREATE_MATCH',
+
   ATTEMPT_SEND_MESSAGES = 'ATTEMPT_SEND_MESSAGES',
   SEND_MESSAGES_SUCCESS = 'SEND_MESSAGES_SUCCESS',
   SEND_MESSAGES_FAILURE = 'SEND_MESSAGES_FAILURE',
   RECEIVE_MESSAGES = 'RECEIVE_MESSAGES',
-  REHYDRATE = 'persist/REHYDRATE',
+  SET_CONVERSATION_AS_READ = 'SET_CONVERSATION_AS_READ',
+
+  REHYDRATE_MATCHES_FROM_SERVER = 'REHYDRATE_MATCHES_FROM_SERVER',
+
+  CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
+}
+
+export interface CreateMatchAction {
+  type: MatchesActionType.CREATE_MATCH
+  conversationId: string
+  onUser: User
 }
 
 export interface AttemptSendMessagesAction {
@@ -37,10 +50,18 @@ export interface ReceiveMessagesAction {
   messages: GiftedChatMessage[]
 }
 
-// this is a separate case because redux-persist stores immutables as plain JS
-export interface RehydrateAction {
-  type: MatchesActionType.REHYDRATE
-  payload: RootState
+export interface SetConversationAsReadAction {
+  type: MatchesActionType.SET_CONVERSATION_AS_READ
+  conversationId: string
+}
+
+export interface RehydrateMatchesFromServerAction {
+  type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
+  conversationIds: string[]
+}
+
+export interface ClearMatchesStateAction {
+  type: MatchesActionType.CLEAR_MATCHES_STATE
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
@@ -54,15 +75,25 @@ export interface OtherAction {
   type: MatchesActionType.OTHER_ACTION
 }
 
-export type MatchesAction =
-AttemptSendMessagesAction
+export type MatchesAction = CreateMatchAction
+| AttemptSendMessagesAction
 | SendMessagesSuccessAction
 | SendMessagesFailureAction
 | ReceiveMessagesAction
+| SetConversationAsReadAction
+| ClearMatchesStateAction
+| RehydrateMatchesFromServerAction
 | RehydrateAction
 | OtherAction
 
 /* Action Creators */
+
+export const rehydrateMatchesFromServer = (conversationIds: string[]): RehydrateMatchesFromServerAction => {
+  return {
+    type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
+    conversationIds,
+  }
+}
 
 export const sendMessages = (conversationId: string, messages: GiftedChatMessage[]): AttemptSendMessagesAction => {
   return {
@@ -77,5 +108,18 @@ export const receiveMessages = (conversationId: string, messages: GiftedChatMess
     type: MatchesActionType.RECEIVE_MESSAGES,
     conversationId,
     messages,
+  }
+}
+
+export const setConversationAsRead = (conversationId: string): SetConversationAsReadAction => {
+  return {
+    type: MatchesActionType.SET_CONVERSATION_AS_READ,
+    conversationId,
+  }
+}
+
+export const clearMatchesState = (): ClearMatchesStateAction => {
+  return {
+    type: MatchesActionType.CLEAR_MATCHES_STATE,
   }
 }

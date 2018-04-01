@@ -1,6 +1,7 @@
 import { LoadableValue } from '../redux'
 
 export interface Tag {
+  id: number
   name: string
   emoji?: boolean
   selected?: boolean
@@ -21,6 +22,11 @@ interface ImageProfileReact {
   imageName: string
 }
 
+export interface ImageUri {
+  uri: string
+  isLocal: boolean
+}
+
 export type ProfileReact = (EmojiProfileReact | ImageProfileReact) & { count: number }
 
 export interface ProfileState {
@@ -28,7 +34,7 @@ export interface ProfileState {
   preferredName: LoadableValue<string>
   major: LoadableValue<string>
   bio: LoadableValue<string>
-  images: LoadableValue<string[]>
+  images: Array<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
   reacts: LoadableValue<ProfileReact[]>
 }
