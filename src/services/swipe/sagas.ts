@@ -9,7 +9,7 @@ import {
   FetchAllUsersSuccessAction,
   SwipeActionType,
 } from './actions'
-import { shuffle } from '../../components/utils'
+import { shuffle } from '../../utils'
 import { ReduxActionType, RehydrateAction } from '../redux'
 import { Tag } from '../profile'
 

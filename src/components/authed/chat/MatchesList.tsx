@@ -5,7 +5,7 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Conversation } from '../../../services/matches'
-import { getFirstName } from '../../utils'
+import { getFirstName } from '../../../utils'
 import MatchesListItem from './MatchesListItem'
 
 interface State { }

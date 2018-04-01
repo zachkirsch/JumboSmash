@@ -2,7 +2,7 @@ import { List } from 'immutable'
 import { SwipeAction, SwipeActionType } from './actions'
 import { SwipeState } from './types'
 import { ReduxActionType } from '../redux'
-import { shuffle } from '../../components/utils'
+import { shuffle } from '../../utils'
 
 const initialState: SwipeState = {
   allUsers: {

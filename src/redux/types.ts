@@ -5,6 +5,7 @@ import { MatchesState } from '../services/matches'
 import { ProfileState } from '../services/profile'
 import { ReduxState } from '../services/redux'
 import { SwipeState } from '../services/swipe'
+import { NavigationState } from '../services/navigation'
 
 export interface RootState {
   auth: AuthState
@@ -14,4 +15,5 @@ export interface RootState {
   profile: ProfileState
   matches: MatchesState
   swipe: SwipeState
+  navigation: NavigationState
 }

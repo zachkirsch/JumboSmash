@@ -181,21 +181,21 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       firebaseUrl = payload.imageUri
     } else {
       firebaseUrl = yield call(uploadImageToFirebase)
+
+      const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
+      const newImages = images.map((image, index) => {
+        if (index === payload.index) {
+          return firebaseUrl
+        } else if (image.value.isLocal) {
+          return ''
+        } else {
+          return image.value.uri
+        }
+      })
+
+      // send images to server
+      yield call(api.api.updateImages, newImages)
     }
-
-    const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
-    const newImages = images.map((image, index) => {
-      if (index === payload.index) {
-        return firebaseUrl
-      } else if (image.value.isLocal) {
-        return ''
-      } else {
-        return image.value.uri
-      }
-    })
-
-    // send images to server
-    yield call(api.api.updateImages, newImages)
 
     yield handleUpdateImagesSuccess(payload.index, payload.imageUri, firebaseUrl)
   } catch (error) {

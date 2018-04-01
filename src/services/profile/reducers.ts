@@ -292,7 +292,6 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         }
         return {
           value,
-          localValue: oldStateValue.localValue,
           loading: false,
         }
       }

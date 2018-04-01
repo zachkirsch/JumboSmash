@@ -5,6 +5,7 @@ import JSText from './JSText'
 
 interface Props extends TouchableOpacityProperties {
   containerStyle?: any /* tslint:disable-line:no-any */
+  textStyle?: any /* tslint:disable-line:no-any */
   colors?: string[] // two colors for the gradient
   label: string
 }
@@ -15,7 +16,7 @@ class JSButton extends PureComponent<Props, {}> {
 
   public render() {
 
-    const {label, style, ...otherProps} = this.props
+    const {label, style, containerStyle, textStyle, ...otherProps} = this.props
 
     return (
       <LinearGradient
@@ -23,13 +24,13 @@ class JSButton extends PureComponent<Props, {}> {
         start={{x: 0, y: 1}}
         end={{x: 1, y: 1}}
         locations={[0, 1]}
-        style={[styles.container, this.props.containerStyle]}
+        style={[styles.container, containerStyle]}
       >
         <TouchableOpacity
           style={[styles.button, style]}
           {...otherProps}
         >
-          <JSText style={styles.text}>
+          <JSText style={[styles.text, textStyle]}>
             {label}
           </JSText>
         </TouchableOpacity>
@@ -47,6 +48,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 10,
     paddingHorizontal: 60,
+    justifyContent: 'center',
   },
   text: {
     textAlign: 'center',

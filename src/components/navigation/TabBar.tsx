@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react'
 import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
+import { BlurView } from 'react-native-blur'
 import SafeAreaView from 'react-native-safe-area-view'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -10,16 +12,27 @@ import {
   NavigationScreenProp,
   NavigationState,
 } from 'react-navigation'
+import { RootState } from '../../redux'
+import { xor } from '../../utils'
 
-interface Props {
+interface OwnProps {
   navigation: NavigationScreenProp<NavigationState>
   navigationState: {
     index: number
   }
 }
 
+interface StateProps {
+  tabBarOverlay?: () => JSX.Element
+}
+
+type Props = OwnProps & StateProps
+
 interface State {
   indicatorLeftMargin: Animated.Value
+  overlayOpacity: Animated.Value
+  overlayPadding: Animated.Value
+  showingOverlay: boolean
 }
 
 const WIDTH = Dimensions.get('window').width
@@ -27,12 +40,20 @@ const WIDTH = Dimensions.get('window').width
 const INDICATOR_WIDTH = WIDTH / 5
 const INDICATOR_HEIGHT = 2
 
+const INITIAL_OVERLAY_PADDING = 10
+
 class TabBar extends PureComponent<Props, State> {
+
+  private tabBarOverlay: JSX.Element
 
   constructor(props: Props) {
     super(props)
+    this.tabBarOverlay = this.props.tabBarOverlay && this.props.tabBarOverlay()
     this.state = {
       indicatorLeftMargin: new Animated.Value(this.calculateIndicatorLeftMargin(props.navigationState.index)),
+      overlayOpacity: new Animated.Value(this.props.tabBarOverlay ? 1 : 0),
+      overlayPadding: new Animated.Value(this.props.tabBarOverlay ? 0 : INITIAL_OVERLAY_PADDING),
+      showingOverlay: !!this.props.tabBarOverlay,
     }
   }
 
@@ -46,6 +67,44 @@ class TabBar extends PureComponent<Props, State> {
         }
       ).start()
     }
+    if (xor(this.props.tabBarOverlay, nextProps.tabBarOverlay)) {
+      if (this.props.tabBarOverlay && !nextProps.tabBarOverlay) {
+        Animated.timing(
+          this.state.overlayOpacity,
+          {
+            toValue: 0,
+            duration: 100,
+          }
+        ).start(() => {
+          this.setState({
+            showingOverlay: false,
+          })
+          this.state.overlayPadding.setValue(INITIAL_OVERLAY_PADDING)
+        })
+
+      } else {
+        this.tabBarOverlay = nextProps.tabBarOverlay && nextProps.tabBarOverlay()
+        this.setState({
+          showingOverlay: true,
+        })
+        Animated.parallel([
+          Animated.timing(
+            this.state.overlayOpacity,
+            {
+              toValue: 1,
+              duration: 100,
+            }
+          ),
+          Animated.timing(
+            this.state.overlayPadding,
+            {
+              toValue: 0,
+              easing: Easing.bounce,
+            }
+          ),
+        ]).start()
+      }
+    }
   }
 
   render() {
@@ -57,8 +116,42 @@ class TabBar extends PureComponent<Props, State> {
           </View>
           {this.renderIndicator()}
         </View>
+        {this.renderOverlay()}
       </SafeAreaView>
     )
+  }
+
+  private renderOverlay() {
+
+    if (!this.state.showingOverlay) {
+      return null /* tslint:disable-line:no-null-keyword */
+    }
+
+    const containerStyle = {
+      opacity: this.state.overlayOpacity,
+      padding: this.state.overlayPadding,
+    }
+    return (
+      <Animated.View style={[StyleSheet.absoluteFill, containerStyle]}>
+        {this.renderBlurView()}
+        {this.tabBarOverlay}
+      </Animated.View>
+    )
+  }
+
+  private renderBlurView = () => {
+    switch (Platform.OS) {
+      case 'ios':
+        return (
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType='light'
+            blurAmount={5}
+          />
+        )
+      default:
+        return <View style={[StyleSheet.absoluteFill, styles.backupBlur]} />
+    }
   }
 
   private renderTabButtons = () => {
@@ -112,7 +205,11 @@ class TabBar extends PureComponent<Props, State> {
     })
   }
 
-  private generateOnPress = (route: NavigationRoute) => () => this.props.navigation.navigate(route.routeName)
+  private generateOnPress = (route: NavigationRoute) => () => {
+    if (!this.state.showingOverlay) {
+      this.props.navigation.navigate(route.routeName)
+    }
+  }
 
   private renderIndicator = () => {
     const style = {
@@ -146,7 +243,13 @@ class TabBar extends PureComponent<Props, State> {
 
 }
 
-export default TabBar
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    tabBarOverlay: state.navigation.tabBarOverlay,
+  }
+}
+
+export default connect(mapStateToProps)(TabBar)
 
 const styles = StyleSheet.create({
   container: {
@@ -172,7 +275,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     height: Platform.select({
       ios: 40,
-      android: 45,
+      android: 50,
     }),
     flexDirection: 'row',
   },
@@ -192,5 +295,8 @@ const styles = StyleSheet.create({
     marginRight: 20,
     alignSelf: 'flex-end',
     marginBottom: 5,
+  },
+  backupBlur: {
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
   },
 })

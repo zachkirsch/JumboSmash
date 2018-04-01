@@ -40,6 +40,7 @@
 				"prop-types": "^15.6.0",
 				"react": "16.0.0",
 				"react-native": "0.50.3",
+				"react-native-blur": "^3.2.2",
 				"react-native-button": "^2.3.0",
 				"react-native-camera": "0.12.0",
 				"react-native-cli": "^2.0.1",
