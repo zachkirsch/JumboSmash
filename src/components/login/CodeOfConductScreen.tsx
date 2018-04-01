@@ -26,7 +26,7 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🚫👯',
-    description: "Don't pretend to be someone you're not.",
+    description: "Don't pretend to be someone you're not, please use your real preferred name.",
   },
   {
     emojiTitle: '✅🙋',

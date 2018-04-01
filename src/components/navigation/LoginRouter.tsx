@@ -6,7 +6,7 @@ import CountdownScreen from '../login/CountdownScreen'
 
 export default TabNavigator({
   LoginScreen: {
-    screen: CountdownScreen,
+    screen: LoginScreen,
     navigationOptions: {
       tabBarVisible: false,
     },
@@ -19,6 +19,12 @@ export default TabNavigator({
   },
   CodeOfConductScreen: {
     screen: CodeOfConductScreen,
+    navigationOptions: {
+      tabBarVisible: false,
+    },
+  },
+  CountdownScreen: {
+    screen: CountdownScreen,
     navigationOptions: {
       tabBarVisible: false,
     },

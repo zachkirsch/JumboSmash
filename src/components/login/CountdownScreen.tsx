@@ -4,6 +4,7 @@ import { Dimensions, Image, StyleSheet, View } from 'react-native'
 import { Images } from '../../assets'
 import CountDown from 'react-native-countdown-component';
 import { JSText } from '../common'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 
 interface State {
   seconds: number,
@@ -12,9 +13,10 @@ interface State {
   days: number,
 }
 
-const WIDTH = Dimensions.get('window').width
+type Props = NavigationScreenPropsWithRedux<{},{}>
+//const WIDTH = Dimensions.get('window').width
 
-class CountdownScreen extends PureComponent<{}, State> {
+class CountdownScreen extends PureComponent<Props, State> {
 
   //private launchDay = moment([2018, 5, 13])
   private t1 = new Date();
@@ -22,7 +24,7 @@ class CountdownScreen extends PureComponent<{}, State> {
   private launchDay = (this.t2.getTime() - this.t1.getTime())/1000;
   //private timer: number
 
-  constructor(props: {}) {
+  constructor(props: Props) {
     super(props)
     console.log(this.launchDay)
     console.log(this.t1)
@@ -40,9 +42,9 @@ class CountdownScreen extends PureComponent<{}, State> {
         />
         <View style={styles.bottomContainer}>
         <CountDown
-          until={this.launchDay}
+          until={this.launchDay} 
           digitBgColor={'#ABCCED'}
-          onFinish={() => alert('finished')} //TODO: change pages/change bool here?
+          onFinish={() => alert('done')} //TODO: change pages/change bool here?
           size={30}
         />
           <View style={styles.titleTextContainer}>
