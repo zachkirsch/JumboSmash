@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
@@ -28,11 +29,11 @@ import {
   onChangeBioTextInput,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { JSText, JSTextInput } from '../../common'
+import { setTabBarOverlay, clearTabBarOverlay } from '../../../services/navigation'
+import { JSText, JSTextInput, RectangleButton } from '../../common'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
-import SaveButton from './SaveButton'
 
 interface State {
   previewingCard: boolean
@@ -40,6 +41,7 @@ interface State {
   preferredName: string
   major: string
   bio: string
+  photosSectionRequiresSave: boolean
 }
 
 interface OwnProps {}
@@ -62,6 +64,8 @@ interface DispatchProps {
   updateMajor: (major: string) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
   swapImages: (index1: number, index2: number) => void
+  setTabBarOverlay: (component: () => JSX.Element) => void
+  clearTabBarOverlay: () => void
 }
 
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
@@ -90,25 +94,27 @@ class ProfileScreen extends PureComponent<Props, State> {
       preferredName: getInitialValue(props.preferredName),
       major: getInitialValue(props.major),
       bio: getInitialValue(props.bio),
+      photosSectionRequiresSave: false,
     }
   }
 
   componentDidMount() {
+    this.updateSaveOverlay()
     this.props.navigation.addListener('didBlur', () => {
       Keyboard.dismiss()
-      this.photosSection.collapseImages()
     })
   }
 
   render() {
     return (
       <View>
-        <ScrollView keyboardShouldPersistTaps={'handled'}>
+        <ScrollView keyboardShouldPersistTaps='handled'>
           <PhotosSection
             images={this.props.images}
             swapImages={this.props.swapImages}
             updateImage={this.props.updateImage}
             showActionSheetWithOptions={this.props.showActionSheetWithOptions}
+            saveRequired={this.markPhotosSectionAsRequiringSave}
             ref={ref => this.photosSection = ref}
           />
           {this.renderPersonalInfo()}
@@ -120,12 +126,6 @@ class ProfileScreen extends PureComponent<Props, State> {
             previewProfile={this.previewProfile()}
           />
         </ScrollView>
-        <SaveButton
-          save={this.save}
-          saving={this.saving()}
-          saveRequired={this.saveRequired()}
-          saveFailed={this.saveFailed()}
-        />
       </View>
     )
   }
@@ -135,13 +135,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private previewProfile = () => () => {
-    let alertText = ''
-    if (this.props.images.length === 0) {
-      alertText = 'You need to choose at least one image'
-    } else if (!this.state.preferredName) {
-      alertText = 'You need a first name!'
-    }
-    if (!alertText) {
+    this.ifSaveable(() => {
       this.navigateTo('ProfilePreviewScreen', {
         preview: {
           id: -1,
@@ -151,9 +145,8 @@ class ProfileScreen extends PureComponent<Props, State> {
           tags: flatten(this.props.tags.map(section => section.tags)).filter(tag => tag.selected),
         },
       })()
-    } else {
-      Alert.alert('Oops', alertText)
-    }
+
+    })
   }
 
   private renderTags = () => {
@@ -290,34 +283,114 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private updatePreferredName = (preferredName: string) => {
-    this.setState({ preferredName })
+    this.setState({ preferredName }, this.updateSaveOverlay)
     this.props.onChangePreferredNameTextInput(preferredName)
   }
 
   private updateMajor = (major: string) => {
-    this.setState({ major })
+    this.setState({ major }, this.updateSaveOverlay)
     this.props.onChangeMajorTextInput(major)
   }
 
   private updateBio = (bio: string) => {
-    this.setState({ bio })
+    this.setState({ bio }, this.updateSaveOverlay)
     this.props.onChangeBioTextInput(bio)
   }
 
-  private saveRequired = () => this.props.bio.value !== this.state.bio
+  private updateSaveOverlay = () => {
+    if (this.saveRequired()) {
+      const saveOverlay = (
+        <View style={styles.saveOverlay}>
+          <RectangleButton
+            label='Revert'
+            style={styles.saveButton}
+            containerStyle={styles.saveButtonContainer}
+            onPress={this.revert}
+          />
+          <RectangleButton
+            active
+            label='Save'
+            style={styles.saveButton}
+            containerStyle={styles.saveButtonContainer}
+            onPress={this.save}
+          />
+        </View>
+      )
+      this.props.setTabBarOverlay(() => saveOverlay)
+    } else {
+      this.props.clearTabBarOverlay()
+    }
+  }
+
+  private markPhotosSectionAsRequiringSave = () => {
+    this.setState({
+      photosSectionRequiresSave: true,
+    }, this.updateSaveOverlay)
+  }
+
+  private saveRequired = () =>
+    this.state.photosSectionRequiresSave
+    || this.props.bio.value !== this.state.bio
     || this.props.major.value !== this.state.major
     || this.props.preferredName.value !== this.state.preferredName
 
-  private saving = () => this.props.bio.loading || this.props.major.loading || this.props.preferredName.loading
+  private revert = () => {
+    const revert = () => {
+      this.setState({
+        bio: this.props.bio.value,
+        major: this.props.major.value,
+        preferredName: this.props.preferredName.value,
+        photosSectionRequiresSave: false,
+      })
+      this.props.clearTabBarOverlay()
+      this.photosSection.revert()
+    }
 
-  private saveFailed = () => !!this.props.bio.errorMessage
-    || !!this.props.major.errorMessage
-    || !!this.props.preferredName.errorMessage
+    Keyboard.dismiss()
+
+    // setTimeout is used so that the keyboard actually has time to close before the alert shows
+    setTimeout(() => Alert.alert(
+      '',
+      'Are you sure you want to revert your changes?',
+      [
+        {text: 'No', style: 'cancel'},
+        {text: 'Yes', onPress: revert, style: 'destructive'},
+      ]
+    ), 50)
+  }
 
   private save = () => {
-    this.props.updateBio(this.state.bio)
-    this.props.updateMajor(this.state.major)
-    this.props.updatePreferredName(this.state.preferredName)
+    Keyboard.dismiss()
+
+    // setTimeout is used so that the keyboard actually has time to close before the alert shows
+    setTimeout(() => {
+      this.ifSaveable(() => {
+        this.props.updateBio(this.state.bio)
+        this.props.updateMajor(this.state.major)
+        this.props.updatePreferredName(this.state.preferredName)
+        this.photosSection.save()
+        this.props.clearTabBarOverlay()
+        this.setState({
+          photosSectionRequiresSave: false,
+        })
+      })
+    }, 50)
+  }
+
+  // if the current profile is "saveable", then the callback is called.
+  // otherwise, an alert is shown with the reason that the profile isn't saveable.
+  private ifSaveable = (callback: () => void) => {
+    let alertText = ''
+    if (this.props.images.length === 0) {
+      alertText = 'You need to choose at least one image'
+    } else if (!this.state.preferredName) {
+      alertText = 'You need a first name!'
+    }
+    if (!alertText) {
+      callback()
+    } else {
+      Alert.alert('Oops', alertText)
+    }
   }
 }
 
@@ -344,6 +417,8 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
       dispatch(updateImage(index, imageUri, mime))
     },
     swapImages: (index1: number, index2: number) => dispatch(swapImages(index1, index2)),
+    setTabBarOverlay: (component: () => JSX.Element) => dispatch(setTabBarOverlay(component)),
+    clearTabBarOverlay: () => dispatch(clearTabBarOverlay()),
   }
 }
 
@@ -437,5 +512,19 @@ const styles = StyleSheet.create({
   underline: {
     textDecorationLine: 'underline',
     textDecorationColor: '#D5DCE2',
+  },
+  saveOverlay: {
+    flex: 1,
+    marginTop: Platform.OS === 'ios' ? 20 : 5,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  saveButton: {
+    flex: 1,
+    paddingHorizontal: 0,
+  },
+  saveButtonContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
 })

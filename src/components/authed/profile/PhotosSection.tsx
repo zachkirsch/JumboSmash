@@ -9,16 +9,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { CircleButton } from '../../common'
-import { ActionSheetOption, generateActionSheetOptions } from '../../utils'
+import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
 
-interface OwnProps {
+interface Props {
   images: Array<LoadableValue<ImageUri>>
   swapImages: (index1: number, index2: number) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
+  saveRequired: () => void
   showActionSheetWithOptions?: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
 }
-
-type Props = OwnProps
 
 interface LocalImage {
   uri: string
@@ -52,24 +51,29 @@ class PhotosSection extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {
-      images: props.images.map((image) => ({uri: image.value.uri, mime: ''})),
-      swapping: false,
-      swappingIndex: -1,
-    }
+    this.state = this.getInitialState()
   }
 
-  collapseImages = () => {
+  collapseImages = (onComplete?: () => void) => {
+    const numImages = this.state.images.length
     const newImages = this.state.images.filter(image => image.uri)
+    for (let i = newImages.length; i < numImages; i++) {
+      newImages.push(EMPTY_LOCAL_IMAGE)
+    }
+    this.setState({ images: newImages }, onComplete)
+  }
 
-    for (let i = 0; i < this.state.images.length; i++) {
-      let image = newImages[i] || EMPTY_LOCAL_IMAGE
-      if (this.state.images[i].uri !== image.uri) {
+  save = () => {
+    this.collapseImages(() => {
+      for (let i = 0; i < this.state.images.length; i++) {
+        const image = this.state.images[i] || EMPTY_LOCAL_IMAGE
         this.props.updateImage(i, image.uri, image.mime)
       }
-    }
+    })
+  }
 
-    this.setState({ images: newImages })
+  revert = () => {
+    this.setState(this.getInitialState())
   }
 
   render() {
@@ -223,7 +227,8 @@ class PhotosSection extends PureComponent<Props, State> {
   private deletePhoto = (index: number, withConfirmation?: {title?: string, message?: string}) => () => {
 
     const deleteIt = () => {
-      this.props.updateImage(index, '', '')
+      // this.props.updateImage(index, '', '')
+      this.props.saveRequired()
       const newImages = Array.from(this.state.images)
       newImages[index] = EMPTY_LOCAL_IMAGE
       this.setState({
@@ -254,13 +259,14 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private canSwapImage = (index: number) => {
-    return !!this.state.images[index]
+    return this.state.images[index] && this.state.images[index].uri
   }
 
   private onPressImage = (index: number) => () => {
 
     if (this.state.swapping) {
-      this.props.swapImages(index, this.state.swappingIndex)
+      // this.props.swapImages(index, this.state.swappingIndex)
+      this.props.saveRequired()
 
       const newImages = []
       for (let i = 0; i < Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1); i++) {
@@ -283,7 +289,7 @@ class PhotosSection extends PureComponent<Props, State> {
     const buttons: ActionSheetOption[] = []
 
     buttons.push({
-      title: this.state.images[index] ? 'Change Photo' : 'Choose Photo',
+      title: this.state.images[index] && this.state.images[index].uri ? 'Change Photo' : 'Choose Photo',
       onPress: () => ImagePicker.openPicker({
           width: 2000,
           height: 2000,
@@ -291,7 +297,8 @@ class PhotosSection extends PureComponent<Props, State> {
           mediaType: 'photo',
           cropperToolbarTitle: 'Move and Scale to Crop',
         }).then((image: ImagePickerImage) => {
-          this.props.updateImage(index, image.path, image.mime)
+          // this.props.updateImage(index, image.path, image.mime)
+          this.props.saveRequired()
           const newImages = Array.from(this.state.images)
           newImages[index] = { uri: image.path, mime: image.mime }
           this.setState({
@@ -331,6 +338,12 @@ class PhotosSection extends PureComponent<Props, State> {
     const {options, callback} = generateActionSheetOptions(buttons)
     this.props.showActionSheetWithOptions(options, callback)
   }
+
+  private getInitialState = () => ({
+    images: this.props.images.map((image) => ({uri: image.value.uri, mime: ''})),
+    swapping: false,
+    swappingIndex: -1,
+  })
 }
 
 export default PhotosSection

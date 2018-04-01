@@ -5,7 +5,7 @@ import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { logout } from '../../../services/auth'
 import { RectangleButton } from '../../common/index'
-import { ActionSheetOption, emailSupport, generateActionSheetOptions } from '../../utils'
+import { ActionSheetOption, emailSupport, generateActionSheetOptions } from '../../../utils'
 
 interface OwnProps {
   previewProfile: () => void

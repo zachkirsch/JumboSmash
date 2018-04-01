@@ -19,7 +19,7 @@ import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { JSText } from '../../common'
-import { clamp } from '../../utils'
+import { clamp } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 
@@ -311,18 +311,15 @@ class Card extends PureComponent<Props, State> {
 
   private renderExitButton = () => {
     const containerStyle = {
-      opacity: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
+      opacity: this.state.fullyExpanded ? 1 : 0,
     }
 
     return (
-      <Animated.View style={[styles.exitContainer, containerStyle]}>
+      <View style={[styles.exitContainer, containerStyle]}>
         <TouchableOpacity onPress={this.exitExpandedCard}>
           <Entypo name='cross' size={40} style={styles.exitIcon} />
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     )
   }
 

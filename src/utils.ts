@@ -6,6 +6,10 @@ export function emailSupport(subject: string) {
   Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)
 }
 
+export function xor(a: any, b: any): boolean { /* tslint:disable-line:no-any */
+  return !!a && !b || !a && !!b
+}
+
 export function shuffle<T>(array: T[]) {
   let j, x
   for (let i = array.length - 1; i > 0; i--) {

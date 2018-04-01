@@ -29,6 +29,9 @@ const tabNavigator = TabNavigator({
       },
       ProfilePreviewScreen: {
         screen: Profile.ProfilePreviewScreen,
+        navigationOptions: {
+          gesturesEnabled: false,
+        },
       },
     }, {
       mode: 'modal',

@@ -14,7 +14,7 @@ import {
 } from '../../../services/matches'
 import {JSText } from '../../common'
 import { HeaderBar } from '../../common'
-import { getFirstName } from '../../utils'
+import { getFirstName } from '../../../utils'
 
 interface OwnProps {
   conversationId: string,

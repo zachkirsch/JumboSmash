@@ -6,6 +6,7 @@ import { matchesReducer } from '../services/matches'
 import { profileReducer } from '../services/profile'
 import { reduxReducer } from '../services/redux'
 import { swipeReducer } from '../services/swipe'
+import { navigationReducer } from '../services/navigation'
 
 export const rootReducer = combineReducers({
     auth: authReducer,
@@ -15,4 +16,5 @@ export const rootReducer = combineReducers({
     profile: profileReducer,
     matches: matchesReducer,
     swipe: swipeReducer,
+    navigation: navigationReducer,
 })
