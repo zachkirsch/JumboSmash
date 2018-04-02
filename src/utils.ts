@@ -69,10 +69,11 @@ export function generateActionSheetOptions(options: ActionSheetOption[], onCance
     options: {
       options: optionsWithCancel.map((option) => option.title),
       cancelButtonIndex: options.length,
-      destructiveButtonIndex: options.findIndex((option) => option.destructive),
+      destructiveButtonIndex: options.findIndex(option => !!option.destructive),
     },
     callback: (buttonIndex: number) => {
-      optionsWithCancel[buttonIndex].onPress && optionsWithCancel[buttonIndex].onPress()
+      const onPress = optionsWithCancel[buttonIndex].onPress
+      onPress && onPress()
     },
   }
 }

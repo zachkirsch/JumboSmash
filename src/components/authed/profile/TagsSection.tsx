@@ -24,11 +24,12 @@ class TagsSection extends PureComponent<Props, {}> {
       }
       textStyle.push(this.props.tagStyle)
       textStyle.push(tag.selected ? this.props.selectedTagStyle : this.props.unselectedTagStyle)
+
       return (
         <JSText
           style={textStyle}
           fontSize={this.props.fontSize}
-          onPress={this.props.onPress && (() => this.props.onPress(tagIndex))}
+          onPress={this.props.onPress && (() => this.props.onPress && this.props.onPress(tagIndex))}
           key={tag.name}
         >
           {tag.name}

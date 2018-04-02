@@ -23,7 +23,7 @@ interface Token {
 
 export const TokenService = { /* tslint:disable-line:variable-name */
   setStore: (store: Store<RootState>) => this.store = store,
-  getToken: (): Token => {
+  getToken: (): Token | undefined => {
     if (!this.store) {
       return undefined
     } else {
@@ -118,8 +118,12 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
     let uri = endpoint + '?'
 
     if (this.requiresToken) {
-      const {email, session_key} = TokenService.getToken()
-      uri += this.getQueryString({email, session_key})
+      const token = TokenService.getToken()
+      if (!token) {
+        // TODO: raise error
+      } else {
+        uri += this.getQueryString({email: token.email, session_key: token.session_key})
+      }
     }
 
     if (params) {

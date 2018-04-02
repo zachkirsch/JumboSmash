@@ -44,7 +44,7 @@ const INITIAL_OVERLAY_PADDING = 10
 
 class TabBar extends PureComponent<Props, State> {
 
-  private tabBarOverlay: JSX.Element
+  private tabBarOverlay?: JSX.Element
 
   constructor(props: Props) {
     super(props)
@@ -124,7 +124,7 @@ class TabBar extends PureComponent<Props, State> {
   private renderOverlay() {
 
     if (!this.state.showingOverlay) {
-      return null /* tslint:disable-line:no-null-keyword */
+      return null
     }
 
     const containerStyle = {
@@ -192,7 +192,7 @@ class TabBar extends PureComponent<Props, State> {
           break
 
         default:
-          return null /* tslint:disable-line:no-null-keyword */
+          return null
       }
 
       return (

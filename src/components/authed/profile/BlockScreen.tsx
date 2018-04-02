@@ -95,7 +95,7 @@ class BlockScreen extends PureComponent<Props, State> {
     return Object.keys(this.state.blockedUsers).sort().map((email) => {
 
       if (!this.state.blockedUsers.hasOwnProperty(email)) {
-        return null /* tslint:disable-line:no-null-keyword */
+        return null
       }
 
       let icon

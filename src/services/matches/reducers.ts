@@ -106,7 +106,7 @@ const updateSentStatus = (oldState: MatchesState,
   action.messages.forEach((message) => {
     if (originalConversation.messageIDs.contains(message._id)) {
       newMessages = newMessages.update(
-        newMessages.findIndex((messageInList) => messageInList._id === message._id),
+        newMessages.findIndex((messageInList) => !!messageInList && messageInList._id === message._id),
         (messageInList) => ({
           ...messageInList,
           sending: false,
@@ -189,7 +189,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
             return {
               ...message,
               sending: false,
-              failedToSend: message.sending || message.failedToSend,
+              failedToSend: !!message && (message.sending || message.failedToSend),
             }
           })),
           messageIDs: Set(originalConversation.messageIDs),

@@ -75,7 +75,7 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
     yield handleEmailVerificationSuccess()
 
     // rehydrate the user's profile
-    yield put(initializeProfile(meInfo.id, meInfo.preferred_name, meInfo.bio, meInfo.images.map((image) => image.url)))
+    yield put(initializeProfile(meInfo.id, meInfo.preferred_name || '', meInfo.bio, meInfo.images.map((image) => image.url)))
 
     // fetch users
     yield put(fetchAllUsers())

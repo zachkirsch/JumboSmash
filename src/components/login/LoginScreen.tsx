@@ -39,7 +39,7 @@ const PARTIAL_TUFTS_EMAIL_REGEX = /^([^@]*|.*@|.*@t|.*@tu|.*@tuf|.*@tuft|.*@tuft
 
 class LoginScreen extends PureComponent<Props, State> {
 
-  private textInputRef: TextInputRef
+  private textInputRef: TextInputRef | null
 
   constructor(props: Props) {
     super(props)

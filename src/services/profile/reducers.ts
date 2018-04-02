@@ -83,7 +83,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_PREFERRED_NAME_FAILURE:
       newState.preferredName = {
         prevValue: undefined,
-        value: state.preferredName.prevValue,
+        value: state.preferredName.prevValue || '',
         loading: false,
         errorMessage: action.errorMessage,
       }
@@ -113,7 +113,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_MAJOR_FAILURE:
       newState.major = {
         prevValue: undefined,
-        value: state.major.prevValue,
+        value: state.major.prevValue || '',
         loading: false,
         errorMessage: action.errorMessage,
       }
@@ -143,7 +143,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_BIO_FAILURE:
       newState.bio = {
         prevValue: undefined,
-        value: state.bio.prevValue,
+        value: state.bio.prevValue || '',
         loading: false,
         errorMessage: action.errorMessage,
       }
@@ -266,7 +266,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
     case ProfileActionType.UPDATE_TAGS_FAILURE:
       newState.tags = {
         prevValue: undefined,
-        value: state.tags.prevValue,
+        value: state.tags.prevValue || [],
         loading: false,
         errorMessage: action.errorMessage,
       }

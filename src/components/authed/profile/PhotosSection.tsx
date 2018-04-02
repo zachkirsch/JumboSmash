@@ -16,7 +16,7 @@ interface Props {
   swapImages: (index1: number, index2: number) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
   saveRequired: () => void
-  showActionSheetWithOptions?: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
+  showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
 }
 
 interface LocalImage {
@@ -75,6 +75,8 @@ class PhotosSection extends PureComponent<Props, State> {
   revert = () => {
     this.setState(this.getInitialState())
   }
+
+  getImageCount = () => this.state.images.filter(image => image.uri).length
 
   render() {
     return (
@@ -137,12 +139,15 @@ class PhotosSection extends PureComponent<Props, State> {
     }
 
     let imageToRender
+
     if (image.uri) {
       const imageStyles = [
         styles.photo,
         index === 0 ? styles.bigPhoto : styles.smallPhoto,
-        this.state.swapping && this.state.swappingIndex === index && styles.semiTransparent,
       ]
+      if (this.state.swapping && this.state.swappingIndex === index) {
+        imageStyles.push(styles.semiTransparent)
+      }
       imageToRender = <Image source={{uri: image.uri}} resizeMode='cover' style={imageStyles} />
     } else {
       const imageStyles = [
@@ -203,7 +208,7 @@ class PhotosSection extends PureComponent<Props, State> {
       uploading = false
     } else {
       uri = this.state.images[index] ? this.state.images[index].uri : ''
-      uploading = uri && this.props.images[index] && this.props.images[index].loading
+      uploading = !!uri && this.props.images[index] && this.props.images[index].loading
     }
 
     return {
@@ -217,7 +222,7 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private cancelUpload = (index: number, withConfirmation = true) => () => {
-    const alertInfo = withConfirmation && {
+    const alertInfo = !withConfirmation ? undefined : {
       title: 'Cancel Upload',
       message: 'Are you sure you want to cancel the upload?',
     }
