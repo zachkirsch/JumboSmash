@@ -37,7 +37,7 @@ const INITIAL_STATE: State = {
 class CheckEmailScreen extends PureComponent<Props, State> {
 
   private resendCodeTimer: number
-  private textInputRef: TextInputRef
+  private textInputRef: TextInputRef | null
 
   constructor(props: Props) {
     super(props)
@@ -57,9 +57,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   }
 
   public focusTextInput = () => {
-    if (this.textInputRef) {
-      this.textInputRef.focus()
-    }
+    this.textInputRef && this.textInputRef.focus()
   }
 
   public textInputIsFocused = () => this.textInputRef && this.textInputRef.isFocused()

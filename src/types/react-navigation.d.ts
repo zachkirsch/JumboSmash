@@ -7,7 +7,7 @@ declare module 'react-navigation' {
       key: string
       routeName: string
       path?: string
-      params?: OwnProps
+      params: OwnProps
     }>
   }
 

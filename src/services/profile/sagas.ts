@@ -234,9 +234,9 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
     const meInfo: api.MeResponse = yield call(api.api.me)
     yield put(ProfileActions.initializeProfile(
       meInfo.id,
-      meInfo.preferred_name,
+      meInfo.preferred_name || '',
       meInfo.bio,
-      meInfo.images.map((image) => image.url)
+      meInfo.images.map(image => image.url)
     ))
     yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => match.conversation_uuid)))
   } catch (e) {} /* tslint:disable-line:no-empty */

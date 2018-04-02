@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
 import { Animated, Platform, StyleSheet, View, ViewStyle } from 'react-native'
+import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -27,7 +28,7 @@ interface DispatchProps {
   fetchAllUsers: () => void
 }
 
-type Props = OwnProps & StateProps & DispatchProps
+type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
 
 interface RenderedUser {
   user: User
@@ -42,6 +43,7 @@ interface State {
 
 const NUM_RENDERED_CARDS = 3
 
+@connectActionSheet
 class SwipeScreen extends PureComponent<Props, State> {
 
   private topCard: Card
@@ -59,7 +61,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     if (!this.props.preview) {
       if (this.props.allUsers.value.size === 0) {
         if (this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
-          return <Card loading />
+          return <Card type='loading' />
         } else {
           return <NoMoreCards requestMoreCards={this.fetchUsers}/>
         }
@@ -87,14 +89,14 @@ class SwipeScreen extends PureComponent<Props, State> {
   private renderCard = (cardIndex: number) => {
 
     if (this.props.preview && cardIndex !== 0) {
-      return null /* tslint:disable-line:no-null-keyword */
+      return null
     }
 
     let positionInStack
     let profile
 
     if (this.props.preview) {
-      profile = this.props.preview.user
+      return <Card type='preview' profile={this.props.preview.user} />
     } else {
       const card = this.getCard(cardIndex)
       positionInStack = card.positionInStack
@@ -103,7 +105,7 @@ class SwipeScreen extends PureComponent<Props, State> {
 
     return (
       <Card
-        previewMode={!!this.props.preview}
+        type='normal'
         positionInStack={positionInStack}
         profile={profile}
         onExpandCard={this.onExpandCard}
@@ -111,6 +113,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         onCompleteSwipe={this.onCompleteSwipe}
         key={cardIndex}
         ref={this.assignCardRef(positionInStack)}
+        showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
       />
     )
   }
