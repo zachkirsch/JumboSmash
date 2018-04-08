@@ -42,9 +42,9 @@ class CountdownScreen extends PureComponent<Props, State> {
         />
         <View style={styles.bottomContainer}>
         <CountDown
-          until={this.launchDay} 
+          until={this.launchDay}
           digitBgColor={'#ABCCED'}
-          onFinish={() => alert('done')} //TODO: change pages/change bool here?
+          onFinish={() => this.props.navigation.navigate('LoginScreen')}
           size={30}
         />
           <View style={styles.titleTextContainer}>

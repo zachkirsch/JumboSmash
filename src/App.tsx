@@ -62,7 +62,7 @@ class App extends PureComponent<Props, {}> {
       // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */
     } else if (SHOULD_SHOW_COUNTDOWN) {
-      return <CountdownScreen />
+      return <LoginRouter />
     // } else if (!this.props.isLoggedIn) {
     //   return <LoginRouter />
     // } else if (!this.props.codeOfConductAccepted) {
