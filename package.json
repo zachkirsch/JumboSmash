@@ -16,6 +16,7 @@
 				"copyassets": "mkdir -p build/assets && cp -r src/assets build"
 		},
 		"dependencies": {
+				"@bam.tech/react-native-snap-carousel": "^3.2.3",
 				"@expo/react-native-action-sheet": "^1.0.2",
 				"@types/firebase": "^3.2.1",
 				"@types/immutability-helper": "^2.6.3",
@@ -64,6 +65,7 @@
 				"redux-persist": "^4.0",
 				"redux-saga": "^0.16.0",
 				"rnpm": "^1.9.0",
+				"simple-carousel-react-native": "^1.0.2",
 				"tslint-react": "^3.5.1"
 		},
 		"devDependencies": {
