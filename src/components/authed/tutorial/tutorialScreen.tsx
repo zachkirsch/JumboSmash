@@ -59,7 +59,7 @@ class TutorialScreen extends PureComponent<{}, {}> {
   private renderHeadings(text:string){
     return (<SafeAreaView style={styles.container}>
       <View style={styles.minititleContainer}>
-        <JSText fontSize={17} style={styles.white}>{text}</JSText>
+        <JSText fontSize={17}>{text}</JSText>
       </View>
     </SafeAreaView>)
   }

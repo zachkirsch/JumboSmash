@@ -1,6 +1,6 @@
 import { TabNavigator } from 'react-navigation'
 import CodeOfConductScreen from '../login/CodeOfConductScreen'
-import CountdownDone from '../login/CountdownDone'
+import CountdownDoneScreen from '../login/CountdownDoneScreen'
 import LoginScreen from '../login/LoginScreen'
 import VerifyEmailScreen from '../login/VerifyEmailScreen'
 import CountdownScreen from '../login/CountdownScreen'
@@ -30,8 +30,8 @@ export default TabNavigator({
       tabBarVisible: false,
     },
   },
- CountdownDone: {
-  screen: CountdownDone,
+ CountdownDoneScreen: {
+  screen: CountdownDoneScreen,
   navigationOptions: {
     tabBarVisible: false,
   },
