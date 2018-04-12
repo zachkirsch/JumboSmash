@@ -79,6 +79,16 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private renderCards = () => {
+    if (this.props.preview) {
+      return (
+        <Card
+          type='preview'
+          profile={this.props.preview.user}
+          exit={this.props.preview.onExit}
+        />
+      )
+    }
+
     const cards = []
     for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
       cards.push(this.renderCard(i))
@@ -95,13 +105,9 @@ class SwipeScreen extends PureComponent<Props, State> {
     let positionInStack
     let profile
 
-    if (this.props.preview) {
-      return <Card type='preview' profile={this.props.preview.user} />
-    } else {
-      const card = this.getCard(cardIndex)
-      positionInStack = card.positionInStack
-      profile = card.user
-    }
+    const card = this.getCard(cardIndex)
+    positionInStack = card.positionInStack
+    profile = card.user
 
     return (
       <Card

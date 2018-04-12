@@ -1,4 +1,4 @@
-## RSKImageCropper [![Build Status](https://travis-ci.org/ruslanskorb/RSKImageCropper.svg)](https://travis-ci.org/ruslanskorb/RSKImageCropper) [![Coverage Status](https://coveralls.io/repos/ruslanskorb/RSKImageCropper/badge.svg)](https://coveralls.io/r/ruslanskorb/RSKImageCropper) [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/ruslanskorb/RSKImageCropper)
+## RSKImageCropper [![Build Status](https://travis-ci.org/ruslanskorb/RSKImageCropper.svg)](https://travis-ci.org/ruslanskorb/RSKImageCropper) [![CocoaPods](https://img.shields.io/cocoapods/dt/RSKImageCropper.svg?maxAge=3600)](https://cocoapods.org/pods/RSKImageCropper) [![Coverage Status](https://coveralls.io/repos/ruslanskorb/RSKImageCropper/badge.svg)](https://coveralls.io/r/ruslanskorb/RSKImageCropper) [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/ruslanskorb/RSKImageCropper)
 
 <p align="center">
 	<img src="Screenshot.png" alt="Sample">
@@ -51,7 +51,7 @@ Just create a view controller for image cropping and set the delegate.
 
 ## Delegate
 
-`RSKImageCropViewControllerDelegate` provides four delegate methods. To use them, implement the delegate in your view controller.
+`RSKImageCropViewControllerDelegate` provides three delegate methods. To use them, implement the delegate in your view controller.
 
 ```objective-c
 @interface ViewController () <RSKImageCropViewControllerDelegate>
@@ -63,15 +63,6 @@ Then implement the delegate functions.
 // Crop image has been canceled.
 - (void)imageCropViewControllerDidCancelCrop:(RSKImageCropViewController *)controller
 {
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
-// The original image has been cropped.
-- (void)imageCropViewController:(RSKImageCropViewController *)controller
-                   didCropImage:(UIImage *)croppedImage
-                  usingCropRect:(CGRect)cropRect
-{
-    self.imageView.image = croppedImage;
     [self.navigationController popViewControllerAnimated:YES];
 }
 
@@ -146,7 +137,8 @@ Then implement the data source functions.
 // Returns a custom rect in which the image can be moved.
 - (CGRect)imageCropViewControllerCustomMovementRect:(RSKImageCropViewController *)controller
 {
-    // If the image is not rotated, then the movement rect coincides with the mask rect.
+    // If the image is not rotated, then the movement rect coincides with the mask rect,
+    // otherwise it is calculated individually for each custom mask.
     return controller.maskRect;
 }
 ```

@@ -1,4 +1,52 @@
 PODS:
+  - Firebase/Core (4.12.0):
+    - FirebaseAnalytics (= 4.1.0)
+    - FirebaseCore (= 4.0.19)
+  - Firebase/Database (4.12.0):
+    - Firebase/Core
+    - FirebaseDatabase (= 4.1.5)
+  - Firebase/Messaging (4.12.0):
+    - Firebase/Core
+    - FirebaseMessaging (= 2.2.0)
+  - Firebase/Storage (4.12.0):
+    - Firebase/Core
+    - FirebaseStorage (= 2.2.0)
+  - FirebaseAnalytics (4.1.0):
+    - FirebaseCore (~> 4.0)
+    - FirebaseInstanceID (~> 2.0)
+    - GoogleToolboxForMac/NSData+zlib (~> 2.1)
+    - nanopb (~> 0.3)
+  - FirebaseCore (4.0.19):
+    - GoogleToolboxForMac/NSData+zlib (~> 2.1)
+  - FirebaseDatabase (4.1.5):
+    - FirebaseAnalytics (~> 4.1)
+    - FirebaseCore (~> 4.0)
+    - leveldb-library (~> 1.18)
+  - FirebaseInstanceID (2.0.10):
+    - FirebaseCore (~> 4.0)
+  - FirebaseMessaging (2.2.0):
+    - FirebaseAnalytics (~> 4.1)
+    - FirebaseCore (~> 4.0)
+    - FirebaseInstanceID (~> 2.0)
+    - GoogleToolboxForMac/Logger (~> 2.1)
+    - Protobuf (~> 3.5)
+  - FirebaseStorage (2.2.0):
+    - FirebaseAnalytics (~> 4.1)
+    - FirebaseCore (~> 4.0)
+    - GTMSessionFetcher/Core (~> 1.1)
+  - GoogleToolboxForMac/Defines (2.1.3)
+  - GoogleToolboxForMac/Logger (2.1.3):
+    - GoogleToolboxForMac/Defines (= 2.1.3)
+  - GoogleToolboxForMac/NSData+zlib (2.1.3):
+    - GoogleToolboxForMac/Defines (= 2.1.3)
+  - GTMSessionFetcher/Core (1.1.15)
+  - leveldb-library (1.20)
+  - nanopb (0.3.8):
+    - nanopb/decode (= 0.3.8)
+    - nanopb/encode (= 0.3.8)
+  - nanopb/decode (0.3.8)
+  - nanopb/encode (0.3.8)
+  - Protobuf (3.5.0)
   - QBImagePickerController (3.4.0)
   - React (0.50.3):
     - React/Core (= 0.50.3)
@@ -37,10 +85,14 @@ PODS:
   - RNImageCropPicker (0.20.0):
     - QBImagePickerController
     - RSKImageCropper
-  - RSKImageCropper (1.5.1)
+  - RSKImageCropper (2.0.1)
   - yoga (0.50.3.React)
 
 DEPENDENCIES:
+  - Firebase/Core
+  - Firebase/Database
+  - Firebase/Messaging
+  - Firebase/Storage
   - react-native-blur (from `../node_modules/react-native-blur`)
   - react-native-fetch-blob (from `../node_modules/react-native-fetch-blob`)
   - React/Core (from `../node_modules/react-native`)
@@ -70,14 +122,26 @@ EXTERNAL SOURCES:
     :path: ../node_modules/react-native/ReactCommon/yoga/yoga.podspec
 
 SPEC CHECKSUMS:
+  Firebase: d7fdf40e4d6c841849c52919f437fd3a0009ded0
+  FirebaseAnalytics: 3dfae28d4a5e06f86c4fae830efc2ad3fadb19bc
+  FirebaseCore: ff49ebb37e0f63a570d78c4f1c1c0befe8659d5c
+  FirebaseDatabase: 5f0bc6134c5c237cf55f9e1249d406770a75eafd
+  FirebaseInstanceID: 8d20d890d65c917f9f7d9950b6e10a760ad34321
+  FirebaseMessaging: 75cdb862e86c30e0913a2ff307e48d49357c5b73
+  FirebaseStorage: 0c223481c8f89ed300cf1239ddd2d9833622c65f
+  GoogleToolboxForMac: 2501e2ad72a52eb3dfe7bd9aee7dad11b858bd20
+  GTMSessionFetcher: 5fa5b80fd20e439ef5f545fb2cb3ca6c6714caa2
+  leveldb-library: 08cba283675b7ed2d99629a4bc5fd052cd2bb6a5
+  nanopb: 5601e6bca2dbf1ed831b519092ec110f66982ca3
+  Protobuf: 8a9838fba8dae3389230e1b7f8c104aa32389c03
   QBImagePickerController: d54cf93db6decf26baf6ed3472f336ef35cae022
   React: 0ba6cae888dc82dc47d6d5f3090615e1b5f6f3e7
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
   react-native-fetch-blob: 2bef9be702de8726f4d7bf58d2345579aaaee60d
   RNImageCropPicker: 9ef50df72d7e1c02cbbca043a35456a03200f887
-  RSKImageCropper: edd65fedb3734332818deb139906d6b7f54b8a44
+  RSKImageCropper: 50d5a3e4160f0309b14d75b89d5ae2f496d56e0d
   yoga: faecc6be81ca7823ccbb470b93a1b228499fa1c0
 
-PODFILE CHECKSUM: a11cf72e7d4234aa640e9b4c0da7943b3041fd7c
+PODFILE CHECKSUM: 6f998b0f4a478547fd112dc5b1a2526f711af4cb
 
 COCOAPODS: 1.3.1

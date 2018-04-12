@@ -3,7 +3,7 @@ import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/e
 import uuid from 'uuid'
 import { RootState } from '../../redux'
 import * as api from '../api'
-import { firebase } from '../firebase'
+import firebase from 'react-native-firebase'
 import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { rehydrateMatchesFromServer } from '../matches'

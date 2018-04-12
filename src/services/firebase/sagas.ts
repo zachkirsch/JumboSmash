@@ -6,7 +6,7 @@ import {
   FirebaseActionType,
   LogoutFirebaseAction,
 } from './actions'
-import { firebase } from './firebase'
+import firebase from 'react-native-firebase'
 
 function* attemptConnectToFirebase(action: AttemptConnectToFirebaseAction) {
   try {

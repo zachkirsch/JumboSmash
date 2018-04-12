@@ -3,6 +3,11 @@ package com.jumbosmash2018;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import io.invertase.firebase.RNFirebasePackage;
+import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;
+import io.invertase.firebase.database.RNFirebaseDatabasePackage;
+import io.invertase.firebase.storage.RNFirebaseStoragePackage;
+import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage;
 import com.cmcewen.blurview.BlurViewPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
@@ -32,7 +37,12 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RNFirebasePackage(),
             new BlurViewPackage(),
+            new RNFirebaseMessagingPackage(),
+            new RNFirebaseDatabasePackage(),
+            new RNFirebaseStoragePackage(),
+            new RNFirebaseNotificationsPackage(),
             new RNFetchBlobPackage(),
             new PickerPackage(),
             new RCTCameraPackage(),

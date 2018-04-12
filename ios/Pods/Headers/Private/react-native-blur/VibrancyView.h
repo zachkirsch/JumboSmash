@@ -1,1 +1,4 @@
-../../../../../node_modules/react-native-blur/ios/VibrancyView.h
+#import "BlurView.h"
+
+@interface VibrancyView : BlurView
+@end
