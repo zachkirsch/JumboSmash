@@ -2,7 +2,7 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet'
 import React, { Component } from 'react'
 import { AppRegistry } from 'react-native'
 import { Provider } from 'react-redux'
-import firebase from 'react-native-firebase'
+import firebase, { RemoteMessage } from 'react-native-firebase'
 import App from './App'
 import { reduxStore } from './redux'
 
@@ -103,4 +103,10 @@ export default class JumboSmash extends Component {
   }
 }
 
+const handleBackgroundMessage = (message: RemoteMessage) => {
+  console.log('remote message: ', message)
+  return Promise.resolve()
+}
+
 AppRegistry.registerComponent('JumboSmash', () => JumboSmash)
+AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => handleBackgroundMessage)
