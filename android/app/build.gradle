@@ -95,7 +95,6 @@ def enableProguardInReleaseBuilds = false
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.jumbosmash2018"
@@ -165,6 +164,7 @@ dependencies {
     implementation 'me.leolin:ShortcutBadger:1.1.21@aar'
     implementation "com.google.firebase:firebase-database:12.0.0"
     implementation "com.google.firebase:firebase-storage:12.0.0"
+    implementation "com.google.firebase:firebase-auth:12.0.0"
 
     compile project(':react-native-blur')
     compile project(':react-native-fetch-blob')

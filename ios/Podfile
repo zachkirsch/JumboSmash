@@ -25,6 +25,7 @@ target 'JumboSmash' do
   pod 'Firebase/Messaging'
   pod 'Firebase/Database'
   pod 'Firebase/Storage'
+  pod 'Firebase/Auth'
 
 end
 
