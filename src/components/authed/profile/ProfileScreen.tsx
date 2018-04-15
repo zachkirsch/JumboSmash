@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react'
 import {
   Alert,
-  Image,
   Keyboard,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -179,7 +179,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     let toRender
     switch (react.type) {
       case 'emoji':
-        toRender = <JSText fontSize={23} style={styles.reacts}>{react.emoji}</JSText>
+        toRender = <JSText fontSize={23}>{react.emoji}</JSText>
         break
       case 'image':
         toRender = (
@@ -222,7 +222,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private renderPreferredName = () => (
     <View>
-      <JSText fontSize={13} bold style={styles.preferredNameTitle}>MY PREFERRED NAME</JSText>
+      <JSText fontSize={13} bold style={styles.preferredNameTitle}>NAME</JSText>
       <View style={styles.preferredNameContainer}>
         <JSTextInput
           maxLength={30}
@@ -531,12 +531,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
-  reacts: {
-    fontWeight: '300',
-  },
   reactNum: {
     marginLeft: 4,
-    fontWeight: '300',
     color: 'rgba(41,41,44,0.76)',
   },
   smallReact: {

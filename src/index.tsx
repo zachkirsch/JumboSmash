@@ -1,8 +1,8 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet'
 import React, { Component } from 'react'
-import { AppRegistry } from 'react-native'
+import { AppRegistry as TypedAppRegistry } from 'react-native'
 import { Provider } from 'react-redux'
-import firebase, { RemoteMessage } from 'react-native-firebase'
+import firebase from 'react-native-firebase'
 import App from './App'
 import { reduxStore } from './redux'
 
@@ -10,6 +10,12 @@ console.ignoredYellowBox = [
   'Remote debugger',
   'Setting a timer for a long period of time, i.e. multiple minutes',
 ]
+
+/* tslint:disable */
+const AppRegistry: any = TypedAppRegistry
+/* tslint:enable */
+
+/* tslint:disable:no-console */
 
 export default class JumboSmash extends Component {
 
@@ -26,11 +32,11 @@ export default class JumboSmash extends Component {
       if (notificationOpen) {
           // App was opened by a notification
           // Get the action triggered by the notification being opened
-          const action = notificationOpen.action;
+          const action = notificationOpen.action
           console.log('notification open action', action)
 
           // Get information about the notification that was opened
-          const notification = notificationOpen.notification;
+          const notification = notificationOpen.notification
           console.log('notification open', notification)
       }
     })
@@ -39,25 +45,26 @@ export default class JumboSmash extends Component {
       console.log('new token', fcmToken)
     })
 
-    this.messageListener = firebase.messaging().onMessage((message: RemoteMessage) => {
+    this.messageListener = firebase.messaging().onMessage((message) => {
       console.log(message)
     })
 
-    this.notificationDisplayedListener = firebase.notifications().onNotificationDisplayed((notification: Notification) => {
+    this.notificationDisplayedListener = firebase.notifications().onNotificationDisplayed((notification) => {
       // Process your notification as required
-      // ANDROID: Remote notifications do not contain the channel ID. You will have to specify this manually if you'd like to re-display the notification.
+      // ANDROID: Remote notifications do not contain the channel ID.
+      // You will have to specify this manually if you'd like to re-display the notification.
       console.log('displayed', notification)
     })
-    this.notificationListener = firebase.notifications().onNotification((notification: Notification) => {
+    this.notificationListener = firebase.notifications().onNotification((notification) => {
       // Process your notification as required
       console.log('listened!', notification)
     })
 
-    this.notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen: NotificationOpen) => {
+    this.notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
       // Get the action triggered by the notification being opened
-      const action = notificationOpen.action;
+      const action = notificationOpen.action
       // Get information about the notification that was opened
-      const notification: Notification = notificationOpen.notification;
+      const notification = notificationOpen.notification
       console.log('opened action', action)
       console.log('opened notification', notification)
     })
@@ -103,10 +110,13 @@ export default class JumboSmash extends Component {
   }
 }
 
-const handleBackgroundMessage = (message: RemoteMessage) => {
+/* tslint:disable-next-line:no-any */
+const handleBackgroundMessage = (message: any) => {
   console.log('remote message: ', message)
   return Promise.resolve()
 }
+
+/* tslint:enable:no-console */
 
 AppRegistry.registerComponent('JumboSmash', () => JumboSmash)
 AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => handleBackgroundMessage)

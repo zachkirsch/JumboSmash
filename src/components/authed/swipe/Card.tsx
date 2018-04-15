@@ -550,8 +550,8 @@ class Card extends PureComponent<Props, State> {
         } else {
           // spring card back
           Animated.parallel([
-            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 4 }),
-            Animated.spring(this.state.panX, { toValue: 0, friction: 4 }),
+            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 6 }),
+            Animated.spring(this.state.panX, { toValue: 0, friction: 6 }),
           ]).start()
         }
       },

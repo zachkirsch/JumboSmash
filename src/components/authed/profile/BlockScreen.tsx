@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Linking, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
@@ -57,8 +57,8 @@ class BlockScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.fill}>
         <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
-        <ScrollView contentContainerStyle={styles.container}>
-          <View>
+        <View style={styles.container}>
+          <View style={styles.upperContainer}>
             <JSText fontSize={14} style={{textAlign: 'justify'}}>
               {INSTRUCTIONS_START}
               <JSText
@@ -82,45 +82,58 @@ class BlockScreen extends PureComponent<Props, State> {
               onChangeText={this.onChangeText}
               onSubmitEditing={this.blockUser(this.state.textInput)}
             />
-            <JSText fontSize={15} bold>Currently Blocked:</JSText>
+            <JSText
+              fontSize={15}
+              bold
+              style={styles.currentlyBlocked}
+            >
+              Currently Blocked
+            </JSText>
           </View>
           {this.renderBlockedUsers()}
-        </ScrollView>
+        </View>
         {this.renderGradient()}
       </View>
     )
   }
 
   private renderBlockedUsers = () => {
-    return Object.keys(this.state.blockedUsers).sort().map((email) => {
+    return (
+      <FlatList
+        data={Object.keys(this.state.blockedUsers).sort().map(email => ({key: email, email}))}
+        renderItem={this.renderBlockedUser}
+        style={styles.blockedUsersList}
+        contentContainerStyle={styles.blockedUsersContainer}
+      />
+    )
+  }
 
-      if (!this.state.blockedUsers.hasOwnProperty(email)) {
-        return null
-      }
+  private renderBlockedUser = ({item}: {item: {email: string}}) => {
 
-      let icon
-      const textStyles = []
+    const email = item.email
 
-      switch (this.state.blockedUsers[email]) {
-        case 'just_blocked':
-        case 'blocked':
-          icon = <Entypo name='cross' size={25} color={'red'} style={styles.crossIcon} />
-          break
-        case 'just_unblocked':
-          icon = <FontAwesome name='undo' size={15} color={'blue'} />
-          textStyles.push(styles.strikethrough)
-          break
-      }
+    let icon
+    const textStyles = []
 
-      return (
-        <View style={styles.blockedUser} key={email}>
-          <TouchableOpacity onPress={this.toggleUser(email)} style={styles.iconContainer}>
-            {icon}
-          </TouchableOpacity>
-          <JSText style={textStyles}>{email}</JSText>
+    switch (this.state.blockedUsers[email]) {
+      case 'just_blocked':
+      case 'blocked':
+        icon = <Entypo name='cross' size={25} color={'red'} style={styles.crossIcon} />
+        break
+      case 'just_unblocked':
+        icon = <FontAwesome name='undo' size={15} color={'blue'} />
+        textStyles.push(styles.strikethrough)
+        break
+    }
+
+    return (
+      <TouchableOpacity onPress={this.toggleUser(email)} style={styles.blockedUser} key={email}>
+        <JSText style={textStyles}>{email}</JSText>
+        <View style={styles.iconContainer}>
+          {icon}
         </View>
-      )
-    })
+      </TouchableOpacity>
+    )
   }
 
   private renderGradient = () => {
@@ -191,7 +204,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
+    flex: 1,
+  },
+  upperContainer: {
     padding: 20,
+    paddingBottom: 0,
   },
   underline: {
     textDecorationLine: 'underline',
@@ -200,9 +217,23 @@ const styles = StyleSheet.create({
   input: {
     marginVertical: 30,
   },
+  blockedUsersList: {
+    flex: 1,
+  },
+  blockedUsersContainer: {
+    padding: 10,
+  },
   blockedUser: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(250, 250, 250, 0.5)',
+    marginVertical: 5,
+    paddingLeft: 20,
+    paddingRight: 10,
+    paddingVertical: 10,
+    borderRadius: 2,
+    overflow: 'hidden',
   },
   strikethrough: {
     textDecorationLine: 'line-through',
@@ -216,6 +247,9 @@ const styles = StyleSheet.create({
     height: 25,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  currentlyBlocked: {
+    textAlign: 'center',
   },
   overlay: {
     position: 'absolute',

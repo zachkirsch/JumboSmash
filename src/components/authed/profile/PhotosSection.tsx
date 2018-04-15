@@ -1,6 +1,6 @@
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
-import { Alert, Dimensions, Image, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { Alert, Dimensions, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Feather from 'react-native-vector-icons/Feather'
@@ -8,7 +8,7 @@ import Foundation from 'react-native-vector-icons/Foundation'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { CircleButton } from '../../common'
+import { CircleButton, JSImage } from '../../common'
 import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
 
 interface Props {
@@ -148,7 +148,14 @@ class PhotosSection extends PureComponent<Props, State> {
       if (this.state.swapping && this.state.swappingIndex === index) {
         imageStyles.push(styles.semiTransparent)
       }
-      imageToRender = <Image source={{uri: image.uri}} resizeMode='cover' style={imageStyles} />
+      imageToRender = (
+        <JSImage
+          source={{uri: image.uri}}
+          resizeMode='cover'
+          style={imageStyles}
+          activityIndicatorSize={index === 0 ? 'large' : 'small'}
+        />
+      )
     } else {
       const imageStyles = [
         styles.photo,

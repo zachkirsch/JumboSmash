@@ -5,7 +5,6 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
@@ -61,6 +60,12 @@
 		E043142E243C498CBE948EC0 /* libRCTImageResizer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 35797F6D9019402595EE2500 /* libRCTImageResizer.a */; };
 		F4FC6DDCFB40416E8D81E714 /* libRNFS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 331FF9E7A7BF44FE9A509846 /* libRNFS.a */; };
 		FB622050EEFC3650C1D39EEB /* libPods-JumboSmash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA1F4E3D57124B4DDFDE750 /* libPods-JumboSmash.a */; };
+		6DDC92CB6DA74539AFB0D352 /* Avenir.ttc in Resources */ = {isa = PBXBuildFile; fileRef = 64997D4E5CE04084B49F09D1 /* Avenir.ttc */; };
+		50C3519366314DFB88A7F42F /* Chalkduster.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5BD156C41A74DCEB3379EA4 /* Chalkduster.ttf */; };
+		BB7059BF177B43808FD13F43 /* Avenir.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10EDDC625A8462D9BBCF628 /* Avenir.ttf */; };
+		CFA29868FA4F4228A4A6D895 /* Avenir-Book.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 287B47CD9DCF42BF8E8E9C33 /* Avenir-Book.ttf */; };
+		EF72479C85CD4DBAB1391989 /* Avenir-Heavy.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 665905F85DCC4151881BD4AE /* Avenir-Heavy.ttf */; };
+		CFD1E6E601504A4CA051F691 /* Avenir-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD1AC58EABAF446380ECD71D /* Avenir-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -489,6 +494,12 @@
 		C8E070F39B8F4045BED91D28 /* libRNVectorIcons.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNVectorIcons.a; sourceTree = "<group>"; };
 		E16C4E1A115E1F4DAA53CEFB /* Pods-JumboSmash.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JumboSmash.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JumboSmash/Pods-JumboSmash.debug.xcconfig"; sourceTree = "<group>"; };
 		EA84D081328544AD80EEC8AE /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
+		64997D4E5CE04084B49F09D1 /* Avenir.ttc */ = {isa = PBXFileReference; name = "Avenir.ttc"; path = "../src/assets/fonts/Avenir.ttc"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D5BD156C41A74DCEB3379EA4 /* Chalkduster.ttf */ = {isa = PBXFileReference; name = "Chalkduster.ttf"; path = "../src/assets/fonts/Chalkduster.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F10EDDC625A8462D9BBCF628 /* Avenir.ttf */ = {isa = PBXFileReference; name = "Avenir.ttf"; path = "../src/assets/fonts/Avenir.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		287B47CD9DCF42BF8E8E9C33 /* Avenir-Book.ttf */ = {isa = PBXFileReference; name = "Avenir-Book.ttf"; path = "../src/assets/fonts/Avenir-Book.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		665905F85DCC4151881BD4AE /* Avenir-Heavy.ttf */ = {isa = PBXFileReference; name = "Avenir-Heavy.ttf"; path = "../src/assets/fonts/Avenir-Heavy.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		AD1AC58EABAF446380ECD71D /* Avenir-Medium.ttf */ = {isa = PBXFileReference; name = "Avenir-Medium.ttf"; path = "../src/assets/fonts/Avenir-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -696,6 +707,12 @@
 				0FB20617A739404C83BE971D /* Octicons.ttf */,
 				03924ED61D9C4E5886785BAA /* SimpleLineIcons.ttf */,
 				130DCE8A31054C379FF21C5F /* Zocial.ttf */,
+				64997D4E5CE04084B49F09D1 /* Avenir.ttc */,
+				D5BD156C41A74DCEB3379EA4 /* Chalkduster.ttf */,
+				F10EDDC625A8462D9BBCF628 /* Avenir.ttf */,
+				287B47CD9DCF42BF8E8E9C33 /* Avenir-Book.ttf */,
+				665905F85DCC4151881BD4AE /* Avenir-Heavy.ttf */,
+				AD1AC58EABAF446380ECD71D /* Avenir-Medium.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -1506,6 +1523,12 @@
 				12A59BA09FCF4579A92B9054 /* SimpleLineIcons.ttf in Resources */,
 				9FB7A89A63E04BE7A456C42D /* Zocial.ttf in Resources */,
 				922FCE96207EF8C000070931 /* GoogleService-Info.plist in Resources */,
+				6DDC92CB6DA74539AFB0D352 /* Avenir.ttc in Resources */,
+				50C3519366314DFB88A7F42F /* Chalkduster.ttf in Resources */,
+				BB7059BF177B43808FD13F43 /* Avenir.ttf in Resources */,
+				CFA29868FA4F4228A4A6D895 /* Avenir-Book.ttf in Resources */,
+				EF72479C85CD4DBAB1391989 /* Avenir-Heavy.ttf in Resources */,
+				CFD1E6E601504A4CA051F691 /* Avenir-Medium.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

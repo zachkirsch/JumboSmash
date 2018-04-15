@@ -10,7 +10,7 @@ import firebase from 'react-native-firebase'
 
 function* attemptConnectToFirebase(action: AttemptConnectToFirebaseAction) {
   try {
-    yield firebase.auth().signInWithCustomToken(action.token)
+    yield firebase.auth().signInAndRetrieveDataWithCustomToken(action.token)
     const successAction: ConnectToFirebaseSuccessAction = {
       type: FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS,
     }

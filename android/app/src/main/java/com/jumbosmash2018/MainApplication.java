@@ -10,7 +10,6 @@ import io.invertase.firebase.storage.RNFirebaseStoragePackage;
 import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage;
 import io.invertase.firebase.auth.RNFirebaseAuthPackage;
 import com.cmcewen.blurview.BlurViewPackage;
-import com.RNFetchBlob.RNFetchBlobPackage;
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.rnfs.RNFSPackage;
@@ -45,7 +44,6 @@ public class MainApplication extends Application implements ReactApplication {
             new RNFirebaseStoragePackage(),
             new RNFirebaseNotificationsPackage(),
             new BlurViewPackage(),
-            new RNFetchBlobPackage(),
             new PickerPackage(),
             new RCTCameraPackage(),
             new RNFSPackage(),

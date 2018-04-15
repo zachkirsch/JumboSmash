@@ -3,6 +3,7 @@ import { SwipeAction, SwipeActionType } from './actions'
 import { SwipeState } from './types'
 import { ReduxActionType } from '../redux'
 import { shuffle } from '../../utils'
+import { User } from './types'
 
 const initialState: SwipeState = {
   allUsers: {
@@ -51,19 +52,27 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       // keep the next ten users around (at the start of the list)
       // to avoid rendering issues, but mark them as stale so that
       // we can remove them once we're onto the new users
-      newUsers = List()
+      let oldUsers: List<User> = List()
       const numExistingUsers = state.allUsers.value.size
-      for (let i = 0; i < Math.min(10, numExistingUsers); i++) {
-        newUsers = newUsers.push({
+      for (let i = 0; i < Math.min(5, numExistingUsers); i++) {
+        oldUsers = oldUsers.push({
           ...state.allUsers.value.get((state.indexOfUserOnTop + i) % numExistingUsers),
           stale: true,
         })
       }
 
+      // remove duplicates
+      const usersToAdd = action.users.filter(user => {
+        if (user === undefined) {
+          return false
+        }
+        return !oldUsers.find(u => !!u && u.id === user.id)
+      })
+
       return {
         indexOfUserOnTop: 0,
         allUsers: {
-          value: newUsers.concat(shuffle(action.users)).toList(),
+          value: oldUsers.concat(shuffle(usersToAdd)).toList(),
           loading: false,
         },
         lastFetched: Date.now(),

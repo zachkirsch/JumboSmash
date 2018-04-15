@@ -100,7 +100,7 @@ class SettingsSection extends PureComponent<Props, {}> {
 
     // BLOCK USER
     buttons.push({
-      title: 'Block Users',
+      title: 'Blocked Users',
       onPress: this.props.block,
     })
 
