@@ -4,8 +4,6 @@ import { StyleSheet, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
-import CountDown from 'react-native-countdown-component';
-import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { JSText, JSImage } from '../common'
 
 interface State {
@@ -15,25 +13,25 @@ interface State {
   days: number,
 }
 
-type Props = NavigationScreenPropsWithRedux<{},{}>
-//const WIDTH = Dimensions.get('window').width
+class CountdownScreen extends PureComponent<{}, State> {
 
-class CountdownScreen extends PureComponent<Props, State> {
-
-  //private launchDay = moment([2018, 5, 13])
-  private t1 = new Date();
-  private t2 = new Date(2018, 4, 11, 0, 0, 0, 0);
-  private launchDay = (this.t2.getTime() - this.t1.getTime())/1000;
-  //private timer: number
+  private launchDay = moment([2018, 4, 12]) // Month is 0-based
   private timer: number
 
-  constructor(props: Props) {
+  constructor(props: {}) {
     super(props)
-    console.log(this.launchDay)
-    console.log(this.t1)
-    console.log(this.t2)
+    this.state = this.getTimeLeft()
   }
 
+  public componentDidMount() {
+    this.timer = setInterval(() => {
+      this.setState(this.getTimeLeft())
+    }, 1000)
+  }
+
+  public componentWillUnmount() {
+    clearInterval(this.timer)
+  }
 
   public render() {
     return (
@@ -44,20 +42,16 @@ class CountdownScreen extends PureComponent<Props, State> {
           end={{x: 0, y: 0.5}}
           style={StyleSheet.absoluteFill}
         />
-        <JSImage
-          source={Images.jumbo2018}
-          style={styles.logo}
-          resizeMode={'contain'}
-        />
+        <View style={styles.logoContainer}>
+          <JSImage
+            source={Images.jumbo2018}
+            style={styles.logo}
+            resizeMode={'contain'}
+          />
+        </View>
         <View style={styles.bottomContainer}>
-        <CountDown
-          until={this.launchDay}
-          digitBgColor={'#ABCCED'}
-          onFinish={() => this.props.navigation.navigate('LoginScreen')}
-          size={30}
-        />
+          {this.renderCountdown()}
           <View style={styles.titleTextContainer}>
-
             <SimpleLineIcons
               name='rocket'
               size={60}
@@ -127,7 +121,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-around',
   },
-
   countdown: {
     flexDirection: 'row',
     marginHorizontal: '5%',
@@ -150,12 +143,14 @@ const styles = StyleSheet.create({
   countdownUnitLabel: {
     letterSpacing: 3.1,
   },
-  logo: {
+  logoContainer: {
     marginTop: 30,
     marginHorizontal: '15%',
     flex: 1,
-    width: undefined,
-    height: undefined,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   titleTextContainer: {
     justifyContent: 'center',
