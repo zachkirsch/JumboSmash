@@ -9,6 +9,7 @@ import { RootState } from '../../../redux'
 import { Direction } from '../../../services/api'
 import { fetchAllUsers, swipe, User, SwipeState } from '../../../services/swipe'
 import { CircleButton, CircleButtonProps } from '../../common'
+import { mod } from '../../../utils'
 import Card from './Card'
 import NoMoreCards from './NoMoreCards'
 
@@ -30,15 +31,10 @@ interface DispatchProps {
 
 type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
 
-interface RenderedUser {
-  user: User
-  positionInStack: number
-}
-
 interface State {
   mustShowLoadingScreen: boolean
   expansion: Animated.Value
-  profiles: { [cardIndex: number]: RenderedUser }
+  profiles: User[]
 }
 
 const NUM_RENDERED_CARDS = 3
@@ -47,12 +43,13 @@ const NUM_RENDERED_CARDS = 3
 class SwipeScreen extends PureComponent<Props, State> {
 
   private topCard: Card
+  private cardIndexOfTopCard = 0
 
   constructor(props: Props) {
     super(props)
     this.state = {
       expansion: new Animated.Value(props.preview ? 1 : 0),
-      profiles: {},
+      profiles: [],
       mustShowLoadingScreen: false,
     }
   }
@@ -63,7 +60,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         if (this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
           return <Card type='loading' />
         } else {
-          return <NoMoreCards requestMoreCards={this.fetchUsers}/>
+          return <NoMoreCards requestMoreCards={this.requestMoreUsers}/>
         }
       }
     }
@@ -102,18 +99,14 @@ class SwipeScreen extends PureComponent<Props, State> {
       return null
     }
 
-    let positionInStack
-    let profile
-
     const card = this.getCard(cardIndex)
-    positionInStack = card.positionInStack
-    profile = card.user
+    const positionInStack = this.calculatePositionInStack(cardIndex)
 
     return (
       <Card
         type='normal'
         positionInStack={positionInStack}
-        profile={profile}
+        profile={card}
         onExpandCard={this.onExpandCard}
         onExitExpandedView={this.onExitExpandedView}
         onCompleteSwipe={this.onCompleteSwipe}
@@ -194,6 +187,12 @@ class SwipeScreen extends PureComponent<Props, State> {
     )
   }
 
+  private requestMoreUsers = () => {
+    this.setState({
+      profiles: [],
+    }, this.fetchUsers)
+  }
+
   private fetchUsers = () => {
     this.props.fetchAllUsers()
     this.setState({
@@ -247,24 +246,34 @@ class SwipeScreen extends PureComponent<Props, State> {
       }
     }
 
-    let newProfiles: { [cardIndex: string]: RenderedUser } = {}
+    let newProfiles = []
     for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
-      newProfiles[i] = this.getNextCard(i)
+      let nextCard = this.getNextCard(i)
+      if (nextCard === undefined) {
+        continue
+      }
+      if (direction === 'right' && nextCard.id === onUser.id) {
+        continue
+      }
+      newProfiles.push(nextCard)
     }
+    this.cardIndexOfTopCard += 1
+    this.cardIndexOfTopCard %= NUM_RENDERED_CARDS
     this.setState({
       profiles: newProfiles,
     })
   }
 
-  private getInitialCardForIndex = (cardIndex: number): RenderedUser => {
-    const indexOfUser = cardIndex % this.props.allUsers.value.size
-    return {
-      user: this.props.allUsers.value.get(indexOfUser),
-      positionInStack: cardIndex,
-    }
+  private calculatePositionInStack = (cardIndex: number) => {
+    return mod(cardIndex - this.cardIndexOfTopCard, NUM_RENDERED_CARDS)
   }
 
-  private getCard = (cardIndex: number): RenderedUser => {
+  private getInitialCardForIndex = (cardIndex: number) => {
+    const indexOfUser = this.calculatePositionInStack(cardIndex) % this.props.allUsers.value.size
+    return this.props.allUsers.value.get(indexOfUser)
+  }
+
+  private getCard = (cardIndex: number) => {
     if (this.state.profiles[cardIndex]) {
       return this.state.profiles[cardIndex]
     } else {
@@ -272,21 +281,14 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
   }
 
-  private getNextCard = (cardIndex: number): RenderedUser => {
-    const currentCard = this.state.profiles[cardIndex] || this.getInitialCardForIndex(cardIndex)
-    switch (currentCard.positionInStack) {
+  private getNextCard = (cardIndex: number) => {
+    const currentCard = this.getCard(cardIndex)
+    switch (this.calculatePositionInStack(cardIndex)) {
       case 0:
         const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.allUsers.value.size
-        return {
-          user: this.props.allUsers.value.get(indexOfUser),
-          positionInStack: NUM_RENDERED_CARDS - 1,
-        }
+        return this.props.allUsers.value.get(indexOfUser)
       default:
-        const card = this.getCard(cardIndex)
-        return {
-          ...card,
-          positionInStack: card.positionInStack - 1,
-        }
+        return currentCard
     }
   }
 }

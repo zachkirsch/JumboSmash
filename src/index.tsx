@@ -1,6 +1,6 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet'
 import React, { Component } from 'react'
-import { AppRegistry as TypedAppRegistry } from 'react-native'
+import { AppRegistry as TypedAppRegistry, Platform } from 'react-native'
 import { Provider } from 'react-redux'
 import firebase from 'react-native-firebase'
 import App from './App'
@@ -110,13 +110,15 @@ export default class JumboSmash extends Component {
   }
 }
 
-/* tslint:disable-next-line:no-any */
-const handleBackgroundMessage = (message: any) => {
-  console.log('remote message: ', message)
-  return Promise.resolve()
+AppRegistry.registerComponent('JumboSmash', () => JumboSmash)
+
+if (Platform.OS === 'android') {
+  /* tslint:disable-next-line:no-any */
+  const handleBackgroundMessage = (message: any) => {
+    console.log('remote message: ', message)
+    return Promise.resolve()
+  }
+  AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => handleBackgroundMessage)
 }
 
 /* tslint:enable:no-console */
-
-AppRegistry.registerComponent('JumboSmash', () => JumboSmash)
-AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => handleBackgroundMessage)
