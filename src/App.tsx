@@ -6,6 +6,7 @@ import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen, Tutori
 import { RootState } from './redux'
 import { getRefToChatMessages } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
+import { finishTutorial } from './services/tutorial'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -13,15 +14,18 @@ interface StateProps {
   rehydrated: boolean
   networkRequestInProgress: boolean
   chats: Map<string, Conversation>
+  finishedTutorial: boolean
 }
 
 interface DispatchProps {
   receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
+  finishTutorial: () => void
 }
 
 type Props = StateProps & DispatchProps
 
 const SHOULD_SHOW_COUNTDOWN = false
+const TUTORIAL_DONE = false
 
 class App extends PureComponent<Props, {}> {
 
@@ -65,11 +69,13 @@ class App extends PureComponent<Props, {}> {
       // TODO: replace with splash screen
       return null
     } else if (SHOULD_SHOW_COUNTDOWN) {
-      return <LoginRouter/>
-    // } else if (!this.props.isLoggedIn) {
-    //   return <LoginRouter />
-    // } else if (!this.props.codeOfConductAccepted) {
-    //   return <CodeOfConductScreen />
+      return <CountdownScreen />
+    } else if (!this.props.isLoggedIn) {
+      return <LoginRouter />
+    } else if (!this.props.codeOfConductAccepted) {
+      return <CodeOfConductScreen />
+    } else if (!this.props.finishedTutorial){
+      return <TutorialScreen finishTutorial={this.props.finishTutorial}/>
     } else {
       return <AuthedRouter />
     }
@@ -83,6 +89,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     rehydrated: state.redux.rehydrated,
     networkRequestInProgress: networkRequestInProgress(state),
     chats: state.matches.chats,
+    finishedTutorial: state.tutorial.finished,
   }
 }
 
@@ -102,6 +109,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
       dispatch(receiveMessages(conversationId, messages))
     },
+    finishTutorial: () => dispatch(finishTutorial()),
   }
 }
 

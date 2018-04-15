@@ -34,8 +34,8 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '🔐💌',
-    description: 'We value your privacy! Jumbosmash will delete all your data after graduation.',
-  },
+    description: 'Jumbosmash is not responsible for user behavior, so please smash safely!',
+  }
 ]
 
 interface OwnProps {

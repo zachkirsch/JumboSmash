@@ -4,6 +4,8 @@ import { StyleSheet, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
+import CountDown from 'react-native-countdown-component';
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { JSText, JSImage } from '../common'
 
 interface State {
@@ -13,9 +15,16 @@ interface State {
   days: number,
 }
 
-class CountdownScreen extends PureComponent<{}, State> {
+type Props = NavigationScreenPropsWithRedux<{},{}>
+//const WIDTH = Dimensions.get('window').width
 
-  private launchDay = moment([2018, 4, 13]) // Month is 0-based
+class CountdownScreen extends PureComponent<Props, State> {
+
+  //private launchDay = moment([2018, 5, 13])
+  private t1 = new Date();
+  private t2 = new Date(2018, 4, 11, 0, 0, 0, 0);
+  private launchDay = (this.t2.getTime() - this.t1.getTime())/1000;
+  //private timer: number
   private timer: number
 
   constructor(props: Props) {
@@ -48,6 +57,7 @@ class CountdownScreen extends PureComponent<{}, State> {
           size={30}
         />
           <View style={styles.titleTextContainer}>
+
             <SimpleLineIcons
               name='rocket'
               size={60}
@@ -117,6 +127,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-around',
   },
+
   countdown: {
     flexDirection: 'row',
     marginHorizontal: '5%',

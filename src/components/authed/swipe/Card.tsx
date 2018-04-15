@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react'
+import { ConfirmDialog } from 'react-native-simple-dialogs';
 import {
   Animated,
   Dimensions,
@@ -20,13 +21,8 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
-<<<<<<< HEAD
 import { JSText, CircleButton} from '../../common'
-import { clamp } from '../../../utils'
-=======
-import { JSText } from '../../common'
 import { clamp, generateActionSheetOptions } from '../../../utils'
->>>>>>> fe02b578e836a77e8f146013d9c1e23309794319
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
@@ -64,7 +60,7 @@ interface State {
   }
   scrollViewBackgroundColor: string
   isMomentumScrolling: boolean
-
+  reactDialogView: boolean
 }
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
@@ -76,7 +72,6 @@ const MAX_HORIZONTAL_MARGIN = WIDTH / 15
 const BORDER_RADIUS = Platform.select({ ios: 20, android: 30 })
 
 class Card extends PureComponent<Props, State> {
-  private reactsViewed: boolean
   private cardPanResponder: PanResponderInstance
   private mainScrollView: any /* tslint:disable-line:no-any */
   private carousel: Carousel | null
@@ -88,7 +83,6 @@ class Card extends PureComponent<Props, State> {
     super(props)
     this.state = this.getInitialState()
     this.setupGestureResponders()
-    this.reactsViewed = false
   }
 
   componentDidMount() {
@@ -262,13 +256,6 @@ class Card extends PureComponent<Props, State> {
       </Animated.View>
     )
   }
-  private reactArea = this.reactsViewed ? (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.titleContainer}>
-      <JSText bold fontSize={22}>Sup</JSText>
-      </View>
-    </SafeAreaView>
-) : ( <View></View>    );
 
   private renderCard = () => {
 
@@ -347,7 +334,43 @@ class Card extends PureComponent<Props, State> {
           <JSText fontSize={14} style={styles.bio}>
             {this.props.profile.bio}
           </JSText>
-          {this.reactArea}
+          <ConfirmDialog
+              visible={this.state.reactDialogView}
+              title="React to Bio"
+              onTouchOutside={() => {this.setState({reactDialogView: false})}}
+              positiveButton={{
+                  title: "Done",
+                  onPress: () => {this.setState({reactDialogView: false})} //TODO: send tags
+              }} >
+              <View>
+              <View style={styles.reactColumns}>
+                <View style={styles.reactColumn}>
+                <View style={styles.reactGroup}>
+                  <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
+                </View>
+                <View style={styles.reactGroup}>
+                  <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
+                </View>
+                  </View>
+                  <View style={styles.reactColumn}>
+                  <View style={styles.reactGroup}>
+                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
+                  </View>
+                  <View style={styles.reactGroup}>
+                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
+                  </View>
+                    </View>
+                  <View style={styles.reactColumn}>
+                  <View style={styles.reactGroup}>
+                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
+                  </View>
+                  <View style={styles.reactGroup}>
+                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
+                  </View>
+                    </View>
+                </View>
+              </View>
+          </ConfirmDialog>
           <CircleButton
             IconClass={SimpleLineIcons}
             iconName={"emotsmile"}
@@ -362,12 +385,14 @@ class Card extends PureComponent<Props, State> {
   }
 
   private toggleReacts = () => {
-      if (this.reactsViewed){
-        this.reactsViewed = false
-      } else {
-        this.reactsViewed = true
-      }
+        if (this.state.reactDialogView){
+          this.setState({ reactDialogView: false})
+        } else {
+          this.setState({ reactDialogView: true})
+        }
+
   }
+
   private renderExitButton = () => {
 
     if (!this.state.fullyExpanded) {
@@ -602,6 +627,7 @@ class Card extends PureComponent<Props, State> {
       },
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
+      reactDialogView: false,
   })
 }
 
@@ -775,5 +801,35 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderColor: 'gray',
     backgroundColor: 'white',
+  },
+  reactColumn: {
+    flex: 1,
+    height: 80,
+    justifyContent: 'space-around',
+  },
+  reactColumns: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: '12%',
+  },
+  reactGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reactsTitle: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  reactNum: {
+    marginLeft: 4,
+    color: 'rgba(41,41,44,0.76)',
+  },
+  smallReact: {
+      paddingVertical: 15,
+      width: 25,
+      height: 25,
+      justifyContent: 'center',
   },
 })
