@@ -343,32 +343,7 @@ class Card extends PureComponent<Props, State> {
                   onPress: () => {this.setState({reactDialogView: false})} //TODO: send tags
               }} >
               <View>
-              <View style={styles.reactColumns}>
-                <View style={styles.reactColumn}>
-                <View style={styles.reactGroup}>
-                  <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                </View>
-                <View style={styles.reactGroup}>
-                  <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                </View>
-                  </View>
-                  <View style={styles.reactColumn}>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                    </View>
-                  <View style={styles.reactColumn}>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                    </View>
-                </View>
+              
               </View>
           </ConfirmDialog>
           <CircleButton
