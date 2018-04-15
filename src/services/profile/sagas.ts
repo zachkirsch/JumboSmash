@@ -1,9 +1,8 @@
-import RNFetchBlob from 'react-native-fetch-blob'
 import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
 import { RootState } from '../../redux'
 import * as api from '../api'
-import { firebase } from '../firebase'
+import firebase from 'react-native-firebase'
 import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { rehydrateMatchesFromServer } from '../matches'
@@ -141,38 +140,13 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
       return payload.imageUri
     }
     return new Promise((resolve, reject) => {
-      /* tslint:disable:no-any */
-      const Blob = RNFetchBlob.polyfill.Blob
-      const fs = RNFetchBlob.fs
-
-      const theWindow: any = window
-      theWindow.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest
-      theWindow.Blob = Blob
-
-      let uploadBlob: any
-
       const imageRef = firebase.storage().ref('images').child('profilePictures').child(uuid.v4())
-
-      fs.readFile(payload.imageUri, 'base64')
-      .then((data) => {
-        return (Blob as any).build(data, { type: `${payload.mime};BASE64` })
-      })
-      .then((blob) => {
-        uploadBlob = blob
-        return imageRef.put(blob, { contentType: payload.mime })
-      })
-      .then(() => {
-        uploadBlob.close()
-        return imageRef.getDownloadURL()
-      })
-      .then((url) => {
-        resolve(url)
-      })
-      .catch((error) => {
-        reject(error)
-      })
+      imageRef
+        .put(payload.imageUri, { contentType: payload.mime })
+        .then(file => file.downloadURL)
+        .then(url => resolve(url))
+        .catch(error => reject(error))
     })
-    /* tslint:enable:no-any */
   }
 
   try {

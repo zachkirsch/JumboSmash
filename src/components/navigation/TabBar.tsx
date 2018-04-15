@@ -278,6 +278,7 @@ const styles = StyleSheet.create({
       android: 50,
     }),
     flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   iconContainer: {
     flex: 1,
@@ -288,13 +289,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   centerIcon: {
-    alignSelf: 'center',
     marginBottom: 7,
+    alignSelf: 'center',
   },
   rightIcon: {
     marginRight: 20,
-    alignSelf: 'flex-end',
     marginBottom: 5,
+    alignSelf: 'flex-end',
   },
   backupBlur: {
     backgroundColor: 'rgba(255, 255, 255, 0.75)',

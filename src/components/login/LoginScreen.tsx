@@ -215,7 +215,6 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     color: 'red',
-    fontWeight: '500',
   },
   submitContainer: {
     flex: 1.8,

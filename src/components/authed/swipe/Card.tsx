@@ -26,6 +26,7 @@ import Carousel from './Carousel'
 
 interface PreviewProps {
   type: 'preview'
+  exit: () => void
   profile: User
 }
 
@@ -97,7 +98,7 @@ class Card extends PureComponent<Props, State> {
   }
 
   public tap = () => {
-    if (this.props.type === 'normal') {
+    if (this.props.type !== 'normal') {
       return
     } else if (this.state.fullyExpanded) {
       this.contractCard(true)
@@ -179,12 +180,17 @@ class Card extends PureComponent<Props, State> {
       }),
     }
 
-    const borderRadiusStyle = {
-      borderRadius: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [BORDER_RADIUS, 0],
-      }),
-    }
+    const borderRadiusStyle = Platform.select({
+      ios: {
+        borderRadius: this.state.expansion.interpolate({
+          inputRange: [0, 1],
+          outputRange: [BORDER_RADIUS, 0],
+        }),
+      },
+      android: {
+        borderRadius: 0,
+      },
+    })
 
     const scrollViewStyle = {
       backgroundColor: this.state.scrollViewBackgroundColor,
@@ -249,24 +255,6 @@ class Card extends PureComponent<Props, State> {
 
   private renderCard = () => {
 
-    const borderRadiusStyle = {
-      borderRadius: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [BORDER_RADIUS, 0],
-      }),
-    }
-
-    const topBorderRadiusStyle = {
-      borderTopLeftRadius: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [BORDER_RADIUS, 0],
-      }),
-      borderTopRightRadius: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [BORDER_RADIUS, 0],
-      }),
-    }
-
     const imageContainerStyle = {
       height: this.state.expansion.interpolate({
         inputRange: [0, 1],
@@ -295,7 +283,7 @@ class Card extends PureComponent<Props, State> {
       }
 
       return (
-        <Animated.View style={[styles.card, borderRadiusStyle]}>
+        <Animated.View style={styles.card}>
           <View style={styles.imagePlaceholder} />
           <View style={styles.bottomContainer}>
             <ShimmerPlaceHolder
@@ -310,14 +298,12 @@ class Card extends PureComponent<Props, State> {
       )
     } else {
       return (
-        <Animated.View style={[styles.card, borderRadiusStyle]}>
+        <Animated.View style={styles.card}>
           <Carousel
             enabled={this.state.fullyExpanded}
             imageUris={this.props.profile.images.filter(image => image)}
             onTapImage={this.tap}
-            containerStyle={borderRadiusStyle}
             imageContainerStyle={imageContainerStyle}
-            imageStyle={topBorderRadiusStyle}
             ref={ref => this.carousel = ref}
           />
           {this.renderCardBottom()}
@@ -371,7 +357,7 @@ class Card extends PureComponent<Props, State> {
 
     return (
       <View style={styles.ellipsisContainer}>
-        <TouchableOpacity onPress={this.openEllipsisMenu} >
+        <TouchableOpacity style={styles.ellipsisTouchable} onPress={this.openEllipsisMenu}>
           <View style={styles.dot} />
           <View style={styles.dot} />
           <View style={styles.dot} />
@@ -479,11 +465,14 @@ class Card extends PureComponent<Props, State> {
   }
 
   private exitExpandedCard = () => {
-    if (this.state.fullyExpanded) {
-      this.mainScrollView && this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
-      this.contractCard(true)
+    if (this.props.type === 'preview') {
+      this.props.exit()
+    } else if (this.props.type === 'normal') {
+      if (this.state.fullyExpanded) {
+        this.mainScrollView && this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+        this.contractCard(true)
+      }
     }
-
   }
 
   private swipe = (direction: Direction) => {
@@ -561,8 +550,8 @@ class Card extends PureComponent<Props, State> {
         } else {
           // spring card back
           Animated.parallel([
-            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 4 }),
-            Animated.spring(this.state.panX, { toValue: 0, friction: 4 }),
+            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 6 }),
+            Animated.spring(this.state.panX, { toValue: 0, friction: 6 }),
           ]).start()
         }
       },
@@ -674,8 +663,11 @@ const styles = StyleSheet.create({
   ellipsisContainer: {
     backgroundColor: 'transparent',
     position: 'absolute',
-    right: 15,
-    top: 15,
+    right: 0,
+    top: 0,
+  },
+  ellipsisTouchable: {
+    padding: 15,
   },
   exitContainer: {
     backgroundColor: 'transparent',

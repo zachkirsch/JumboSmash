@@ -1,4 +1,4 @@
-import { firebase } from './firebase'
+import firebase from 'react-native-firebase'
 
 const getRefToChatSection = (conversationId: string) => firebase.database().ref('chats').child(conversationId)
 

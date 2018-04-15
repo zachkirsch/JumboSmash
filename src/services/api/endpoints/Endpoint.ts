@@ -1,6 +1,5 @@
 import { Platform } from 'react-native'
 import { Store } from 'redux'
-import RNFetchBlob from 'react-native-fetch-blob'
 import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
 
@@ -9,6 +8,7 @@ const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' :
   ios: 'http://127.0.0.1:5000',
   android: 'http://10.0.2.2:5000',
 })
+// const SERVER = 'http://130.64.157.174:5000/'
 
 type HttpMethod = 'GET' | 'POST'
 
@@ -38,18 +38,6 @@ export const TokenService = { /* tslint:disable-line:variable-name */
     }
   },
 }
-
-// required because wer're using RNFetchBlob
-const Fetch: any = RNFetchBlob.polyfill.Fetch /* tslint:disable-line:no-any */
-window.fetch = new Fetch({
-    auto : true,
-    binaryContentTypes : [
-        'image/',
-        'video/',
-        'audio/',
-        'foo/',
-    ],
-}).build()
 
 abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
