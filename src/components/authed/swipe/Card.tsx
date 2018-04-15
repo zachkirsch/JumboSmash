@@ -14,22 +14,38 @@ import {
   View,
   SafeAreaView,
 } from 'react-native'
+import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
+<<<<<<< HEAD
 import { JSText, CircleButton} from '../../common'
 import { clamp } from '../../../utils'
+=======
+import { JSText } from '../../common'
+import { clamp, generateActionSheetOptions } from '../../../utils'
+>>>>>>> fe02b578e836a77e8f146013d9c1e23309794319
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
-type Props = {
-  loading?: boolean
-  positionInStack?: number
-  profile?: User
-  previewMode?: boolean
+interface PreviewProps {
+  type: 'preview'
+  exit: () => void
+  profile: User
+}
+
+interface LoadingProps {
+  type: 'loading'
+}
+
+type Props = PreviewProps | LoadingProps | {
+  type: 'normal'
+  positionInStack: number
+  profile: User
+  showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
   onCompleteSwipe?: (direction: Direction, onUser: User) => void
   onExpandCard?: () => void
   onExitExpandedView?: () => void
@@ -57,12 +73,13 @@ const WIDTH = Dimensions.get('window').width
 const HEIGHT = Dimensions.get('window').height
 const MAX_VERTICAL_MARGIN = WIDTH / 12
 const MAX_HORIZONTAL_MARGIN = WIDTH / 15
+const BORDER_RADIUS = Platform.select({ ios: 20, android: 30 })
 
 class Card extends PureComponent<Props, State> {
   private reactsViewed: boolean
   private cardPanResponder: PanResponderInstance
   private mainScrollView: any /* tslint:disable-line:no-any */
-  private carousel: Carousel
+  private carousel: Carousel | null
   private isSwipingProgrammatically: boolean = false
   private isSwiping: boolean = false
   private shimmerRows: ShimmerPlaceHolder[] = []
@@ -76,14 +93,11 @@ class Card extends PureComponent<Props, State> {
 
   componentDidMount() {
     // run shimmers together
-    if (this.props.loading) {
+    if (this.props.type === 'loading') {
       const threeRowAnimated = Animated.parallel(
-        this.shimmerRows.map(row => {
-          if (row && row.getAnimated) {
-            return row.getAnimated()
-          }
-          return null /* tslint:disable-line:no-null-keyword */
-        }),
+        this.shimmerRows
+          .filter(row => row && row.getAnimated)
+          .map(row => row.getAnimated!()),
         {
           stopTogether: false,
         }
@@ -93,7 +107,7 @@ class Card extends PureComponent<Props, State> {
   }
 
   public tap = () => {
-    if (!this.canTapOrSwipe()) {
+    if (this.props.type !== 'normal') {
       return
     } else if (this.state.fullyExpanded) {
       this.contractCard(true)
@@ -103,7 +117,13 @@ class Card extends PureComponent<Props, State> {
   }
 
   public expandCard = () => {
+
+    if (this.props.type !== 'normal') {
+      return
+    }
+
     this.props.onExpandCard && this.props.onExpandCard()
+
     Animated.parallel([
       Animated.timing(this.state.expansion, { toValue: 1, duration: 100 }),
       Animated.timing(this.state.margin.top, { toValue: 0, duration: 100 }),
@@ -116,10 +136,12 @@ class Card extends PureComponent<Props, State> {
   }
 
   public contractCard = (fast: boolean) => {
-    this.props.onExitExpandedView && this.props.onExitExpandedView()
-    if (this.props.previewMode) {
+
+    if (this.props.type !== 'normal') {
       return
     }
+
+    this.props.onExitExpandedView && this.props.onExitExpandedView()
     this.setState({
       fullyExpanded: false,
     })
@@ -138,7 +160,7 @@ class Card extends PureComponent<Props, State> {
         Animated.spring(this.state.margin.bottom, { toValue: MAX_VERTICAL_MARGIN, friction: 4 } ),
       ])
     }
-    this.carousel.reset(false)
+    this.carousel && this.carousel.reset(false)
     Animated.parallel(animations).start()
   }
 
@@ -151,8 +173,14 @@ class Card extends PureComponent<Props, State> {
   }
 
   render() {
+
+    let positionInStack = 1
+    if (this.props.type === 'normal') {
+      positionInStack = this.props.positionInStack
+    }
+
     const outerContainerStyle = {
-      zIndex: this.state.fullyExpanded ? 14 : 10 - this.props.positionInStack,
+      zIndex: this.state.fullyExpanded ? 14 : 10 - positionInStack,
       marginTop: this.state.margin.top,
       marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.expansion.interpolate({
@@ -161,12 +189,17 @@ class Card extends PureComponent<Props, State> {
       }),
     }
 
-    const borderRadiusStyle = {
-      borderRadius: this.state.expansion.interpolate({
-        inputRange: [0, 1],
-        outputRange: [20, 0],
-      }),
-    }
+    const borderRadiusStyle = Platform.select({
+      ios: {
+        borderRadius: this.state.expansion.interpolate({
+          inputRange: [0, 1],
+          outputRange: [BORDER_RADIUS, 0],
+        }),
+      },
+      android: {
+        borderRadius: 0,
+      },
+    })
 
 
     const scrollViewStyle = {
@@ -174,7 +207,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     let shadowStyle
-    switch (this.props.positionInStack) {
+    switch (positionInStack) {
       case 0:
         shadowStyle = [
           styles.firstCard,
@@ -191,13 +224,6 @@ class Card extends PureComponent<Props, State> {
       case 1:
         shadowStyle = styles.secondCard
         break
-      case 2:
-        shadowStyle = styles.thirdCard
-        break
-    }
-
-    if (this.props.previewMode || this.props.loading) {
-      shadowStyle = styles.secondCard
     }
 
     const [translateX, translateY] = [this.state.pan.x, this.state.pan.y]
@@ -229,6 +255,7 @@ class Card extends PureComponent<Props, State> {
           >
             {this.renderCard()}
             {this.renderExitButton()}
+            {this.renderEllipsisMenu()}
           </Animated.ScrollView>
           {this.renderGradient()}
         </Animated.View>
@@ -256,13 +283,13 @@ class Card extends PureComponent<Props, State> {
       }),
     }
 
-    if (this.props.loading) {
+    if (this.props.type === 'loading') {
 
       const tagPlaceholders = []
       for (let i = 0; i < 5; i++) {
         tagPlaceholders.push((
           <ShimmerPlaceHolder
-            ref={ref => this.shimmerRows.push(ref)}
+            ref={ref => this.shimmerRows.push(ref!)}
             key={i}
             duration={1000}
             height={15}
@@ -273,39 +300,44 @@ class Card extends PureComponent<Props, State> {
       }
 
       return (
-        <View style={styles.card}>
+        <Animated.View style={styles.card}>
           <View style={styles.imagePlaceholder} />
           <View style={styles.bottomContainer}>
             <ShimmerPlaceHolder
-              ref={ref => this.shimmerRows.push(ref)}
+              ref={ref => this.shimmerRows.push(ref!)}
               duration={1000}
               height={20}
               style={styles.namePlaceholder}
             />
             {tagPlaceholders}
           </View>
-        </View>
+        </Animated.View>
       )
     } else {
       return (
-        <View style={styles.card}>
+        <Animated.View style={styles.card}>
           <Carousel
             enabled={this.state.fullyExpanded}
             imageUris={this.props.profile.images.filter(image => image)}
             onTapImage={this.tap}
             imageContainerStyle={imageContainerStyle}
-            ref={(ref) => this.carousel = ref}
+            ref={ref => this.carousel = ref}
           />
           {this.renderCardBottom()}
-        </View>
+        </Animated.View>
       )
     }
   }
 
   private renderCardBottom = () => {
+
+    if (this.props.type === 'loading') {
+      return null
+    }
+
     return (
       <TouchableWithoutFeedback onPress={this.tap}>
-        <View style={styles.bottomContainer}>
+        <Animated.View style={styles.bottomContainer}>
           <JSText fontSize={20} bold style={styles.name}>
             {this.props.profile.preferredName}
           </JSText>
@@ -324,8 +356,7 @@ class Card extends PureComponent<Props, State> {
             onPress={() => this.toggleReacts()}
             style={styles.middleButton}
           />
-
-        </View>
+        </Animated.View>
       </TouchableWithoutFeedback>
     )
   }
@@ -338,14 +369,31 @@ class Card extends PureComponent<Props, State> {
       }
   }
   private renderExitButton = () => {
-    const containerStyle = {
-      opacity: this.state.fullyExpanded ? 1 : 0,
+
+    if (!this.state.fullyExpanded) {
+      return null
     }
 
     return (
-      <View style={[styles.exitContainer, containerStyle]}>
+      <View style={styles.exitContainer}>
         <TouchableOpacity onPress={this.exitExpandedCard}>
           <Entypo name='cross' size={40} style={styles.exitIcon} />
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
+  private renderEllipsisMenu = () => {
+    if (!this.state.fullyExpanded || this.props.type !== 'normal') {
+      return null
+    }
+
+    return (
+      <View style={styles.ellipsisContainer}>
+        <TouchableOpacity style={styles.ellipsisTouchable} onPress={this.openEllipsisMenu}>
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
         </TouchableOpacity>
       </View>
     )
@@ -373,14 +421,28 @@ class Card extends PureComponent<Props, State> {
     )
   }
 
+  private openEllipsisMenu = () => {
+
+    // TODO: add onPress events
+
+    const buttons = [
+      {
+        title: 'Block User',
+      },
+      {
+        title: 'Report User',
+      },
+    ]
+    const {options, callback} = generateActionSheetOptions(buttons)
+    this.props.type === 'normal' && this.props.showActionSheetWithOptions(options, callback)
+  }
+
   private cardWidth = () => WIDTH - 2 * MAX_HORIZONTAL_MARGIN
 
-  private canSwipe = () => this.canTapOrSwipe()
+  private canSwipe = () => this.props.type === 'normal'
                            && !this.state.fullyExpanded
                            && this.props.positionInStack === 0
                            && !this.isSwipingProgrammatically
-
-  private canTapOrSwipe = () => !this.props.loading && !this.props.previewMode
 
   private isSwipe = (gestureState: PanResponderGestureState) => {
     return Math.abs(gestureState.dx) > 1 || Math.abs(gestureState.dy) > 1
@@ -411,7 +473,7 @@ class Card extends PureComponent<Props, State> {
      * don't bounce on Android.
      */
 
-    if (Platform.OS !== 'ios' || !this.canTapOrSwipe()) {
+    if (Platform.OS !== 'ios' || this.props.type !== 'normal') {
      return
     }
 
@@ -436,11 +498,14 @@ class Card extends PureComponent<Props, State> {
   }
 
   private exitExpandedCard = () => {
-    if (this.state.fullyExpanded) {
-      this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
-      this.contractCard(true)
+    if (this.props.type === 'preview') {
+      this.props.exit()
+    } else if (this.props.type === 'normal') {
+      if (this.state.fullyExpanded) {
+        this.mainScrollView && this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+        this.contractCard(true)
+      }
     }
-
   }
 
   private swipe = (direction: Direction) => {
@@ -461,12 +526,13 @@ class Card extends PureComponent<Props, State> {
   }
 
   private onCompleteSwipe = (direction: Direction) => {
-    this.props.onCompleteSwipe && this.props.onCompleteSwipe(direction, this.props.profile)
-    if (!this.props.previewMode) {
-      this.carousel.reset(false)
-      this.state.pan.setValue({x: 0, y: 0})
-      this.state.panX.setValue(0)
+    if (this.props.type !== 'normal') {
+      return
     }
+    this.props.onCompleteSwipe && this.props.onCompleteSwipe(direction, this.props.profile)
+    this.carousel && this.carousel.reset(false)
+    this.state.pan.setValue({x: 0, y: 0})
+    this.state.panX.setValue(0)
   }
 
   private setupGestureResponders = () => {
@@ -479,8 +545,8 @@ class Card extends PureComponent<Props, State> {
       onPanResponderMove: (event, gestureState) => {
         if (this.canSwipe() && this.isSwipe(gestureState)) {
           this.isSwiping = true
-          Animated.event([undefined, {dx: this.state.pan.x, dy: this.state.pan.y}])(event, gestureState)
-          Animated.event([undefined, {dx: this.state.panX}])(event, gestureState)
+          Animated.event([null, {dx: this.state.pan.x, dy: this.state.pan.y}])(event, gestureState)
+          Animated.event([null, {dx: this.state.panX}])(event, gestureState)
         }
       },
 
@@ -517,8 +583,8 @@ class Card extends PureComponent<Props, State> {
         } else {
           // spring card back
           Animated.parallel([
-            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 4 }),
-            Animated.spring(this.state.panX, { toValue: 0, friction: 4 }),
+            Animated.spring(this.state.pan, { toValue: { x: 0, y: 0 }, friction: 6 }),
+            Animated.spring(this.state.panX, { toValue: 0, friction: 6 }),
           ]).start()
         }
       },
@@ -528,11 +594,11 @@ class Card extends PureComponent<Props, State> {
   private getInitialState = (): State => ({
       pan: new Animated.ValueXY(),
       panX: new Animated.Value(0),
-      expansion: new Animated.Value(this.props.previewMode ? 1 : 0),
-      fullyExpanded: !!this.props.previewMode,
+      expansion: new Animated.Value(this.props.type === 'preview' ? 1 : 0),
+      fullyExpanded: this.props.type === 'preview',
       margin: {
-        top: new Animated.Value(this.props.previewMode ? 0 : MAX_VERTICAL_MARGIN),
-        bottom: new Animated.Value(this.props.previewMode ? 0 : MAX_VERTICAL_MARGIN),
+        top: new Animated.Value(this.props.type === 'preview' ? 0 : MAX_VERTICAL_MARGIN),
+        bottom: new Animated.Value(this.props.type === 'preview' ? 0 : MAX_VERTICAL_MARGIN),
       },
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
@@ -574,13 +640,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   outerContainer: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
     flex: 1,
-    ...StyleSheet.absoluteFillObject,
   },
   innerContainer: {
     flex: 1,
-    overflow: 'hidden', // so that border radius applies to subviews
+    overflow: Platform.OS === 'ios' ? 'hidden' : 'visible',
   },
   scrollView: {
     flex: 1,
@@ -611,8 +677,6 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
     }),
-  },
-  thirdCard: {
   },
   overlay: {
     position: 'absolute',
@@ -657,6 +721,15 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     color: 'rgb(66, 64, 64)',
   },
+  ellipsisContainer: {
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  ellipsisTouchable: {
+    padding: 15,
+  },
   exitContainer: {
     backgroundColor: 'transparent',
     position: 'absolute',
@@ -681,6 +754,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(240, 240, 240)',
     height: WIDTH - 2 * MAX_HORIZONTAL_MARGIN,
     width: WIDTH - 2 * MAX_HORIZONTAL_MARGIN,
+    borderTopRightRadius: BORDER_RADIUS,
+    borderTopLeftRadius: BORDER_RADIUS,
   },
   namePlaceholder: {
     marginTop: 12,
@@ -691,5 +766,14 @@ const styles = StyleSheet.create({
   },
   middleButton:{
     alignSelf: 'center'
-  }
+  },
+  dot: {
+    borderWidth: 0.5,
+    marginVertical: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderColor: 'gray',
+    backgroundColor: 'white',
+  },
 })

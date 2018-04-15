@@ -12,7 +12,7 @@ interface State {
 
 }
 
-type Props = NavigationScreenPropsWithOwnProps<OwnProps >
+type Props = NavigationScreenPropsWithOwnProps<OwnProps>
 
 class ProfilePreviewScreen extends PureComponent<Props, State> {
   render() {

@@ -41,7 +41,7 @@ function* attemptFetchUsers(_: AttemptFetchAllUsersAction | RehydrateAction) {
       users: users.users[0].filter(user => user.images.find(image => !!image.url)).map(user => ({
         id: user.id,
         bio: user.bio,
-        preferredName: user.preferred_name,
+        preferredName: user.preferred_name || '',
         images: user.images.map((image) => image.url),
         tags: Array.from(shuffle(TAGS)),
       })),

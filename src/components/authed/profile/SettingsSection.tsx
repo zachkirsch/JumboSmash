@@ -85,7 +85,7 @@ class SettingsSection extends PureComponent<Props, {}> {
     })
 
     const {options, callback} = generateActionSheetOptions(buttons)
-    this.props.showActionSheetWithOptions(options, callback)
+    this.props.showActionSheetWithOptions!(options, callback)
   }
 
   private openHelpActionSheet = () => {
@@ -100,7 +100,7 @@ class SettingsSection extends PureComponent<Props, {}> {
 
     // BLOCK USER
     buttons.push({
-      title: 'Block Users',
+      title: 'Blocked Users',
       onPress: this.props.block,
     })
 
@@ -117,7 +117,7 @@ class SettingsSection extends PureComponent<Props, {}> {
     })
 
     const {options, callback} = generateActionSheetOptions(buttons)
-    this.props.showActionSheetWithOptions(options, callback)
+    this.props.showActionSheetWithOptions!(options, callback)
   }
 }
 

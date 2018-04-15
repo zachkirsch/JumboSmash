@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "128220197623",
+    "firebase_url": "https://tuftsjumbosmash.firebaseio.com",
+    "project_id": "tuftsjumbosmash",
+    "storage_bucket": "tuftsjumbosmash.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128220197623:android:557d3f69ccc70a66",
+        "android_client_info": {
+          "package_name": "com.jumbosmash2018"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128220197623-6p23s9lqqiuu1vhr2it4r9c80ffpilof.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "128220197623-0ot3sg2jr6epbhb312p1c6jfb7itta5l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHe010cLmsavmosIL3k9JbbzigPWtQYGI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

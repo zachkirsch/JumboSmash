@@ -20,7 +20,7 @@ import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
 
 interface OwnProps {
-  focusKeyboardOnLoginScreen?: () => void
+  focusKeyboardOnLoginScreen: () => void
 }
 
 interface StateProps {
@@ -49,7 +49,7 @@ const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/(
 
 class VerifyEmailScreen extends PureComponent<Props, State> {
 
-  private checkEmailScreen: CheckEmailScreen
+  private checkEmailScreen: CheckEmailScreen | null
 
   constructor(props: Props) {
     super(props)
@@ -148,7 +148,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         break
     }
 
-    let bottomSection: JSX.Element
+    let bottomSection = null
     if (this.props.authError === AuthError.NOT_SENIOR) {
       bottomSection = (
         <EmailUsFooter
@@ -180,7 +180,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       submitVerificationCode={this.props.submitVerificationCode}
       authError={this.props.authError}
       clearAuthErrorMessage={this.props.clearAuthErrorMessage}
-      ref={(ref) => this.checkEmailScreen = ref}
+      ref={ref => this.checkEmailScreen = ref}
       waitingForVerificationResponse={this.props.waitingForVerificationResponse}
     />
   )

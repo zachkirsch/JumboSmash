@@ -15,7 +15,9 @@ interface Props {
   imageUris: string[]
   enabled: boolean
   onTapImage?: () => void
-  imageContainerStyle: any /* tslint:disable-line:no-any */
+  containerStyle?: any /* tslint:disable-line:no-any */
+  imageContainerStyle?: any /* tslint:disable-line:no-any */
+  imageStyle?: any /* tslint:disable-line:no-any */
 }
 
 interface State {
@@ -42,12 +44,12 @@ class Carousel extends PureComponent<Props, State> {
     this.setState({
       carouselIndex: 0,
     })
-    this.carouselScrollView.scrollTo({ x: 0, y: 0, animated })
+    this.carouselScrollView && this.carouselScrollView.scrollTo({ x: 0, y: 0, animated })
   }
 
   render() {
     return (
-      <View style={styles.container}>
+      <Animated.View style={[styles.container, this.props.containerStyle]}>
         <ScrollView
           horizontal
           pagingEnabled
@@ -64,7 +66,7 @@ class Carousel extends PureComponent<Props, State> {
         <View style={styles.dotsContainer}>
           {this.renderDots()}
         </View>
-      </View>
+      </Animated.View>
     )
   }
 
@@ -75,7 +77,7 @@ class Carousel extends PureComponent<Props, State> {
         <TouchableWithoutFeedback onPress={this.onTap}>
           <Animated.Image
             source={{uri}}
-            style={[styles.image]}
+            style={[styles.image, this.props.imageStyle]}
             resizeMode={'stretch'}
           />
         </TouchableWithoutFeedback>
@@ -90,8 +92,8 @@ class Carousel extends PureComponent<Props, State> {
 
     return this.props.imageUris.map((_, i) => {
       const style = [styles.dot, {
-        backgroundColor: this.state.carouselIndex === i ? 'black' : 'white',
-        borderColor:     this.state.carouselIndex === i ? 'white' : 'black',
+        backgroundColor: this.state.carouselIndex === i ? 'gray' : 'white',
+        borderColor:     this.state.carouselIndex === i ? 'white' : 'gray',
       }]
       return <View key={`dot-${i}`} style={style} />
     })
@@ -144,7 +146,7 @@ const styles = StyleSheet.create({
     width: WIDTH,
   },
   dot: {
-    borderWidth: 0,
+    borderWidth: 0.5,
     marginHorizontal: 5,
     width: 10,
     height: 10,

@@ -20,19 +20,29 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
 
     case SwipeActionType.ATTEMPT_SWIPE:
 
-      let nextIndexOfUserOnTop = (state.indexOfUserOnTop + 1) % newUsers.size
+      let nextIndexOfUserOnTop = state.indexOfUserOnTop + 1
 
-      // if we're about to leave the stale zone, remove stale users
-      if (newUsers.get(state.indexOfUserOnTop).stale && !newUsers.get(nextIndexOfUserOnTop).stale) {
-        newUsers = newUsers.slice(nextIndexOfUserOnTop).toList()
-        nextIndexOfUserOnTop = 0
+      // if this is a right swipe, remove any duplicates so the user won't see this person again
+      let finalUsers = newUsers
+      if (action.direction === 'right') {
+        finalUsers = List()
+        for (let i = 0; i < newUsers.size; i++) {
+          const user = newUsers.get(i)
+          if (user.id !== action.onUser.id) {
+            finalUsers = finalUsers.push(user)
+          } else if (i < nextIndexOfUserOnTop) {
+            nextIndexOfUserOnTop -= 1
+          }
+        }
       }
+
+      nextIndexOfUserOnTop = nextIndexOfUserOnTop % finalUsers.size
 
       return {
         ...state,
         allUsers: {
           ...state.allUsers,
-          value: newUsers,
+          value: finalUsers,
         },
         indexOfUserOnTop: nextIndexOfUserOnTop,
       }
@@ -47,23 +57,10 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
     case SwipeActionType.FETCH_ALL_USERS_SUCCESS:
-
-      // keep the next ten users around (at the start of the list)
-      // to avoid rendering issues, but mark them as stale so that
-      // we can remove them once we're onto the new users
-      newUsers = List()
-      const numExistingUsers = state.allUsers.value.size
-      for (let i = 0; i < Math.min(10, numExistingUsers); i++) {
-        newUsers = newUsers.push({
-          ...state.allUsers.value.get((state.indexOfUserOnTop + i) % numExistingUsers),
-          stale: true,
-        })
-      }
-
       return {
         indexOfUserOnTop: 0,
         allUsers: {
-          value: newUsers.concat(shuffle(action.users)).toList(),
+          value: List(shuffle(action.users)),
           loading: false,
         },
         lastFetched: Date.now(),

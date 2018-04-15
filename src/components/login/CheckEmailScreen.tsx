@@ -37,7 +37,7 @@ const INITIAL_STATE: State = {
 class CheckEmailScreen extends PureComponent<Props, State> {
 
   private resendCodeTimer: number
-  private textInputRef: TextInputRef
+  private textInputRef: TextInputRef | null
 
   constructor(props: Props) {
     super(props)
@@ -57,9 +57,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   }
 
   public focusTextInput = () => {
-    if (this.textInputRef) {
-      this.textInputRef.focus()
-    }
+    this.textInputRef && this.textInputRef.focus()
   }
 
   public textInputIsFocused = () => this.textInputRef && this.textInputRef.isFocused()
@@ -96,7 +94,10 @@ class CheckEmailScreen extends PureComponent<Props, State> {
         contentContainerStyle={styles.wrapper}
       >
         <View style={styles.header} />
-        <KeyboardAvoidingView behavior={'padding'} style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.container}
+        >
           <View style={styles.messageContainer}>
             <SimpleLineIcons name='envelope' size={scale(50)} color='rgba(172,203,238,0.6)' />
             <View style={styles.contentTitleContainer}>
@@ -124,7 +125,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 style={inputStyle}
                 onChangeText={this.onChangeCode}
                 value={this.state.verificationCode}
-                placeholder='••••••'
+                placeholder='✲ ✲ ✲ ✲ ✲ ✲'
                 keyboardType={'numeric'}
                 maxLength={CODE_LENGTH}
                 underlineColorAndroid={underlineColorAndroid}
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
     height: 75,
   },
   footer: {
-    height: 100,
+    height: 0,
   },
   messageContainer: {
     justifyContent: 'center',

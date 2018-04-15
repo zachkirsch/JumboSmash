@@ -27,7 +27,7 @@ class JSTextInput extends PureComponent<Props, State> {
 
   public render() {
 
-    const { textInputRef, placeholder, style, fontSize, ...otherProps } = this.props
+    const { textInputRef, placeholder, style, fontSize, multiline, ...otherProps } = this.props
 
     const textInputStyles: any[] = [styles.input] /* tslint:disable-line:no-any */
     if (this.props.fancy) {
@@ -42,6 +42,12 @@ class JSTextInput extends PureComponent<Props, State> {
     textInputStyles.push({
       fontSize: fontSize || DEFAULT_FONT_SIZE,
     })
+
+    textInputStyles.push(Platform.select({
+      android: {
+        textAlignVertical: multiline ? 'top' : 'center',
+      },
+    }))
 
     return (
       <TextInput
@@ -75,15 +81,8 @@ export default JSTextInput
 
 const styles = StyleSheet.create({
   input: {
-    fontSize: 15,
-    fontWeight: '300',
-    fontFamily: 'Avenir',
+    fontFamily: 'Avenir-Book',
     paddingVertical: 0,
-    ...Platform.select({
-      android: {
-        textAlignVertical: 'top',
-      },
-    }),
   },
   fancy: {
     ...Platform.select({
