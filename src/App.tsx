@@ -2,7 +2,7 @@ import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
 import { StatusBar, StyleSheet, View } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen, TutorialScreen } from './components'
+import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen, TutorialScreen, SwipeScreen } from './components'
 import { RootState } from './redux'
 import { getRefToChatMessages } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
@@ -21,7 +21,7 @@ interface DispatchProps {
 
 type Props = StateProps & DispatchProps
 
-const SHOULD_SHOW_COUNTDOWN = true
+const SHOULD_SHOW_COUNTDOWN = false
 
 class App extends PureComponent<Props, {}> {
 
@@ -62,7 +62,7 @@ class App extends PureComponent<Props, {}> {
       // TODO: replace with splash screen
       return null /* tslint:disable-line:no-null-keyword */
     } else if (SHOULD_SHOW_COUNTDOWN) {
-      return <LoginRouter />
+      return <LoginRouter/>
     // } else if (!this.props.isLoggedIn) {
     //   return <LoginRouter />
     // } else if (!this.props.codeOfConductAccepted) {

@@ -2,9 +2,12 @@ import React, { PureComponent } from 'react';
 import { View, Text, StyleSheet, Platform} from 'react-native';
 import Carousel from 'simple-carousel-react-native';
 import SafeAreaView from 'react-native-safe-area-view'
-import { HeaderBar, JSText, JSTextInput } from '../../common'
+import { JSText, JSButton } from '../../common'
+import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
 
-class TutorialScreen extends PureComponent<{}, {}> {
+type Props = NavigationScreenPropsWithOwnProps<{}>
+
+class TutorialScreen extends PureComponent<Props, {}> {
   render(){
     return(
       <View style={styles.fill}>
@@ -23,19 +26,19 @@ class TutorialScreen extends PureComponent<{}, {}> {
             </Text>
           </View>
           <View>
-            {this.renderHeadings('Edit your profile, swipe on and chat with potential matches')}
+            {this.renderHeadings('Edit your profile, swipe on and chat with potential matches!')}
           <Text>
             Insert Image Here
           </Text>
           </View>
           <View>
-            {this.renderHeadings("Add tags to your profiles")}
+            {this.renderHeadings("Add tags to your profiles,")}
           <Text>
             Insert Image Here
           </Text>
           </View>
           <View>
-            {this.renderHeadings("React on your friends bios")}
+            {this.renderHeadings("React on your friends bios,")}
           <Text>
             Insert Image Here
           </Text>
@@ -48,9 +51,10 @@ class TutorialScreen extends PureComponent<{}, {}> {
           </View>
           <View>
             {this.renderHeadings("Happy Smashing!")}
-          <Text>
-            Insert Image Here
-          </Text>
+            <View style={styles.bigcontainer}></View><View style={styles.bigcontainer}></View>
+            <View style={styles.bigcontainer}></View><View style={styles.bigcontainer}></View>
+          <JSButton label="lemme smash" onPress={()=> this.props.navigation.navigate('Main')}> Let's go</JSButton>
+
           </View>
         </Carousel>
         </View>
@@ -74,6 +78,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
+  },
+  bigcontainer:{
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   container: {
     flexDirection: 'row',

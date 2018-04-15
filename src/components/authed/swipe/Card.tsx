@@ -12,16 +12,18 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  SafeAreaView,
 } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
-import { JSText } from '../../common'
+import { JSText, CircleButton} from '../../common'
 import { clamp } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 type Props = {
   loading?: boolean
@@ -46,6 +48,7 @@ interface State {
   }
   scrollViewBackgroundColor: string
   isMomentumScrolling: boolean
+
 }
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
@@ -56,7 +59,7 @@ const MAX_VERTICAL_MARGIN = WIDTH / 12
 const MAX_HORIZONTAL_MARGIN = WIDTH / 15
 
 class Card extends PureComponent<Props, State> {
-
+  private reactsViewed: boolean
   private cardPanResponder: PanResponderInstance
   private mainScrollView: any /* tslint:disable-line:no-any */
   private carousel: Carousel
@@ -68,6 +71,7 @@ class Card extends PureComponent<Props, State> {
     super(props)
     this.state = this.getInitialState()
     this.setupGestureResponders()
+    this.reactsViewed = false
   }
 
   componentDidMount() {
@@ -164,6 +168,7 @@ class Card extends PureComponent<Props, State> {
       }),
     }
 
+
     const scrollViewStyle = {
       backgroundColor: this.state.scrollViewBackgroundColor,
     }
@@ -230,6 +235,13 @@ class Card extends PureComponent<Props, State> {
       </Animated.View>
     )
   }
+  private reactArea = this.reactsViewed ? (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.titleContainer}>
+      <JSText bold fontSize={22}>Sup</JSText>
+      </View>
+    </SafeAreaView>
+) : ( <View></View>    );
 
   private renderCard = () => {
 
@@ -291,7 +303,6 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderCardBottom = () => {
-
     return (
       <TouchableWithoutFeedback onPress={this.tap}>
         <View style={styles.bottomContainer}>
@@ -304,11 +315,28 @@ class Card extends PureComponent<Props, State> {
           <JSText fontSize={14} style={styles.bio}>
             {this.props.profile.bio}
           </JSText>
+          {this.reactArea}
+          <CircleButton
+            IconClass={SimpleLineIcons}
+            iconName={"emotsmile"}
+            iconSize={20}
+            iconColor='black'
+            onPress={() => this.toggleReacts()}
+            style={styles.middleButton}
+          />
+
         </View>
       </TouchableWithoutFeedback>
     )
   }
 
+  private toggleReacts = () => {
+      if (this.reactsViewed){
+        this.reactsViewed = false
+      } else {
+        this.reactsViewed = true
+      }
+  }
   private renderExitButton = () => {
     const containerStyle = {
       opacity: this.state.fullyExpanded ? 1 : 0,
@@ -514,6 +542,34 @@ class Card extends PureComponent<Props, State> {
 export default Card
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    height: 66,
+    zIndex: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'gray',
+        shadowRadius: 5,
+        shadowOpacity: 1,
+      },
+    }),
+    ...Platform.select({
+      android: {
+        borderBottomWidth: 1,
+        borderBottomColor: 'lightgray',
+      },
+    }),
+  },
+  sideView: {
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    flex: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   fill: {
     flex: 1,
   },
@@ -633,4 +689,7 @@ const styles = StyleSheet.create({
   tagPlaceholder: {
     marginBottom: 5,
   },
+  middleButton:{
+    alignSelf: 'center'
+  }
 })
