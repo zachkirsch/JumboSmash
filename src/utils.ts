@@ -31,6 +31,11 @@ export function clamp(value: number, min: number, max: number) {
   }
 }
 
+// retursn A mod B
+export function mod(a: number, b: number) {
+  return ((a % b) + b) % b
+}
+
 export function lastIndexOf<T>(array: T[], predicate: (item: T) => boolean) {
   for (let i = array.length - 1; i >= 0; i--) {
     if (predicate(array[i])) {
