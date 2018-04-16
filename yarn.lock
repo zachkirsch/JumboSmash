@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@bam.tech/react-native-snap-carousel@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@bam.tech/react-native-snap-carousel/-/react-native-snap-carousel-3.2.3.tgz#2dcbbc518bdc083e74d51ca7d4b57d6dfad9266d"
+  dependencies:
+    prop-types "^15.5.10"
+    react-addons-shallow-compare "15.6.0"
+
 "@expo/react-native-action-sheet@^1.0.1", "@expo/react-native-action-sheet@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@expo/react-native-action-sheet/-/react-native-action-sheet-1.0.2.tgz#abdfb21cbefec6147c6ee8b8fb725287cbd2e696"
@@ -1732,7 +1739,7 @@ fbjs-scripts@^0.8.1:
     semver "^5.1.0"
     through2 "^2.0.0"
 
-fbjs@^0.8.14, fbjs@^0.8.16, fbjs@^0.8.9:
+fbjs@^0.8.14, fbjs@^0.8.16, fbjs@^0.8.4, fbjs@^0.8.9:
   version "0.8.16"
   resolved "https://registry.yarnpkg.com/fbjs/-/fbjs-0.8.16.tgz#5e67432f550dc41b572bf55847b8aca64e5337db"
   dependencies:
@@ -3534,6 +3541,13 @@ rc@^1.0.1, rc@^1.1.6, rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-addons-shallow-compare@15.6.0:
+  version "15.6.0"
+  resolved "https://registry.yarnpkg.com/react-addons-shallow-compare/-/react-addons-shallow-compare-15.6.0.tgz#b7a4e5ff9f2704c20cf686dd8a05dd08b26de252"
+  dependencies:
+    fbjs "^0.8.4"
+    object-assign "^4.1.0"
+
 react-clone-referenced-element@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/react-clone-referenced-element/-/react-clone-referenced-element-1.0.1.tgz#2bba8c69404c5e4a944398600bcc4c941f860682"
@@ -3583,6 +3597,14 @@ react-native-cli@^2.0.1:
 react-native-communications@2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/react-native-communications/-/react-native-communications-2.2.1.tgz#7883b56b20a002eeb790c113f8616ea8692ca795"
+
+react-native-countdown-component@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/react-native-countdown-component/-/react-native-countdown-component-1.5.1.tgz#6252e6423c7e895409433e76d2745b1a486deebf"
+  dependencies:
+    lodash "^4.0.0"
+    prop-types "^15.5.8"
+    sprintf-js "^1.1.1"
 
 react-native-dismiss-keyboard@1.0.0:
   version "1.0.0"
@@ -3712,6 +3734,10 @@ react-native-shimmer-placeholder@^1.0.25:
   dependencies:
     prop-types "15.6.0"
     react-native-linear-gradient "2.4.0"
+
+react-native-simple-dialogs@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/react-native-simple-dialogs/-/react-native-simple-dialogs-0.3.1.tgz#8b7cee294c6c2b140f3fd3c75f87b178e229936e"
 
 "react-native-tab-view@github:react-navigation/react-native-tab-view":
   version "0.0.74"
@@ -4347,6 +4373,10 @@ signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
 
+simple-carousel-react-native@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/simple-carousel-react-native/-/simple-carousel-react-native-1.0.2.tgz#840cf62a0de7412e9e15ea515c10f428208d6df9"
+
 simple-plist@0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/simple-plist/-/simple-plist-0.1.4.tgz#10eb51b47e33c556eb8ec46d5ee64d64e717db5d"
@@ -4469,6 +4499,10 @@ split-string@^3.0.1, split-string@^3.0.2:
   resolved "https://registry.yarnpkg.com/split-string/-/split-string-3.1.0.tgz#7cb09dda3a86585705c64b39a6466038682e8fe2"
   dependencies:
     extend-shallow "^3.0.0"
+
+sprintf-js@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.1.1.tgz#36be78320afe5801f6cea3ee78b6e5aab940ea0c"
 
 sprintf-js@~1.0.2:
   version "1.0.3"

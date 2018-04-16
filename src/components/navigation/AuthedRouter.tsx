@@ -7,6 +7,7 @@ import { ChatScreen, MatchesList } from '../authed/chat'
 import * as Profile from '../authed/profile'
 import { SwipeScreen } from '../authed/swipe'
 import TabBar from './TabBar'
+//import { TutorialScreen } from '../authed/tutorial'
 
 const styles = StyleSheet.create({
   tabBar: {

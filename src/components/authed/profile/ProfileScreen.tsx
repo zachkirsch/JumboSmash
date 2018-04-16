@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: '5%',
+    marginLeft: '12%',
   },
   reactGroup: {
     flexDirection: 'row',

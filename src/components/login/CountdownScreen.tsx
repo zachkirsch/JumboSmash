@@ -15,7 +15,7 @@ interface State {
 
 class CountdownScreen extends PureComponent<{}, State> {
 
-  private launchDay = moment([2018, 4, 13]) // Month is 0-based
+  private launchDay = moment([2018, 4, 12]) // Month is 0-based
   private timer: number
 
   constructor(props: {}) {
@@ -42,11 +42,13 @@ class CountdownScreen extends PureComponent<{}, State> {
           end={{x: 0, y: 0.5}}
           style={StyleSheet.absoluteFill}
         />
-        <JSImage
-          source={Images.jumbo2018}
-          style={styles.logo}
-          resizeMode={'contain'}
-        />
+        <View style={styles.logoContainer}>
+          <JSImage
+            source={Images.jumbo2018}
+            style={styles.logo}
+            resizeMode={'contain'}
+          />
+        </View>
         <View style={styles.bottomContainer}>
           {this.renderCountdown()}
           <View style={styles.titleTextContainer}>
@@ -141,12 +143,14 @@ const styles = StyleSheet.create({
   countdownUnitLabel: {
     letterSpacing: 3.1,
   },
-  logo: {
+  logoContainer: {
     marginTop: 30,
     marginHorizontal: '15%',
     flex: 1,
-    width: undefined,
-    height: undefined,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   titleTextContainer: {
     justifyContent: 'center',
