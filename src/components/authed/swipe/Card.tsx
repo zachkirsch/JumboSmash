@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
 import { ConfirmDialog } from 'react-native-simple-dialogs';
+import { Images } from '../../../assets'
 import {
   Animated,
   Dimensions,
@@ -14,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   View,
   SafeAreaView,
+  Image,
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
@@ -26,6 +28,8 @@ import { clamp, generateActionSheetOptions } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import { ProfileReact } from '../../../services/profile';
+import reacts from '../../../services/profile/REACTS'
 
 interface PreviewProps {
   type: 'preview'
@@ -61,6 +65,9 @@ interface State {
   scrollViewBackgroundColor: string
   isMomentumScrolling: boolean
   reactDialogView: boolean
+  currentReacts: boolean[]
+  ReactsWithUpdates: ProfileReact[]
+  OriginalReactNumbers: number[]
 }
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
@@ -70,7 +77,7 @@ const HEIGHT = Dimensions.get('window').height
 const MAX_VERTICAL_MARGIN = WIDTH / 12
 const MAX_HORIZONTAL_MARGIN = WIDTH / 15
 const BORDER_RADIUS = Platform.select({ ios: 20, android: 30 })
-
+const REACTS = reacts
 class Card extends PureComponent<Props, State> {
   private cardPanResponder: PanResponderInstance
   private mainScrollView: any /* tslint:disable-line:no-any */
@@ -83,6 +90,7 @@ class Card extends PureComponent<Props, State> {
     super(props)
     this.state = this.getInitialState()
     this.setupGestureResponders()
+
   }
 
   componentDidMount() {
@@ -334,64 +342,91 @@ class Card extends PureComponent<Props, State> {
           <JSText fontSize={14} style={styles.bio}>
             {this.props.profile.bio}
           </JSText>
-          <ConfirmDialog
-              visible={this.state.reactDialogView}
-              title="React to Bio"
-              onTouchOutside={() => {this.setState({reactDialogView: false})}}
-              positiveButton={{
-                  title: "Done",
-                  onPress: () => {this.setState({reactDialogView: false})} //TODO: send tags
-              }} >
-              <View>
-              <View style={styles.reactColumns}>
-                <View style={styles.reactColumn}>
-                <View style={styles.reactGroup}>
-                  <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                </View>
-                <View style={styles.reactGroup}>
-                  <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                </View>
-                  </View>
-                  <View style={styles.reactColumn}>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                    </View>
-                  <View style={styles.reactColumn}>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                  <View style={styles.reactGroup}>
-                    <TouchableOpacity><JSText>😮</JSText></TouchableOpacity>
-                  </View>
-                    </View>
-                </View>
-              </View>
-          </ConfirmDialog>
-          <CircleButton
-            IconClass={SimpleLineIcons}
-            iconName={"emotsmile"}
-            iconSize={20}
-            iconColor='black'
-            onPress={() => this.toggleReacts()}
-            style={styles.middleButton}
-          />
+          {this.renderReactStats()}
         </Animated.View>
       </TouchableWithoutFeedback>
     )
   }
+  private renderReactStat = (react: ProfileReact,key:number) => {
 
-  private toggleReacts = () => {
-        if (this.state.reactDialogView){
-          this.setState({ reactDialogView: false})
-        } else {
-          this.setState({ reactDialogView: true})
-        }
+    let toRender
+    switch (react.type) {
+      case 'emoji':
+        toRender = <JSText fontSize={23}>{react.emoji}</JSText>
+        break
+      case 'image':
+        toRender = (
+          <Image
+            source={Images[react.imageName]}
+            style={styles.smallReact}
+          />
+        )
+    }
+
+    return (
+      <View style={styles.reactGroup}>
+      <TouchableOpacity onPress={()=> this.toggleReactButton(key)}>
+
+        <JSText fontSize={12} style={styles.reactNum}>{toRender}{` x ${react.count}`}</JSText>
+      </TouchableOpacity>
+      </View>
+    )
+  }
+
+  private renderReactStats = () => {
+    const reactsTwo = []
+    const rC = []
+    for (let i = 0; i < 6; i+=2) {
+      rC.push(
+        <View style={[this.state.currentReacts[i]? styles.pressed: styles.unpressed, styles.reactColumn]} key={i}>
+          {this.renderReactStat(this.state.ReactsWithUpdates[i], i)}
+        </View>)
+       reactsTwo.push(
+        <View style={[this.state.currentReacts[i+1]? styles.pressed: styles.unpressed, styles.reactColumn]} key={i+1}>
+          {this.renderReactStat(this.state.ReactsWithUpdates[i+1], i+1)}
+        </View>)
+    }
+
+    return (
+        <View>
+        <JSText fontSize={13} bold style={styles.reactsTitle}>REACTS RECEIVED</JSText>
+        <View style={[styles.padded]}>
+        <View style={styles.reactColumns}>
+          {rC}
+          </View>
+        <View style={styles.reactColumns}>
+          {reactsTwo}
+        </View>
+        </View>
+      </View>
+    )
+}
+
+  private toggleReactButton = (key: number) => {
+    let bools = []
+    for (let i = 0; i < this.state.currentReacts.length; i++){
+      bools[i] = this.state.currentReacts[i]
+    }
+
+    bools[key] = !(bools[key])
+
+    let reacts = []
+
+    for (let i = 0; i < 6; i++){
+      reacts[i] = Object.assign({}, this.state.ReactsWithUpdates[i]) //deep copy
+    }
+    if (bools[key] == true && reacts[key].count == this.state.OriginalReactNumbers[key]){
+      reacts[key].count = reacts[key].count + 1
+      console.log('changing number from ' + this.state.OriginalReactNumbers[key].toString() + ' to ' + reacts[key].count.toString())
+    } else if (bools[key] == false && reacts[key].count != this.state.OriginalReactNumbers[key]){
+      reacts[key].count = reacts[key].count - 1
+      }
+      this.setState({ReactsWithUpdates: reacts})
+      this.setState({currentReacts: bools})
+
 
   }
+
 
   private renderExitButton = () => {
 
@@ -450,7 +485,7 @@ class Card extends PureComponent<Props, State> {
 
     // TODO: add onPress events
 
-    const buttons = [
+  const buttons = [
       {
         title: 'Block User',
       },
@@ -628,6 +663,9 @@ class Card extends PureComponent<Props, State> {
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
       reactDialogView: false,
+      currentReacts: [false, false, false, false, false, false],
+      ReactsWithUpdates: REACTS,
+      OriginalReactNumbers: [REACTS[0].count, REACTS[1].count, REACTS[2].count, REACTS[3].count, REACTS[4].count, REACTS[5].count]
   })
 }
 
@@ -747,6 +785,10 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     color: 'rgb(66, 64, 64)',
   },
+  padded: {
+    paddingLeft: "10%",
+    paddingRight: "10%"
+  },
   ellipsisContainer: {
     backgroundColor: 'transparent',
     position: 'absolute',
@@ -802,18 +844,34 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     backgroundColor: 'white',
   },
+  pressed: {
+    backgroundColor: 'rgba(172, 203, 238, 0.75)'
+  },
+  unpressed: {
+    backgroundColor: 'white',
+  },
+
   reactColumn: {
     flex: 1,
-    height: 80,
+    flexDirection: 'column',
+    height: 50,
     justifyContent: 'space-around',
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(172, 203, 238, 0.75)',
+    marginRight: 10,
+    marginLeft: 10
   },
+
   reactColumns: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginLeft: '12%',
+    marginTop: 10,
   },
+
   reactGroup: {
     flexDirection: 'row',
     alignItems: 'center',

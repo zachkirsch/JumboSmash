@@ -68,14 +68,14 @@ class App extends PureComponent<Props, {}> {
     if (!this.props.rehydrated) {
       // TODO: replace with splash screen
       return null
-    } else if (SHOULD_SHOW_COUNTDOWN) {
-      return <CountdownScreen />
-    } else if (!this.props.isLoggedIn) {
-      return <LoginRouter />
-    } else if (!this.props.codeOfConductAccepted) {
-      return <CodeOfConductScreen />
-    } else if (!this.props.finishedTutorial){
-      return <TutorialScreen finishTutorial={this.props.finishTutorial}/>
+    // } else if (SHOULD_SHOW_COUNTDOWN) {
+    //   return <CountdownScreen />
+    // } else if (!this.props.isLoggedIn) {
+    //   return <LoginRouter />
+    // } else if (!this.props.codeOfConductAccepted) {
+    //   return <CodeOfConductScreen />
+    // } else if (!this.props.finishedTutorial){
+    //   return <TutorialScreen finishTutorial={this.props.finishTutorial}/>
     } else {
       return <AuthedRouter />
     }
