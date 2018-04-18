@@ -1,27 +1,23 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
-import {Composer, GiftedChat, InputToolbar, Send} from 'react-native-gifted-chat'
+import { Image, StyleSheet, TouchableOpacity, View, Platform } from 'react-native'
+import { GiftedChat, InputToolbarProps, MessageProps, IMessage, IChatMessage } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import {
   Conversation,
-  GiftedChatMessage,
-  GiftedChatUser,
   sendMessages,
   setConversationAsRead,
 } from '../../../services/matches'
 import {JSText } from '../../common'
 import { HeaderBar } from '../../common'
-import { getFirstName } from '../../../utils'
-
-import SlackMessage from './SlackMessage'
+import { User } from '../../../services/swipe'
+import Message from './Message'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { generateActionSheetOptions } from '../../../utils'
-import LinearGradient from 'react-native-linear-gradient'
-
+import InputToolbar from './InputToolbar'
 
 interface OwnProps {
   conversationId: string,
@@ -36,26 +32,14 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  sendMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
+  sendMessages: (conversationId: string, messages: IChatMessage[]) => void
   setConversationAsRead: () => void
 }
 
-interface State { }
-
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
 
-const buttons = [
-  {
-    title: 'Block User',
-  },
-  {
-    title: 'Report User',
-  },
-]
-const {options, callback} = generateActionSheetOptions(buttons)
-
 @connectActionSheet
-class ChatScreen extends PureComponent<Props, State> {
+class ChatScreen extends PureComponent<Props, {}> {
 
   componentDidMount() {
     this.props.setConversationAsRead()
@@ -69,63 +53,6 @@ class ChatScreen extends PureComponent<Props, State> {
     }
   }
 
-  private renderMessage(props) {
-    const { currentMessage: { text: currText } } = props;
-
-    let messageTextStyle;
-
-    return (
-      <SlackMessage {...props} messageTextStyle={messageTextStyle} />
-    );
-  }
-
-  private renderInputToolbar = (props) => {
-    return (
-      <View
-        style={[styles.tester, { position: 'absolute' }]}
-      >
-        <View style={styles.primary}>
-          {this.renderComposer(props)}
-          {this.renderSend(props)}
-        </View>
-      </View>
-    )
-  }
-
-  private renderComposer = (props) => {
-    return (
-      <LinearGradient
-          colors={[
-            `rgba(232, 240, 252, ${0.35})`,
-            `rgba(212, 214, 219, ${0.35})`,
-          ]}
-          start={{x: 0, y: 1}}
-          end={{x: 1, y: 1}}
-          locations={[0, 1]}
-          style={styles.gradient}
-        >
-        <Composer
-          {...props}
-          placeholder={'Type to impress...'}
-
-        >
-        </Composer>
-      </LinearGradient>
-    )
-  }
-
-  private renderSend = (props) => {
-    return (
-      <Send
-        {...props}
-      >
-        <JSText style={styles.sendButton}>
-          Send
-        </JSText>
-      </Send>
-    )
-  }
-
   public render() {
     const conversation = this.getConversation()
     const messages = conversation.messages.toArray()
@@ -133,67 +60,80 @@ class ChatScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.container}>
-        <HeaderBar renderTitle={this.renderHeaderBarTitle(user)}
-                   goBack={this.props.navigation.goBack}
-                   renderRightIcon={this.renderRightIcon()}/>
+        <HeaderBar
+          renderTitle={this.renderHeaderBarTitle(user)}
+          goBack={this.props.navigation.goBack}
+          renderRightIcon={this.renderRightIcon}
+        />
         <View style={styles.chat}>
           <GiftedChat
             messages={messages}
             renderMessage={this.renderMessage}
-            onSend={this.onSend as any} /* tslint:disable-line:no-any */
-            // placeholder={'Type to impress!'}
+            onSend={this.onSend}
             user={this.props.me}
             renderInputToolbar={this.renderInputToolbar}
-            // renderComposer={this.renderComposer}
-            // renderSend={this.renderSend}
-            // containerStyle={{backgroundColor: 'red',}}
           />
         </View>
       </View>
     )
   }
 
-  private renderHeaderBarTitle = (user: GiftedChatUser) => () => (
+  private renderMessage = (props: MessageProps) => <Message {...props} />
+
+  private renderInputToolbar = (props: InputToolbarProps) => {
+    return (
+      <View style={{flex: 1, marginLeft: 12, marginBottom: 7}}>
+        <InputToolbar {...props} />
+      </View>
+    )
+  }
+
+  private renderHeaderBarTitle = (user: User) => () => (
     <View style={styles.bannerProfile}>
-      <TouchableOpacity onPress={() => this.props.navigation.navigate('ViewProfileScreen', {
-        preview: {
-          id: user._id,
-          preferredName: user.name,
-          bio: user.bio,
-          images: ['https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&oh=841d1ac8113db7793041e165a9a1094d&oe=5B604D66',
-          'https://scontent.fzty2-1.fna.fbcdn.net/v/t1.0-9/1915137_1203819941963_756538_n.jpg?_nc_cat=0&oh=4c744979964530b033e1e6ca66c7a2cf&oe=5B71A02A'],
-          tags: ['tag1','tag2'],
-          // images: user.images,
-          // tags: user.tags,
-        },
-      })}>
-        <Image source={{uri: user.avatar}} style={styles.avatarPhoto} />
-        <JSText fontSize={11} style={styles.headerName}>{getFirstName(user.name)}</JSText>
+      <TouchableOpacity onPress={this.previewProfile(user)} style={{alignItems: 'center'}}>
+        <Image source={{uri: user.images[0]}} style={styles.avatarPhoto} />
+        <JSText fontSize={11} style={styles.headerName}>{user.preferredName}</JSText>
       </TouchableOpacity>
-      {/*<View style={styles.reportBlockButton}>*/}
-        {/*<TouchableWithoutFeedback>*/}
-          {/*<JSText fontSize={11} style={styles.headerName}>{getFirstName(user.name)}</JSText>*/}
-        {/*</TouchableWithoutFeedback>*/}
-      {/*</View>*/}
     </View>
   )
 
-  private renderRightIcon = () => () => (
-    <FontAwesome name='ellipsis-v'
-                 size={30}
-                 color='rgb(172,203,238)'
-                 onPress={() => this.props.showActionSheetWithOptions(options, callback)}/>
-)
+  private renderRightIcon = () => (
+    <TouchableOpacity onPress={this.onPressEllipsis}>
+      <FontAwesome
+        name='ellipsis-v'
+        size={30}
+        color='rgb(172,203,238)'
+      />
+    </TouchableOpacity>
+  )
 
-  // private renderIcon = () => () => (
-  //   <View style={styles.reportBlockButton}>
-  //     <TouchableOpacity>
-  //       <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
-  //     </TouchableOpacity>
-  //   </View>
-  // )
-  private onSend = (messages: GiftedChatMessage[] = []) => {
-    this.props.sendMessages(this.getConversationId(), messages)
+  private previewProfile = (user: User) => () => {
+    this.props.navigation.navigate('ViewProfileScreen', { preview: user })
+  }
+
+  private onPressEllipsis = () => {
+    const buttons = [
+      {
+        title: 'Block User',
+      },
+      {
+        title: 'Report User',
+      },
+    ]
+    const {options, callback} = generateActionSheetOptions(buttons)
+    this.props.showActionSheetWithOptions!(options, callback)
+  }
+
+  private onSend = (messages: IMessage[] = []) => {
+
+    const messagesToSend: IChatMessage[] = []
+    messages.forEach(message => {
+      if (!message.system) {
+        messagesToSend.push(message)
+      }
+    })
+
+    this.props.sendMessages(this.getConversationId(), messagesToSend)
   }
 
   private getConversationId = () => {
@@ -217,7 +157,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>, ownProps: Props): DispatchProps => {
   return {
-    sendMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
+    sendMessages: (conversationId: string, messages: IChatMessage[]) => {
       dispatch(sendMessages(conversationId, messages))
     },
     setConversationAsRead: () => dispatch(setConversationAsRead(ownProps.navigation.state.params.conversationId)),
@@ -234,6 +174,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    marginBottom: 2,
   },
   bannerProfile: {
     marginVertical: 5,
@@ -250,10 +191,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   gradient: {
+    flex: 1,
     borderRadius: 30,
-    flex: 4,
-    marginHorizontal: 8,
-    marginVertical: 8,
   },
   sendButton: {
     color: 'gray',
@@ -271,8 +210,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
-  // reportBlockButton: {
-  //   flex: 1,
-  //   flexDirection: 'column',
-  // }
+  textInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+    lineHeight: 16,
+    marginTop: Platform.select({
+      ios: 6,
+      android: 0,
+    }),
+    marginBottom: Platform.select({
+      ios: 5,
+      android: 3,
+    }),
+  },
+  text: {
+    color: 'blue',
+    fontWeight: '600',
+    fontSize: 17,
+    backgroundColor: 'transparent',
+    marginBottom: 12,
+    marginLeft: 10,
+    marginRight: 10,
+  },
 })

@@ -98,7 +98,7 @@ class MatchesListItem extends PureComponent<Props, State> {
         locations={[0, 1]}
         style={styles.gradient}
       >
-        {this.renderItem(true)}
+        {this.renderItem(!this.props.messageRead)}
       </LinearGradient>
     )
   }

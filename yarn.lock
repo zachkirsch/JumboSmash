@@ -3628,9 +3628,9 @@ react-native-fs@^2.5.1:
     base-64 "^0.1.0"
     utf8 "^2.1.1"
 
-"react-native-gifted-chat@https://github.com/FaridSafi/react-native-gifted-chat#0.4.3":
-  version "0.4.3"
-  resolved "https://github.com/FaridSafi/react-native-gifted-chat#5aa5335d6176421f3cd7d10c31b03c88c33f014d"
+react-native-gifted-chat@0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/react-native-gifted-chat/-/react-native-gifted-chat-0.4.2.tgz#ce8f5b64b552b37d98d567d4a518856366dba8d3"
   dependencies:
     "@expo/react-native-action-sheet" "^1.0.1"
     md5 "2.2.1"

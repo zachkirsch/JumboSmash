@@ -9,22 +9,18 @@ import {
 } from './actions'
 import { ReduxActionType } from '../redux'
 import { Conversation, MatchesState } from './types'
-import {NavigationActions} from "react-navigation";
-import init = NavigationActions.init;
 
 const initialState: MatchesState = {
   chats: Map<string, Conversation>({
     2: {
       conversationId: '2',
       otherUsers: List([{
-        _id: 1,
-        name: 'Zach Kirsch',
-        avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
-                '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+        id: 1,
+        preferredName: 'Zach Kirsch',
         bio: 'Gotta catch em all',
         images: ['https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
         '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366'],
-        tags: ['tag1', 'tag2']
+        tags: ['tag1', 'tag2'],
       }]),
       messages: List([
         {
@@ -46,21 +42,6 @@ const initialState: MatchesState = {
       ]),
       messageIDs: Set([0]),
       mostRecentMessage: 'This is Zach',
-      messagesUnread: true,
-    },
-    4: {
-      conversationId: '4',
-      otherUsers: List([{
-        _id: 3,
-        name: 'Mewtwo',
-        avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
-        bio: 'Gotta catch em all',
-        images: ['https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png'],
-        tags: ['tag1', 'tag2'],
-      }]),
-      messages: List([]),
-      messageIDs: Set([]),
-      mostRecentMessage: '',
       messagesUnread: true,
     },
   }),
@@ -140,6 +121,7 @@ const updateSentStatus = (oldState: MatchesState,
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
+
   switch (action.type) {
 
     case MatchesActionType.RECEIVE_MESSAGES:
@@ -168,8 +150,8 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         chats: state.chats.set(action.conversationId, {
           conversationId: action.conversationId,
           otherUsers: List([{
-            _id: action.onUser.id,
-            name: action.onUser.preferredName,
+            id: action.onUser.id,
+            preferredName: action.onUser.preferredName,
             avatar: action.onUser.images[0],
             bio: action.onUser.bio,
             images: action.onUser.images,

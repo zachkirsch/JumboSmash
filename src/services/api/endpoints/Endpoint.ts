@@ -3,7 +3,7 @@ import { Store } from 'redux'
 import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
 
-const LOCAL_SERVER = false
+const LOCAL_SERVER = true
 const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' : Platform.select({
   ios: 'http://127.0.0.1:5000',
   android: 'http://10.0.2.2:5000',

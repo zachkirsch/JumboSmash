@@ -5,7 +5,8 @@ import { connect, Dispatch } from 'react-redux'
 import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen } from './components'
 import { RootState } from './redux'
 import { getRefToChatMessages } from './services/firebase'
-import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
+import { Conversation, receiveMessages } from './services/matches'
+import { IChatMessage } from 'react-native-gifted-chat'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -16,7 +17,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
+  receiveMessages: (conversationId: string, messages: IChatMessage[]) => void
 }
 
 type Props = StateProps & DispatchProps
@@ -35,7 +36,7 @@ class App extends PureComponent<Props, {}> {
         if (firebaseMessage === null) {
           return
         }
-        const message: GiftedChatMessage = {
+        const message: IChatMessage = {
           ...firebaseMessage.val(),
           createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
         }
@@ -99,7 +100,7 @@ const networkRequestInProgress = (state: RootState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
+    receiveMessages: (conversationId: string, messages: IChatMessage[]) => {
       dispatch(receiveMessages(conversationId, messages))
     },
   }

@@ -6,10 +6,10 @@ import {
   SendMessagesFailureAction,
   SendMessagesSuccessAction,
 } from './actions'
-import { GiftedChatMessage } from './types'
+import { IChatMessage } from 'react-native-gifted-chat'
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
-  function pushMessagetoFirebase(message: GiftedChatMessage) {
+  function pushMessagetoFirebase(message: IChatMessage) {
     return new Promise((resolve, reject) => {
       const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({
