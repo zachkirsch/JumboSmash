@@ -1,22 +1,16 @@
 import { Match } from '../../swipe'
 import { GetEndpoint, HttpGetRequest } from './Endpoint'
+import { GetUserResponse } from './GetUser'
 
 interface Request extends HttpGetRequest {
 }
 
-interface Image {
-  url: string
-}
-
-interface Response {
-  accepted_coc: boolean
+interface Response extends GetUserResponse {
   active_matches: Match[]
-  bio: string
-  email: string
   firebase_token: string
-  id: number
-  images: Image[]
-  preferred_name: string | null
+  full_name: string
+  tags: string[]
+  uuid: string
   verified: boolean
 }
 

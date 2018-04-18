@@ -12,11 +12,18 @@ interface Request extends HttpGetRequest {
 }
 
 interface Response {
-  id: number
-  email: string
-  preferred_name?: string
+  accepted_coc: boolean
   bio: string
+  email: string
+  firebase_uid: string
+  full_name: string
+  id: number
   images: Array<{url: string}>
+  major: string
+  preferred_name: string
+  surname: string
+  uuid: string
+  verified: boolean
 }
 
 export const getUser = new GetEndpoint<Request, Response, PathExtensionComponents>(

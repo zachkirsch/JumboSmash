@@ -1,5 +1,6 @@
 import { Answers } from 'react-native-fabric'
 import { call, put, select, takeLatest } from 'redux-saga/effects'
+import firebase from 'react-native-firebase'
 import { RootState } from '../../redux'
 import { api, MeResponse, RequestVerificationResponse, VerifyEmailResponse } from '../api'
 import { setCoCReadStatus } from '../coc'
@@ -7,6 +8,7 @@ import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { clearMatchesState } from '../matches'
 import { clearProfileState, initializeProfile } from '../profile'
 import { clearSwipeState, fetchAllUsers } from '../swipe'
+import { NotificationsActionType, SetNotificationsTokenAction } from '../notifications/actions'
 import * as AuthActions from './actions'
 
 const getEmail = (state: RootState) => state.auth.email
@@ -75,13 +77,28 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
     yield handleEmailVerificationSuccess()
 
     // rehydrate the user's profile
-    yield put(initializeProfile(meInfo.id, meInfo.preferred_name || '', meInfo.bio, meInfo.images.map((image) => image.url)))
+    yield put(initializeProfile(
+      meInfo.id,
+      meInfo.preferred_name || '',
+      meInfo.surname || '',
+      meInfo.full_name,
+      meInfo.bio,
+      meInfo.images.map(image => image.url)
+    ))
 
     // fetch users
     yield put(fetchAllUsers())
 
-    // and finally, connect to firebase
+    // connect to firebase
     yield put(attemptConnectToFirebase(meInfo.firebase_token))
+
+    // TODO: tell max about the notification token
+    const token: string = yield firebase.messaging().getToken()
+    const action: SetNotificationsTokenAction = {
+      type: NotificationsActionType.SET_NOTIFICATIONS_TOKEN,
+      token,
+    }
+    yield put(action)
   } catch (error) {
     loginSuccess = false
     yield handleEmailVerificationError(error)

@@ -11,6 +11,8 @@ const initialState: ProfileState = {
     value: '',
     loading: false,
   },
+  surname: '',
+  fullName: '',
   major: {
     value: '',
     loading: false,
@@ -47,6 +49,8 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         ...state,
         id: action.id,
         preferredName: { value: action.preferredName, loading: false },
+        surname: action.surname,
+        fullName: action.fullName,
         bio: { value: action.bio, loading: false },
         images: action.images.map((imageUri) => {
           return {
@@ -299,6 +303,8 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       return {
         id: action.payload.profile.id,
         preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
+        surname: action.payload.profile.surname || initialState.surname,
+        fullName: action.payload.profile.fullName || initialState.fullName,
         major: getValue(action.payload.profile.major, initialState.major.value),
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
         images: action.payload.profile.images.map((image) => getValue(image, {uri: '', isLocal: true})),

@@ -15,6 +15,9 @@ export const api = {
 
   /* ME */
 
+  setFirebaseUid: (uid: string) => Endpoints.setFirebaseUid.hit({firebase_uid: uid}, {}),
+  setFirebaseNotificationToken: (token: string) => Endpoints.setFirebaseNotificationToken.hit({firebase_notification_token: token}, {}),
+
   me: () => Endpoints.me.hit({}, {}),
   updateBio: (bio: string) => Endpoints.updateBio.hit({bio}, {}),
   updateName: (preferredName: string) => Endpoints.updateName.hit({preferred_name: preferredName}, {}),
@@ -25,8 +28,13 @@ export const api = {
   /* OTHERS */
 
   getAllUsers: () => Endpoints.getAllUsers.hit({}, {}),
+  getSwipableUsers: () => Endpoints.getSwipableUsers.hit({}, {}),
   swipe: (direction: Endpoints.Direction, onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
   getUser: (userId: number) => Endpoints.getUser.hit({}, {userId}),
+  sendChat: (toUsers: number[], message: string) => Endpoints.sendChat.hit({
+    to_users: toUsers,
+    message,
+  }, {}),
 
 }
 

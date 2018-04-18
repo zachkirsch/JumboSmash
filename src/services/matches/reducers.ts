@@ -158,11 +158,11 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       return {
         chats: state.chats.set(action.conversationId, {
           conversationId: action.conversationId,
-          otherUsers: List([{
-            _id: action.onUser.id,
-            name: action.onUser.preferredName,
-            avatar: action.onUser.images[0],
-          }]),
+          otherUsers: List(action.withUsers.map(user => ({
+            _id: user.id,
+            name: user.preferredName,
+            avatar: user.images[0],
+          }))),
           messages: List(),
           messageIDs: Set(),
           mostRecentMessage: '',

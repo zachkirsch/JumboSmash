@@ -43,6 +43,8 @@ export interface InitializeProfileAciton {
   type: ProfileActionType.INITIALIZE_PROFILE
   id: number
   preferredName: string
+  surname: string
+  fullName: string
   bio: string
   images: string[]
 }
@@ -204,12 +206,14 @@ export type ProfileAction = InitializeProfileAciton
 
 /* Action Creators */
 
-export const initializeProfile = (id: number, preferredName: string,
+export const initializeProfile = (id: number, preferredName: string, surname: string, fullName: string,
                                   bio: string, images: string[]): InitializeProfileAciton => {
   return {
     type: ProfileActionType.INITIALIZE_PROFILE,
     id,
     preferredName,
+    surname,
+    fullName,
     bio,
     images,
   }

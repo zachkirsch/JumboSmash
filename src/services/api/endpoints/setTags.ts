@@ -5,8 +5,7 @@ interface Request {
 }
 
 interface Response {
-  // TODO: add response type
+  tags: any
 }
 
 export const setTags = new PostEndpoint<Request, Response>('/users/set_tags', true)
-export type SetTagsResponse = Response

@@ -7,6 +7,7 @@ import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { rehydrateMatchesFromServer } from '../matches'
 import { ImageUri } from './types'
+// import { isAlphaNumeric } from '../../utils'
 
 const getImages = (state: RootState) => state.profile.images
 
@@ -205,10 +206,19 @@ function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
 
 function* rehydrateProfileFromServer(_: RehydrateAction) {
   try {
+    /*
+    const x = yield call(api.api.getTags)
+    console.log(x.map(tag => ({
+      ...tag,
+      emoji: !isAlphaNumeric(tag.text),
+    })))
+    */
     const meInfo: api.MeResponse = yield call(api.api.me)
     yield put(ProfileActions.initializeProfile(
       meInfo.id,
       meInfo.preferred_name || '',
+      meInfo.surname || '',
+      meInfo.full_name,
       meInfo.bio,
       meInfo.images.map(image => image.url)
     ))

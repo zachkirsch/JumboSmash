@@ -1,1 +1,5 @@
-../../../../../node_modules/react-native-blur/ios/BlurViewManager.h
+#import <React/RCTViewManager.h>
+
+@interface BlurViewManager : RCTViewManager
+
+@end

@@ -1,8 +1,9 @@
 import React, { PureComponent } from 'react'
-import { View, ActivityIndicator, StyleSheet, Image, ImageProperties } from 'react-native'
+import { View, ViewStyle, ActivityIndicator, StyleSheet, Animated, ImageProperties } from 'react-native'
 
 interface Props extends ImageProperties {
   activityIndicatorSize?: 'small' | 'large'
+  containerStyle?: ViewStyle
 }
 
 interface State {
@@ -23,17 +24,17 @@ class JSImage extends PureComponent<Props, State> {
   public render() {
 
     return (
-      <View>
-        <Image
+      <View style={this.props.containerStyle}>
+        <Animated.Image
           {...this.props}
           onLoadEnd={this.onLoad}
         />
-        {this.renderImage()}
+        {this.renderIndicator()}
       </View>
     )
   }
 
-  private renderImage = () => {
+  private renderIndicator = () => {
     if (this.state.loaded) {
       return null
     } else {

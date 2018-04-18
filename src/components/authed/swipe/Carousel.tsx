@@ -10,6 +10,7 @@ import {
   View,
   Platform,
 } from 'react-native'
+import { JSImage } from '../../common'
 
 interface Props {
   imageUris: string[]
@@ -75,11 +76,15 @@ class Carousel extends PureComponent<Props, State> {
     return this.props.imageUris.map((uri, i) => (
       <Animated.View key={i} style={this.props.imageContainerStyle}>
         <TouchableWithoutFeedback onPress={this.onTap}>
-          <Animated.Image
-            source={{uri}}
-            style={[styles.image, this.props.imageStyle]}
-            resizeMode={'stretch'}
-          />
+          <View style={StyleSheet.absoluteFill}>
+            <JSImage
+              source={{uri}}
+              style={[styles.image, this.props.imageStyle]}
+              resizeMode={'stretch'}
+              activityIndicatorSize='large'
+              containerStyle={StyleSheet.absoluteFill}
+            />
+          </View>
         </TouchableWithoutFeedback>
       </Animated.View>
     ))

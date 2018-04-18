@@ -34,10 +34,10 @@ type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
 interface State {
   mustShowLoadingScreen: boolean
   expansion: Animated.Value
-  profiles: User[]
+  profiles: (User | undefined)[]
 }
 
-const NUM_RENDERED_CARDS = 3
+const NUM_RENDERED_CARDS = 5
 
 @connectActionSheet
 class SwipeScreen extends PureComponent<Props, State> {
@@ -100,6 +100,9 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
 
     const card = this.getCard(cardIndex)
+    if (card === undefined) {
+      return null
+    }
     const positionInStack = this.calculatePositionInStack(cardIndex)
 
     return (
@@ -236,8 +239,6 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private onCompleteSwipe = (direction: Direction, onUser: User) => {
 
-    this.props.swipe(direction, onUser)
-
     if (!this.props.allUsers.loading) {
       const numUserUntilEnd = this.props.allUsers.value.size - this.props.indexOfUserOnTop
       const beenLongEnough = this.props.lastFetched === undefined || (Date.now() - this.props.lastFetched) / 1000 >= 10
@@ -247,25 +248,34 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
 
     let newProfiles = []
-    for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
-      let nextCard = this.getNextCard(i)
-      if (nextCard === undefined) {
+    for (let positionInStack = 0; positionInStack < NUM_RENDERED_CARDS; positionInStack++) {
+      const cardIndex = (this.getCardIndexOfTopCard() + positionInStack) % NUM_RENDERED_CARDS
+      let nextCard = this.getNextCard(cardIndex)
+      if (direction === 'right' && nextCard && nextCard.id === onUser.id) {
         continue
       }
-      if (direction === 'right' && nextCard.id === onUser.id) {
-        continue
-      }
-      newProfiles.push(nextCard)
+      newProfiles[cardIndex] = nextCard
     }
     this.cardIndexOfTopCard += 1
     this.cardIndexOfTopCard %= NUM_RENDERED_CARDS
     this.setState({
       profiles: newProfiles,
     })
+
+    this.props.swipe(direction, onUser)
   }
 
   private calculatePositionInStack = (cardIndex: number) => {
     return mod(cardIndex - this.cardIndexOfTopCard, NUM_RENDERED_CARDS)
+  }
+
+  private getCardIndexOfTopCard = (): number => {
+    for (let cardIndex = 0; cardIndex < NUM_RENDERED_CARDS; cardIndex++) {
+      if (this.calculatePositionInStack(cardIndex) === 0) {
+        return cardIndex
+      }
+    }
+    return -1 // will never get here
   }
 
   private getInitialCardForIndex = (cardIndex: number) => {
@@ -273,9 +283,10 @@ class SwipeScreen extends PureComponent<Props, State> {
     return this.props.allUsers.value.get(indexOfUser)
   }
 
-  private getCard = (cardIndex: number) => {
-    if (this.state.profiles[cardIndex]) {
-      return this.state.profiles[cardIndex]
+  private getCard = (cardIndex: number): User => {
+    const userInState = this.state.profiles[cardIndex]
+    if (userInState) {
+      return userInState
     } else {
       return this.getInitialCardForIndex(cardIndex)
     }
