@@ -381,7 +381,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   // otherwise, an alert is shown with the reason that the profile isn't saveable.
   private ifSaveable = (callback: () => void) => {
     let alertText = ''
-    if (this.props.images.length === 0) {
+    if (this.props.images.length === 0 && false) {
       alertText = 'You need to choose at least one image'
     } else if (!this.state.preferredName) {
       alertText = 'You need a first name!'

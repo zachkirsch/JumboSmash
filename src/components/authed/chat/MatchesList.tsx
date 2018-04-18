@@ -6,9 +6,13 @@ import { connect } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Conversation } from '../../../services/matches'
 import { getFirstName } from '../../../utils'
+import SearchBar from 'react-native-searchbar'
 import MatchesListItem from './MatchesListItem'
+import JSTextInput from "../../common/JSTextInput";
 
-interface State { }
+interface State {
+  searchBarText: string,
+}
 
 interface OwnProps { }
 
@@ -20,17 +24,29 @@ type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps>
 
 class MatchesList extends PureComponent<Props, State> {
 
+  constructor(props) {
+    super(props)
+    this.state = { searchBarText: '', }
+  }
+
   public render() {
     return (
       <View style={styles.container}>
+        <JSTextInput onChangeText={(term) => { this.searchUpdated(term) }}
+                     style={styles.searchBar}
+                     placeholder={'🔍Search'}/>
         <FlatList
           contentContainerStyle={styles.list}
-          data={this.props.chats.toArray()}
+          data={this.props.chats.toArray().filter(chat => chat.otherUsers.get(0).name.includes(this.state.searchBarText))}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
         />
       </View>
     )
+  }
+
+  private searchUpdated(term) {
+    this.setState({ searchBarText: term })
   }
 
   private extractConversationId = (item: Conversation) => item.conversationId
@@ -49,7 +65,7 @@ class MatchesList extends PureComponent<Props, State> {
         lastMessage={item.mostRecentMessage}
         messageRead={!item.messagesUnread}
         avatar={item.otherUsers.first().avatar}
-        newMatch={item.messageIDs.size === 0}
+        newMatch={true}
       />
     )
   }
@@ -85,4 +101,13 @@ const styles = StyleSheet.create({
     padding: 5,
     marginTop: 15,
   },
+  searchBar: {
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    marginHorizontal: 5,
+    borderRadius: 40,
+    borderWidth: 1,
+    borderColor: 'gray',
+    marginTop: 10,
+  }
 })

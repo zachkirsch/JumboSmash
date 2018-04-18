@@ -8,6 +8,8 @@ interface Props {
   renderTitle?: () => JSX.Element
   title?: string
   goBack: () => void
+  renderRightIcon?: () => JSX.Element
+  onPressRight?: () => void
 }
 
 class HeaderBar extends PureComponent<Props, {}> {
@@ -21,12 +23,21 @@ class HeaderBar extends PureComponent<Props, {}> {
         <View style={styles.titleContainer}>
           {this.props.renderTitle ? this.props.renderTitle() : <JSText bold fontSize={22}>{this.props.title}</JSText>}
         </View>
-        <View style={styles.sideView} />
+        <TouchableOpacity onPress={this.props.onPressRight} style={styles.sideView}>
+          {this.renderRightIcon()}
+        </TouchableOpacity>
       </SafeAreaView>
     )
   }
 
   private goBack = () => this.props.goBack()
+
+  private renderRightIcon = () => {
+    if (!this.props.renderRightIcon) {
+      return null
+    }
+    return this.props.renderRightIcon()
+  }
 }
 
 export default HeaderBar

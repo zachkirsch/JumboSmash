@@ -4,7 +4,7 @@ import RNFetchBlob from 'react-native-fetch-blob'
 import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
 
-const LOCAL_SERVER = true
+const LOCAL_SERVER = false
 const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' : Platform.select({
   ios: 'http://127.0.0.1:5000',
   android: 'http://10.0.2.2:5000',

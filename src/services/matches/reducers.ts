@@ -9,6 +9,8 @@ import {
 } from './actions'
 import { ReduxActionType } from '../redux'
 import { Conversation, MatchesState } from './types'
+import {NavigationActions} from "react-navigation";
+import init = NavigationActions.init;
 
 const initialState: MatchesState = {
   chats: Map<string, Conversation>({
@@ -19,6 +21,10 @@ const initialState: MatchesState = {
         name: 'Zach Kirsch',
         avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
                 '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+        bio: 'Gotta catch em all',
+        images: ['https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
+        '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366'],
+        tags: ['tag1', 'tag2']
       }]),
       messages: List([
         {
@@ -48,6 +54,9 @@ const initialState: MatchesState = {
         _id: 3,
         name: 'Mewtwo',
         avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
+        bio: 'Gotta catch em all',
+        images: ['https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png'],
+        tags: ['tag1', 'tag2'],
       }]),
       messages: List([]),
       messageIDs: Set([]),
@@ -162,6 +171,9 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
             _id: action.onUser.id,
             name: action.onUser.preferredName,
             avatar: action.onUser.images[0],
+            bio: action.onUser.bio,
+            images: action.onUser.images,
+            tags: action.onUser.tags,
           }]),
           messages: List(),
           messageIDs: Set(),

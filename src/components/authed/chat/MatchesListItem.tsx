@@ -42,8 +42,8 @@ class MatchesListItem extends PureComponent<Props, State> {
     let preview = this.props.lastMessage
     if (this.props.newMatch) {
       unread = true
-      preview = 'New Match!'
-      textStyle.push(styles.blue)
+      preview = 'New Match💞'
+      textStyle.push(styles.pink)
     }
 
     const containerStyle = [styles.match]
@@ -70,18 +70,24 @@ class MatchesListItem extends PureComponent<Props, State> {
 
   private renderUnreadItem() {
 
-    let opacities = [0.4, 0.2]
+    let blueOpacity = [0.4, 0.2]
+    let pinkOpacity = [0.02, 0.01]
 
     if (this.props.newMatch) {
-      opacities = opacities.map((opacity) => 0.5 + opacity / 2)
+      blueOpacity = blueOpacity.map((opacity) => 0.5 + opacity / 2)
+      pinkOpacity = pinkOpacity.map((opacity) => 0.5 + opacity / 2)
     }
     if (this.state.pressedIn) {
-      opacities = opacities.map((opacity) => 0.5 + opacity / 2)
+      blueOpacity = blueOpacity.map((opacity) => 0.5 + opacity / 2)
+      pinkOpacity = pinkOpacity.map((opacity) => 0.5 + opacity / 2)
     }
 
-    const colors = [
-      `rgba(231, 240, 253, ${opacities[0]})`,
-      `rgba(177, 202, 239, ${opacities[1]})`,
+    const colors = this.props.newMatch ? [
+      `rgba(250, 209, 196, ${pinkOpacity[0]})`,
+      `rgba(219, 135, 140, ${pinkOpacity[1]})`,
+    ] : [
+      `rgba(231, 240, 253, ${blueOpacity[0]})`,
+      `rgba(177, 202, 239, ${blueOpacity[1]})`,
     ]
 
     return (
@@ -137,8 +143,8 @@ const styles = StyleSheet.create({
     flex: .9,
     justifyContent: 'center',
   },
-  blue: {
-    color: 'blue',
+  pink: {
+    color: 'pink',
   },
   lightGray: {
     backgroundColor: 'lightgray',
