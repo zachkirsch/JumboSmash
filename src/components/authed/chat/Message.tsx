@@ -12,10 +12,7 @@ import moment from 'moment'
 
 const { isSameUser } = utils
 
-const EMPTY_LEFT_RIGHT_STYLE = {
-  left: {},
-  right: {},
-}
+const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
 
 export default class Message extends PureComponent<MessageProps, {}> {
 
@@ -28,15 +25,15 @@ export default class Message extends PureComponent<MessageProps, {}> {
     const currCreated = moment(this.props.currentMessage.createdAt)
     const formattedDate = currCreated.calendar(undefined, {
       sameDay: '[Today at] h[:]mm A',
-      nextDay: 'MMMM D [at] h[:]mm A',
-      nextWeek: 'MMMM D [at] h[:]mm A',
       lastDay: '[Yesterday at] h[:]mm A',
-      lastWeek: 'MMMM D [at] h[:]mm A',
-      sameElse: 'MMMM D [at] h[:]mm A',
+      nextDay: DEFAULT_DATE_FORMAT,
+      nextWeek: DEFAULT_DATE_FORMAT,
+      lastWeek: DEFAULT_DATE_FORMAT,
+      sameElse: DEFAULT_DATE_FORMAT,
     })
 
     return (
-      <JSText style={{marginVertical: 15, textAlign: 'center', color: 'gray'}} fontSize={10}>
+      <JSText style={styles.date} fontSize={10}>
         {formattedDate}
       </JSText>
     )
@@ -50,11 +47,6 @@ export default class Message extends PureComponent<MessageProps, {}> {
       <Bubble
         currentMessage={this.props.currentMessage}
         user={this.props.user}
-        wrapperStyle={EMPTY_LEFT_RIGHT_STYLE}
-        bottomContainerStyle={EMPTY_LEFT_RIGHT_STYLE}
-        tickStyle={{}}
-        containerToNextStyle={EMPTY_LEFT_RIGHT_STYLE}
-        containertoPreviousStyle={EMPTY_LEFT_RIGHT_STYLE}
       />
     )
   }
@@ -68,6 +60,7 @@ export default class Message extends PureComponent<MessageProps, {}> {
       return null
     }
 
+    // only show avatar for other users
     if (this.props.currentMessage.user._id === this.props.user._id) {
       return null
     }
@@ -83,7 +76,7 @@ export default class Message extends PureComponent<MessageProps, {}> {
         currentMessage={this.props.currentMessage}
         previousMessage={this.props.previousMessage}
         nextMessage={this.props.nextMessage}
-        imageStyle={{ left: [styles.slackAvatar, extraStyle] }}
+        imageStyle={{ left: [styles.avatar, extraStyle] }}
       />
     )
   }
@@ -95,9 +88,12 @@ export default class Message extends PureComponent<MessageProps, {}> {
 
     const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
 
-    const colors = this.props.currentMessage.user._id === this.props.user._id
-      ? [ 'rgba(232, 240, 252, 0.35)', 'rgba(212, 214, 219, 0.35)']
-      : [ 'rgba(232, 240, 252, 0.35)', 'rgba(176, 201, 240, 0.35)']
+    const colors = [
+      'rgba(232, 240, 252, 0.35)',
+      this.props.currentMessage.user._id === this.props.user._id
+        ? 'rgba(212, 214, 219, 0.35)'
+        : 'rgba(176, 201, 240, 0.35)',
+    ]
 
     const containerStyle = this.props.position && styles[this.props.position]
 
@@ -148,16 +144,20 @@ const styles = StyleSheet.create({
   },
   left: {
     marginRight: 100,
-
   },
   right: {
     marginLeft: 100,
     justifyContent: 'flex-end',
   },
-  slackAvatar: {
+  avatar: {
     // The bottom should roughly line up with the first line of message text.
     height: 40,
     width: 40,
     borderRadius: 20,
+  },
+  date: {
+    marginVertical: 15,
+    textAlign: 'center',
+    color: 'gray',
   },
 })

@@ -7,6 +7,7 @@ import { RootState } from '../../../redux'
 import { Conversation } from '../../../services/matches'
 import MatchesListItem from './MatchesListItem'
 import { JSTextInput } from '../../common'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 interface State {
   searchBarText: string,
@@ -32,16 +33,31 @@ class MatchesList extends PureComponent<Props, State> {
   public render() {
     return (
       <View style={styles.container}>
-        <JSTextInput
-          onChangeText={this.onChangeSearchBarText}
-          style={styles.searchBar}
-          placeholder={'🔍Search'}
-        />
+        {this.renderSearchBar()}
         <FlatList
           contentContainerStyle={styles.list}
           data={this.getMatches()}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
+        />
+      </View>
+    )
+  }
+
+  private renderSearchBar = () => {
+    return (
+      <View style={styles.searchBarContainer}>
+        <Ionicons
+          name='ios-search'
+          style={{marginLeft: 10, marginVertical: 3}}
+          color='gray'
+          size={20}
+        />
+        <JSTextInput
+          onChangeText={this.onChangeSearchBarText}
+          style={styles.searchBar}
+          placeholder={'Search'}
+          underline={false}
         />
       </View>
     )
@@ -94,28 +110,22 @@ const styles = StyleSheet.create({
   list: {
     marginTop: 10,
   },
-  center: {
-    flexDirection: 'column',
-    justifyContent: 'center',
+  searchBarContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  input: {
-    borderColor: 'gray',
-    borderBottomWidth: 1,
-  },
-  openChatContainer: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 5,
-    marginTop: 15,
+    overflow: 'hidden',
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 5,
+    backgroundColor: 'rgb(250, 250, 250)',
+    borderRadius: 40,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'lightgray',
   },
   searchBar: {
+    flex: 1,
     textAlign: 'center',
-    textAlignVertical: 'center',
-    marginHorizontal: 5,
-    borderRadius: 40,
-    borderWidth: 1,
-    borderColor: 'gray',
-    marginTop: 10,
+    marginLeft: 3,
+    marginRight: 7,
   },
 })

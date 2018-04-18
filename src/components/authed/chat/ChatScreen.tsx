@@ -1,7 +1,7 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { Image, StyleSheet, TouchableOpacity, View, Platform } from 'react-native'
-import { GiftedChat, InputToolbarProps, MessageProps, IMessage, IChatMessage } from 'react-native-gifted-chat'
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { GiftedChat, InputToolbarProps, MessageProps, IChatMessage } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
@@ -82,7 +82,7 @@ class ChatScreen extends PureComponent<Props, {}> {
 
   private renderInputToolbar = (props: InputToolbarProps) => {
     return (
-      <View style={{flex: 1, marginLeft: 12, marginBottom: 7}}>
+      <View style={styles.inputToolbarContainer}>
         <InputToolbar {...props} />
       </View>
     )
@@ -124,16 +124,8 @@ class ChatScreen extends PureComponent<Props, {}> {
     this.props.showActionSheetWithOptions!(options, callback)
   }
 
-  private onSend = (messages: IMessage[] = []) => {
-
-    const messagesToSend: IChatMessage[] = []
-    messages.forEach(message => {
-      if (!message.system) {
-        messagesToSend.push(message)
-      }
-    })
-
-    this.props.sendMessages(this.getConversationId(), messagesToSend)
+  private onSend = (messages: IChatMessage[] = []) => {
+    this.props.sendMessages(this.getConversationId(), messages)
   }
 
   private getConversationId = () => {
@@ -190,47 +182,9 @@ const styles = StyleSheet.create({
     color: 'gray',
     textAlign: 'center',
   },
-  gradient: {
+  inputToolbarContainer: {
     flex: 1,
-    borderRadius: 30,
-  },
-  sendButton: {
-    color: 'gray',
-    flex: 0,
-    marginBottom: 24,
-    marginRight: 8,
-  },
-  tester: {
-    backgroundColor: 'white',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  primary: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  textInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-    lineHeight: 16,
-    marginTop: Platform.select({
-      ios: 6,
-      android: 0,
-    }),
-    marginBottom: Platform.select({
-      ios: 5,
-      android: 3,
-    }),
-  },
-  text: {
-    color: 'blue',
-    fontWeight: '600',
-    fontSize: 17,
-    backgroundColor: 'transparent',
-    marginBottom: 12,
-    marginLeft: 10,
-    marginRight: 10,
+    marginLeft: 12,
+    marginBottom: 7,
   },
 })

@@ -10,13 +10,15 @@ import {
 import LinearGradient from 'react-native-linear-gradient'
 import { JSText } from '../../common'
 
+type OnSend = ({ text }: { text: string }, shouldResetInputToolbar: boolean) => void
+
 export default class extends PureComponent<InputToolbarProps, {}> {
 
   render() {
     return (
       <InputToolbar
         {...this.props}
-        containerStyle={{borderTopWidth: 0}}
+        containerStyle={styles.inputToolbarContainer}
         renderComposer={this.renderComposer}
         renderSend={this.renderSend}
       />
@@ -25,18 +27,25 @@ export default class extends PureComponent<InputToolbarProps, {}> {
 
   private renderComposer = (props: ComposerProps) => {
 
-    // TODO: use our font for this text input
+    const gradientStyle = [
+      styles.gradient,
+      {
+        // add the amount of padding in styles.gradient
+        height: props.composerHeight! + 4,
+      },
+    ]
+
     return (
       <LinearGradient
         colors={['rgba(232, 240, 252, 0.35)', 'rgba(212, 214, 219, 0.35)']}
         start={{x: 0, y: 1}}
         end={{x: 1, y: 1}}
         locations={[0, 1]}
-        style={[styles.gradient, {height: props.composerHeight! + 4}]}
+        style={gradientStyle}
       >
-        <Composer
+        <Composer // TODO: use our font for this text input
           {...props}
-          textInputStyle={{marginTop: 0, marginBottom: 0}}
+          textInputStyle={styles.composer}
           placeholder='Text to impress...'
         />
       </LinearGradient>
@@ -44,9 +53,7 @@ export default class extends PureComponent<InputToolbarProps, {}> {
   }
 
   private renderSend = (props: SendProps) => {
-
     const disabled = !props.text || !props.text.trim()
-
     return (
       <TouchableOpacity
         style={[styles.send, props.containerStyle]}
@@ -60,7 +67,7 @@ export default class extends PureComponent<InputToolbarProps, {}> {
     )
   }
 
-  private onSend = (text: string | undefined, onSend?: ({ text }: { text: string }, b: boolean) => void) => () => {
+  private onSend = (text: string | undefined, onSend: OnSend | undefined) => () => {
     onSend && onSend({text: (text || '').trim()}, true)
   }
 
@@ -89,5 +96,12 @@ const styles = StyleSheet.create({
   },
   disabled: {
     color: 'gray',
+  },
+  composer: {
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  inputToolbarContainer: {
+    borderTopWidth: 0,
   },
 })

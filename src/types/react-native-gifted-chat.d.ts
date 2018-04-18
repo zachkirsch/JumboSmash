@@ -91,11 +91,11 @@ declare module 'react-native-gifted-chat' {
     nextMessage?: IMessage
     previousMessage?: IMessage
     containerStyle?: LeftRightStyle<ViewStyle>
-    wrapperStyle: LeftRightStyle<ViewStyle>
-    bottomContainerStyle: LeftRightStyle<ViewStyle>
-    tickStyle: TextStyle
-    containerToNextStyle: LeftRightStyle<ViewStyle>
-    containertoPreviousStyle: LeftRightStyle<ViewStyle>
+    wrapperStyle?: LeftRightStyle<ViewStyle>
+    bottomContainerStyle?: LeftRightStyle<ViewStyle>
+    tickStyle?: TextStyle
+    containerToNextStyle?: LeftRightStyle<ViewStyle>
+    containertoPreviousStyle?: LeftRightStyle<ViewStyle>
   }
 
   export class Bubble extends React.Component<BubbleProps> { }
@@ -148,7 +148,7 @@ declare module 'react-native-gifted-chat' {
     /* User sending the messages: { _id, name, avatar } */
     user?: User
     /* Callback when sending a message */
-    onSend?(messages: IMessage[]): void
+    onSend?(messages: IChatMessage[]): void
     /*  Locale to localize the dates */
     locale?: string
     /* Format to use for rendering times default is 'LT' */

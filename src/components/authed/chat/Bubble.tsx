@@ -1,11 +1,5 @@
 import React, { PureComponent } from 'react'
-import {
-  Clipboard,
-  StyleSheet,
-  View,
-  Platform,
-  TouchableOpacity,
-} from 'react-native'
+import { Clipboard, StyleSheet, View, TouchableOpacity } from 'react-native'
 import { BubbleProps } from 'react-native-gifted-chat'
 import { connectActionSheet, ActionSheetProps } from '@expo/react-native-action-sheet'
 import { JSText } from '../../common'
@@ -38,7 +32,7 @@ class Bubble extends PureComponent<Props, {}> {
       const text = this.props.currentMessage.text
       const { options, callback } = generateActionSheetOptions([
         {
-          title: 'Copy Text',
+          title: 'Copy Message',
           onPress: () => Clipboard.setString(text),
         },
       ])
@@ -80,38 +74,5 @@ const styles = StyleSheet.create({
     marginRight: 14,
     minHeight: 20,
     justifyContent: 'flex-end',
-  },
-  username: {
-    fontWeight: 'bold',
-  },
-  time: {
-    textAlign: 'left',
-    fontSize: 12,
-  },
-  timeContainer: {
-    marginLeft: 0,
-    marginRight: 0,
-    marginBottom: 0,
-  },
-  headerItem: {
-    marginRight: 10,
-  },
-  headerView: {
-    // Try to align it better with the avatar on Android.
-    marginTop: Platform.OS === 'android' ? -2 : 0,
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  tick: {
-    backgroundColor: 'transparent',
-    color: 'white',
-  },
-  tickView: {
-    flexDirection: 'row',
-  },
-  slackImage: {
-    borderRadius: 3,
-    marginLeft: 0,
-    marginRight: 0,
   },
 })
