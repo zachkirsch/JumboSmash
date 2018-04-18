@@ -10,7 +10,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient'
 import { JSText } from '../../common'
 
-class JSInputToolbar extends PureComponent<InputToolbarProps, {}> {
+export default class extends PureComponent<InputToolbarProps, {}> {
 
   render() {
     return (
@@ -65,8 +65,6 @@ class JSInputToolbar extends PureComponent<InputToolbarProps, {}> {
   }
 
 }
-
-export default JSInputToolbar
 
 const styles = StyleSheet.create({
   gradient: {
