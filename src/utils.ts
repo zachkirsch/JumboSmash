@@ -31,6 +31,11 @@ export function clamp(value: number, min: number, max: number) {
   }
 }
 
+// retursn A mod B
+export function mod(a: number, b: number) {
+  return ((a % b) + b) % b
+}
+
 export function lastIndexOf<T>(array: T[], predicate: (item: T) => boolean) {
   for (let i = array.length - 1; i >= 0; i--) {
     if (predicate(array[i])) {
@@ -69,10 +74,11 @@ export function generateActionSheetOptions(options: ActionSheetOption[], onCance
     options: {
       options: optionsWithCancel.map((option) => option.title),
       cancelButtonIndex: options.length,
-      destructiveButtonIndex: options.findIndex((option) => option.destructive),
+      destructiveButtonIndex: options.findIndex(option => !!option.destructive),
     },
     callback: (buttonIndex: number) => {
-      optionsWithCancel[buttonIndex].onPress && optionsWithCancel[buttonIndex].onPress()
+      const onPress = optionsWithCancel[buttonIndex].onPress
+      onPress && onPress()
     },
   }
 }

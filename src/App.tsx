@@ -32,6 +32,9 @@ class App extends PureComponent<Props, {}> {
     this.conversationIds.forEach((conversationId) => {
       const dbRef = getRefToChatMessages(conversationId)
       dbRef.on('child_added', (firebaseMessage) => {
+        if (firebaseMessage === null) {
+          return
+        }
         const message: GiftedChatMessage = {
           ...firebaseMessage.val(),
           createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
@@ -60,7 +63,7 @@ class App extends PureComponent<Props, {}> {
   private renderScreen() {
     if (!this.props.rehydrated) {
       // TODO: replace with splash screen
-      return null /* tslint:disable-line:no-null-keyword */
+      return null
     } else if (SHOULD_SHOW_COUNTDOWN) {
       return <CountdownScreen />
     } else if (!this.props.isLoggedIn) {

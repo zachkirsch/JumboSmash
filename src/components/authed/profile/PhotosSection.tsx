@@ -1,6 +1,6 @@
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
-import { Alert, Dimensions, Image, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { Alert, Dimensions, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Feather from 'react-native-vector-icons/Feather'
@@ -8,7 +8,7 @@ import Foundation from 'react-native-vector-icons/Foundation'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { CircleButton } from '../../common'
+import { CircleButton, JSImage } from '../../common'
 import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
   swapImages: (index1: number, index2: number) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
   saveRequired: () => void
-  showActionSheetWithOptions?: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
+  showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
 }
 
 interface LocalImage {
@@ -75,6 +75,8 @@ class PhotosSection extends PureComponent<Props, State> {
   revert = () => {
     this.setState(this.getInitialState())
   }
+
+  getImageCount = () => this.state.images.filter(image => image.uri).length
 
   render() {
     return (
@@ -137,13 +139,23 @@ class PhotosSection extends PureComponent<Props, State> {
     }
 
     let imageToRender
+
     if (image.uri) {
       const imageStyles = [
         styles.photo,
         index === 0 ? styles.bigPhoto : styles.smallPhoto,
-        this.state.swapping && this.state.swappingIndex === index && styles.semiTransparent,
       ]
-      imageToRender = <Image source={{uri: image.uri}} resizeMode='cover' style={imageStyles} />
+      if (this.state.swapping && this.state.swappingIndex === index) {
+        imageStyles.push(styles.semiTransparent)
+      }
+      imageToRender = (
+        <JSImage
+          source={{uri: image.uri}}
+          resizeMode='cover'
+          style={imageStyles}
+          activityIndicatorSize={index === 0 ? 'large' : 'small'}
+        />
+      )
     } else {
       const imageStyles = [
         styles.photo,
@@ -203,7 +215,7 @@ class PhotosSection extends PureComponent<Props, State> {
       uploading = false
     } else {
       uri = this.state.images[index] ? this.state.images[index].uri : ''
-      uploading = uri && this.props.images[index] && this.props.images[index].loading
+      uploading = !!uri && this.props.images[index] && this.props.images[index].loading
     }
 
     return {
@@ -217,7 +229,7 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private cancelUpload = (index: number, withConfirmation = true) => () => {
-    const alertInfo = withConfirmation && {
+    const alertInfo = !withConfirmation ? undefined : {
       title: 'Cancel Upload',
       message: 'Are you sure you want to cancel the upload?',
     }

@@ -1,13 +1,14 @@
 import React, { PureComponent } from 'react'
 import {
   Alert,
-  Image,
   Keyboard,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
   Platform,
+  findNodeHandle,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
@@ -75,7 +76,11 @@ const MAX_BIO_LENGTH = 1000
 @connectActionSheet
 class ProfileScreen extends PureComponent<Props, State> {
 
-  private photosSection: PhotosSection
+  private mainScrollView: any /* tslint:disable-line:no-any */
+  private photosSection: PhotosSection | null
+  private preferredNameTextInput: JSTextInput | null
+  private majorTextInput: JSTextInput | null
+  private bioTextInput: JSTextInput | null
 
   constructor(props: Props) {
     super(props)
@@ -108,12 +113,12 @@ class ProfileScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View>
-        <ScrollView keyboardShouldPersistTaps='handled'>
+        <ScrollView keyboardShouldPersistTaps='handled' ref={ref => this.mainScrollView = ref}>
           <PhotosSection
             images={this.props.images}
             swapImages={this.props.swapImages}
             updateImage={this.props.updateImage}
-            showActionSheetWithOptions={this.props.showActionSheetWithOptions}
+            showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
             saveRequired={this.markPhotosSectionAsRequiringSave}
             ref={ref => this.photosSection = ref}
           />
@@ -174,7 +179,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     let toRender
     switch (react.type) {
       case 'emoji':
-        toRender = <JSText fontSize={23} style={styles.reacts}>{react.emoji}</JSText>
+        toRender = <JSText fontSize={23}>{react.emoji}</JSText>
         break
       case 'image':
         toRender = (
@@ -217,7 +222,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private renderPreferredName = () => (
     <View>
-      <JSText fontSize={13} bold style={styles.preferredNameTitle}>MY PREFERRED NAME</JSText>
+      <JSText fontSize={13} bold style={styles.preferredNameTitle}>NAME</JSText>
       <View style={styles.preferredNameContainer}>
         <JSTextInput
           maxLength={30}
@@ -227,6 +232,8 @@ class ProfileScreen extends PureComponent<Props, State> {
           onChangeText={this.updatePreferredName}
           autoCorrect={false}
           selectTextOnFocus
+          onFocus={this.onFocus('preferredName')}
+          ref={ref => this.preferredNameTextInput = ref}
         />
         <JSText style={styles.lastName} fontSize={22}>Zaninovich</JSText>
       </View>
@@ -244,6 +251,8 @@ class ProfileScreen extends PureComponent<Props, State> {
         autoCorrect={false}
         selectTextOnFocus
         style={styles.major}
+        onFocus={this.onFocus('major')}
+        ref={ref => this.majorTextInput = ref}
       />
     </View>
   )
@@ -260,7 +269,8 @@ class ProfileScreen extends PureComponent<Props, State> {
         fancy
         autoCorrect={false}
         style={styles.bio}
-        underlineColorAndroid='transparent'
+        onFocus={this.onFocus('bio')}
+        ref={ref => this.bioTextInput = ref}
       />
       <JSText style={styles.bioCharacterCount}>
         {MAX_BIO_LENGTH - this.state.bio.length}
@@ -280,6 +290,32 @@ class ProfileScreen extends PureComponent<Props, State> {
         </View>
       </View>
     )
+  }
+
+  private onFocus = (inputName: 'preferredName' | 'major' | 'bio') => () => {
+    let ref: JSTextInput | null = null
+    switch (inputName) {
+      case 'preferredName':
+        ref = this.preferredNameTextInput
+        break
+      case 'major':
+        ref = this.majorTextInput
+        break
+      case 'bio':
+        ref = this.bioTextInput
+        break
+    }
+
+    if (!ref || !this.mainScrollView) {
+      return
+    }
+
+    // setTimeout is used so that the keyboard has time to open
+    setTimeout(() => {
+      this.mainScrollView
+        .getScrollResponder()
+        .scrollResponderScrollNativeHandleToKeyboard(findNodeHandle(ref), 90, true)
+    }, 50)
   }
 
   private updatePreferredName = (preferredName: string) => {
@@ -343,7 +379,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         photosSectionRequiresSave: false,
       })
       this.props.clearTabBarOverlay()
-      this.photosSection.revert()
+      this.photosSection && this.photosSection.revert()
     }
 
     Keyboard.dismiss()
@@ -368,7 +404,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         this.props.updateBio(this.state.bio)
         this.props.updateMajor(this.state.major)
         this.props.updatePreferredName(this.state.preferredName)
-        this.photosSection.save()
+        this.photosSection && this.photosSection.save()
         this.props.clearTabBarOverlay()
         this.setState({
           photosSectionRequiresSave: false,
@@ -381,7 +417,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   // otherwise, an alert is shown with the reason that the profile isn't saveable.
   private ifSaveable = (callback: () => void) => {
     let alertText = ''
-    if (this.props.images.length === 0 && false) {
+    if (this.photosSection && this.photosSection.getImageCount() === 0) {
       alertText = 'You need to choose at least one image'
     } else if (!this.state.preferredName) {
       alertText = 'You need a first name!'
@@ -495,12 +531,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
-  reacts: {
-    fontWeight: '300',
-  },
   reactNum: {
     marginLeft: 4,
-    fontWeight: '300',
     color: 'rgba(41,41,44,0.76)',
   },
   smallReact: {
