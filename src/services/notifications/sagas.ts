@@ -20,9 +20,7 @@ function* setToken(payload: SetNotificationsTokenAction) {
     if (isLoggedIn) {
       yield api.setFirebaseNotificationToken(token)
     }
-  } catch(e) {
-    
-  }
+  } catch (e) {} /* tslint:disable-line:no-empty */
 }
 
 function* onRehydate() {
