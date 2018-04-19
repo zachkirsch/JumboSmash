@@ -1,9 +1,10 @@
 import { call, put, takeEvery, takeLatest } from 'redux-saga/effects'
 import { api, GetAllUsersResponse, SwipeResponse } from '../api'
-import { createChat } from '../firebase'
-import { CreateMatchAction, MatchesActionType } from '../matches'
+import { ChatService } from '../firebase/utils'
 import {
   AttemptSwipeAction,
+  SwipeSuccessAction,
+  SwipeFailureAction,
   AttemptFetchAllUsersAction,
   FetchAllUsersFailureAction,
   FetchAllUsersSuccessAction,
@@ -41,7 +42,10 @@ function* attemptFetchUsers(_: AttemptFetchAllUsersAction | RehydrateAction) {
       users: users.users[0].filter(user => user.images.find(image => !!image.url)).map(user => ({
         id: user.id,
         bio: user.bio,
-        preferredName: user.preferred_name || '',
+        major: user.major,
+        preferredName: user.preferred_name,
+        surname: user.surname,
+        fullName: user.full_name,
         images: user.images.map((image) => image.url),
         tags: Array.from(shuffle(TAGS)),
       })),
@@ -59,24 +63,26 @@ function* attemptFetchUsers(_: AttemptFetchAllUsersAction | RehydrateAction) {
 function* attemptSwipe(action: AttemptSwipeAction) {
   try {
     const response: SwipeResponse = yield call(api.swipe, action.direction, action.onUser.id)
-    // TODO: handle swipe success (as action)
 
     if (response.matched) {
-
-      // create chat in firebase
-      createChat(response.match.conversation_uuid)
-
-      // create the match
-      const matchAction: CreateMatchAction = {
-        type: MatchesActionType.CREATE_MATCH,
-        conversationId: response.match.conversation_uuid,
-        onUser: action.onUser,
-      }
-      yield put(matchAction)
+      ChatService.createChat(response.match.conversation_uuid, [action.onUser])
     }
 
+    const successAction: SwipeSuccessAction = {
+      type: SwipeActionType.SWIPE_SUCCESS,
+      direction: action.direction,
+      onUser: action.onUser,
+    }
+    yield put(successAction)
+
   } catch (e) {
-    // TODO: handle swipe error (as action)
+    const failureAction: SwipeFailureAction = {
+      type: SwipeActionType.SWIPE_FAILURE,
+      direction: action.direction,
+      onUser: action.onUser,
+      errorMessage: e.message,
+    }
+    yield put(failureAction)
   }
 }
 

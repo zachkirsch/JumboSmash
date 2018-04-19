@@ -4,6 +4,7 @@ import { ReduxActionType } from '../redux'
 import REACTS from './REACTS'
 import TAGS from './TAGS'
 import { ProfileState } from './types'
+import { isAlphaNumeric } from '../../utils'
 
 const initialState: ProfileState = {
   id: -1,
@@ -11,6 +12,8 @@ const initialState: ProfileState = {
     value: '',
     loading: false,
   },
+  surname: '',
+  fullName: '',
   major: {
     value: '',
     loading: false,
@@ -43,20 +46,35 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
   switch (action.type) {
 
     case ProfileActionType.INITIALIZE_PROFILE:
+      const selectedTagIds = action.payload.tags.map(tag => tag.id)
       return {
         ...state,
-        id: action.id,
-        preferredName: { value: action.preferredName, loading: false },
-        bio: { value: action.bio, loading: false },
-        images: action.images.map((imageUri) => {
+        id: action.payload.id,
+        preferredName: { value: action.payload.preferred_name, loading: false },
+        surname: action.payload.surname,
+        fullName: action.payload.full_name,
+        bio: { value: action.payload.bio, loading: false },
+        images: action.payload.images.map(({url}) => {
           return {
             value: {
-              uri: imageUri,
+              uri: url,
               isLocal: false,
             },
             loading: false,
           }
         }),
+        tags: {
+          value: action.allTags.map(category => ({
+            name: category.cat_text,
+            tags: category.tags.map(tag => ({
+              id: tag.tag_id,
+              name: tag.tag_text,
+              emoji: !isAlphaNumeric(tag.tag_text),
+              selected: !!selectedTagIds.find(selectedTagId => selectedTagId === tag.tag_id),
+            })),
+          })),
+          loading: false,
+        },
       }
 
     /* Preferred Name */
@@ -299,12 +317,17 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       return {
         id: action.payload.profile.id,
         preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
+        surname: action.payload.profile.surname || initialState.surname,
+        fullName: action.payload.profile.fullName || initialState.fullName,
         major: getValue(action.payload.profile.major, initialState.major.value),
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
         images: action.payload.profile.images.map((image) => getValue(image, {uri: '', isLocal: true})),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),
         reacts: getValue(action.payload.profile.reacts, initialState.reacts.value),
       }
+
+    case ProfileActionType.CLEAR_PROFILE_STATE:
+      return initialState
 
     default:
       return state

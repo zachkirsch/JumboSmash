@@ -1,4 +1,4 @@
-import { put, takeLatest } from 'redux-saga/effects'
+import { call, put, takeLatest } from 'redux-saga/effects'
 import {
   AttemptConnectToFirebaseAction,
   ConnectToFirebaseFailureAction,
@@ -6,11 +6,14 @@ import {
   FirebaseActionType,
   LogoutFirebaseAction,
 } from './actions'
+import { logout } from '../auth'
+import { api } from '../api'
 import firebase from 'react-native-firebase'
 
 function* attemptConnectToFirebase(action: AttemptConnectToFirebaseAction) {
   try {
-    yield firebase.auth().signInAndRetrieveDataWithCustomToken(action.token)
+    const user = yield firebase.auth().signInAndRetrieveDataWithCustomToken(action.token)
+    yield call(api.setFirebaseUid, user.user.uid)
     const successAction: ConnectToFirebaseSuccessAction = {
       type: FirebaseActionType.CONNECT_TO_FIREBASE_SUCCESS,
     }
@@ -21,6 +24,7 @@ function* attemptConnectToFirebase(action: AttemptConnectToFirebaseAction) {
       errorMessage: error.message,
     }
     yield put(failureAction)
+    yield put(logout()) // since firebase auth failed, log out!
   }
 }
 

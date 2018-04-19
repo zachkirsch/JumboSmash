@@ -4,8 +4,10 @@ import { StatusBar, StyleSheet, View } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen } from './components'
 import { RootState } from './redux'
-import { getRefToChatMessages } from './services/firebase'
+import { ChatService } from './services/firebase'
 import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
+import { attemptConnectToFirebase } from './services/firebase'
+import firebase from 'react-native-firebase'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -13,9 +15,11 @@ interface StateProps {
   rehydrated: boolean
   networkRequestInProgress: boolean
   chats: Map<string, Conversation>
+  firebaseToken: string
 }
 
 interface DispatchProps {
+  attemptConnectToFirebase: (token: string) => void
   receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
 }
 
@@ -25,30 +29,20 @@ const SHOULD_SHOW_COUNTDOWN = false
 
 class App extends PureComponent<Props, {}> {
 
-  private conversationIds: string[] = []
+  private onUserChanged: () => void
 
   componentDidMount() {
-    this.conversationIds = this.props.chats.keySeq().toArray()
-    this.conversationIds.forEach((conversationId) => {
-      const dbRef = getRefToChatMessages(conversationId)
-      dbRef.on('child_added', (firebaseMessage) => {
-        if (firebaseMessage === null) {
-          return
-        }
-        const message: GiftedChatMessage = {
-          ...firebaseMessage.val(),
-          createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
-        }
-        this.props.receiveMessages(conversationId, [message])
-      })
+    this.props.chats.keySeq().forEach(ChatService.listenForNewChats)
+    this.onUserChanged = firebase.auth().onUserChanged(() => {
+      if (!firebase.auth().currentUser && this.props.isLoggedIn) {
+        this.props.attemptConnectToFirebase(this.props.firebaseToken)
+      }
     })
   }
 
   componentWillUnmount() {
-    this.conversationIds.forEach((conversationId) => {
-      const dbRef = getRefToChatMessages(conversationId)
-      dbRef.off('child_added')
-    })
+    ChatService.stopListeningForNewChats()
+    this.onUserChanged()
   }
 
   public render() {
@@ -83,9 +77,11 @@ const mapStateToProps = (state: RootState): StateProps => {
     rehydrated: state.redux.rehydrated,
     networkRequestInProgress: networkRequestInProgress(state),
     chats: state.matches.chats,
+    firebaseToken: state.firebase.token.value,
   }
 }
 
+// TODO: update with other ways of network requests
 const networkRequestInProgress = (state: RootState) => {
   return state.auth.waitingForRequestVerificationResponse
   || state.auth.waitingForVerificationResponse
@@ -102,6 +98,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
       dispatch(receiveMessages(conversationId, messages))
     },
+    attemptConnectToFirebase: (token: string) => dispatch(attemptConnectToFirebase(token)),
   }
 }
 

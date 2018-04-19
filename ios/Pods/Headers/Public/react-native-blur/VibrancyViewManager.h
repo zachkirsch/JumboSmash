@@ -1,1 +1,5 @@
-../../../../../node_modules/react-native-blur/ios/VibrancyViewManager.h
+#import <React/RCTViewManager.h>
+
+@interface VibrancyViewManager : RCTViewManager
+
+@end

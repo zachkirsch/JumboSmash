@@ -1,12 +1,14 @@
 import { Answers } from 'react-native-fabric'
 import { call, put, select, takeLatest } from 'redux-saga/effects'
+import firebase from 'react-native-firebase'
 import { RootState } from '../../redux'
-import { api, MeResponse, RequestVerificationResponse, VerifyEmailResponse } from '../api'
+import * as api from '../api'
 import { setCoCReadStatus } from '../coc'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { clearMatchesState } from '../matches'
 import { clearProfileState, initializeProfile } from '../profile'
 import { clearSwipeState, fetchAllUsers } from '../swipe'
+import { NotificationsActionType, SetNotificationsTokenAction } from '../notifications/actions'
 import * as AuthActions from './actions'
 
 const getEmail = (state: RootState) => state.auth.email
@@ -29,7 +31,7 @@ function* handleRequestVerificationError(error: Error) {
 
 function* attemptRequestVerification(payload: AuthActions.AttemptRequestVerificationAction) {
   try {
-    const response: RequestVerificationResponse = yield call(api.requestVerification, payload.credentials)
+    const response: api.RequestVerificationResponse = yield call(api.api.requestVerification, payload.credentials)
     yield handleRequestVerificationSuccess(response.new_user)
 
     // if new user, log signup with Answers
@@ -61,27 +63,36 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 
   let loginSuccess = true
   try {
-    const response: VerifyEmailResponse = yield call(api.verifyEmail, payload.verificationCode)
+    const response: api.VerifyEmailResponse = yield call(api.api.verifyEmail, payload.verificationCode)
 
     /*
      * before setting the user as 'logged in', update what he/she has done so far
      * (e.g. accepted CoC, seen tutorial)
      */
     yield put(AuthActions.setSessionKey(response.session_key))
-    const meInfo: MeResponse = yield call(api.me)
+    const meInfo: api.MeResponse = yield call(api.api.me)
     yield put(setCoCReadStatus(meInfo.accepted_coc))
 
     // now set the user as 'logged in'
     yield handleEmailVerificationSuccess()
 
     // rehydrate the user's profile
-    yield put(initializeProfile(meInfo.id, meInfo.preferred_name || '', meInfo.bio, meInfo.images.map((image) => image.url)))
+    const allTags: api.GetTagsResponse = yield call(api.api.getTags)
+    yield put(initializeProfile(allTags, meInfo))
 
     // fetch users
     yield put(fetchAllUsers())
 
-    // and finally, connect to firebase
+    // connect to firebase
     yield put(attemptConnectToFirebase(meInfo.firebase_token))
+
+    // TODO: tell max about the notification token
+    const token: string = yield firebase.messaging().getToken()
+    const action: SetNotificationsTokenAction = {
+      type: NotificationsActionType.SET_NOTIFICATIONS_TOKEN,
+      token,
+    }
+    yield put(action)
   } catch (error) {
     loginSuccess = false
     yield handleEmailVerificationError(error)

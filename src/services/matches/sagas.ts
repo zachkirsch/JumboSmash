@@ -1,4 +1,4 @@
-import { call, put, takeEvery } from 'redux-saga/effects'
+import { call, put, select, takeEvery } from 'redux-saga/effects'
 import { getRefToChatMessages } from '../firebase'
 import {
   AttemptSendMessagesAction,
@@ -7,6 +7,12 @@ import {
   SendMessagesSuccessAction,
 } from './actions'
 import { GiftedChatMessage } from './types'
+import { api } from '../api'
+import { RootState } from '../../redux'
+
+const getOtherUsersInChat = (conversationId: string) => {
+  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers.map(u => u!._id).toJS()
+}
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
   function pushMessagetoFirebase(message: GiftedChatMessage) {
@@ -31,6 +37,10 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
       }
       yield put(failureAction)
     } else {
+      try {
+        const otherUsers: number[] = yield select(getOtherUsersInChat(action.conversationId))
+        yield call(api.sendChat, otherUsers, message.text)
+      } catch (e) {} /* tslint:disable-line:no-empty */
       const successAction: SendMessagesSuccessAction = {
         type: MatchesActionType.SEND_MESSAGES_SUCCESS,
         conversationId: action.conversationId,

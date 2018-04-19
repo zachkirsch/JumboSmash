@@ -39,7 +39,7 @@ export interface AttemptSwipeAction {
 }
 
 export interface SwipeSuccessAction {
-  type: SwipeActionType.ATTEMPT_SWIPE
+  type: SwipeActionType.SWIPE_SUCCESS
   direction: Direction
   onUser: User
 }

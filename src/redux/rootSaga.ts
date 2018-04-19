@@ -5,6 +5,7 @@ import { cocSaga } from '../services/coc'
 import { firebaseSaga } from '../services/firebase'
 import { matchesSaga } from '../services/matches'
 import { swipeSaga } from '../services/swipe'
+import { notificationsSaga } from '../services/notifications'
 
 export function* rootSaga() {
     yield all([
@@ -14,5 +15,6 @@ export function* rootSaga() {
         fork(matchesSaga),
         fork(profileSaga),
         fork(swipeSaga),
+        fork(notificationsSaga),
     ])
 }

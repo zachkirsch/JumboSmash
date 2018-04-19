@@ -9,6 +9,7 @@ import { rootReducer } from './rootReducer'
 import { rootSaga } from './rootSaga'
 import { RootState } from './types'
 import { TokenService } from '../services/api'
+import { ChatService } from '../services/firebase'
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -56,4 +57,5 @@ persistStore(reduxStore, {storage: AsyncStorage}, () => {
 })
 
 TokenService.setStore(reduxStore)
+ChatService.setStore(reduxStore)
 sagaMiddleware.run(rootSaga)

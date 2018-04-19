@@ -5,6 +5,9 @@ import { Tag } from '../profile'
 export interface User {
   id: number
   preferredName: string
+  surname: string
+  fullName: string
+  major: string
   bio: string
   images: string[]
   tags: Tag[]
