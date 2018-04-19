@@ -5,11 +5,16 @@ import { GetUserResponse } from './GetUser'
 interface Request extends HttpGetRequest {
 }
 
+interface Tag {
+  id: number
+  text: string
+}
+
 interface Response extends GetUserResponse {
   active_matches: Match[]
   firebase_token: string
   full_name: string
-  tags: string[]
+  tags: Tag[]
   uuid: string
   verified: boolean
 }

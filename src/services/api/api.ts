@@ -23,7 +23,7 @@ export const api = {
   updateName: (preferredName: string) => Endpoints.updateName.hit({preferred_name: preferredName}, {}),
   updateImages: (images: string[]) => Endpoints.updateImages.hit({images}, {}),
   getTags: () => Endpoints.getTags.hit({}, {}),
-  setTags: (tagIds: string[]) => Endpoints.setTags.hit({tag_ids: tagIds}, {}),
+  updateTags: (tagIds: number[]) => Endpoints.updateTags.hit({tag_ids: tagIds}, {}),
 
   /* OTHERS */
 
