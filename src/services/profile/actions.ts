@@ -1,6 +1,6 @@
 import { TagSectionType } from './types'
 import { RehydrateAction } from '../redux'
-
+import { GetTagsResponse, MeResponse } from '../api'
 /* Actions */
 
 export enum ProfileActionType {
@@ -39,12 +39,10 @@ export enum ProfileActionType {
   OTHER_ACTION = '__any_other_action_type__',
 }
 
-export interface InitializeProfileAciton {
+export interface InitializeProfileAction {
   type: ProfileActionType.INITIALIZE_PROFILE
-  id: number
-  preferredName: string
-  bio: string
-  images: string[]
+  allTags: GetTagsResponse
+  payload: MeResponse
 }
 
 export interface OnChangePreferredNameTextInputAction {
@@ -175,7 +173,7 @@ export interface OtherAction {
   type: ProfileActionType.OTHER_ACTION
 }
 
-export type ProfileAction = InitializeProfileAciton
+export type ProfileAction = InitializeProfileAction
 | OnChangePreferredNameTextInputAction
 | UpdatePreferredNameLocallyAction
 | AttemptUpdatePreferredNameAction
@@ -204,14 +202,11 @@ export type ProfileAction = InitializeProfileAciton
 
 /* Action Creators */
 
-export const initializeProfile = (id: number, preferredName: string,
-                                  bio: string, images: string[]): InitializeProfileAciton => {
+export const initializeProfile = (allTags: GetTagsResponse, payload: MeResponse): InitializeProfileAction => {
   return {
     type: ProfileActionType.INITIALIZE_PROFILE,
-    id,
-    preferredName,
-    bio,
-    images,
+    allTags,
+    payload,
   }
 }
 

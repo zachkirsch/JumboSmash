@@ -52,6 +52,7 @@ class JSTextInput extends PureComponent<Props, State> {
     return (
       <TextInput
         {...otherProps}
+        multiline={multiline}
         ref={textInputRef}
         style={textInputStyles}
         placeholder={this.state.showPlaceholder ? placeholder : undefined}

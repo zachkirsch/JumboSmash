@@ -32,6 +32,8 @@ export type ProfileReact = (EmojiProfileReact | ImageProfileReact) & { count: nu
 export interface ProfileState {
   id: number
   preferredName: LoadableValue<string>
+  surname: string
+  fullName: string
   major: LoadableValue<string>
   bio: LoadableValue<string>
   images: Array<LoadableValue<ImageUri>>

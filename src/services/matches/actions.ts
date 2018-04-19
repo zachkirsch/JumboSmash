@@ -22,7 +22,7 @@ export enum MatchesActionType {
 export interface CreateMatchAction {
   type: MatchesActionType.CREATE_MATCH
   conversationId: string
-  onUser: User
+  withUsers: User[]
 }
 
 export interface AttemptSendMessagesAction {
@@ -92,6 +92,14 @@ export const rehydrateMatchesFromServer = (conversationIds: string[]): Rehydrate
   return {
     type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
     conversationIds,
+  }
+}
+
+export const createMatch = (conversationId: string, withUsers: User[]): CreateMatchAction => {
+  return {
+    type: MatchesActionType.CREATE_MATCH,
+    conversationId,
+    withUsers,
   }
 }
 

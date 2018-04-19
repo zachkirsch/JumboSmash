@@ -50,6 +50,7 @@ interface OwnProps {}
 interface StateProps {
   images: Array<LoadableValue<ImageUri>>
   preferredName: LoadableValue<string>
+  surname: string
   bio: LoadableValue<string>
   major: LoadableValue<string>
   tags: TagSectionType[]
@@ -235,7 +236,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           onFocus={this.onFocus('preferredName')}
           ref={ref => this.preferredNameTextInput = ref}
         />
-        <JSText style={styles.lastName} fontSize={22}>Zaninovich</JSText>
+        <JSText style={styles.lastName} fontSize={22}>{this.props.surname}</JSText>
       </View>
     </View>
   )
@@ -433,6 +434,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     preferredName: state.profile.preferredName,
+    surname: state.profile.surname,
     bio: state.profile.bio,
     major: state.profile.major,
     tags: state.profile.tags.value,

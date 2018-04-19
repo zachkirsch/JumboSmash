@@ -3,6 +3,7 @@ import uuid from 'uuid'
 import { RootState } from '../../redux'
 import * as api from '../api'
 import firebase from 'react-native-firebase'
+import { flatten } from 'lodash'
 import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { rehydrateMatchesFromServer } from '../matches'
@@ -194,9 +195,12 @@ function* handleUpdateTagsFailure(error: Error) {
   yield put(failureAction)
 }
 
-function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
+function* attemptUpdateTags(payload: ProfileActions.AttemptUpdateTagsAction) {
   try {
-    // yield call(api.api.updateTags, payload.tags) TODO: use API to update tags
+    const selectedTagIds = flatten(payload.tags.map(category => {
+      return flatten(category.tags.filter(tag => tag.selected).map(tag => tag.id))
+    }))
+    yield call(api.api.updateTags, selectedTagIds)
     yield handleUpdateTagsSuccess()
   } catch (error) {
     yield handleUpdateTagsFailure(error)
@@ -205,13 +209,9 @@ function* attemptUpdateTags(_: ProfileActions.AttemptUpdateTagsAction) {
 
 function* rehydrateProfileFromServer(_: RehydrateAction) {
   try {
+    const allTags: api.GetTagsResponse = yield call(api.api.getTags)
     const meInfo: api.MeResponse = yield call(api.api.me)
-    yield put(ProfileActions.initializeProfile(
-      meInfo.id,
-      meInfo.preferred_name || '',
-      meInfo.bio,
-      meInfo.images.map(image => image.url)
-    ))
+    yield put(ProfileActions.initializeProfile(allTags, meInfo))
     yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => match.conversation_uuid)))
   } catch (e) {} /* tslint:disable-line:no-empty */
 }

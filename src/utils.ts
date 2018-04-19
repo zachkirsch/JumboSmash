@@ -6,7 +6,7 @@ export function emailSupport(subject: string) {
   Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)
 }
 
-export function xor(a: any, b: any): boolean { /* tslint:disable-line:no-any */
+export function xor<T>(a: T, b: T): boolean {
   return !!a && !b || !a && !!b
 }
 
@@ -21,6 +21,25 @@ export function shuffle<T>(array: T[]) {
   return array
 }
 
+export function isAlphaNumeric(str: string) {
+  if (str === '') {
+    return true
+  }
+
+  for (let i = str.length - 1; i >= 0; i++) {
+    const code = str.charCodeAt(i)
+    if (code === undefined) {
+      return false
+    }
+    if (!(code > 47 && code < 58) &&  // numeric (0-9)
+        !(code > 64 && code < 91) &&  // upper alpha (A-Z)
+        !(code > 96 && code < 123)) { // lower alpha (a-z)
+      return false
+    }
+  }
+  return true
+}
+
 export function clamp(value: number, min: number, max: number) {
   if (value > max) {
     return max
@@ -31,7 +50,7 @@ export function clamp(value: number, min: number, max: number) {
   }
 }
 
-// retursn A mod B
+// returns A mod B
 export function mod(a: number, b: number) {
   return ((a % b) + b) % b
 }
@@ -72,7 +91,7 @@ export function generateActionSheetOptions(options: ActionSheetOption[], onCance
 
   return {
     options: {
-      options: optionsWithCancel.map((option) => option.title),
+      options: optionsWithCancel.map(option => option.title),
       cancelButtonIndex: options.length,
       destructiveButtonIndex: options.findIndex(option => !!option.destructive),
     },
