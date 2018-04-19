@@ -1,6 +1,6 @@
 import { Match } from '../../swipe'
 import { GetEndpoint, HttpGetRequest } from './Endpoint'
-import { GetUserResponse } from './GetUser'
+import { GetUserResponse } from './getUser'
 
 interface Request extends HttpGetRequest {
 }
