@@ -1,6 +1,7 @@
 import firebase from 'react-native-firebase'
 import { Store } from 'react-redux'
-import { GiftedChatMessage, createMatch, receiveMessages } from '../matches'
+import { IChatMessage } from 'react-native-gifted-chat'
+import { createMatch, receiveMessages } from '../matches'
 import { RootState } from '../../redux'
 import { User } from '../swipe'
 
@@ -47,7 +48,7 @@ ChatService.listenForNewChats = (conversationId: string) => {
       if (firebaseMessage === null) {
         return
       }
-      const message: GiftedChatMessage = {
+      const message: IChatMessage = {
         ...firebaseMessage.val(),
         createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
       }

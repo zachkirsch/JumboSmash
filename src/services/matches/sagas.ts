@@ -6,16 +6,16 @@ import {
   SendMessagesFailureAction,
   SendMessagesSuccessAction,
 } from './actions'
-import { GiftedChatMessage } from './types'
+import { IChatMessage } from 'react-native-gifted-chat'
 import { api } from '../api'
 import { RootState } from '../../redux'
 
 const getOtherUsersInChat = (conversationId: string) => {
-  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers.map(u => u!._id).toJS()
+  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers.map(u => u!.id).toJS()
 }
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
-  function pushMessagetoFirebase(message: GiftedChatMessage) {
+  function pushMessagetoFirebase(message: IChatMessage) {
     return new Promise((resolve, reject) => {
       const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({

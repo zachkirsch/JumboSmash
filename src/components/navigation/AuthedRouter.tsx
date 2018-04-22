@@ -73,6 +73,12 @@ export default StackNavigator({
   Chat: {
     screen: ChatScreen,
   },
+  ViewProfileScreen: {
+    screen: Profile.ProfilePreviewScreen,
+    navigationOptions: {
+      gesturesEnabled: false,
+    },
+  },
 }, {
   headerMode: 'none',
   cardStyle: styles.stackCard,

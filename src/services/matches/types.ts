@@ -1,39 +1,11 @@
 import { List, Map, Set } from 'immutable'
 import { User } from '../swipe'
-
-interface BaseMessage {
-  _id: string
-  text: string
-  createdAt: Date
-}
-
-export interface ChatMessage extends BaseMessage {
-  user: User
-  image?: string
-  system: false
-}
-
-export interface SystemMessage extends BaseMessage {
-  system: true
-}
-
-export type GiftedChatMessage = SystemMessage | ChatMessage
-
-export type MessageWithStatus = GiftedChatMessage & {
-  sending: boolean
-  failedToSend: boolean
-}
-
-export interface GiftedChatUser {
-  _id: number
-  name: string
-  avatar: string
-}
+import { IChatMessage } from 'react-native-gifted-chat'
 
 export interface Conversation {
   conversationId: string
-  otherUsers: List<GiftedChatUser>
-  messages: List<MessageWithStatus>
+  otherUsers: List<User>
+  messages: List<IChatMessage>
   messageIDs: Set<string>
   mostRecentMessage: string
   messagesUnread: boolean
