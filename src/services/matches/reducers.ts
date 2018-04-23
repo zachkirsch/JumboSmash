@@ -81,6 +81,7 @@ const addMessagesToReduxState = (oldState: MatchesState,
 
   const newConversation: Conversation = {
     conversationId: originalConversation.conversationId,
+    createdAt: originalConversation.createdAt,
     otherUsers: originalConversation.otherUsers.asImmutable(),
     messages: newMessages,
     messageIDs: newMessageIDs,
@@ -118,6 +119,7 @@ const updateSentStatus = (oldState: MatchesState,
 
   const newConversation: Conversation = {
     conversationId: originalConversation.conversationId,
+    createdAt: originalConversation.createdAt,
     otherUsers: originalConversation.otherUsers.asImmutable(),
     messages: newMessages,
     messageIDs: originalConversation.messageIDs.asImmutable(),
@@ -158,10 +160,11 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       return {
         chats: state.chats.set(action.conversationId, {
           conversationId: action.conversationId,
-          otherUsers: List(action.withUsers.map(user => ({
+          createdAt: action.createdAt,
+          otherUsers: List(action.otherUsers.map(user => ({
             _id: user.id,
-            name: user.preferredName,
-            avatar: user.images[0],
+            name: user.preferred_name,
+            avatar: user.images[0].url,
           }))),
           messages: List(),
           messageIDs: Set(),
@@ -170,7 +173,29 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         }),
       }
 
-    // this is a separate case because redux-persist stores immutables as plain JS
+    case MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER:
+      let chats = state.chats
+      action.matches.forEach(match => {
+        if (!chats.has(match.conversationId)) {
+          chats = chats.set(match.conversationId, {
+            conversationId: match.conversationId,
+            otherUsers: List(match.otherUsers.map(user => ({
+              _id: user.id,
+              name: user.preferred_name,
+              avatar: user.images[0].url,
+            }))),
+            messages: List(),
+            messageIDs: Set(),
+            mostRecentMessage: '',
+            createdAt: match.createdAt,
+            messagesUnread: false,
+          })
+        }
+      })
+      return {
+        chats,
+      }
+
     case ReduxActionType.REHYDRATE:
 
       // for unit tests when root state is empty
@@ -178,12 +203,13 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         return state
       }
 
-      let chats = Map<string, Conversation>()
+      chats = Map<string, Conversation>()
       Object.keys(action.payload.matches.chats).forEach((conversationId) => {
         /* tslint:disable-next-line:no-any */
         const originalConversation: Conversation = (action.payload.matches.chats as any)[conversationId]
         const conversation: Conversation = {
           conversationId,
+          createdAt: originalConversation.createdAt,
           otherUsers: List(originalConversation.otherUsers),
           messages: List(originalConversation.messages.map((message) => {
             return {

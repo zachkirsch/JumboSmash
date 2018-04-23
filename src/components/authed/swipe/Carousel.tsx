@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native'
 import { JSImage } from '../../common'
+import { clamp } from '../../../utils'
 
 interface Props {
   imageUris: string[]
@@ -119,10 +120,10 @@ class Carousel extends PureComponent<Props, State> {
 
   private onScroll = (event: ScrollEvent) => {
     const { layoutMeasurement, contentOffset } = event.nativeEvent
-    let photoIndex = Math.round(contentOffset.x / layoutMeasurement.width)
-    photoIndex = Math.min(this.props.imageUris.length, Math.max(photoIndex, 0))
+    let carouselIndex = Math.round(contentOffset.x / layoutMeasurement.width)
+    carouselIndex = clamp(carouselIndex, 0, this.props.imageUris.length - 1)
     this.setState({
-      carouselIndex: photoIndex,
+      carouselIndex,
     })
   }
 }

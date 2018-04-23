@@ -1,20 +1,32 @@
 import React, { PureComponent } from 'react'
 import { Linking, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { HeaderBar, JSText, JSTextInput } from '../../common'
+import { blockUser, unblockUser } from '../../../services/profile'
+import { RootState } from './../../../redux'
 
-type Props = NavigationScreenPropsWithOwnProps<{}>
+interface StateProps {
+  blockedUsers: string[]
+}
+
+interface DispatchProps {
+  blockUser: (email: string) => void
+  unblockUser: (email: string) => void
+}
+
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 
 interface BlockedUserMap {
   [email: string]: 'blocked' | 'just_blocked' | 'just_unblocked'
 }
 
 interface State {
-  blockedUsers: BlockedUserMap,
-  textInput: string,
+  blockedUsers: BlockedUserMap
+  textInput: string
 }
 
 const INSTRUCTIONS_START = "You won't see the users you block anywhere on the app, and they won't see you."
@@ -25,25 +37,12 @@ class BlockScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
      super(props)
+
+     const blockedUsers: BlockedUserMap = {}
+     this.props.blockedUsers.forEach(email => blockedUsers[email] = 'blocked')
+
      this.state = {
-       blockedUsers: {
-         'b1ad.dude@tufts.edu': 'blocked',
-         'bad1.dude@tufts.edu': 'blocked',
-         'bad.d1ude@tufts.edu': 'blocked',
-         'bad.dud1e@tufts.edu': 'blocked',
-         'bad.dud2e@tufts.edu': 'blocked',
-         'bad.dude3@tufts.edu': 'blocked',
-         'bad.dude@4tufts.edu': 'blocked',
-         'bad.dude@t6ufts.edu': 'blocked',
-         'bad.dude@t7ufts.edu': 'blocked',
-         'bad.dude@5tufts.edu': 'blocked',
-         'bad.dude@3tufts.edu': 'blocked',
-         'bad.dude@33tufts.edu': 'blocked',
-         'bad.dude@2tufts.edu': 'blocked',
-         'bad.dude@tufts3.edu': 'blocked',
-         'bad.dude@tu3f1ts.edu': 'blocked',
-         'bad.dude@tufts.e1du': 'blocked',
-       },
+       blockedUsers,
        textInput: '',
      }
    }
@@ -127,12 +126,12 @@ class BlockScreen extends PureComponent<Props, State> {
     }
 
     return (
-      <TouchableOpacity onPress={this.toggleUser(email)} style={styles.blockedUser} key={email}>
+      <View style={styles.blockedUser} key={email}>
         <JSText style={textStyles}>{email}</JSText>
-        <View style={styles.iconContainer}>
+        <TouchableOpacity style={styles.iconContainer} onPress={this.toggleUser(email)}>
           {icon}
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     )
   }
 
@@ -188,16 +187,32 @@ class BlockScreen extends PureComponent<Props, State> {
       if (this.state.blockedUsers.hasOwnProperty(email)) {
         const status = this.state.blockedUsers[email]
         if (status === 'just_blocked') {
-          // TODO: block user
+          this.props.blockUser(email)
         } else if (status === 'just_unblocked') {
-          // TODO: unblock user
+          this.props.unblockUser(email)
         }
       }
     })
   }
 }
 
-export default BlockScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    blockedUsers: state.profile.blockedUsers
+      .filter(u => !!u && u.value.blocked)
+      .map(u => u && u.value.email)
+      .toJS(),
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    blockUser: (email: string) => dispatch(blockUser(email)),
+    unblockUser: (email: string) => dispatch(unblockUser(email)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(BlockScreen)
 
 const styles = StyleSheet.create({
   fill: {
@@ -227,7 +242,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(250, 250, 250, 0.5)',
+    backgroundColor: 'rgba(230, 230, 230, 0.5)',
     marginVertical: 5,
     paddingLeft: 20,
     paddingRight: 10,

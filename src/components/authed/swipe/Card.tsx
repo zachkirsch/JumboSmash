@@ -612,10 +612,13 @@ class Card extends PureComponent<Props, State> {
 
   private getContractedMarginTop = (positionInStack?: number) => {
     if (positionInStack === undefined) {
-      if (this.props.type === 'normal') {
-        positionInStack = this.props.positionInStack
-      } else {
-        return VERTICAL_MARGIN
+      switch (this.props.type) {
+        case 'loading':
+          return VERTICAL_MARGIN
+        case 'preview':
+          return 0
+        case 'normal':
+          positionInStack = this.props.positionInStack
       }
     }
     if (positionInStack === 0) {
@@ -629,10 +632,13 @@ class Card extends PureComponent<Props, State> {
 
   private getContractedMarginHorizontal = (positionInStack?: number) => {
     if (positionInStack === undefined) {
-      if (this.props.type === 'normal') {
-        positionInStack = this.props.positionInStack
-      } else {
-        return HORIZONTAL_MARGIN
+      switch (this.props.type) {
+        case 'loading':
+          return HORIZONTAL_MARGIN
+        case 'preview':
+          return 0
+        case 'normal':
+          positionInStack = this.props.positionInStack
       }
     }
     if (positionInStack === 0) {
@@ -730,6 +736,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     paddingVertical: 10,
+    paddingHorizontal: BOTTOM_CONTAINER_HORIZONTAL_PADDING,
   },
   textContainer: {
     flexDirection: 'row',

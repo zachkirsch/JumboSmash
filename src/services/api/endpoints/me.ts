@@ -1,20 +1,15 @@
-import { Match } from '../../swipe'
 import { GetEndpoint, HttpGetRequest } from './Endpoint'
 import { GetUserResponse } from './getUser'
+import { Match } from './swipe'
 
 interface Request extends HttpGetRequest {
 }
 
-interface Tag {
-  id: number
-  text: string
-}
-
 interface Response extends GetUserResponse {
   active_matches: Match[]
+  blocked_users: GetUserResponse[]
   firebase_token: string
   full_name: string
-  tags: Tag[]
   uuid: string
   verified: boolean
 }

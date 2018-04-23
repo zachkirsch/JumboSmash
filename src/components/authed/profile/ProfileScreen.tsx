@@ -14,6 +14,7 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { flatten } from 'lodash'
+import { List } from 'immutable'
 import { Images } from '../../../assets'
 import { RootState } from '../../../redux'
 import {
@@ -48,7 +49,7 @@ interface State {
 interface OwnProps {}
 
 interface StateProps {
-  images: Array<LoadableValue<ImageUri>>
+  images: List<LoadableValue<ImageUri>>
   preferredName: LoadableValue<string>
   surname: string
   bio: LoadableValue<string>
@@ -116,7 +117,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       <View>
         <ScrollView keyboardShouldPersistTaps='handled' ref={ref => this.mainScrollView = ref}>
           <PhotosSection
-            images={this.props.images}
+            images={this.props.images.toJS()}
             swapImages={this.props.swapImages}
             updateImage={this.props.updateImage}
             showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
@@ -147,7 +148,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           id: -1,
           preferredName: this.state.preferredName,
           bio: this.state.bio,
-          images: this.props.images.map((image) => image.value.uri).filter((image) => image),
+          images: this.props.images.map((image) => image!.value.uri).filter(image => !!image),
           tags: flatten(this.props.tags.map(section => section.tags)).filter(tag => tag.selected),
         },
       })()
@@ -156,7 +157,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private renderTags = () => {
-    const tags = flatten(this.props.tags.map((section) => section.tags.filter((tag) => tag.selected)))
+    const tags = flatten(this.props.tags.map((section) => section.tags.filter(tag => tag.selected)))
 
     let toRender
     if (tags.length > 0) {
@@ -175,7 +176,11 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
-  private renderReact = (react: ProfileReact) => {
+  private renderReact = (react: ProfileReact | undefined) => {
+
+    if (react === undefined) {
+      return null
+    }
 
     let toRender
     switch (react.type) {

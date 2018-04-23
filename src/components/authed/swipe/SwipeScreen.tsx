@@ -95,10 +95,6 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private renderCard = (cardIndex: number) => {
 
-    if (this.props.preview && cardIndex !== 0) {
-      return null
-    }
-
     const card = this.getCard(cardIndex)
     if (card === undefined) {
       return null
@@ -141,7 +137,7 @@ class SwipeScreen extends PureComponent<Props, State> {
           end={{x: 0, y: 0.75}}
           style={styles.fill}
         >
-            <View style={styles.fill}/>
+          <View style={styles.fill}/>
         </LinearGradient>
       </Animated.View>
     )

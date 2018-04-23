@@ -2,7 +2,7 @@ import firebase from 'react-native-firebase'
 import { Store } from 'react-redux'
 import { GiftedChatMessage, createMatch, receiveMessages } from '../matches'
 import { RootState } from '../../redux'
-import { User } from '../swipe'
+import { GetUserResponse } from '../api'
 
 const chatroomsBeingListenedTo = new Set<string>()
 
@@ -12,7 +12,7 @@ export const getRefToChatMessages = (conversationId: string) => getRefToChatSect
 interface ChatServiceType {
   store?: Store<RootState>
   setStore: (store: Store<RootState>) => void
-  createChat: (conversationId: string, withUsers: User[]) => void
+  createChat: (conversationId: string, createdAt: number, withUsers: GetUserResponse[]) => void
   listenForNewChats: (conversationId: string) => void
   stopListeningForNewChats: () => void
 }
@@ -30,13 +30,13 @@ const ChatService: ChatServiceType = {
 
 ChatService.setStore = (store: Store<RootState>) => ChatService.store = store
 
-ChatService.createChat = (conversationId: string, withUsers: User[]) => {
+ChatService.createChat = (conversationId: string, createdAt: number, withUsers: GetUserResponse[]) => {
   const dbRef = getRefToChatSection(conversationId).child('members')
   const permissionsObject: { [uid: string]: string} = {}
   permissionsObject[firebase.auth().currentUser!.uid] = 'owner'
   dbRef.push(permissionsObject)
   ChatService.listenForNewChats(conversationId)
-  ChatService.store!.dispatch(createMatch(conversationId, withUsers))
+  ChatService.store!.dispatch(createMatch(conversationId, createdAt, withUsers))
 }
 
 ChatService.listenForNewChats = (conversationId: string) => {

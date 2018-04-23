@@ -17,6 +17,24 @@ const sagaMiddleware = createSagaMiddleware()
 const logger = createLogger({
   stateTransformer: (state: RootState) => {
     let newState = {...state}
+    if (newState.profile && Iterable.isIterable(newState.profile.images)) {
+      newState = {
+        ...newState,
+        profile: {
+          ...newState.profile,
+          images: newState.profile.images.toJS(),
+        },
+      }
+    }
+    if (newState.profile && Iterable.isIterable(newState.profile.tags)) {
+      newState = {
+        ...newState,
+        profile: {
+          ...newState.profile,
+          tags: newState.profile.images.toJS(),
+        },
+      }
+    }
     if (newState.matches && Iterable.isIterable(newState.matches.chats)) {
       newState = {
         ...newState,

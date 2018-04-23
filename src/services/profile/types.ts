@@ -1,4 +1,7 @@
+import { List } from 'immutable'
 import { LoadableValue } from '../redux'
+
+export const EMOJI_REGEX = /^[A-Za-z0-9\ ]*$/
 
 export interface Tag {
   id: number
@@ -12,12 +15,17 @@ export interface TagSectionType {
   tags: Tag[]
 }
 
-interface EmojiProfileReact {
+interface BaseProfileReact {
+  id: number
+  count: number
+}
+
+export interface EmojiProfileReact extends BaseProfileReact {
   type: 'emoji'
   emoji: string
 }
 
-interface ImageProfileReact {
+export interface ImageProfileReact extends BaseProfileReact {
   type: 'image'
   imageName: string
 }
@@ -27,7 +35,12 @@ export interface ImageUri {
   isLocal: boolean
 }
 
-export type ProfileReact = (EmojiProfileReact | ImageProfileReact) & { count: number }
+export type ProfileReact = EmojiProfileReact | ImageProfileReact
+
+export interface BlockedUser {
+  email: string
+  blocked: boolean
+}
 
 export interface ProfileState {
   id: number
@@ -36,7 +49,8 @@ export interface ProfileState {
   fullName: string
   major: LoadableValue<string>
   bio: LoadableValue<string>
-  images: Array<LoadableValue<ImageUri>>
+  images: List<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
   reacts: LoadableValue<ProfileReact[]>
+  blockedUsers: List<LoadableValue<BlockedUser>>
 }

@@ -1,9 +1,9 @@
 import { setNotificationsToken } from './actions'
 import firebase from 'react-native-firebase'
+import moment from 'moment'
 import { reduxStore } from '../../redux'
 import { ChatService } from '../firebase'
-import { GetUserResponse } from '../api'
-import { Match } from '../swipe'
+import { Match, GetUserResponse } from '../api'
 
 /* tslint:disable:no-console */
 
@@ -62,16 +62,11 @@ export const setupNotifcations = () => {
       const data: Message = JSON.parse(message.data.data)
       switch (data.msg_type) {
         case 'new_match':
-          ChatService.createChat(data.match.conversation_uuid, data.other_users.map(user => ({
-            id: user.id,
-            preferredName: user.preferred_name || '',
-            surname: user.surname,
-            fullName: user.full_name,
-            major: user.major,
-            bio: user.bio,
-            images: user.images.map(image => image.url),
-            tags: [],
-          })))
+          ChatService.createChat(
+            data.match.conversation_uuid,
+            moment(data.match.createdAt).unix(),
+            data.other_users
+          )
       }
     } catch (e) {
       // TODO: Query for new matches

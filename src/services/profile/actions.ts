@@ -1,6 +1,6 @@
 import { TagSectionType } from './types'
 import { RehydrateAction } from '../redux'
-import { GetTagsResponse, MeResponse } from '../api'
+import { GetTagsResponse, GetReactsResponse, MeResponse } from '../api'
 /* Actions */
 
 export enum ProfileActionType {
@@ -34,6 +34,14 @@ export enum ProfileActionType {
   UPDATE_TAGS_SUCCESS = 'UPDATE_TAGS_SUCCESS',
   UPDATE_TAGS_FAILURE = 'UPDATE_TAGS_FAILURE',
 
+  ATTEMPT_BLOCK_USER = 'ATTEMPT_BLOCK_USER',
+  BLOCK_USER_SUCCESS = 'BLOCK_USER_SUCCESS',
+  BLOCK_USER_FAILURE = 'BLOCK_USER_FAILURE',
+
+  ATTEMPT_UNBLOCK_USER = 'ATTEMPT_UNBLOCK_USER',
+  UNBLOCK_USER_SUCCESS = 'UNBLOCK_USER_SUCCESS',
+  UNBLOCK_USER_FAILURE = 'UNBLOCK_USER_FAILURE',
+
   CLEAR_PROFILE_STATE = 'CLEAR_PROFILE_STATE',
 
   OTHER_ACTION = '__any_other_action_type__',
@@ -42,6 +50,7 @@ export enum ProfileActionType {
 export interface InitializeProfileAction {
   type: ProfileActionType.INITIALIZE_PROFILE
   allTags: GetTagsResponse
+  allReacts: GetReactsResponse
   payload: MeResponse
 }
 
@@ -158,6 +167,38 @@ export interface UpdateTagsFailureAction {
   errorMessage: string
 }
 
+export interface AttemptBlockUserAction {
+  type: ProfileActionType.ATTEMPT_BLOCK_USER
+  email: string
+}
+
+export interface BlockUserSuccessAction {
+  type: ProfileActionType.BLOCK_USER_SUCCESS
+  email: string
+}
+
+export interface BlockUserFailureAction {
+  type: ProfileActionType.BLOCK_USER_FAILURE
+  email: string
+  errorMessage: string
+}
+
+export interface AttemptUnblockUserAction {
+  type: ProfileActionType.ATTEMPT_UNBLOCK_USER
+  email: string
+}
+
+export interface UnblockUserSuccessAction {
+  type: ProfileActionType.UNBLOCK_USER_SUCCESS
+  email: string
+}
+
+export interface UnblockUserFailureAction {
+  type: ProfileActionType.UNBLOCK_USER_FAILURE
+  email: string
+  errorMessage: string
+}
+
 export interface ClearProfileStateAction {
   type: ProfileActionType.CLEAR_PROFILE_STATE
 }
@@ -196,16 +237,23 @@ export type ProfileAction = InitializeProfileAction
 | AttemptUpdateTagsAction
 | UpdateTagsSuccessAction
 | UpdateTagsFailureAction
+| AttemptBlockUserAction
+| BlockUserSuccessAction
+| BlockUserFailureAction
+| AttemptUnblockUserAction
+| UnblockUserSuccessAction
+| UnblockUserFailureAction
 | ClearProfileStateAction
 | RehydrateAction
 | OtherAction
 
 /* Action Creators */
 
-export const initializeProfile = (allTags: GetTagsResponse, payload: MeResponse): InitializeProfileAction => {
+export const initializeProfile = (allTags: GetTagsResponse, allReacts: GetReactsResponse, payload: MeResponse): InitializeProfileAction => {
   return {
     type: ProfileActionType.INITIALIZE_PROFILE,
     allTags,
+    allReacts,
     payload,
   }
 }
@@ -273,6 +321,20 @@ export const updateTags = (tags: TagSectionType[]): AttemptUpdateTagsAction => {
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_TAGS,
     tags,
+  }
+}
+
+export const blockUser = (email: string): AttemptBlockUserAction => {
+  return {
+    type: ProfileActionType.ATTEMPT_BLOCK_USER,
+    email,
+  }
+}
+
+export const unblockUser = (email: string): AttemptUnblockUserAction => {
+  return {
+    type: ProfileActionType.ATTEMPT_UNBLOCK_USER,
+    email,
   }
 }
 

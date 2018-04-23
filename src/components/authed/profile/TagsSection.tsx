@@ -1,7 +1,12 @@
 import React, { PureComponent } from 'react'
 import { StyleSheet, TextStyle, View, ViewStyle } from 'react-native'
-import { Tag } from '../../../services/profile'
 import { JSText } from '../../common'
+
+interface Tag {
+  name: string
+  emoji?: boolean
+  selected?: boolean
+}
 
 interface Props {
   tags: Tag[]

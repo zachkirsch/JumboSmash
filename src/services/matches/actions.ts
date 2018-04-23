@@ -1,6 +1,7 @@
-import { User } from '../swipe'
 import { GiftedChatMessage } from './types'
 import { RehydrateAction } from '../redux'
+import { GetUserResponse } from '../api'
+import { NewMatch } from './types'
 
 /* Actions */
 
@@ -19,10 +20,8 @@ export enum MatchesActionType {
   OTHER_ACTION = '__any_other_action_type__',
 }
 
-export interface CreateMatchAction {
+export interface CreateMatchAction extends NewMatch {
   type: MatchesActionType.CREATE_MATCH
-  conversationId: string
-  withUsers: User[]
 }
 
 export interface AttemptSendMessagesAction {
@@ -57,7 +56,7 @@ export interface SetConversationAsReadAction {
 
 export interface RehydrateMatchesFromServerAction {
   type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
-  conversationIds: string[]
+  matches: NewMatch[]
 }
 
 export interface ClearMatchesStateAction {
@@ -88,18 +87,19 @@ export type MatchesAction = CreateMatchAction
 
 /* Action Creators */
 
-export const rehydrateMatchesFromServer = (conversationIds: string[]): RehydrateMatchesFromServerAction => {
+export const rehydrateMatchesFromServer = (matches: NewMatch[]): RehydrateMatchesFromServerAction => {
   return {
     type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
-    conversationIds,
+    matches,
   }
 }
 
-export const createMatch = (conversationId: string, withUsers: User[]): CreateMatchAction => {
+export const createMatch = (conversationId: string, createdAt: number, otherUsers: GetUserResponse[]): CreateMatchAction => {
   return {
     type: MatchesActionType.CREATE_MATCH,
+    createdAt,
     conversationId,
-    withUsers,
+    otherUsers,
   }
 }
 

@@ -1,5 +1,6 @@
 import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
+import moment from 'moment'
 import { RootState } from '../../redux'
 import * as api from '../api'
 import firebase from 'react-native-firebase'
@@ -207,12 +208,56 @@ function* attemptUpdateTags(payload: ProfileActions.AttemptUpdateTagsAction) {
   }
 }
 
+function* attemptBlockUser(payload: ProfileActions.AttemptBlockUserAction) {
+  try {
+    api.api.block(payload.email)
+    const successAction: ProfileActions.BlockUserSuccessAction = {
+      type: ProfileActions.ProfileActionType.BLOCK_USER_SUCCESS,
+      email: payload.email,
+    }
+    yield put(successAction)
+  } catch (error) {
+    const failureAction: ProfileActions.BlockUserFailureAction = {
+      type: ProfileActions.ProfileActionType.BLOCK_USER_FAILURE,
+      email: payload.email,
+      errorMessage: error.message,
+    }
+    yield put(failureAction)
+  }
+}
+
+function* attemptUnblockUser(payload: ProfileActions.AttemptUnblockUserAction) {
+  try {
+    api.api.unblock(payload.email)
+    const successAction: ProfileActions.UnblockUserSuccessAction = {
+      type: ProfileActions.ProfileActionType.UNBLOCK_USER_SUCCESS,
+      email: payload.email,
+    }
+    yield put(successAction)
+  } catch (error) {
+    const failureAction: ProfileActions.UnblockUserFailureAction = {
+      type: ProfileActions.ProfileActionType.UNBLOCK_USER_FAILURE,
+      email: payload.email,
+      errorMessage: error.message,
+    }
+    yield put(failureAction)
+  }
+}
+
 function* rehydrateProfileFromServer(_: RehydrateAction) {
   try {
     const allTags: api.GetTagsResponse = yield call(api.api.getTags)
+    const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
     const meInfo: api.MeResponse = yield call(api.api.me)
-    yield put(ProfileActions.initializeProfile(allTags, meInfo))
-    yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => match.conversation_uuid)))
+    yield put(ProfileActions.initializeProfile(allTags, allReacts, meInfo))
+    yield put(rehydrateMatchesFromServer(meInfo.active_matches
+      .filter(match => !match.unmatched)
+      .map(match => ({
+        createdAt: moment(match.createdAt).unix(),
+        otherUsers: match.users.filter(u => u.id !== meInfo.id),
+        conversationId: match.conversation_uuid,
+      }))
+    ))
   } catch (e) {} /* tslint:disable-line:no-empty */
 }
 
@@ -224,6 +269,8 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_BLOCK_USER, attemptBlockUser)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UNBLOCK_USER, attemptUnblockUser)
   yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
   yield throttle(
     500,

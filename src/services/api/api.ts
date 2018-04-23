@@ -24,9 +24,16 @@ export const api = {
   updateImages: (images: string[]) => Endpoints.updateImages.hit({images}, {}),
   getTags: () => Endpoints.getTags.hit({}, {}),
   updateTags: (tagIds: number[]) => Endpoints.updateTags.hit({tag_ids: tagIds}, {}),
+  getReacts: () => Endpoints.getReacts.hit({}, {}),
+  react: (onUser: number, reacts: number[]) => Endpoints.react.hit({
+    react_on_id: onUser,
+    react_ids: reacts,
+  }, {}),
 
   /* OTHERS */
 
+  block: (email: string) => Endpoints.block.hit({email_to_block: email}, {}),
+  unblock: (email: string) => Endpoints.unblock.hit({email_to_unblock: email}, {}),
   getAllUsers: () => Endpoints.getAllUsers.hit({}, {}),
   getSwipableUsers: () => Endpoints.getSwipableUsers.hit({}, {}),
   swipe: (direction: Endpoints.Direction, onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),

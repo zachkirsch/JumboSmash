@@ -1,6 +1,11 @@
 import { List } from 'immutable'
 import { LoadableValue } from '../redux'
-import { Tag } from '../profile'
+import { ProfileReact } from '../profile'
+
+interface Tag {
+  name: string
+  emoji: boolean
+}
 
 export interface User {
   id: number
@@ -10,14 +15,8 @@ export interface User {
   major: string
   bio: string
   images: string[]
+  profileReacts: ProfileReact[]
   tags: Tag[]
-}
-
-export interface Match {
-  conversation_uuid: string
-  createdAt: string
-  id: number
-  unmatched: boolean
 }
 
 export interface SwipeState {

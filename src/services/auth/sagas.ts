@@ -73,12 +73,13 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
     const meInfo: api.MeResponse = yield call(api.api.me)
     yield put(setCoCReadStatus(meInfo.accepted_coc))
 
-    // now set the user as 'logged in'
-    yield handleEmailVerificationSuccess()
-
     // rehydrate the user's profile
     const allTags: api.GetTagsResponse = yield call(api.api.getTags)
-    yield put(initializeProfile(allTags, meInfo))
+    const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
+    yield put(initializeProfile(allTags, allReacts, meInfo))
+
+    // now set the user as 'logged in'
+    yield handleEmailVerificationSuccess()
 
     // fetch users
     yield put(fetchAllUsers())
