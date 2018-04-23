@@ -5,10 +5,13 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Conversation } from '../../../services/matches'
-import { getFirstName } from '../../../utils'
 import MatchesListItem from './MatchesListItem'
+import { JSTextInput } from '../../common'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
-interface State { }
+interface State {
+  searchBarText: string,
+}
 
 interface OwnProps { }
 
@@ -20,17 +23,54 @@ type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps>
 
 class MatchesList extends PureComponent<Props, State> {
 
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      searchBarText: '',
+    }
+  }
+
   public render() {
     return (
       <View style={styles.container}>
+        {this.renderSearchBar()}
         <FlatList
           contentContainerStyle={styles.list}
-          data={this.props.chats.toArray()}
+          data={this.getMatches()}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
         />
       </View>
     )
+  }
+
+  private renderSearchBar = () => {
+    return (
+      <View style={styles.searchBarContainer}>
+        <Ionicons
+          name='ios-search'
+          style={{marginLeft: 10, marginVertical: 3}}
+          color='gray'
+          size={20}
+        />
+        <JSTextInput
+          onChangeText={this.onChangeSearchBarText}
+          style={styles.searchBar}
+          placeholder={'Search'}
+          underline={false}
+        />
+      </View>
+    )
+  }
+
+  private onChangeSearchBarText = (searchBarText: string) => {
+    this.setState({ searchBarText })
+  }
+
+  private getMatches = () => {
+    return this.props.chats.toArray().filter(chat => {
+      return chat.otherUsers.find(user => !!user && user.preferredName.includes(this.state.searchBarText))
+    })
   }
 
   private extractConversationId = (item: Conversation) => item.conversationId
@@ -44,12 +84,12 @@ class MatchesList extends PureComponent<Props, State> {
   private renderItem = ({item}: {item: Conversation}) => {
     return (
       <MatchesListItem
-        name={getFirstName(item.otherUsers.first().name)}
+        name={item.otherUsers.first().preferredName}
         onPress={this.openChatScreen(item.conversationId)}
         lastMessage={item.mostRecentMessage}
         messageRead={!item.messagesUnread}
-        avatar={item.otherUsers.first().avatar}
-        newMatch={item.messageIDs.size === 0}
+        avatar={item.otherUsers.first().images[0]}
+        newMatch={true}
       />
     )
   }
@@ -70,19 +110,22 @@ const styles = StyleSheet.create({
   list: {
     marginTop: 10,
   },
-  center: {
-    flexDirection: 'column',
-    justifyContent: 'center',
+  searchBarContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    overflow: 'hidden',
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 5,
+    backgroundColor: 'rgb(250, 250, 250)',
+    borderRadius: 40,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'lightgray',
   },
-  input: {
-    borderColor: 'gray',
-    borderBottomWidth: 1,
-  },
-  openChatContainer: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 5,
-    marginTop: 15,
+  searchBar: {
+    flex: 1,
+    textAlign: 'center',
+    marginLeft: 3,
+    marginRight: 7,
   },
 })

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Dimensions, Image, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { Dimensions, Image, StyleSheet, TouchableWithoutFeedback, View, Platform } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import { JSText } from '../../common'
 
@@ -30,25 +30,38 @@ class MatchesListItem extends PureComponent<Props, State> {
   public render() {
     return (
     <View style={styles.container}>
-      {this.props.messageRead && !this.props.newMatch ? this.renderItem(false) : this.renderUnreadItem()}
+      {this.props.messageRead && !this.props.newMatch ? this.renderItem() : this.renderUnreadItem()}
     </View>
     )
   }
 
-  private renderItem(unread: boolean) {
+  private renderItem(unread = false) {
 
-    const textStyle = [unread ? styles.unreadText : styles.readText]
+    const messagePreviewTextStyle = [unread ? styles.unreadText : styles.readText]
+    const containerStyle = [styles.itemContainer]
 
     let preview = this.props.lastMessage
     if (this.props.newMatch) {
-      unread = true
-      preview = 'New Match!'
-      textStyle.push(styles.blue)
+      unread = false
+      preview = 'New Match💞'
+      messagePreviewTextStyle.push(styles.pink)
+    } else if (this.state.pressedIn && !unread) {
+      containerStyle.push(styles.lightGray)
     }
 
-    const containerStyle = [styles.match]
-    if (this.state.pressedIn && !unread) {
-      containerStyle.push(styles.lightGray)
+    let avatarContainerShadow
+    if (this.props.newMatch || unread) {
+      avatarContainerShadow =  Platform.select({
+        ios: {
+          shadowRadius: 5,
+          shadowColor: this.props.newMatch ? 'rgb(220,95,95)' : '#97B1D3',
+          shadowOpacity: 0.4,
+          shadowOffset: {
+            height: 0,
+            width: 0,
+          },
+        },
+      })
     }
 
     return (
@@ -58,30 +71,27 @@ class MatchesListItem extends PureComponent<Props, State> {
         onPress={this.props.onPress}
       >
         <View style={containerStyle}>
-        <Image source={{uri: this.props.avatar}} style={styles.avatarPhoto} />
-        <View style={styles.textContainer}>
-          <JSText style={styles.nameText}>{this.props.name}</JSText>
-          <JSText numberOfLines={1} bold={unread} style={textStyle}>{preview}</JSText>
+          <View style={[styles.avatarContainer, avatarContainerShadow]}>
+            <Image source={{uri: this.props.avatar}} style={styles.avatarPhoto} />
+          </View>
+          <View style={styles.textContainer}>
+            <JSText fontSize={15} style={styles.nameText}>{this.props.name}</JSText>
+            <JSText fontSize={15} numberOfLines={1} bold={unread} style={messagePreviewTextStyle}>
+              {preview}
+            </JSText>
+          </View>
         </View>
-      </View>
       </TouchableWithoutFeedback>
     )
   }
 
   private renderUnreadItem() {
-
-    let opacities = [0.4, 0.2]
-
-    if (this.props.newMatch) {
-      opacities = opacities.map((opacity) => 0.5 + opacity / 2)
-    }
-    if (this.state.pressedIn) {
-      opacities = opacities.map((opacity) => 0.5 + opacity / 2)
-    }
-
-    const colors = [
-      `rgba(231, 240, 253, ${opacities[0]})`,
-      `rgba(177, 202, 239, ${opacities[1]})`,
+    const colors = this.props.newMatch ? [
+      'rgb(253, 244, 243)',
+      `rgba(250, 214, 214, ${this.state.pressedIn ? 1 : 0.4})`,
+    ] : [
+      'rgb(251, 252, 255)',
+      `rgba(211, 227, 251, ${this.state.pressedIn ? 1 : 0.3})`,
     ]
 
     return (
@@ -108,17 +118,17 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 1,
   },
-  gradient: {
-    borderRadius: 7,
-  },
-  match: {
+  itemContainer: {
     flex: 1,
     flexDirection: 'row',
     paddingVertical: 7,
     paddingHorizontal: 15,
   },
+  gradient: {
+    borderRadius: 7,
+  },
   nameText: {
-    color: 'black',
+    color: '#474747',
   },
   readText: {
     color: 'gray',
@@ -126,19 +136,21 @@ const styles = StyleSheet.create({
   unreadText: {
     color: 'rgb(46, 64, 90)',
   },
-  avatarPhoto: {
+  avatarContainer: {
     marginRight: 15,
+    borderRadius: WIDTH / 9,
+  },
+  avatarPhoto: {
     width: WIDTH / 4.5,
     height: WIDTH / 4.5,
     borderRadius: WIDTH / 9,
   },
   textContainer: {
     flexDirection: 'column',
-    flex: .9,
     justifyContent: 'center',
   },
-  blue: {
-    color: 'blue',
+  pink: {
+    color: '#EBA4A2',
   },
   lightGray: {
     backgroundColor: 'lightgray',

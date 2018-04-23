@@ -1,4 +1,4 @@
-import { GiftedChatMessage } from './types'
+import { IChatMessage } from 'react-native-gifted-chat'
 import { RehydrateAction } from '../redux'
 import { GetUserResponse } from '../api'
 import { NewMatch } from './types'
@@ -27,26 +27,26 @@ export interface CreateMatchAction extends NewMatch {
 export interface AttemptSendMessagesAction {
   type: MatchesActionType.ATTEMPT_SEND_MESSAGES
   conversationId: string
-  messages: GiftedChatMessage[]
+  messages: IChatMessage[]
 }
 
 export interface SendMessagesSuccessAction {
   type: MatchesActionType.SEND_MESSAGES_SUCCESS
   conversationId: string
-  messages: GiftedChatMessage[]
+  messages: IChatMessage[]
 }
 
 export interface SendMessagesFailureAction {
   type: MatchesActionType.SEND_MESSAGES_FAILURE
   conversationId: string
-  messages: GiftedChatMessage[]
+  messages: IChatMessage[]
   errorMessage: string
 }
 
 export interface ReceiveMessagesAction {
   type: MatchesActionType.RECEIVE_MESSAGES
   conversationId: string
-  messages: GiftedChatMessage[]
+  messages: IChatMessage[]
 }
 
 export interface SetConversationAsReadAction {
@@ -103,7 +103,7 @@ export const createMatch = (conversationId: string, createdAt: number, otherUser
   }
 }
 
-export const sendMessages = (conversationId: string, messages: GiftedChatMessage[]): AttemptSendMessagesAction => {
+export const sendMessages = (conversationId: string, messages: IChatMessage[]): AttemptSendMessagesAction => {
   return {
     type: MatchesActionType.ATTEMPT_SEND_MESSAGES,
     conversationId,
@@ -111,7 +111,7 @@ export const sendMessages = (conversationId: string, messages: GiftedChatMessage
   }
 }
 
-export const receiveMessages = (conversationId: string, messages: GiftedChatMessage[]): ReceiveMessagesAction => {
+export const receiveMessages = (conversationId: string, messages: IChatMessage[]): ReceiveMessagesAction => {
   return {
     type: MatchesActionType.RECEIVE_MESSAGES,
     conversationId,

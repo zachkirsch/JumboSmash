@@ -15,10 +15,12 @@ const initialState: MatchesState = {
     2: {
       conversationId: '2',
       otherUsers: List([{
-        _id: 1,
-        name: 'Zach Kirsch',
-        avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
-                '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
+        id: 1,
+        preferredName: 'Zach Kirsch',
+        bio: 'Gotta catch em all',
+        images: ['https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
+        '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366'],
+        tags: ['tag1', 'tag2'],
       }]),
       messages: List([
         {
@@ -40,18 +42,6 @@ const initialState: MatchesState = {
       ]),
       messageIDs: Set([0]),
       mostRecentMessage: 'This is Zach',
-      messagesUnread: true,
-    },
-    4: {
-      conversationId: '4',
-      otherUsers: List([{
-        _id: 3,
-        name: 'Mewtwo',
-        avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
-      }]),
-      messages: List([]),
-      messageIDs: Set([]),
-      mostRecentMessage: '',
       messagesUnread: true,
     },
   }),
@@ -133,6 +123,7 @@ const updateSentStatus = (oldState: MatchesState,
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
+
   switch (action.type) {
 
     case MatchesActionType.RECEIVE_MESSAGES:
@@ -162,9 +153,15 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
           conversationId: action.conversationId,
           createdAt: action.createdAt,
           otherUsers: List(action.otherUsers.map(user => ({
-            _id: user.id,
-            name: user.preferred_name,
-            avatar: user.images[0].url,
+            id: user.id,
+            preferredName: user.preferred_name,
+            surname: user.surname,
+            fullName: user.full_name,
+            major: user.major,
+            bio: user.bio,
+            images: user.images.map(image => image.url),
+            tags: [], // TODO
+            profileReacts: [], // TODO
           }))),
           messages: List(),
           messageIDs: Set(),
@@ -180,9 +177,15 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
           chats = chats.set(match.conversationId, {
             conversationId: match.conversationId,
             otherUsers: List(match.otherUsers.map(user => ({
-              _id: user.id,
-              name: user.preferred_name,
-              avatar: user.images[0].url,
+              id: user.id,
+              preferredName: user.preferred_name,
+              surname: user.surname,
+              fullName: user.full_name,
+              major: user.major,
+              bio: user.bio,
+              images: user.images.map(image => image.url),
+              tags: [], // TODO
+              profileReacts: [], // TODO
             }))),
             messages: List(),
             messageIDs: Set(),

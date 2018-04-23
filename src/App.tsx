@@ -4,8 +4,9 @@ import { StatusBar, StyleSheet, View } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen } from './components'
 import { RootState } from './redux'
+import { Conversation, receiveMessages } from './services/matches'
+import { IChatMessage } from 'react-native-gifted-chat'
 import { ChatService } from './services/firebase'
-import { Conversation, GiftedChatMessage, receiveMessages } from './services/matches'
 import { attemptConnectToFirebase } from './services/firebase'
 import firebase from 'react-native-firebase'
 
@@ -20,7 +21,7 @@ interface StateProps {
 
 interface DispatchProps {
   attemptConnectToFirebase: (token: string) => void
-  receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => void
+  receiveMessages: (conversationId: string, messages: IChatMessage[]) => void
 }
 
 type Props = StateProps & DispatchProps
@@ -89,13 +90,13 @@ const networkRequestInProgress = (state: RootState) => {
   || state.profile.preferredName.loading
   || state.profile.major.loading
   || state.profile.bio.loading
-  || state.profile.images.find((image) => image.loading) !== undefined
+  || !!state.profile.images.find(image => !!image && image.loading)
   || state.profile.tags.loading
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    receiveMessages: (conversationId: string, messages: GiftedChatMessage[]) => {
+    receiveMessages: (conversationId: string, messages: IChatMessage[]) => {
       dispatch(receiveMessages(conversationId, messages))
     },
     attemptConnectToFirebase: (token: string) => dispatch(attemptConnectToFirebase(token)),
