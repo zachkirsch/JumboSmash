@@ -9,6 +9,10 @@ export enum SwipeActionType {
   FETCH_ALL_USERS_SUCCESS = 'FETCH_ALL_USERS_SUCCESS',
   FETCH_ALL_USERS_FAILURE = 'FETCH_ALL_USERS_FAILURE',
 
+  ATTEMPT_FETCH_SWIPABLE_USERS = 'ATTEMPT_FETCH_SWIPABLE_USERS',
+  FETCH_SWIPABLE_USERS_SUCCESS = 'FETCH_SWIPABLE_USERS_SUCCESS',
+  FETCH_SWIPABLE_USERS_FAILURE = 'FETCH_SWIPABLE_USERS_FAILURE',
+
   ATTEMPT_SWIPE = 'ATTEMPT_SWIPE',
   SWIPE_SUCCESS = 'SWIPE_SUCCESS',
   SWIPE_FAILURE = 'SWIPE_FAILURE',
@@ -29,6 +33,20 @@ export interface FetchAllUsersSuccessAction {
 
 export interface FetchAllUsersFailureAction {
   type: SwipeActionType.FETCH_ALL_USERS_FAILURE
+  errorMessage: string
+}
+
+export interface AttemptFetchSwipableUsersAction {
+  type: SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS
+}
+
+export interface FetchSwipableUsersSuccessAction {
+  type: SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS
+  users: User[]
+}
+
+export interface FetchSwipableUsersFailureAction {
+  type: SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE
   errorMessage: string
 }
 
@@ -69,6 +87,9 @@ export interface OtherAction {
 export type SwipeAction = AttemptFetchAllUsersAction
 | FetchAllUsersSuccessAction
 | FetchAllUsersFailureAction
+| AttemptFetchSwipableUsersAction
+| FetchSwipableUsersSuccessAction
+| FetchSwipableUsersFailureAction
 | AttemptSwipeAction
 | SwipeSuccessAction
 | SwipeFailureAction
@@ -81,6 +102,12 @@ export type SwipeAction = AttemptFetchAllUsersAction
 export const fetchAllUsers = (): AttemptFetchAllUsersAction => {
   return {
     type: SwipeActionType.ATTEMPT_FETCH_ALL_USERS,
+  }
+}
+
+export const fetchSwipableUsers = (): AttemptFetchSwipableUsersAction => {
+  return {
+    type: SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS,
   }
 }
 

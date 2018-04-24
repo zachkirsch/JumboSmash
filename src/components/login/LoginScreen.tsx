@@ -67,10 +67,10 @@ class LoginScreen extends PureComponent<Props, State> {
       >
         <KeyboardAvoidingView behavior='padding' style={styles.mainContainer} >
           <View style={styles.messageContainer}>
-            <JSText fontSize={21} bold style={styles.message}>CLASS OF 2018</JSText>
-            <JSText fontSize={21} style={styles.message}>IT'S TIME</JSText>
-            <JSText fontSize={21} style={styles.message}>FOR</JSText>
-            <JSText fontSize={21} style={styles.message}>SMASHING.</JSText>
+            <JSText bold style={styles.message}>CLASS OF 2018</JSText>
+            <JSText style={styles.message}>IT'S TIME</JSText>
+            <JSText style={styles.message}>FOR</JSText>
+            <JSText style={styles.message}>SMASHING.</JSText>
           </View>
           <View style={styles.inputContainer}>
             <View style={styles.errorMessageContainer}>
@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
     marginLeft: '10%',
   },
   message: {
+    fontSize: 21,
     lineHeight: 29,
     color: 'black',
   },

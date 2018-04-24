@@ -7,9 +7,11 @@ import { setCoCReadStatus } from '../coc'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { clearMatchesState } from '../matches'
 import { clearProfileState, initializeProfile } from '../profile'
-import { clearSwipeState, fetchAllUsers } from '../swipe'
+import { clearSwipeState, fetchAllUsers, fetchSwipableUsers } from '../swipe'
+import { clearNavigationState } from '../navigation'
 import { NotificationsActionType, SetNotificationsTokenAction } from '../notifications/actions'
 import * as AuthActions from './actions'
+import { ImageCacheService } from '../image-caching'
 
 const getEmail = (state: RootState) => state.auth.email
 
@@ -83,6 +85,7 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 
     // fetch users
     yield put(fetchAllUsers())
+    yield put(fetchSwipableUsers())
 
     // connect to firebase
     yield put(attemptConnectToFirebase(meInfo.firebase_token))
@@ -108,8 +111,10 @@ function* logout(_: AuthActions.LogoutAction) {
   yield put(setCoCReadStatus(false))
   yield put(logoutFirebase())
   yield put(clearProfileState())
+  yield put(clearNavigationState())
   yield put(clearSwipeState())
   yield put(clearMatchesState())
+  ImageCacheService.clearCache()
 }
 
 export function* authSaga() {

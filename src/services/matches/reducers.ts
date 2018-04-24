@@ -11,40 +11,7 @@ import { ReduxActionType } from '../redux'
 import { Conversation, MatchesState } from './types'
 
 const initialState: MatchesState = {
-  chats: Map<string, Conversation>({
-    2: {
-      conversationId: '2',
-      otherUsers: List([{
-        id: 1,
-        preferredName: 'Zach Kirsch',
-        bio: 'Gotta catch em all',
-        images: ['https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
-        '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366'],
-        tags: ['tag1', 'tag2'],
-      }]),
-      messages: List([
-        {
-          _id: 0,
-          text: 'This is Zach',
-          createdAt: new Date(),
-          user: {
-            _id: 1,
-            name: 'Zach Kirsch',
-            avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
-                    '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
-          },
-          sending: false,
-          failedToSend: false,
-          sent: true,
-          received: true,
-          read: false,
-        },
-      ]),
-      messageIDs: Set([0]),
-      mostRecentMessage: 'This is Zach',
-      messagesUnread: true,
-    },
-  }),
+  chats: Map<string, Conversation>(),
 }
 
 const addMessagesToReduxState = (oldState: MatchesState,
@@ -70,9 +37,7 @@ const addMessagesToReduxState = (oldState: MatchesState,
   })
 
   const newConversation: Conversation = {
-    conversationId: originalConversation.conversationId,
-    createdAt: originalConversation.createdAt,
-    otherUsers: originalConversation.otherUsers.asImmutable(),
+    ...originalConversation,
     messages: newMessages,
     messageIDs: newMessageIDs,
     mostRecentMessage: newMessages.first().text,
@@ -108,12 +73,8 @@ const updateSentStatus = (oldState: MatchesState,
   })
 
   const newConversation: Conversation = {
-    conversationId: originalConversation.conversationId,
-    createdAt: originalConversation.createdAt,
-    otherUsers: originalConversation.otherUsers.asImmutable(),
+    ...originalConversation,
     messages: newMessages,
-    messageIDs: originalConversation.messageIDs.asImmutable(),
-    mostRecentMessage: originalConversation.mostRecentMessage,
     messagesUnread: false,
   }
 
@@ -152,17 +113,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         chats: state.chats.set(action.conversationId, {
           conversationId: action.conversationId,
           createdAt: action.createdAt,
-          otherUsers: List(action.otherUsers.map(user => ({
-            id: user.id,
-            preferredName: user.preferred_name,
-            surname: user.surname,
-            fullName: user.full_name,
-            major: user.major,
-            bio: user.bio,
-            images: user.images.map(image => image.url),
-            tags: [], // TODO
-            profileReacts: [], // TODO
-          }))),
+          otherUsers: action.otherUsers.map(user => user.id),
           messages: List(),
           messageIDs: Set(),
           mostRecentMessage: '',
@@ -176,17 +127,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         if (!chats.has(match.conversationId)) {
           chats = chats.set(match.conversationId, {
             conversationId: match.conversationId,
-            otherUsers: List(match.otherUsers.map(user => ({
-              id: user.id,
-              preferredName: user.preferred_name,
-              surname: user.surname,
-              fullName: user.full_name,
-              major: user.major,
-              bio: user.bio,
-              images: user.images.map(image => image.url),
-              tags: [], // TODO
-              profileReacts: [], // TODO
-            }))),
+            otherUsers: match.otherUsers.map(user => user.id),
             messages: List(),
             messageIDs: Set(),
             mostRecentMessage: '',
@@ -212,8 +153,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         const originalConversation: Conversation = (action.payload.matches.chats as any)[conversationId]
         const conversation: Conversation = {
           conversationId,
-          createdAt: originalConversation.createdAt,
-          otherUsers: List(originalConversation.otherUsers),
+          ...originalConversation,
           messages: List(originalConversation.messages.map((message) => {
             return {
               ...message,
@@ -222,8 +162,6 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
             }
           })),
           messageIDs: Set(originalConversation.messageIDs),
-          mostRecentMessage: originalConversation.mostRecentMessage,
-          messagesUnread: originalConversation.messagesUnread,
         }
         chats = chats.set(conversationId, conversation)
       })

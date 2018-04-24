@@ -15,13 +15,16 @@ interface Props {
 class HeaderBar extends PureComponent<Props, {}> {
 
   render() {
+    const title = this.props.renderTitle
+      ? this.props.renderTitle()
+      : <JSText style={styles.title} bold>{this.props.title}</JSText>
     return (
       <SafeAreaView style={styles.container}>
         <TouchableOpacity onPress={this.goBack} style={styles.sideView}>
           <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
-          {this.props.renderTitle ? this.props.renderTitle() : <JSText bold fontSize={22}>{this.props.title}</JSText>}
+          {title}
         </View>
         <TouchableOpacity onPress={this.props.onPressRight} style={styles.sideView}>
           {this.renderRightIcon()}
@@ -70,5 +73,8 @@ const styles = StyleSheet.create({
     flex: 3,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  title: {
+    fontSize: 22,
   },
 })

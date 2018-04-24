@@ -1,4 +1,4 @@
-import { List } from 'immutable'
+import { List, Map } from 'immutable'
 import { LoadableValue } from '../redux'
 import { ProfileReact } from '../profile'
 
@@ -20,7 +20,9 @@ export interface User {
 }
 
 export interface SwipeState {
-  allUsers: LoadableValue<List<User>>
+  allUsers: LoadableValue<Map<number, User>>
+  swipableUsers: LoadableValue<List<User>>
   indexOfUserOnTop: number
-  lastFetched?: number // Unix timestamp
+  lastFetchedAllUsers?: number
+  lastFetchedSwipableUsers?: number // Unix timestamp
 }

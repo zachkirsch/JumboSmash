@@ -43,7 +43,7 @@ class Bubble extends PureComponent<Props, {}> {
   private renderMessageText = () => {
     if (this.props.currentMessage) {
       return (
-        <JSText style={styles.slackMessageText} fontSize={15}>
+        <JSText style={styles.messageText}>
           {this.props.currentMessage.text}
         </JSText>
       )
@@ -56,12 +56,13 @@ class Bubble extends PureComponent<Props, {}> {
 export default Bubble
 
 const styles = StyleSheet.create({
-  slackMessageText: {
+  messageText: {
     marginLeft: 14,
     marginRight: 0,
     marginTop: 5,
     marginBottom: 5,
     color: '#2F2E2E',
+    fontSize: 15,
   },
   container: {
     flex: 1,

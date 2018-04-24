@@ -361,11 +361,11 @@ class Card extends PureComponent<Props, State> {
       <TouchableWithoutFeedback onPress={this.tap}>
         <Animated.View style={bottomContainerStyle}>
           <View style={{flexDirection: 'row'}}>
-            <JSText fontSize={20} bold style={styles.firstName}>
+            <JSText bold style={styles.firstName}>
               {this.props.profile.preferredName}
             </JSText>
             <Animated.View style={surnameStyle}>
-              <JSText fontSize={20} style={styles.surname}>
+              <JSText style={styles.surname}>
                 {this.props.profile.surname}
               </JSText>
             </Animated.View>
@@ -373,7 +373,7 @@ class Card extends PureComponent<Props, State> {
           <View style={styles.textContainer}>
             <TagsSection tags={this.props.profile.tags} tagStyle={styles.tag} alignLeft />
           </View>
-          <JSText fontSize={14} style={styles.bio}>
+          <JSText style={styles.bio}>
             {this.props.profile.bio}
           </JSText>
         </Animated.View>
@@ -745,10 +745,12 @@ const styles = StyleSheet.create({
   },
   firstName: {
     color: 'rgb(66, 64, 64)',
+    fontSize: 20,
     marginVertical: 10,
     marginRight: 7,
   },
   surname: {
+    fontSize: 20,
     color: 'gray',
     marginVertical: 10,
   },
@@ -760,6 +762,7 @@ const styles = StyleSheet.create({
     color: '#9B9B9B',
   },
   bio: {
+    fontSize: 14,
     marginTop: 15,
     marginBottom: 40,
     color: 'rgb(66, 64, 64)',

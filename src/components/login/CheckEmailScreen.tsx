@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
-import { JSText, JSTextInput, scale, TextInputRef } from '../common'
+import { JSText, JSTextInput, TextInputRef } from '../common'
 import EmailUsFooter from './EmailUsFooter'
 
 interface Props {
@@ -82,7 +82,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     }
 
     const resendEmailButtonDisabled = this.state.secondsUntilCanResendEmail > 0
-    const resendLinkStyle = []
+    const resendLinkStyle = [styles.resendLink]
     if (resendEmailButtonDisabled) {
       resendLinkStyle.push(styles.resendLinkDisabled)
     }
@@ -99,9 +99,9 @@ class CheckEmailScreen extends PureComponent<Props, State> {
           style={styles.container}
         >
           <View style={styles.messageContainer}>
-            <SimpleLineIcons name='envelope' size={scale(50)} color='rgba(172,203,238,0.6)' />
+            <SimpleLineIcons name='envelope' size={50} color='rgba(172,203,238,0.6)' />
             <View style={styles.contentTitleContainer}>
-              <JSText bold fontSize={18} style={[styles.text, styles.contentTitle]}>
+              <JSText bold style={[styles.text, styles.contentTitle]}>
                 CHECK YOUR EMAIL!
               </JSText>
             </View>
@@ -129,7 +129,6 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 keyboardType={'numeric'}
                 maxLength={CODE_LENGTH}
                 underlineColorAndroid={underlineColorAndroid}
-                fontSize={30}
                 enablesReturnKeyAutomatically
                 fancy
                 textInputRef={this.setTextInputRef}
@@ -140,7 +139,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
                 onPress={this.requestResendVerificationCode}
                 disabled={resendEmailButtonDisabled}
               >
-                <JSText fontSize={14} style={resendLinkStyle}>
+                <JSText style={resendLinkStyle}>
                   {resendEmailTitle}
                 </JSText>
               </TouchableOpacity>
@@ -224,6 +223,7 @@ const styles = StyleSheet.create({
   },
   contentTitle: {
     color: 'black',
+    fontSize: 18,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     color: 'black',
     borderWidth: 1,
     borderColor: 'transparent',
+    fontSize: 30,
   },
   activityIndicatorContainer: {
     position: 'absolute',
@@ -263,6 +264,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 30,
     backgroundColor: 'transparent',
+  },
+  resendLink: {
+    fontSize: 14,
   },
   resendLinkDisabled: {
     color: 'rgba(74,74,74,0.84)',

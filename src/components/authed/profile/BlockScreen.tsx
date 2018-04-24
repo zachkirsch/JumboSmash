@@ -58,11 +58,10 @@ class BlockScreen extends PureComponent<Props, State> {
         <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
         <View style={styles.container}>
           <View style={styles.upperContainer}>
-            <JSText fontSize={14} style={{textAlign: 'justify'}}>
+            <JSText style={[styles.instructions, { textAlign: 'justify' }]}>
               {INSTRUCTIONS_START}
               <JSText
-                fontSize={14}
-                style={styles.underline}
+                style={styles.link}
                 onPress={this.openWhitePages}
               >
                 {'Tufts Whitepages'}
@@ -82,7 +81,6 @@ class BlockScreen extends PureComponent<Props, State> {
               onSubmitEditing={this.blockUser(this.state.textInput)}
             />
             <JSText
-              fontSize={15}
               bold
               style={styles.currentlyBlocked}
             >
@@ -225,7 +223,8 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 0,
   },
-  underline: {
+  link: {
+    fontSize: 14,
     textDecorationLine: 'underline',
     color: '#171767',
   },
@@ -264,6 +263,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   currentlyBlocked: {
+    fontSize: 15,
     textAlign: 'center',
   },
   overlay: {
@@ -272,5 +272,8 @@ const styles = StyleSheet.create({
     height: 20,
     bottom: 0,
     left: 0,
+  },
+  instructions: {
+    fontSize: 14,
   },
 })

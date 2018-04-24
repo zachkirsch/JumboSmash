@@ -1,13 +1,11 @@
 import React, { Component, ComponentState, PureComponent } from 'react'
 import { Platform, StyleSheet, TextInput, TextInputProperties, TextInputStatic, TextStyle } from 'react-native'
-import { DEFAULT_FONT_SIZE } from './scaling'
 
 export type TextInputRef = TextInputStatic & Component<TextInputProperties, ComponentState>
 
 interface Props extends TextInputProperties {
   style?: TextStyle | TextStyle[]
   textInputRef?: (instance: TextInputRef) => void
-  fontSize?: number
   fancy?: boolean // takes up more space, text is centered, has shadow on IOS. defaults to false
   underline?: boolean // iOS only. defaults to opposite of fancy
 }
@@ -27,7 +25,7 @@ class JSTextInput extends PureComponent<Props, State> {
 
   public render() {
 
-    const { textInputRef, placeholder, style, fontSize, multiline, ...otherProps } = this.props
+    const { textInputRef, placeholder, style, multiline, ...otherProps } = this.props
 
     const textInputStyles: any[] = [styles.input] /* tslint:disable-line:no-any */
     if (this.props.fancy) {
@@ -37,11 +35,7 @@ class JSTextInput extends PureComponent<Props, State> {
     if (shouldUnderline) {
       textInputStyles.push(styles.underline)
     }
-
     textInputStyles.push(style)
-    textInputStyles.push({
-      fontSize: fontSize || DEFAULT_FONT_SIZE,
-    })
 
     textInputStyles.push(Platform.select({
       android: {
@@ -82,7 +76,7 @@ export default JSTextInput
 
 const styles = StyleSheet.create({
   input: {
-    fontFamily: 'Avenir-Book',
+    fontFamily: 'ProximaNovaSoft-Regular',
     paddingVertical: 0,
   },
   fancy: {
@@ -93,7 +87,9 @@ const styles = StyleSheet.create({
         shadowRadius: 50,
       },
       android: {
-        elevation: 5,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: 'lightgray',
+        elevation: 1,
       },
     }),
     marginVertical: 5,

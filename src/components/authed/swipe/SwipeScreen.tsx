@@ -7,7 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Direction } from '../../../services/api'
-import { fetchAllUsers, swipe, User, SwipeState } from '../../../services/swipe'
+import { fetchSwipableUsers, swipe, User, SwipeState } from '../../../services/swipe'
 import { CircleButton, CircleButtonProps } from '../../common'
 import { mod } from '../../../utils'
 import Card from './Card'
@@ -26,7 +26,7 @@ type StateProps = SwipeState
 
 interface DispatchProps {
   swipe: (direction: Direction, onUser: User) => void
-  fetchAllUsers: () => void
+  fetchSwipableUsers: () => void
 }
 
 type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
@@ -56,8 +56,8 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   public render() {
     if (!this.props.preview) {
-      if (this.props.allUsers.value.size === 0) {
-        if (this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
+      if (this.props.swipableUsers.value.size === 0) {
+        if (this.props.swipableUsers.loading || this.state.mustShowLoadingScreen) {
           return <Card type='loading' />
         } else {
           return <NoMoreCards requestMoreCards={this.requestMoreUsers}/>
@@ -193,7 +193,7 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private fetchUsers = () => {
-    this.props.fetchAllUsers()
+    this.props.fetchSwipableUsers()
     this.setState({
       mustShowLoadingScreen: true,
     }, () => setTimeout(() => {
@@ -235,9 +235,11 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private onCompleteSwipe = (direction: Direction, onUser: User) => {
 
-    if (!this.props.allUsers.loading) {
-      const numUserUntilEnd = this.props.allUsers.value.size - this.props.indexOfUserOnTop
-      const beenLongEnough = this.props.lastFetched === undefined || (Date.now() - this.props.lastFetched) / 1000 >= 10
+    if (!this.props.swipableUsers.loading) {
+      const numUserUntilEnd = this.props.swipableUsers.value.size - this.props.indexOfUserOnTop
+      const beenLongEnough = (
+        !this.props.lastFetchedSwipableUsers || (Date.now() - this.props.lastFetchedSwipableUsers) / 1000 >= 10
+      )
       if (numUserUntilEnd <= 10 && beenLongEnough) {
         this.fetchUsers()
       }
@@ -275,8 +277,8 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private getInitialCardForIndex = (cardIndex: number) => {
-    const indexOfUser = this.calculatePositionInStack(cardIndex) % this.props.allUsers.value.size
-    return this.props.allUsers.value.get(indexOfUser)
+    const indexOfUser = this.calculatePositionInStack(cardIndex) % this.props.swipableUsers.value.size
+    return this.props.swipableUsers.value.get(indexOfUser)
   }
 
   private getCard = (cardIndex: number): User => {
@@ -292,8 +294,8 @@ class SwipeScreen extends PureComponent<Props, State> {
     const currentCard = this.getCard(cardIndex)
     switch (this.calculatePositionInStack(cardIndex)) {
       case 0:
-        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.allUsers.value.size
-        return this.props.allUsers.value.get(indexOfUser)
+        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.swipableUsers.value.size
+        return this.props.swipableUsers.value.get(indexOfUser)
       default:
         return currentCard
     }
@@ -306,7 +308,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    fetchAllUsers: () => dispatch(fetchAllUsers()),
+    fetchSwipableUsers: () => dispatch(fetchSwipableUsers()),
     swipe: (direction: Direction, onUser: User) => dispatch(swipe(direction, onUser)),
   }
 }

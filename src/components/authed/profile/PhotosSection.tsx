@@ -8,7 +8,7 @@ import Foundation from 'react-native-vector-icons/Foundation'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { CircleButton, JSImage } from '../../common'
+import { CircleButton, JSImage, JSImageProps } from '../../common'
 import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
 
 interface Props {
@@ -148,14 +148,20 @@ class PhotosSection extends PureComponent<Props, State> {
       if (this.state.swapping && this.state.swappingIndex === index) {
         imageStyles.push(styles.semiTransparent)
       }
-      imageToRender = (
-        <JSImage
-          source={{uri: image.uri}}
-          resizeMode='cover'
-          style={imageStyles}
-          activityIndicatorSize={index === 0 ? 'large' : 'small'}
-        />
-      )
+      const imageProps: JSImageProps = {
+        cache: true,
+        source: {
+          uri: image.uri,
+        },
+        resizeMode: 'cover',
+        style: imageStyles,
+        activityIndicatorSize: index === 0 ? 'large' : 'small',
+      }
+      if (image.uri.startsWith('http')) {
+        imageToRender = <JSImage {...imageProps} cache />
+      } else {
+        imageToRender = <JSImage {...imageProps} cache={false} />
+      }
     } else {
       const imageStyles = [
         styles.photo,

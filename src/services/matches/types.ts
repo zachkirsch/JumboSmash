@@ -1,5 +1,4 @@
 import { List, Map, Set } from 'immutable'
-import { User } from '../swipe'
 import { GetUserResponse } from '../api'
 import { IChatMessage } from 'react-native-gifted-chat'
 
@@ -11,7 +10,7 @@ export interface NewMatch {
 
 export interface Conversation {
   conversationId: string
-  otherUsers: List<User>
+  otherUsers: number[]
   messages: List<IChatMessage>
   messageIDs: Set<string>
   mostRecentMessage: string

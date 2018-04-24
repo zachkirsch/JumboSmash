@@ -30,8 +30,7 @@ export default class extends PureComponent<InputToolbarProps, {}> {
     const gradientStyle = [
       styles.gradient,
       {
-        // add the amount of padding in styles.gradient
-        height: props.composerHeight! + 4,
+        height: props.composerHeight! + 10,
       },
     ]
 
@@ -76,29 +75,27 @@ export default class extends PureComponent<InputToolbarProps, {}> {
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
-    borderRadius: 30,
-    paddingHorizontal: 15,
-    paddingVertical: 2,
   },
   send: {
-    justifyContent: 'center',
-    marginHorizontal: 10,
-    marginBottom: Platform.select({
-      ios: 5,
-      android: 12,
+    bottom: Platform.select({
+      ios: 11,
+      android: 18,
     }),
+    right: 12,
+    position: 'absolute',
   },
   sendText: {
     color: 'blue',
     fontWeight: '600',
-    fontSize: 17,
+    fontSize: 14,
     backgroundColor: 'transparent',
   },
   disabled: {
     color: 'gray',
   },
   composer: {
-    marginTop: 0,
+    marginLeft: 13,
+    marginRight: 50,
     marginBottom: 0,
   },
   inputToolbarContainer: {

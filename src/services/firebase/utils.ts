@@ -52,7 +52,11 @@ ChatService.listenForNewChats = (conversationId: string) => {
         ...firebaseMessage.val(),
         createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
       }
-      ChatService.store!.dispatch(receiveMessages(conversationId, [message]))
+
+      const conversation = ChatService.store!.getState().matches.chats.get(conversationId)
+      if (!conversation.messageIDs.has(message._id)) {
+        ChatService.store!.dispatch(receiveMessages(conversationId, [message]))
+      }
     })
   }
 }

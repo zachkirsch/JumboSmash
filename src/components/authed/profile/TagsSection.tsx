@@ -11,7 +11,6 @@ interface Tag {
 interface Props {
   tags: Tag[]
   onPress?: (tagIndex: number) => void
-  fontSize?: number
   tagStyle?: TextStyle
   selectedTagStyle?: TextStyle
   unselectedTagStyle?: TextStyle
@@ -33,7 +32,6 @@ class TagsSection extends PureComponent<Props, {}> {
       return (
         <JSText
           style={textStyle}
-          fontSize={this.props.fontSize}
           onPress={this.props.onPress && (() => this.props.onPress && this.props.onPress(tagIndex))}
           key={tag.name}
         >

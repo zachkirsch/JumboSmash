@@ -49,6 +49,11 @@ const logger = createLogger({
         ...newState,
         swipe: {
           ...newState.swipe,
+          swipableUsers: {
+            ...newState.swipe.swipableUsers,
+            value: newState.swipe.swipableUsers.value.toJS(),
+            prevValue: newState.swipe.swipableUsers.prevValue && newState.swipe.swipableUsers.prevValue.toJS(),
+          },
           allUsers: {
             ...newState.swipe.allUsers,
             value: newState.swipe.allUsers.value.toJS(),

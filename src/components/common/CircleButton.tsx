@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react'
 import { Animated, Easing, Platform, StyleSheet, TouchableWithoutFeedback } from 'react-native'
-import { moderateScale } from './scaling'
 
 interface Props {
   IconClass: any /* tslint:disable-line:no-any */
@@ -40,7 +39,7 @@ class CircleButton extends PureComponent<Props, State> {
     }
 
     const iconStyle = {
-      marginTop: moderateScale(this.props.iconSize / 10),
+      marginTop: this.props.iconSize / 10,
       backgroundColor: 'transparent',
     }
 

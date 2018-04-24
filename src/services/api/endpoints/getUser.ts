@@ -11,7 +11,7 @@ const constructUri = (endpoint: string, pathExtensionComponents: PathExtensionCo
 interface Request extends HttpGetRequest {
 }
 
-interface ProfileReact {
+export interface ProfileReact {
   react_id: number
   react_count: number
   react_text: string
@@ -30,8 +30,8 @@ interface Response {
   full_name: string
   id: number
   images: Array<{url: string}>
-  major: string
-  preferred_name: string
+  major: string | null
+  preferred_name: string | null
   profile_reacts: ProfileReact[]
   surname: string
   tags: Tag[]

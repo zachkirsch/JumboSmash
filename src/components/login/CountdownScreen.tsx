@@ -44,6 +44,7 @@ class CountdownScreen extends PureComponent<{}, State> {
         />
         <View style={styles.logoContainer}>
           <JSImage
+            cache={false}
             source={Images.jumbo2018}
             style={styles.logo}
             resizeMode={'contain'}
@@ -58,7 +59,7 @@ class CountdownScreen extends PureComponent<{}, State> {
               color='rgb(162, 191, 227)'
               style={styles.rocket}
             />
-            <JSText semibold fontSize={15} style={styles.titleText}>COMING SOON</JSText>
+            <JSText semibold style={styles.titleText}>COMING SOON</JSText>
           </View>
         </View>
       </View>
@@ -85,14 +86,14 @@ class CountdownScreen extends PureComponent<{}, State> {
 
     return (
       <View style={[styles.center, styles.countdownUnit]}>
-        <JSText fontSize={30} style={styles.countdownUnitText}>{valueStr}</JSText>
-        <JSText fontSize={10} style={styles.countdownUnitLabel}>{label}</JSText>
+        <JSText style={[styles.chalkText, styles.countdownUnitText]}>{valueStr}</JSText>
+        <JSText style={styles.countdownUnitLabel}>{label}</JSText>
       </View>
     )
   }
 
   private renderColon = () => (
-    <JSText fontSize={30} style={styles.colon}>:</JSText>
+    <JSText style={[styles.chalkText, styles.colon]}>:</JSText>
   )
 
   private getTimeLeft = (): State => {
@@ -125,9 +126,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: '5%',
   },
-  colon: {
+  chalkText: {
     fontFamily: 'Chalkduster',
+    fontSize: 30,
     color: '#738CB0',
+  },
+  colon: {
     flex: 0,
     flexGrow: 0,
   },
@@ -136,11 +140,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   countdownUnitText: {
-    fontFamily: 'Chalkduster',
-    color: '#738CB0',
     letterSpacing: 5,
   },
   countdownUnitLabel: {
+    fontSize: 10,
     letterSpacing: 3.1,
   },
   logoContainer: {
@@ -162,6 +165,7 @@ const styles = StyleSheet.create({
   titleText: {
     color: '#738CB0',
     letterSpacing: 3.2,
+    fontSize: 15,
   },
   rocket: {
     marginBottom: 15,

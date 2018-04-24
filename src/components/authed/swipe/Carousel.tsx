@@ -79,6 +79,7 @@ class Carousel extends PureComponent<Props, State> {
         <TouchableWithoutFeedback onPress={this.onTap}>
           <View style={StyleSheet.absoluteFill}>
             <JSImage
+              cache={false}
               source={{uri}}
               style={[styles.image, this.props.imageStyle]}
               resizeMode={'stretch'}
@@ -93,7 +94,7 @@ class Carousel extends PureComponent<Props, State> {
 
   private renderDots = () => {
     if (!this.props.enabled || this.props.imageUris.length <= 1) {
-      return undefined
+      return null
     }
 
     return this.props.imageUris.map((_, i) => {

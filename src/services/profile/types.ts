@@ -27,7 +27,7 @@ export interface EmojiProfileReact extends BaseProfileReact {
 
 export interface ImageProfileReact extends BaseProfileReact {
   type: 'image'
-  imageName: string
+  imageUri: string
 }
 
 export interface ImageUri {

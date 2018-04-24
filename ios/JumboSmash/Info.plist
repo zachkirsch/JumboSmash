@@ -59,9 +59,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like to save photos to your photo gallery</string>
+	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like access to your photo gallery</string>
 	<key>UIAppFonts</key>
@@ -81,6 +79,10 @@
 		<string>Avenir-Book.ttf</string>
 		<string>Avenir-Heavy.ttf</string>
 		<string>Avenir-Medium.ttf</string>
+		<string>ProximaNovaSoft-Bold.ttf</string>
+		<string>ProximaNovaSoft-Medium.ttf</string>
+		<string>ProximaNovaSoft-Regular.ttf</string>
+		<string>ProximaNovaSoft-Semibold.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

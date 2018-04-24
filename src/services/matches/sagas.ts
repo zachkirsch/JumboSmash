@@ -11,7 +11,7 @@ import { api } from '../api'
 import { RootState } from '../../redux'
 
 const getOtherUsersInChat = (conversationId: string) => {
-  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers.map(u => u!.id).toJS()
+  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers
 }
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {

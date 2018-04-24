@@ -1,6 +1,7 @@
 import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
 import moment from 'moment'
+import { List } from 'immutable'
 import { RootState } from '../../redux'
 import * as api from '../api'
 import firebase from 'react-native-firebase'
@@ -156,18 +157,19 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
     if (payload.imageUri.startsWith('http')) { // already a remote url
       firebaseUrl = payload.imageUri
     } else {
+
       firebaseUrl = yield call(uploadImageToFirebase)
 
-      const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
-      const newImages = images.map((image, index) => {
+      const images: List<LoadableValue<ImageUri>> = yield select(getImages)
+      const newImages: string[] = images.map((image, index) => {
         if (index === payload.index) {
           return firebaseUrl
-        } else if (image.value.isLocal) {
+        } else if (!image || image.value.isLocal) {
           return ''
         } else {
           return image.value.uri
         }
-      })
+      }).toJS()
 
       // send images to server
       yield call(api.api.updateImages, newImages)

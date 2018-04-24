@@ -1,19 +1,18 @@
 import React, { PureComponent } from 'react'
-import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
-import { connect } from 'react-redux'
+import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, Image, View } from 'react-native'
+import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
 import { BlurView } from 'react-native-blur'
 import SafeAreaView from 'react-native-safe-area-view'
-import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import Ionicons from 'react-native-vector-icons/Ionicons'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import {
   NavigationRoute,
   NavigationScreenProp,
   NavigationState,
 } from 'react-navigation'
+import { switchTab, RouteName } from '../../services/navigation'
 import { RootState } from '../../redux'
 import { xor } from '../../utils'
+import { Images } from '../../assets'
 
 interface OwnProps {
   navigation: NavigationScreenProp<NavigationState>
@@ -24,9 +23,14 @@ interface OwnProps {
 
 interface StateProps {
   tabBarOverlay?: () => JSX.Element
+  shouldShowChatIndicator: boolean
 }
 
-type Props = OwnProps & StateProps
+interface DispatchProps {
+  switchTab: (tab: RouteName) => void
+}
+
+type Props = OwnProps & StateProps & DispatchProps
 
 interface State {
   indicatorLeftMargin: Animated.Value
@@ -157,57 +161,47 @@ class TabBar extends PureComponent<Props, State> {
   private renderTabButtons = () => {
     return this.props.navigation.state.routes.map((route, index) => {
       const selected = this.props.navigationState.index === index
-      let icon
-      switch (route.routeName) {
-        case 'Profile':
-          icon = (
-            <Ionicons
-              name={selected ? 'ios-person' : 'ios-person-outline'}
-              size={35}
-              style={styles.leftIcon}
-              color={'rgba(147, 182, 232, 1)'}
-            />
-          )
-          break
-        case 'Swipe':
-          icon = (
-            <FontAwesome
-              name={selected ? 'heart' : 'heart-o'}
-              size={24}
-              style={styles.centerIcon}
-              color={'rgba(147, 182, 232, 1)'}
-            />
-          )
-          break
-
-        case 'Matches':
-          icon = (
-            <MaterialIcons
-              name={selected ? 'chat-bubble' : 'chat-bubble-outline'}
-              size={26}
-              style={styles.rightIcon}
-              color={'rgba(147, 182, 232, 1)'}
-            />
-          )
-          break
-
-        default:
-          return null
-      }
-
       return (
         <TouchableWithoutFeedback key={route.routeName} onPress={this.generateOnPress(route)}>
           <View style={styles.iconContainer}>
-            {icon}
+            {this.getIcon(route.routeName, selected)}
           </View>
         </TouchableWithoutFeedback>
       )
     })
   }
 
+  private getIcon = (routeName: RouteName, selected: boolean) => {
+    let source: string = ''
+    let style
+
+    switch (routeName) {
+      case 'Profile':
+        source = 'profile'
+        style = styles.leftIcon
+        break
+      case 'Swipe':
+        source = 'cards'
+        style = styles.centerIcon
+        break
+      case 'Matches':
+        source = 'chat'
+        style = styles.rightIcon
+    }
+
+    source += selected ? '_blue' : '_gray'
+
+    if (routeName === 'Matches' && this.props.shouldShowChatIndicator) {
+      source += '_new'
+    }
+
+    return <Image resizeMode='contain' source={Images[source]} style={[styles.icon, style]} />
+  }
+
   private generateOnPress = (route: NavigationRoute) => () => {
     if (!this.state.showingOverlay) {
       this.props.navigation.navigate(route.routeName)
+      this.props.switchTab(route.routeName as RouteName)
     }
   }
 
@@ -218,7 +212,7 @@ class TabBar extends PureComponent<Props, State> {
       height: INDICATOR_HEIGHT,
     }
     return (
-        <Animated.View style={style} >
+      <Animated.View style={style}>
         <LinearGradient
           colors={['rgba(231,240,253,1)', '#B1CAEF']}
           start={{x: 0, y: 1}}
@@ -246,10 +240,17 @@ class TabBar extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     tabBarOverlay: state.navigation.tabBarOverlay,
+    shouldShowChatIndicator: !!state.navigation.shouldShowChatIndicator,
   }
 }
 
-export default connect(mapStateToProps)(TabBar)
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    switchTab: (tab: RouteName) => dispatch(switchTab(tab)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TabBar)
 
 const styles = StyleSheet.create({
   container: {
@@ -284,12 +285,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+  icon: {
+    height: 25,
+    width: 25,
+    marginBottom: 5,
+  },
   leftIcon: {
     marginLeft: 20,
     alignSelf: 'flex-start',
   },
   centerIcon: {
-    marginBottom: 7,
+    height: 30,
+    width: 30,
+    marginBottom: 3,
     alignSelf: 'center',
   },
   rightIcon: {

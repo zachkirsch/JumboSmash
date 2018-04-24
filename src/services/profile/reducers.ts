@@ -48,11 +48,11 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       const selectedTagIds = action.payload.tags.map(tag => tag.id)
       return {
         id: action.payload.id,
-        preferredName: { value: action.payload.preferred_name, loading: false },
+        preferredName: { value: action.payload.preferred_name || '', loading: false },
         surname: action.payload.surname,
         fullName: action.payload.full_name,
         bio: { value: action.payload.bio, loading: false },
-        major: { value: action.payload.major, loading: false },
+        major: { value: action.payload.major || '', loading: false },
         images: List(action.payload.images.map(({url}) => {
           return {
             value: {
@@ -99,7 +99,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
               const imageReact: ImageProfileReact = {
                 type: 'image',
                 id: react.id,
-                imageName: react.text.replace('IMAGE:', ''),
+                imageUri: react.text.replace('IMAGE:', ''),
                 count: profileReact ? profileReact.react_count : 0,
               }
               return imageReact

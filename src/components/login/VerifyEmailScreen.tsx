@@ -15,7 +15,7 @@ import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } from '../../services/auth'
-import { JSText, scale } from '../common'
+import { JSText } from '../common'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
 
@@ -121,7 +121,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
           <TouchableOpacity
             onPress={this.goBack}
           >
-            <Ionicons name='ios-arrow-back' size={scale(30)} color='black' />
+            <Ionicons name='ios-arrow-back' size={30} color='black' />
           </TouchableOpacity>
         </View>
       </View>

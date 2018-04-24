@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react'
 import {
   Alert,
   Keyboard,
-  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -15,7 +14,6 @@ import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { flatten } from 'lodash'
 import { List } from 'immutable'
-import { Images } from '../../../assets'
 import { RootState } from '../../../redux'
 import {
   ImageUri,
@@ -32,7 +30,7 @@ import {
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { setTabBarOverlay, clearTabBarOverlay } from '../../../services/navigation'
-import { JSText, JSTextInput, RectangleButton } from '../../common'
+import { JSText, JSTextInput, JSImage, RectangleButton } from '../../common'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
@@ -148,7 +146,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           id: -1,
           preferredName: this.state.preferredName,
           bio: this.state.bio,
-          images: this.props.images.map((image) => image!.value.uri).filter(image => !!image),
+          images: this.props.images.map(image => image!.value.uri).filter(image => !!image).toJS(),
           tags: flatten(this.props.tags.map(section => section.tags)).filter(tag => tag.selected),
         },
       })()
@@ -168,7 +166,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <JSText fontSize={13} bold style={styles.tagsTitle}>TAGS</JSText>
+        <JSText bold style={styles.tagsTitle}>TAGS</JSText>
         <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
           {toRender}
         </TouchableOpacity>
@@ -185,13 +183,14 @@ class ProfileScreen extends PureComponent<Props, State> {
     let toRender
     switch (react.type) {
       case 'emoji':
-        toRender = <JSText fontSize={23}>{react.emoji}</JSText>
+        toRender = <JSText style={styles.emoji}>{react.emoji}</JSText>
         break
       case 'image':
         toRender = (
-          <Image
-            source={Images[react.imageName]}
+          <JSImage
+            source={{uri: react.imageUri}}
             style={styles.smallReact}
+            cache
           />
         )
     }
@@ -199,7 +198,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.reactGroup}>
         {toRender}
-        <JSText fontSize={12} style={styles.reactNum}>{`x ${react.count}`}</JSText>
+        <JSText style={styles.reactNum}>{`x ${react.count}`}</JSText>
       </View>
     )
   }
@@ -218,7 +217,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <JSText fontSize={13} bold style={styles.reactsTitle}>REACTS RECEIVED</JSText>
+        <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText>
         <View style={styles.reactColumns}>
           {reactColumns}
         </View>
@@ -228,12 +227,11 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private renderPreferredName = () => (
     <View>
-      <JSText fontSize={13} bold style={styles.preferredNameTitle}>NAME</JSText>
+      <JSText bold style={[styles.title, styles.preferredNameTitle]}>NAME</JSText>
       <View style={styles.preferredNameContainer}>
         <JSTextInput
           maxLength={30}
-          fontSize={22}
-          style={styles.preferredName}
+          style={[styles.bigInput, styles.preferredName]}
           value={this.state.preferredName}
           onChangeText={this.updatePreferredName}
           autoCorrect={false}
@@ -241,22 +239,21 @@ class ProfileScreen extends PureComponent<Props, State> {
           onFocus={this.onFocus('preferredName')}
           ref={ref => this.preferredNameTextInput = ref}
         />
-        <JSText style={styles.lastName} fontSize={22}>{this.props.surname}</JSText>
+        <JSText style={[styles.bigInput, styles.lastName]}>{this.props.surname}</JSText>
       </View>
     </View>
   )
 
   private renderMajor = () => (
     <View>
-      <JSText fontSize={13} bold style={styles.majorTitle}>MAJOR AND MINOR</JSText>
+      <JSText bold style={[styles.title, styles.majorTitle]}>MAJOR AND MINOR</JSText>
       <JSTextInput
         maxLength={30}
-        fontSize={22}
         value={this.state.major}
         onChangeText={this.updateMajor}
         autoCorrect={false}
         selectTextOnFocus
-        style={styles.major}
+        style={[styles.bigInput, styles.major]}
         onFocus={this.onFocus('major')}
         ref={ref => this.majorTextInput = ref}
       />
@@ -271,7 +268,6 @@ class ProfileScreen extends PureComponent<Props, State> {
         value={this.state.bio}
         onChangeText={this.updateBio}
         placeholder={'Actually, Monaco and I...'}
-        fontSize={17}
         fancy
         autoCorrect={false}
         style={styles.bio}
@@ -292,7 +288,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         <View style={styles.personalInfo}>
           {this.renderPreferredName()}
           {this.renderMajor()}
-          <JSText fontSize={13} bold style={styles.aboutMeTitle}>ABOUT ME</JSText>
+          <JSText bold style={styles.aboutMeTitle}>ABOUT ME</JSText>
         </View>
       </View>
     )
@@ -476,6 +472,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingRight: 25,
     height: 175,
+    fontSize: 17,
   },
   bioCharacterCount: {
     position: 'absolute',
@@ -490,6 +487,12 @@ const styles = StyleSheet.create({
   personalInfo: {
     marginTop: 20,
     marginHorizontal: 20,
+  },
+  title: {
+    fontSize: 13,
+  },
+  bigInput: {
+    fontSize: 20,
   },
   aboutMeTitle: {
     marginBottom: 5,
@@ -516,6 +519,7 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   tagsTitle: {
+    fontSize: 13,
     marginBottom: 10,
   },
   reactColumn: {
@@ -528,11 +532,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: '5%',
   },
   reactGroup: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   reactsTitle: {
     marginTop: 20,
@@ -540,6 +544,7 @@ const styles = StyleSheet.create({
   },
   reactNum: {
     marginLeft: 4,
+    fontSize: 12,
     color: 'rgba(41,41,44,0.76)',
   },
   smallReact: {
@@ -565,5 +570,8 @@ const styles = StyleSheet.create({
   saveButtonContainer: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  emoji: {
+    fontSize: 23,
   },
 })

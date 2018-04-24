@@ -1,7 +1,8 @@
 import { ActionSheetProvider } from '@expo/react-native-action-sheet'
-import React, { Component } from 'react'
+import React, { PureComponent } from 'react'
 import { AppRegistry as TypedAppRegistry, Platform } from 'react-native'
 import { Provider } from 'react-redux'
+import { ImageCacheProvider } from 'react-native-cached-image'
 import App from './App'
 import { reduxStore } from './redux'
 import { setupNotifcations, turnOffListeners, handleBackgroundMessageAndroid } from './services/notifications'
@@ -15,7 +16,7 @@ console.ignoredYellowBox = [
 const AppRegistry: any = TypedAppRegistry
 /* tslint:enable */
 
-export default class JumboSmash extends Component {
+class JumboSmash extends PureComponent {
 
   componentDidMount() {
     setupNotifcations()
@@ -30,7 +31,9 @@ export default class JumboSmash extends Component {
     return (
       <Provider store={reduxStore}>
         <ActionSheetProvider>
-          <App />
+          <ImageCacheProvider>
+            <App />
+          </ImageCacheProvider>
         </ActionSheetProvider>
       </Provider>
     )

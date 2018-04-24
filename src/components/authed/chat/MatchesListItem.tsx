@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react'
-import { Dimensions, Image, StyleSheet, TouchableWithoutFeedback, View, Platform } from 'react-native'
+import { Dimensions, StyleSheet, TouchableWithoutFeedback, View, Platform } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
-import { JSText } from '../../common'
+import { JSText, JSImage } from '../../common'
 
 interface Props {
   name: string
@@ -37,7 +37,10 @@ class MatchesListItem extends PureComponent<Props, State> {
 
   private renderItem(unread = false) {
 
-    const messagePreviewTextStyle = [unread ? styles.unreadText : styles.readText]
+    const messagePreviewTextStyle = [
+      styles.messagePreview,
+      unread ? styles.unreadText : styles.readText,
+    ]
     const containerStyle = [styles.itemContainer]
 
     let preview = this.props.lastMessage
@@ -72,11 +75,11 @@ class MatchesListItem extends PureComponent<Props, State> {
       >
         <View style={containerStyle}>
           <View style={[styles.avatarContainer, avatarContainerShadow]}>
-            <Image source={{uri: this.props.avatar}} style={styles.avatarPhoto} />
+            <JSImage cache source={{uri: this.props.avatar}} style={styles.avatarPhoto} />
           </View>
           <View style={styles.textContainer}>
-            <JSText fontSize={15} style={styles.nameText}>{this.props.name}</JSText>
-            <JSText fontSize={15} numberOfLines={1} bold={unread} style={messagePreviewTextStyle}>
+            <JSText style={styles.nameText}>{this.props.name}</JSText>
+            <JSText numberOfLines={1} bold={unread} style={messagePreviewTextStyle}>
               {preview}
             </JSText>
           </View>
@@ -129,6 +132,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     color: '#474747',
+    fontSize: 15,
   },
   readText: {
     color: 'gray',
@@ -154,5 +158,8 @@ const styles = StyleSheet.create({
   },
   lightGray: {
     backgroundColor: 'lightgray',
+  },
+  messagePreview: {
+    fontSize: 15,
   },
 })

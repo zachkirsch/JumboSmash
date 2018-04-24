@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { GiftedChat, InputToolbarProps, MessageProps, IChatMessage } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
@@ -10,7 +10,7 @@ import {
   sendMessages,
   setConversationAsRead,
 } from '../../../services/matches'
-import {JSText } from '../../common'
+import { JSImage, JSText } from '../../common'
 import { HeaderBar } from '../../common'
 import { User } from '../../../services/swipe'
 import Message from './Message'
@@ -29,6 +29,7 @@ interface StateProps {
     name: string
   },
   chats: Map<string, Conversation>,
+  allUsers: Map<number, User>,
 }
 
 interface DispatchProps {
@@ -56,7 +57,7 @@ class ChatScreen extends PureComponent<Props, {}> {
   public render() {
     const conversation = this.getConversation()
     const messages = conversation.messages.toArray()
-    const user = conversation.otherUsers.first()
+    const user = this.props.allUsers.get(conversation.otherUsers[0])
 
     return (
       <View style={styles.container}>
@@ -69,42 +70,46 @@ class ChatScreen extends PureComponent<Props, {}> {
           <GiftedChat
             messages={messages}
             renderMessage={this.renderMessage}
+            renderInputToolbar={this.renderInputToolbar}
             onSend={this.onSend}
             user={this.props.me}
-            renderInputToolbar={this.renderInputToolbar}
           />
         </View>
       </View>
     )
   }
 
-  private renderMessage = (props: MessageProps) => <Message {...props} />
-
-  private renderInputToolbar = (props: InputToolbarProps) => {
+  private renderMessage = (props: MessageProps) => {
+    if (!props.currentMessage || props.currentMessage.system) {
+      return <Message {...props} />
+    }
+    const fromUserId = props.currentMessage.user._id
     return (
-      <View style={styles.inputToolbarContainer}>
-        <InputToolbar {...props} />
-      </View>
+      <Message
+        {...props}
+        fromUser={this.props.allUsers.get(fromUserId)}
+      />
     )
   }
+
+  private renderInputToolbar = (props: InputToolbarProps) => <InputToolbar {...props} />
 
   private renderHeaderBarTitle = (user: User) => () => (
     <View style={styles.bannerProfile}>
       <TouchableOpacity onPress={this.previewProfile(user)} style={{alignItems: 'center'}}>
-        <Image source={{uri: user.images[0]}} style={styles.avatarPhoto} />
-        <JSText fontSize={11} style={styles.headerName}>{user.preferredName}</JSText>
+        <JSImage cache source={{uri: user.images[0]}} style={styles.avatarPhoto} />
+        <JSText style={styles.headerName}>{user.preferredName}</JSText>
       </TouchableOpacity>
     </View>
   )
 
   private renderRightIcon = () => (
-    <TouchableOpacity onPress={this.onPressEllipsis}>
-      <FontAwesome
-        name='ellipsis-v'
-        size={30}
-        color='rgb(172,203,238)'
-      />
-    </TouchableOpacity>
+    <FontAwesome
+      name='ellipsis-v'
+      size={30}
+      color='rgb(172,203,238)'
+      onPress={this.onPressEllipsis}
+    />
   )
 
   private previewProfile = (user: User) => () => {
@@ -144,6 +149,7 @@ const mapStateToProps = (state: RootState): StateProps => {
       name: state.profile.preferredName.value,
     },
     chats: state.matches.chats,
+    allUsers: state.swipe.allUsers.value,
   }
 }
 
@@ -181,6 +187,7 @@ const styles = StyleSheet.create({
   headerName: {
     color: 'gray',
     textAlign: 'center',
+    fontSize: 11,
   },
   inputToolbarContainer: {
     flex: 1,

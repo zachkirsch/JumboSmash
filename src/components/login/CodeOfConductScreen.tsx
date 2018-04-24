@@ -72,7 +72,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   }
 
   private renderTitle = () => {
-    return <JSText fontSize={30} bold style={styles.title}>Code of Conduct</JSText>
+    return <JSText bold style={styles.title}>Code of Conduct</JSText>
   }
 
   private renderDescription = () => {
@@ -86,7 +86,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   private renderRules = () => {
     return COC_RULES.map((rule, index) => (
       <View style={styles.rule} key={index}>
-        {Platform.OS === 'ios' ? <JSText fontSize={20}>{rule.emojiTitle}</JSText> : undefined}
+        {Platform.OS === 'ios' ? <JSText style={styles.emoji}>{rule.emojiTitle}</JSText> : null}
         <JSText>{rule.description}</JSText>
       </View>
     ))
@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
+    fontSize: 30,
     marginBottom: 10,
   },
   description: {
@@ -144,6 +145,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 10,
     marginBottom: 50,
+  },
+  emoji: {
+    fontSize: 20,
   },
 })
 

@@ -62,7 +62,7 @@ class TagsScreen extends PureComponent<Props, State> {
     return this.state.tags.map((section, sectionIndex) => {
       return (
         <View key={section.name}>
-          <JSText bold fontSize={16}>{section.name}</JSText>
+          <JSText bold style={styles.sectionTitle}>{section.name}</JSText>
           <TagsSection
             tags={section.tags}
             onPress={this.toggleTag(sectionIndex)}
@@ -130,7 +130,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 40,
     textAlign: 'center',
   },
   subtitle: {
@@ -138,5 +137,8 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
   },
 })

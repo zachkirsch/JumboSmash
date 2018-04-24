@@ -26,6 +26,8 @@ target 'JumboSmash' do
   pod 'Firebase/Storage'
   pod 'Firebase/Auth'
 
+  pod 'react-native-fetch-blob', :path => '../node_modules/react-native-fetch-blob'
+
 end
 
 # very important to have, unless you removed React dependencies for Libraries
