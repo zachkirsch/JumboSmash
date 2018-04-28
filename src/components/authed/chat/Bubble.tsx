@@ -58,9 +58,6 @@ export default Bubble
 const styles = StyleSheet.create({
   messageText: {
     marginLeft: 14,
-    marginRight: 0,
-    marginTop: 5,
-    marginBottom: 5,
     color: '#2F2E2E',
     fontSize: 15,
   },

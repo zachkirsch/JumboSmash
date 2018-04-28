@@ -1,11 +1,14 @@
 import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import moment from 'moment'
-import { api, GetUserResponse, GetAllUsersResponse, GetSwipableUsersResponse, SwipeResponse } from '../api'
+import { api, GetUserResponse, GetAllUsersUser, GetAllUsersResponse, GetSwipableUsersResponse, SwipeResponse } from '../api'
 import { ChatService } from '../firebase/utils'
 import {
   AttemptSwipeAction,
   SwipeSuccessAction,
   SwipeFailureAction,
+  AttemptReactAction,
+  ReactSuccessAction,
+  ReactFailureAction,
   FetchAllUsersFailureAction,
   FetchAllUsersSuccessAction,
   FetchSwipableUsersFailureAction,
@@ -32,35 +35,51 @@ const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserRespons
       name: tag.text,
       emoji: !tag.text.match(EMOJI_REGEX),
     })),
-    profileReacts: allReacts.map(react => {
-      if (react.type === 'emoji') {
-        const profileReact = user.profile_reacts.find(r => r.react_id === react.id)
-        const emojiReact: EmojiProfileReact = {
-          ...react,
-          count: profileReact ? profileReact.react_count : 0,
+    profileReacts: {
+      value: allReacts.map(react => {
+        if (react.type === 'emoji') {
+          const profileReact = user.profile_reacts.find(r => r.react_id === react.id)
+          const emojiReact: EmojiProfileReact = {
+            ...react,
+            count: profileReact ? profileReact.react_count : 0,
+          }
+          return emojiReact
+        } else {
+          const profileReact = user.profile_reacts.find(r => r.react_id === react.id)
+          const imageReact: ImageProfileReact = {
+            ...react,
+            count: profileReact ? profileReact.react_count : 0,
+          }
+          return imageReact
         }
-        return emojiReact
-      } else {
-        const profileReact = user.profile_reacts.find(r => r.react_id === react.id)
-        const imageReact: ImageProfileReact = {
-          ...react,
-          count: profileReact ? profileReact.react_count : 0,
-        }
-        return imageReact
-      }
-    }),
+      }),
+      loading: false,
+    },
   }
+}
+
+const convertServerUserToUserWithReacts = (allReacts: ProfileReact[], user: GetAllUsersUser) => {
+  const convertedUser = convertServerUserToUser(allReacts, user)
+  convertedUser.profileReacts.value = convertedUser.profileReacts.value.map(react => {
+    return {
+      ...react,
+      reacted: !!user.my_reacts.find(r => r.react_id === react.id),
+    }
+  })
+  return convertedUser
 }
 
 function* attemptFetchSwipableUsers() {
   try {
-    const users: GetSwipableUsersResponse = yield call(api.getSwipableUsers)
+    const allUsers: GetAllUsersResponse = yield call(api.getAllUsers)
+    const swipableUsers: GetSwipableUsersResponse = yield call(api.getSwipableUsers)
     const allReacts: ProfileReact[] = yield select(getAllReacts)
     const successAction: FetchSwipableUsersSuccessAction = {
       type: SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS,
-      users: users.users
+      swipableUsers: swipableUsers.users
         .filter(user => user.images.find(image => !!image.url))
         .map(user => convertServerUserToUser(allReacts, user)),
+      allUsers: allUsers.users.map(user => convertServerUserToUserWithReacts(allReacts, user)),
     }
     yield put(successAction)
   } catch (e) {
@@ -78,7 +97,7 @@ function* attemptFetchAllUsers() {
     const allReacts: ProfileReact[] = yield select(getAllReacts)
     const successAction: FetchAllUsersSuccessAction = {
       type: SwipeActionType.FETCH_ALL_USERS_SUCCESS,
-      users: users.users[0].map(user => convertServerUserToUser(allReacts, user)),
+      users: users.users.map(user => convertServerUserToUserWithReacts(allReacts, user)),
     }
     yield put(successAction)
   } catch (e) {
@@ -98,6 +117,7 @@ function* attemptSwipe(action: AttemptSwipeAction) {
 
     if (response.matched) {
       ChatService.createChat(
+        response.match.id,
         response.match.conversation_uuid,
         moment(response.match.createdAt).unix(),
         response.match.users.filter(u => u.id !== myID)
@@ -122,14 +142,28 @@ function* attemptSwipe(action: AttemptSwipeAction) {
   }
 }
 
-function* rehydrateUsers() {
-  yield attemptFetchAllUsers()
-  yield attemptFetchSwipableUsers()
+function* attemptReact(action: AttemptReactAction) {
+  try {
+    yield call(api.react, action.onUser.id, action.reacts.map(r => r.id))
+    const successAction: ReactSuccessAction = {
+      type: SwipeActionType.REACT_SUCCESS,
+      onUser: action.onUser,
+    }
+    yield put(successAction)
+  } catch (e) {
+    const failureAction: ReactFailureAction = {
+      type: SwipeActionType.REACT_FAILURE,
+      onUser: action.onUser,
+      errorMessage: e.message,
+    }
+    yield put(failureAction)
+  }
 }
 
 export function* swipeSaga() {
   yield takeLatest(SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS, attemptFetchSwipableUsers)
   yield takeLatest(SwipeActionType.ATTEMPT_FETCH_ALL_USERS, attemptFetchAllUsers)
   yield takeEvery(SwipeActionType.ATTEMPT_SWIPE, attemptSwipe)
-  yield takeLatest(ReduxActionType.REHYDRATE, rehydrateUsers)
+  yield takeEvery(SwipeActionType.ATTEMPT_REACT, attemptReact)
+  yield takeLatest(ReduxActionType.REHYDRATE, attemptFetchSwipableUsers)
 }

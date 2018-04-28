@@ -9,18 +9,11 @@ import { SwipeScreen } from '../authed/swipe'
 import TabBar from './TabBar'
 
 const styles = StyleSheet.create({
-  tabBar: {
-    height: 55,
-    elevation: 5,
-
-  },
-  iOSTabBar: {
-    paddingTop: 15, // extra padding iOS because of status bar
-  },
   stackCard: {
     backgroundColor: 'white',
   },
 })
+
 const tabNavigator = TabNavigator({
   Profile: {
     screen: StackNavigator({
@@ -55,6 +48,7 @@ const tabNavigator = TabNavigator({
     showLabel: false,
     showIcon: true,
   },
+  initialRouteName: 'Swipe',
 })
 
 export default StackNavigator({

@@ -11,4 +11,7 @@ export interface AuthState {
   errorMessage: string
   waitingForRequestVerificationResponse: boolean
   waitingForVerificationResponse: boolean
+  tutorialFinished: boolean
+  codeOfConductAccepted: boolean
+  nearTufts: boolean
 }

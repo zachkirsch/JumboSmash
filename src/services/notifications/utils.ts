@@ -37,7 +37,7 @@ export const turnOffListeners = () => {
   notificationOpenedListener()
 }
 
-export const setupNotifcations = () => {
+export const setupNotifications = () => {
   firebase.notifications().getInitialNotification()
   .then(notificationOpen => {
     if (notificationOpen) {
@@ -58,11 +58,14 @@ export const setupNotifcations = () => {
   })
 
   messageListener = firebase.messaging().onMessage(message => {
+    console.log(message)
     try {
-      const data: Message = JSON.parse(message.data.data)
+      const data: Message = JSON.parse(message._data.data)
+      console.log(data)
       switch (data.msg_type) {
         case 'new_match':
           ChatService.createChat(
+            data.match.id,
             data.match.conversation_uuid,
             moment(data.match.createdAt).unix(),
             data.other_users
@@ -93,7 +96,9 @@ export const setupNotifcations = () => {
     console.log('opened action', action)
     console.log('opened notification', notification)
   })
-
+}
+/* TODO: delete
+export const requestPermissions = () => {
   firebase.messaging().requestPermission()
   .then(() => {
     console.log('user has authorized')
@@ -101,7 +106,9 @@ export const setupNotifcations = () => {
   .catch(error => {
     console.log('user has not authorized', error)
   })
+}
 
+export const hasPermissions = () => {
   firebase.messaging().hasPermission()
   .then(enabled => {
     if (enabled) {
@@ -111,4 +118,5 @@ export const setupNotifcations = () => {
     }
   })
 }
+*/
 /* tslint:enable:no-console */

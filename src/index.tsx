@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { ImageCacheProvider } from 'react-native-cached-image'
 import App from './App'
 import { reduxStore } from './redux'
-import { setupNotifcations, turnOffListeners, handleBackgroundMessageAndroid } from './services/notifications'
+import { setupNotifications, turnOffListeners, handleBackgroundMessageAndroid } from './services/notifications'
 
 console.ignoredYellowBox = [
   'Remote debugger',
@@ -19,7 +19,7 @@ const AppRegistry: any = TypedAppRegistry
 class JumboSmash extends PureComponent {
 
   componentDidMount() {
-    setupNotifcations()
+    setupNotifications()
   }
 
   componentWillUnmount() {

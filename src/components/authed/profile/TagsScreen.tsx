@@ -47,7 +47,7 @@ class TagsScreen extends PureComponent<Props, State> {
         <ScrollView>
           <View style={styles.topContainer}>
             <JSText style={styles.title}>
-              Tap the tags that apply to you. When swiping, you will see the tags you have in common with each student.
+              Tap the tags that apply to you. Everyone else will see the tags you choose.
             </JSText>
           </View>
           <View style={styles.tagsContainer}>
@@ -121,10 +121,12 @@ const styles = StyleSheet.create({
   tag: {
     color: 'black',
     marginBottom: 5,
+    fontSize: 16,
     opacity: 0.6,
   },
   chosenTag: {
     opacity: 1,
+    fontWeight: 'bold',
   },
   tagSection: {
     marginBottom: 20,
@@ -140,5 +142,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
+    color: 'rgb(172,203,238)',
   },
 })

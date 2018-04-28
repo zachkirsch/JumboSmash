@@ -78,7 +78,7 @@ class MatchesList extends PureComponent<Props, State> {
     return this.props.chats.toArray().filter(chat => {
       return chat.otherUsers.find(userId => {
         const otherUser = this.props.allUsers.get(userId)
-        return otherUser && otherUser.fullName.includes(this.state.searchBarText)
+        return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
       })
     })
   }
@@ -98,9 +98,9 @@ class MatchesList extends PureComponent<Props, State> {
         name={otherUser && otherUser.preferredName}
         onPress={this.openChatScreen(item.conversationId)}
         lastMessage={item.mostRecentMessage}
-        messageRead={!item.messagesUnread}
+        messagesUnread={item.messagesUnread}
         avatar={otherUser && otherUser.images[0]}
-        newMatch={true}
+        newMatch={item.messages.size === 0}
       />
     )
   }

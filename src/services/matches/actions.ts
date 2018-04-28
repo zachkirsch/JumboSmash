@@ -15,6 +15,7 @@ export enum MatchesActionType {
   SET_CONVERSATION_AS_READ = 'SET_CONVERSATION_AS_READ',
 
   REHYDRATE_MATCHES_FROM_SERVER = 'REHYDRATE_MATCHES_FROM_SERVER',
+  UNMATCH = 'UNMATCH',
 
   CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
@@ -54,6 +55,12 @@ export interface SetConversationAsReadAction {
   conversationId: string
 }
 
+export interface UnmatchAction {
+  type: MatchesActionType.UNMATCH
+  matchId: number
+  conversationId: string
+}
+
 export interface RehydrateMatchesFromServerAction {
   type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
   matches: NewMatch[]
@@ -81,6 +88,7 @@ export type MatchesAction = CreateMatchAction
 | ReceiveMessagesAction
 | SetConversationAsReadAction
 | ClearMatchesStateAction
+| UnmatchAction
 | RehydrateMatchesFromServerAction
 | RehydrateAction
 | OtherAction
@@ -94,12 +102,21 @@ export const rehydrateMatchesFromServer = (matches: NewMatch[]): RehydrateMatche
   }
 }
 
-export const createMatch = (conversationId: string, createdAt: number, otherUsers: GetUserResponse[]): CreateMatchAction => {
+export const createMatch = (id: number, conversationId: string, createdAt: number, otherUsers: GetUserResponse[]): CreateMatchAction => {
   return {
     type: MatchesActionType.CREATE_MATCH,
+    id,
     createdAt,
     conversationId,
     otherUsers,
+  }
+}
+
+export const unmatch = (matchId: number, conversationId: string): UnmatchAction => {
+  return {
+    type: MatchesActionType.UNMATCH,
+    conversationId,
+    matchId,
   }
 }
 

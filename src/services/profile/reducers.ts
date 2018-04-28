@@ -12,6 +12,7 @@ const initialState: ProfileState = {
   },
   surname: '',
   fullName: '',
+  classYear: 18,
   major: {
     value: '',
     loading: false,
@@ -51,6 +52,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         preferredName: { value: action.payload.preferred_name || '', loading: false },
         surname: action.payload.surname,
         fullName: action.payload.full_name,
+        classYear: action.payload.class_year,
         bio: { value: action.payload.bio, loading: false },
         major: { value: action.payload.major || '', loading: false },
         images: List(action.payload.images.map(({url}) => {
@@ -233,7 +235,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     case ProfileActionType.UPDATE_IMAGE_SUCCESS:
 
-      if (action.localUri !== state.images.get(action.index).value.uri) {
+      if (!state.images.get(action.index) || action.localUri !== state.images.get(action.index).value.uri) {
         return state
       }
 
@@ -256,7 +258,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     case ProfileActionType.UPDATE_IMAGE_FAILURE:
 
-      if (action.localUri !== state.images.get(action.index).value.uri) {
+      if (!state.images.get(action.index) || action.localUri !== state.images.get(action.index).value.uri) {
         return state
       }
 
@@ -430,6 +432,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
         surname: action.payload.profile.surname || initialState.surname,
         fullName: action.payload.profile.fullName || initialState.fullName,
+        classYear: action.payload.profile.classYear || initialState.classYear,
         major: getValue(action.payload.profile.major, initialState.major.value),
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
         images: List(action.payload.profile.images.map(image => getValue(image!, {uri: '', isLocal: true}))),

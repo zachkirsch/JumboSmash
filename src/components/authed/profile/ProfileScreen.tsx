@@ -13,13 +13,10 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { flatten } from 'lodash'
-import { List } from 'immutable'
 import { RootState } from '../../../redux'
 import {
-  ImageUri,
   ProfileReact,
   swapImages,
-  TagSectionType,
   updateBio,
   updateImage,
   updateMajor,
@@ -27,6 +24,7 @@ import {
   onChangePreferredNameTextInput,
   onChangeMajorTextInput,
   onChangeBioTextInput,
+  ProfileState,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { setTabBarOverlay, clearTabBarOverlay } from '../../../services/navigation'
@@ -47,13 +45,7 @@ interface State {
 interface OwnProps {}
 
 interface StateProps {
-  images: List<LoadableValue<ImageUri>>
-  preferredName: LoadableValue<string>
-  surname: string
-  bio: LoadableValue<string>
-  major: LoadableValue<string>
-  tags: TagSectionType[]
-  reacts: ProfileReact[]
+  profile: ProfileState
 }
 
 interface DispatchProps {
@@ -96,9 +88,9 @@ class ProfileScreen extends PureComponent<Props, State> {
     this.state = {
       previewingCard: false,
       viewingCoC: false,
-      preferredName: getInitialValue(props.preferredName),
-      major: getInitialValue(props.major),
-      bio: getInitialValue(props.bio),
+      preferredName: getInitialValue(props.profile.preferredName),
+      major: getInitialValue(props.profile.major),
+      bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
     }
   }
@@ -111,11 +103,26 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   render() {
+
+    let containerStyle
+    if (this.setupMode()) {
+      containerStyle = {
+        paddingTop: Platform.select({
+          ios: 10,
+          android: 0,
+        }),
+      }
+    }
+
     return (
       <View>
-        <ScrollView keyboardShouldPersistTaps='handled' ref={ref => this.mainScrollView = ref}>
+        <ScrollView
+          contentContainerStyle={containerStyle}
+          keyboardShouldPersistTaps='handled'
+          ref={ref => this.mainScrollView = ref}
+        >
           <PhotosSection
-            images={this.props.images.toJS()}
+            images={this.props.profile.images.toJS()}
             swapImages={this.props.swapImages}
             updateImage={this.props.updateImage}
             showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
@@ -129,6 +136,7 @@ class ProfileScreen extends PureComponent<Props, State> {
             block={this.navigateTo('BlockScreen')}
             viewCoC={this.navigateTo('ReviewCoCScreen')}
             previewProfile={this.previewProfile()}
+            startSmashing={this.setupMode() && this.save}
           />
         </ScrollView>
       </View>
@@ -143,11 +151,12 @@ class ProfileScreen extends PureComponent<Props, State> {
     this.ifSaveable(() => {
       this.navigateTo('ProfilePreviewScreen', {
         preview: {
+          ...this.props.profile,
           id: -1,
           preferredName: this.state.preferredName,
           bio: this.state.bio,
-          images: this.props.images.map(image => image!.value.uri).filter(image => !!image).toJS(),
-          tags: flatten(this.props.tags.map(section => section.tags)).filter(tag => tag.selected),
+          images: this.photosSection!.images().filter(image => !!image),
+          tags: flatten(this.props.profile.tags.value.map(section => section.tags)).filter(tag => tag.selected),
         },
       })()
 
@@ -155,7 +164,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private renderTags = () => {
-    const tags = flatten(this.props.tags.map((section) => section.tags.filter(tag => tag.selected)))
+    const tags = flatten(this.props.profile.tags.value.map(section => section.tags.filter(tag => tag.selected)))
 
     let toRender
     if (tags.length > 0) {
@@ -166,7 +175,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <JSText bold style={styles.tagsTitle}>TAGS</JSText>
+        <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText>
         <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
           {toRender}
         </TouchableOpacity>
@@ -189,14 +198,14 @@ class ProfileScreen extends PureComponent<Props, State> {
         toRender = (
           <JSImage
             source={{uri: react.imageUri}}
-            style={styles.smallReact}
+            style={styles.imageReact}
             cache
           />
         )
     }
 
     return (
-      <View style={styles.reactGroup}>
+      <View style={styles.react}>
         {toRender}
         <JSText style={styles.reactNum}>{`x ${react.count}`}</JSText>
       </View>
@@ -205,12 +214,16 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private renderReacts = () => {
 
+    if (this.setupMode()) {
+      return null
+    }
+
     const reactColumns = []
-    for (let i = 0; i < this.props.reacts.length; i += 2) {
+    for (let i = 0; i < this.props.profile.reacts.value.length; i += 2) {
       reactColumns.push(
         <View style={styles.reactColumn} key={i}>
-          {this.renderReact(this.props.reacts[i])}
-          {this.renderReact(this.props.reacts[i + 1])}
+          {this.renderReact(this.props.profile.reacts.value[i])}
+          {this.renderReact(this.props.profile.reacts.value[i + 1])}
         </View>
       )
     }
@@ -239,7 +252,9 @@ class ProfileScreen extends PureComponent<Props, State> {
           onFocus={this.onFocus('preferredName')}
           ref={ref => this.preferredNameTextInput = ref}
         />
-        <JSText style={[styles.bigInput, styles.lastName]}>{this.props.surname}</JSText>
+        <JSText style={[styles.bigInput, styles.lastName]}>
+          {this.props.profile.surname}
+        </JSText>
       </View>
     </View>
   )
@@ -288,7 +303,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         <View style={styles.personalInfo}>
           {this.renderPreferredName()}
           {this.renderMajor()}
-          <JSText bold style={styles.aboutMeTitle}>ABOUT ME</JSText>
+          <JSText bold style={[styles.title, styles.aboutMeTitle]}>ABOUT ME</JSText>
         </View>
       </View>
     )
@@ -336,6 +351,9 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private updateSaveOverlay = () => {
+    if (this.setupMode()) {
+      return
+    }
     if (this.saveRequired()) {
       const saveOverlay = (
         <View style={styles.saveOverlay}>
@@ -368,16 +386,16 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private saveRequired = () =>
     this.state.photosSectionRequiresSave
-    || this.props.bio.value !== this.state.bio
-    || this.props.major.value !== this.state.major
-    || this.props.preferredName.value !== this.state.preferredName
+    || this.props.profile.bio.value !== this.state.bio
+    || this.props.profile.major.value !== this.state.major
+    || this.props.profile.preferredName.value !== this.state.preferredName
 
   private revert = () => {
     const revert = () => {
       this.setState({
-        bio: this.props.bio.value,
-        major: this.props.major.value,
-        preferredName: this.props.preferredName.value,
+        bio: this.props.profile.bio.value,
+        major: this.props.profile.major.value,
+        preferredName: this.props.profile.preferredName.value,
         photosSectionRequiresSave: false,
       })
       this.props.clearTabBarOverlay()
@@ -408,9 +426,11 @@ class ProfileScreen extends PureComponent<Props, State> {
         this.props.updatePreferredName(this.state.preferredName)
         this.photosSection && this.photosSection.save()
         this.props.clearTabBarOverlay()
-        this.setState({
-          photosSectionRequiresSave: false,
-        })
+        if (!this.setupMode()) {
+          this.setState({
+            photosSectionRequiresSave: false,
+          })
+        }
       })
     }, 50)
   }
@@ -430,17 +450,13 @@ class ProfileScreen extends PureComponent<Props, State> {
       Alert.alert('Oops', alertText)
     }
   }
+
+  private setupMode = () => this.props.screenProps && this.props.screenProps.setupMode
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    preferredName: state.profile.preferredName,
-    surname: state.profile.surname,
-    bio: state.profile.bio,
-    major: state.profile.major,
-    tags: state.profile.tags.value,
-    images: state.profile.images,
-    reacts: state.profile.reacts.value,
+    profile: state.profile,
   }
 }
 
@@ -489,7 +505,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   title: {
-    fontSize: 13,
+    fontSize: 14,
+    letterSpacing: .8,
   },
   bigInput: {
     fontSize: 20,
@@ -519,7 +536,6 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   tagsTitle: {
-    fontSize: 13,
     marginBottom: 10,
   },
   reactColumn: {
@@ -533,7 +549,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  reactGroup: {
+  react: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -547,7 +563,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(41,41,44,0.76)',
   },
-  smallReact: {
+  imageReact: {
       paddingVertical: 15,
       width: 25,
       height: 25,

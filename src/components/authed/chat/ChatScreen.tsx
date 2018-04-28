@@ -18,6 +18,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { generateActionSheetOptions } from '../../../utils'
 import InputToolbar from './InputToolbar'
+import { unmatch } from '../../../services/matches'
 
 interface OwnProps {
   conversationId: string,
@@ -35,6 +36,7 @@ interface StateProps {
 interface DispatchProps {
   sendMessages: (conversationId: string, messages: IChatMessage[]) => void
   setConversationAsRead: () => void
+  unmatch: (matchId: number, conversationId: string) => void
 }
 
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
@@ -43,12 +45,18 @@ type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProp
 class ChatScreen extends PureComponent<Props, {}> {
 
   componentDidMount() {
-    this.props.setConversationAsRead()
+    this.props.navigation.addListener(
+      'didFocus',
+      () => {
+        this.props.setConversationAsRead()
+      }
+    )
   }
 
-  componentWillReceiveProps(_: Props, newProps: Props) {
+  componentWillReceiveProps(newProps: Props) {
     if (newProps.chats) {
-      if (this.getConversation(newProps).messagesUnread) {
+      const conversation = this.getConversation(newProps)
+      if (conversation && conversation.messagesUnread) {
         this.props.setConversationAsRead()
       }
     }
@@ -56,6 +64,9 @@ class ChatScreen extends PureComponent<Props, {}> {
 
   public render() {
     const conversation = this.getConversation()
+    if (!conversation) {
+      return null
+    }
     const messages = conversation.messages.toArray()
     const user = this.props.allUsers.get(conversation.otherUsers[0])
 
@@ -65,6 +76,7 @@ class ChatScreen extends PureComponent<Props, {}> {
           renderTitle={this.renderHeaderBarTitle(user)}
           goBack={this.props.navigation.goBack}
           renderRightIcon={this.renderRightIcon}
+          onPressRight={this.onPressEllipsis}
         />
         <View style={styles.chat}>
           <GiftedChat
@@ -108,7 +120,6 @@ class ChatScreen extends PureComponent<Props, {}> {
       name='ellipsis-v'
       size={30}
       color='rgb(172,203,238)'
-      onPress={this.onPressEllipsis}
     />
   )
 
@@ -124,6 +135,13 @@ class ChatScreen extends PureComponent<Props, {}> {
       {
         title: 'Report User',
       },
+      {
+        title: 'Unmatch',
+        onPress: () => {
+          this.props.navigation.popToTop()
+          this.props.unmatch(this.getConversation().matchId, this.getConversationId())
+        },
+      },
     ]
     const {options, callback} = generateActionSheetOptions(buttons)
     this.props.showActionSheetWithOptions!(options, callback)
@@ -133,9 +151,7 @@ class ChatScreen extends PureComponent<Props, {}> {
     this.props.sendMessages(this.getConversationId(), messages)
   }
 
-  private getConversationId = () => {
-    return this.props.navigation.state.params.conversationId
-  }
+  private getConversationId = () => this.props.navigation.state.params.conversationId
 
   private getConversation = (props?: Props) => {
     return (props || this.props).chats.get(this.getConversationId())
@@ -159,6 +175,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>, ownProps: Props): Dis
       dispatch(sendMessages(conversationId, messages))
     },
     setConversationAsRead: () => dispatch(setConversationAsRead(ownProps.navigation.state.params.conversationId)),
+    unmatch: (matchId: number, conversationId: string) => dispatch(unmatch(matchId, conversationId)),
   }
 }
 

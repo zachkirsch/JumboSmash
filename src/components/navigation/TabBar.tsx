@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     ...Platform.select({
       ios: {
-        shadowColor: 'gray',
+        shadowColor: 'lightgray',
         shadowRadius: 3,
         shadowOpacity: 1,
         shadowOffset: {
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   leftIcon: {
-    marginLeft: 20,
+    marginLeft: 25,
     alignSelf: 'flex-start',
   },
   centerIcon: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   rightIcon: {
-    marginRight: 20,
+    marginRight: 25,
     marginBottom: 5,
     alignSelf: 'flex-end',
   },

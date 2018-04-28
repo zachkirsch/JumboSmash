@@ -25,6 +25,7 @@ interface Tag {
 interface Response {
   accepted_coc: boolean
   bio: string
+  class_year: number
   email: string
   firebase_uid: string
   full_name: string

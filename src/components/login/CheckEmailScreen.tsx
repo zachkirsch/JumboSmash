@@ -99,7 +99,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
           style={styles.container}
         >
           <View style={styles.messageContainer}>
-            <SimpleLineIcons name='envelope' size={50} color='rgba(172,203,238,0.6)' />
+            <SimpleLineIcons name='envelope' size={80} color='rgba(172,203,238,0.6)' />
             <View style={styles.contentTitleContainer}>
               <JSText bold style={[styles.text, styles.contentTitle]}>
                 CHECK YOUR EMAIL!

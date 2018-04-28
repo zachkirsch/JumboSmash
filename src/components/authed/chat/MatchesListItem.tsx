@@ -8,7 +8,7 @@ interface Props {
   onPress: () => void
   lastMessage: string
   newMatch: boolean
-  messageRead: boolean
+  messagesUnread: boolean
   avatar: string
 }
 
@@ -30,7 +30,7 @@ class MatchesListItem extends PureComponent<Props, State> {
   public render() {
     return (
     <View style={styles.container}>
-      {this.props.messageRead && !this.props.newMatch ? this.renderItem() : this.renderUnreadItem()}
+      {!this.props.messagesUnread && !this.props.newMatch ? this.renderItem() : this.renderUnreadItem()}
     </View>
     )
   }

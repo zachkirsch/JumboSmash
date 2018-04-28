@@ -45,21 +45,31 @@ const logger = createLogger({
       }
     }
     if (newState.swipe) {
-      newState = {
-        ...newState,
-        swipe: {
-          ...newState.swipe,
-          swipableUsers: {
-            ...newState.swipe.swipableUsers,
-            value: newState.swipe.swipableUsers.value.toJS(),
-            prevValue: newState.swipe.swipableUsers.prevValue && newState.swipe.swipableUsers.prevValue.toJS(),
+      if (Iterable.isIterable(newState.swipe.swipableUsers.value)) {
+        newState = {
+          ...newState,
+          swipe: {
+            ...newState.swipe,
+            swipableUsers: {
+              ...newState.swipe.swipableUsers,
+              value: newState.swipe.swipableUsers.value.toJS(),
+              prevValue: newState.swipe.swipableUsers.prevValue && newState.swipe.swipableUsers.prevValue.toJS(),
+            },
           },
-          allUsers: {
-            ...newState.swipe.allUsers,
-            value: newState.swipe.allUsers.value.toJS(),
-            prevValue: newState.swipe.allUsers.prevValue && newState.swipe.allUsers.prevValue.toJS(),
+        }
+      }
+      if (Iterable.isIterable(newState.swipe.allUsers.value)) {
+        newState = {
+          ...newState,
+          swipe: {
+            ...newState.swipe,
+            allUsers: {
+              ...newState.swipe.allUsers,
+              value: newState.swipe.allUsers.value.toJS(),
+              prevValue: newState.swipe.allUsers.prevValue && newState.swipe.allUsers.prevValue.toJS(),
+            },
           },
-        },
+        }
       }
     }
     return newState

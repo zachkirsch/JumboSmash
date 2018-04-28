@@ -5,6 +5,7 @@ import {
   MatchesActionType,
   SendMessagesFailureAction,
   SendMessagesSuccessAction,
+  UnmatchAction,
 } from './actions'
 import { IChatMessage } from 'react-native-gifted-chat'
 import { api } from '../api'
@@ -51,6 +52,13 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
   }
 }
 
+function* unmatch(payload: UnmatchAction) {
+  try {
+    yield call(api.unmatch, payload.matchId)
+  } catch (e) {} /* tslint:disable-line:no-empty */
+}
+
 export function* matchesSaga() {
   yield takeEvery(MatchesActionType.ATTEMPT_SEND_MESSAGES, attemptSendMessages)
+  yield takeEvery(MatchesActionType.UNMATCH, unmatch)
 }

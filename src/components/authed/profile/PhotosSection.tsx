@@ -76,6 +76,8 @@ class PhotosSection extends PureComponent<Props, State> {
     this.setState(this.getInitialState())
   }
 
+  images = () => this.state.images.map(image => image.uri)
+
   getImageCount = () => this.state.images.filter(image => image.uri).length
 
   render() {

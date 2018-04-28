@@ -11,7 +11,18 @@ import { ReduxActionType } from '../redux'
 import { Conversation, MatchesState } from './types'
 
 const initialState: MatchesState = {
-  chats: Map<string, Conversation>(),
+  chats: Map<string, Conversation>({
+    1: {
+      matchId: 1,
+      conversationId: '1',
+      otherUsers: [1],
+      messages: List(),
+      messageIDs: Set(),
+      mostRecentMessage: '',
+      createdAt: 10000,
+      messagesUnread: false,
+    },
+  }),
 }
 
 const addMessagesToReduxState = (oldState: MatchesState,
@@ -84,7 +95,6 @@ const updateSentStatus = (oldState: MatchesState,
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
-
   switch (action.type) {
 
     case MatchesActionType.RECEIVE_MESSAGES:
@@ -111,6 +121,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
     case MatchesActionType.CREATE_MATCH:
       return {
         chats: state.chats.set(action.conversationId, {
+          matchId: action.id,
           conversationId: action.conversationId,
           createdAt: action.createdAt,
           otherUsers: action.otherUsers.map(user => user.id),
@@ -126,6 +137,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       action.matches.forEach(match => {
         if (!chats.has(match.conversationId)) {
           chats = chats.set(match.conversationId, {
+            matchId: match.id,
             conversationId: match.conversationId,
             otherUsers: match.otherUsers.map(user => user.id),
             messages: List(),
@@ -136,8 +148,18 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
           })
         }
       })
+      chats.keySeq().forEach(conversationId => {
+        if (conversationId && !action.matches.find(match => match.conversationId === conversationId)) {
+          chats = chats.remove(conversationId)
+        }
+      })
       return {
         chats,
+      }
+
+    case MatchesActionType.UNMATCH:
+      return {
+        chats: state.chats.remove(action.conversationId),
       }
 
     case ReduxActionType.REHYDRATE:

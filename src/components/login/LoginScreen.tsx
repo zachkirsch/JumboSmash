@@ -6,9 +6,12 @@ import { RootState } from '../../redux'
 import { Credentials, requestVerification } from '../../services/auth'
 import { JSButton, JSText, JSTextInput, TextInputRef } from '../common'
 import EmailUsFooter from './EmailUsFooter'
+import { LoginRoute } from '../navigation'
 
 interface StateProps {
   email: string
+  isLoggedIn: boolean
+  acceptedCoC: boolean
 }
 
 interface DispatchProps {
@@ -166,7 +169,7 @@ class LoginScreen extends PureComponent<Props, State> {
       this.props.onSubmitCredentials({
         email: this.state.credentials.email.toLowerCase(),
       })
-      this.props.navigation.navigate('VerifyEmailScreen', {
+      this.props.navigation.navigate(LoginRoute.VerifyEmailScreen, {
         focusKeyboardOnLoginScreen: () => this.textInputRef && this.textInputRef.focus(),
       })
     }
@@ -177,6 +180,8 @@ class LoginScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     email: state.auth.email,
+    acceptedCoC: state.coc.codeOfConductAccepted,
+    isLoggedIn: state.auth.isLoggedIn,
   }
 }
 

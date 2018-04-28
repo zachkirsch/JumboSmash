@@ -38,6 +38,6 @@ const styles = StyleSheet.create({
     fontFamily: 'ProximaNovaSoft-Medium',
   },
   bold: {
-    fontFamily: 'ProximaNovaSoft-SemiBold',
+    fontFamily: 'ProximaNovaSoft-Bold',
   },
 })

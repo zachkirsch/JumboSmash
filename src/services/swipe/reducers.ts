@@ -31,9 +31,9 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       if (action.direction === 'right') {
         finalUsers = List()
         for (let i = 0; i < newSwipableUsers.size; i++) {
-          const user = newSwipableUsers.get(i)
-          if (user.id !== action.onUser.id) {
-            finalUsers = finalUsers.push(user)
+          const userId = newSwipableUsers.get(i)
+          if (userId !== action.onUser.id) {
+            finalUsers = finalUsers.push(userId)
           } else if (i < nextIndexOfUserOnTop) {
             nextIndexOfUserOnTop -= 1
           }
@@ -50,6 +50,75 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
         },
         indexOfUserOnTop: nextIndexOfUserOnTop,
       }
+
+      case SwipeActionType.ATTEMPT_REACT:
+
+        let existingUser = state.allUsers.value.get(action.onUser.id)
+        if (!existingUser) {
+          return state
+        }
+
+        let newUser: User = {
+          ...existingUser,
+          profileReacts: {
+            prevValue: existingUser.profileReacts.value,
+            value: action.reacts,
+            loading: true,
+          },
+        }
+
+        return {
+          ...state,
+          allUsers: {
+            value: state.allUsers.value.set(existingUser.id, newUser),
+            loading: false,
+          },
+        }
+
+      case SwipeActionType.REACT_SUCCESS:
+
+        existingUser = state.allUsers.value.get(action.onUser.id)
+        if (!existingUser) {
+          return state
+        }
+
+        newUser = {
+          ...existingUser,
+          profileReacts: {
+            ...existingUser.profileReacts,
+            loading: false,
+          },
+        }
+
+        return {
+          ...state,
+          allUsers: {
+            value: state.allUsers.value.set(existingUser.id, newUser),
+            loading: false,
+          },
+        }
+
+      case SwipeActionType.REACT_FAILURE:
+        existingUser = state.allUsers.value.get(action.onUser.id)
+        if (!existingUser) {
+          return state
+        }
+
+        newUser = {
+          ...existingUser,
+          profileReacts: {
+            value: existingUser.profileReacts.prevValue || [],
+            loading: false,
+          },
+        }
+
+        return {
+          ...state,
+          allUsers: {
+            value: state.allUsers.value.set(existingUser.id, newUser),
+            loading: false,
+          },
+        }
 
     case SwipeActionType.ATTEMPT_FETCH_ALL_USERS:
 
@@ -96,11 +165,19 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
     case SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS:
+      allUsersMap = Map<number, User>()
+      action.allUsers.forEach(user => {
+        allUsersMap = allUsersMap.set(user.id, user)
+      })
       return {
         ...state,
         indexOfUserOnTop: 0,
+        allUsers: {
+          value: allUsersMap,
+          loading: false,
+        },
         swipableUsers: {
-          value: List(shuffle(action.users)),
+          value: List(shuffle(action.swipableUsers.map(u => u.id).filter(id => allUsersMap.has(id)))),
           loading: false,
         },
         lastFetchedSwipableUsers: Date.now(),
@@ -117,28 +194,9 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
     case SwipeActionType.CLEAR_SWIPE_STATE:
-      return initialState
-
     case ReduxActionType.REHYDRATE:
-
-      // for unit tests when root state is empty
-      if (!action.payload.profile) {
-        return state
-      }
-
-      allUsersMap = Map<number, User>()
-      Object.keys(action.payload.swipe.allUsers.value).forEach(userId => {
-        /* tslint:disable-next-line:no-any */
-        const user: User = (action.payload.swipe.allUsers.value as any)[userId]
-        allUsersMap = allUsersMap.set(parseInt(userId, 10), user)
-      })
-
       return {
         ...initialState,
-        allUsers: {
-          value: allUsersMap,
-          loading: false,
-        },
       }
 
     default:

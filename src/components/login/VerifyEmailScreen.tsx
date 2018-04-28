@@ -18,6 +18,7 @@ import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } 
 import { JSText } from '../common'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
+import { goToNextRoute } from '../navigation/LoginRouter'
 
 interface OwnProps {
   focusKeyboardOnLoginScreen: () => void
@@ -95,9 +96,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   public componentWillReceiveProps(newProps: Props) {
-    if (newProps.isLoggedIn && !newProps.acceptedCoC) {
+    if (newProps.isLoggedIn) {
       Keyboard.dismiss()
-      this.props.navigation.navigate('CodeOfConductScreen')
+      goToNextRoute(this.props.navigation)
     }
   }
 
@@ -120,6 +121,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         <View style={styles.headerContainer}>
           <TouchableOpacity
             onPress={this.goBack}
+            style={styles.goBack}
           >
             <Ionicons name='ios-arrow-back' size={30} color='black' />
           </TouchableOpacity>
@@ -254,8 +256,10 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
    position: 'absolute',
-   top: Platform.OS === 'ios' ? 40 : 20, // space for iOS status bar
-   left: 20,
+   top: Platform.OS === 'ios' ? 20 : 0, // space for iOS status bar
+  },
+  goBack: {
+    padding: 20,
   },
   contentContainer: {
     flex: 1,

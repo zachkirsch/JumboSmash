@@ -10,8 +10,10 @@ import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { rehydrateMatchesFromServer } from '../matches'
 import { ImageUri } from './types'
+import { ChatService } from '../firebase'
 
 const getImages = (state: RootState) => state.profile.images
+const getSignedInStatus = (state: RootState) => state.auth.isLoggedIn
 
 /* Preferred Name */
 
@@ -247,6 +249,12 @@ function* attemptUnblockUser(payload: ProfileActions.AttemptUnblockUserAction) {
 }
 
 function* rehydrateProfileFromServer(_: RehydrateAction) {
+
+  const loggedIn: boolean = yield select(getSignedInStatus)
+  if (!loggedIn) {
+    return
+  }
+
   try {
     const allTags: api.GetTagsResponse = yield call(api.api.getTags)
     const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
@@ -255,12 +263,14 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
     yield put(rehydrateMatchesFromServer(meInfo.active_matches
       .filter(match => !match.unmatched)
       .map(match => ({
+        id: match.id,
         createdAt: moment(match.createdAt).unix(),
         otherUsers: match.users.filter(u => u.id !== meInfo.id),
         conversationId: match.conversation_uuid,
       }))
     ))
-  } catch (e) {} /* tslint:disable-line:no-empty */
+    meInfo.active_matches.forEach(match => ChatService.listenForNewChats(match.conversation_uuid))
+  } catch (e) {} /* tslint:disable-line:no-empty */ // TODO: something?
 }
 
 /* main saga */

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { StyleSheet, TouchableOpacity, Platform } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import {
   Composer,
   ComposerProps,
@@ -77,17 +77,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   send: {
-    bottom: Platform.select({
-      ios: 11,
-      android: 18,
-    }),
-    right: 12,
+    paddingHorizontal: 12,
+    bottom: 0,
+    right: 0,
+    height: '90%',
     position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendText: {
     color: 'blue',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 16,
     backgroundColor: 'transparent',
   },
   disabled: {

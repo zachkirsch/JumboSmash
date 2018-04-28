@@ -3,12 +3,14 @@ import { GetUserResponse } from '../api'
 import { IChatMessage } from 'react-native-gifted-chat'
 
 export interface NewMatch {
+  id: number
   createdAt: number
   conversationId: string
   otherUsers: GetUserResponse[]
 }
 
 export interface Conversation {
+  matchId: number
   conversationId: string
   otherUsers: number[]
   messages: List<IChatMessage>

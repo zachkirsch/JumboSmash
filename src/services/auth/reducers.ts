@@ -10,6 +10,9 @@ const initialState: AuthState = {
   validVerificationCode: false,
   waitingForRequestVerificationResponse: false,
   waitingForVerificationResponse: false,
+  tutorialFinished: false,
+  codeOfConductAccepted: false,
+  nearTufts: false,
 }
 
 export function authReducer(state = initialState, action: AuthAction): AuthState {
@@ -61,6 +64,32 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...state,
         sessionKey: action.sessionKey,
+      }
+
+    case AuthActionType.FINISH_TUTORIAL:
+      return {
+        ...state,
+        tutorialFinished: true,
+      }
+
+    case AuthActionType.ATTEMPT_ACCEPT_COC:
+    case AuthActionType.ACCEPT_COC_SUCCESS:
+      return {
+        ...state,
+        codeOfConductAccepted: true,
+        errorMessage: '',
+      }
+
+    case AuthActionType.ACCEPT_COC_FAILURE:
+      return {
+        ...state,
+        errorMessage: action.errorMessage,
+      }
+
+    case AuthActionType.SET_COC_READ_STATUS:
+      return {
+        ...state,
+        codeOfConductAccepted: action.readStatus,
       }
 
     case AuthActionType.CLEAR_AUTH_ERROR_MESSAGE:

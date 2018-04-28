@@ -3,13 +3,13 @@ import { Store } from 'redux'
 import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
 
-const LOCAL_SERVER = true
+const LOCAL_SERVER = false
 const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' : Platform.select({
   ios: 'http://127.0.0.1:5000',
   android: 'http://10.0.2.2:5000',
 })
 
-// const SERVER = 'http://10.245.169.206:5000/'
+// const SERVER = 'http://10.0.0.10:5000'
 
 type HttpMethod = 'GET' | 'POST'
 
@@ -24,6 +24,10 @@ interface Token {
 
 export const TokenService = { /* tslint:disable-line:variable-name */
   setStore: (store: Store<RootState>) => this.store = store,
+  isLoggedIn: () => {
+    const store: Store<RootState> = this.store
+    return store && store.getState().auth.isLoggedIn
+  },
   getToken: (): Token => {
     if (!this.store) {
       return {
@@ -56,7 +60,9 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
       throw Error('Could not connect to the server')
     })
     .then((response) => {
-      if (response.ok) {
+      if (!TokenService.isLoggedIn && this.requiresToken) {
+        return
+      } else if (response.ok) {
         return response.json()
       } else if (response.status >= 500) {
         throw Error('Server Error')

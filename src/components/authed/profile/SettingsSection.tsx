@@ -11,6 +11,7 @@ interface OwnProps {
   previewProfile: () => void
   block: () => void
   viewCoC: () => void
+  startSmashing?: () => void
 }
 
 interface StateProps {
@@ -37,6 +38,7 @@ class SettingsSection extends PureComponent<Props, {}> {
           onPress={this.props.previewProfile}
           active
         />
+        {this.renderStartSmashingButton()}
         <RectangleButton
           label={'Help & Feedback'}
           onPress={this.openHelpActionSheet}
@@ -46,6 +48,19 @@ class SettingsSection extends PureComponent<Props, {}> {
           onPress={this.openSettingsActionSheet}
         />
       </View>
+    )
+  }
+
+  private renderStartSmashingButton = () => {
+    if (!this.props.startSmashing) {
+      return null
+    }
+    return (
+      <RectangleButton
+        active
+        label={'Start Smashing'}
+        onPress={this.props.startSmashing}
+      />
     )
   }
 

@@ -18,6 +18,7 @@ export interface TagSectionType {
 interface BaseProfileReact {
   id: number
   count: number
+  reacted?: boolean // whether the user of this phone has reacted in this way
 }
 
 export interface EmojiProfileReact extends BaseProfileReact {
@@ -47,6 +48,7 @@ export interface ProfileState {
   preferredName: LoadableValue<string>
   surname: string
   fullName: string
+  classYear: number
   major: LoadableValue<string>
   bio: LoadableValue<string>
   images: List<LoadableValue<ImageUri>>

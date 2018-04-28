@@ -5,9 +5,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
-import { RootState } from '../../redux'
-import { acceptCoC } from '../../services/coc'
 import { JSText, RectangleButton } from '../common'
 
 interface CoCRule {
@@ -32,40 +29,36 @@ const COC_RULES: CoCRule[] = [
     emojiTitle: '✅🙋',
     description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
   },
+  /*
   {
     emojiTitle: '🔐💌',
     description: 'We value your privacy! Jumbosmash will delete all your data after graduation.',
   },
+  */
 ]
 
-interface OwnProps {
-  inNavigator?: boolean // defaults to false
+interface Props {
+  reviewing?: boolean // defaults to false
   buttonLabel?: string // defaults to "Accept"
-  onPress?: () => void // defaults to acceptCoc
+  onPress?: () => void
 }
-
-interface DispatchProps {
-  acceptCoC: () => void
-}
-
-type Props = OwnProps & DispatchProps
 
 class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
       <View style={styles.flex}>
-        {this.props.inNavigator || <View style={styles.statusBar} />}
+        {this.props.reviewing || <View style={styles.statusBar} />}
         <ScrollView>
           <View style={styles.container}>
-            {this.props.inNavigator || this.renderTitle()}
+            {this.props.reviewing || this.renderTitle()}
             {this.renderDescription()}
             {this.renderRules()}
           </View>
           <View style={styles.container}>
             {this.renderSignoff()}
           </View>
-          {this.props.inNavigator || this.renderButton()}
+          {this.props.reviewing || this.renderButton()}
         </ScrollView>
       </View>
     )
@@ -111,7 +104,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
     return (
       <View style={styles.buttonContainer}>
         <RectangleButton
-          onPress={this.props.onPress || this.props.acceptCoC}
+          onPress={this.props.onPress}
           label={this.props.buttonLabel || "I agree. Let's smash!"}
         />
       </View>
@@ -144,17 +137,10 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 10,
-    marginBottom: 50,
   },
   emoji: {
     fontSize: 20,
   },
 })
 
-const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
-  return {
-    acceptCoC: () => dispatch(acceptCoC()),
-  }
-}
-
-export default connect(undefined, mapDispatchToProps)(CodeOfConductScreen)
+export default CodeOfConductScreen

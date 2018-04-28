@@ -42,7 +42,9 @@ export const api = {
     to_users: toUsers,
     message,
   }, {}),
-
+  unmatch: (matchId: number) => Endpoints.unmatch.hit({
+    match_id_to_unmatch: matchId,
+  }, {}),
 }
 
 // Errors

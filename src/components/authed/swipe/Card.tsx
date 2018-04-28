@@ -19,10 +19,13 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
-import { JSText } from '../../common'
+import { ProfileReact } from '../../../services/profile'
+import { JSText, JSImage } from '../../common'
 import { clamp, generateActionSheetOptions } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
+import { Images } from '../../../assets'
+import ReactSection from './ReactSection'
 
 interface PreviewProps {
   type: 'preview'
@@ -40,6 +43,7 @@ type Props = PreviewProps | LoadingProps | {
   profile: User
   showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
   onCompleteSwipe?: (direction: Direction, onUser: User) => void
+  react: (reacts: ProfileReact[], onUser: User) => void
   onExpandCard?: () => void
   onExitExpandedView?: () => void
 }
@@ -63,6 +67,8 @@ interface State {
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
+const CLASS_YEAR: number = 2020 // TODO: get from profile
+
 const WIDTH = Dimensions.get('window').width
 const HEIGHT = Dimensions.get('window').height
 const VERTICAL_MARGIN = WIDTH / 12
@@ -75,6 +81,7 @@ class Card extends PureComponent<Props, State> {
   private cardPanResponder: PanResponderInstance
   private mainScrollView: any /* tslint:disable-line:no-any */
   private carousel: Carousel | null
+  private reactSection: ReactSection | null
   private isSwipingProgrammatically: boolean = false
   private isSwiping: boolean = false
   private shimmerRows: ShimmerPlaceHolder[] = []
@@ -131,7 +138,7 @@ class Card extends PureComponent<Props, State> {
     if (this.props.type !== 'normal') {
       return
     } else if (this.state.fullyExpanded) {
-      this.contractCard(true)
+      this.exitExpandedCard()
     } else {
       this.expandCard()
     }
@@ -161,6 +168,11 @@ class Card extends PureComponent<Props, State> {
 
     if (this.props.type !== 'normal') {
       return
+    }
+
+    if (this.reactSection && this.reactSection.reactsChanged()) {
+      this.props.react(this.reactSection.getReacts(), this.props.profile)
+      this.reactSection.setReacted()
     }
 
     this.props.onExitExpandedView && this.props.onExitExpandedView()
@@ -204,7 +216,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     const outerContainerStyle = {
-      zIndex: this.state.fullyExpanded ? 14 : 10 - positionInStack,
+      zIndex: this.state.fullyExpanded ? 10 - positionInStack : 10 - positionInStack,
       marginTop: this.state.margin.top,
       marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.margin.horizontal,
@@ -338,7 +350,16 @@ class Card extends PureComponent<Props, State> {
       return null
     }
 
-    const surnameStyle = [
+    const hiddenWhenExpandedStyle = [
+      {
+        opacity: this.state.expansion.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0],
+        }),
+      },
+    ]
+
+    const hiddenWhenContractedStyle = [
       {
         opacity: this.state.expansion,
       },
@@ -360,24 +381,91 @@ class Card extends PureComponent<Props, State> {
     return (
       <TouchableWithoutFeedback onPress={this.tap}>
         <Animated.View style={bottomContainerStyle}>
-          <View style={{flexDirection: 'row'}}>
-            <JSText bold style={styles.firstName}>
+          <View style={styles.fullName}>
+            <JSText bold style={styles.name}>
               {this.props.profile.preferredName}
             </JSText>
-            <Animated.View style={surnameStyle}>
-              <JSText style={styles.surname}>
-                {this.props.profile.surname}
-              </JSText>
-            </Animated.View>
+            <View style={{flex: 1}}>
+              <Animated.View style={[hiddenWhenContractedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+                <JSText style={styles.name} numberOfLines={1}>
+                  {`${this.props.profile.surname} '${CLASS_YEAR % 100}`}
+                </JSText>
+              </Animated.View>
+              <Animated.View style={[hiddenWhenExpandedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+                {this.renderClassYear()}
+              </Animated.View>
+            </View>
           </View>
-          <View style={styles.textContainer}>
-            <TagsSection tags={this.props.profile.tags} tagStyle={styles.tag} alignLeft />
-          </View>
-          <JSText style={styles.bio}>
-            {this.props.profile.bio}
-          </JSText>
+          {this.renderTags()}
+          <Animated.View style={hiddenWhenContractedStyle}>
+            <JSText style={styles.bio}>
+              {this.props.profile.bio}
+            </JSText>
+            {this.props.type === 'normal' && <ReactSection profile={this.props.profile} ref={ref => this.reactSection = ref}/>}
+          </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
+    )
+  }
+
+  private renderTags = () => {
+    if (this.props.type === 'loading') {
+      return null
+    }
+    if (this.props.profile.tags.length === 0) {
+      return null
+    }
+    return (
+      <View style={styles.tagsContainer}>
+        <View style={styles.hashContainer}>
+          <JSImage
+            cache={false}
+            source={Images.hash}
+            style={styles.hash}
+            resizeMode='contain'
+          />
+        </View>
+        <View style={styles.tagsSectionContainer} >
+          <TagsSection
+            tags={this.props.profile.tags}
+            tagStyle={styles.tag}
+            emojiStyle={styles.emoji}
+          />
+        </View>
+      </View>
+    )
+  }
+
+  private renderClassYear = () => {
+    let colors = []
+    switch (CLASS_YEAR) {
+      case 2018:
+        colors = ['rgb(202, 183, 207)', 'rgb(211, 217, 245)']
+        break
+      case 2019:
+        colors = ['rgb(222, 201, 221)', 'rgb(235, 197, 198)']
+        break
+      case 2020:
+        colors = ['rgb(254, 224, 204)', 'rgb(252, 197, 180)']
+        break
+      case 2021:
+        colors = ['rgb(220, 214, 235)', 'rgb(241, 230, 233)']
+        break
+      default:
+        return null
+    }
+
+    return (
+      <LinearGradient
+        colors={colors}
+        start={{x: 0, y: 1}}
+        end={{x: 1, y: 0}}
+        style={styles.classYearContainer}
+      >
+        <JSText bold style={styles.classYearText}>
+          {CLASS_YEAR}
+        </JSText>
+      </LinearGradient>
     )
   }
 
@@ -738,32 +826,30 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: BOTTOM_CONTAINER_HORIZONTAL_PADDING,
   },
-  textContainer: {
+  tagsContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
   },
-  firstName: {
+  tagsSectionContainer: {
+    flex: 1,
+  },
+  name: {
     color: 'rgb(66, 64, 64)',
     fontSize: 20,
     marginVertical: 10,
     marginRight: 7,
   },
-  surname: {
-    fontSize: 20,
-    color: 'gray',
-    marginVertical: 10,
-  },
-  hash: {
-    color: '#A8BAD8',
-    marginRight: 3,
-  },
   tag: {
     color: '#9B9B9B',
+    fontSize: 14,
+  },
+  emoji: {
+    fontSize: 12,
   },
   bio: {
-    fontSize: 14,
-    marginTop: 15,
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: 0.34,
+    marginTop: 25,
     marginBottom: 40,
     color: 'rgb(66, 64, 64)',
   },
@@ -816,5 +902,30 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderColor: 'gray',
     backgroundColor: 'white',
+  },
+  fullName: {
+    flexDirection: 'row',
+  },
+  hashContainer: {
+    marginRight: 2,
+    marginTop: 2,
+    height: '100%',
+  },
+  hash: {
+    width: 15,
+    height: 15,
+  },
+  classYearContainer: {
+    top: 7,
+    left: 10,
+    borderRadius: 15,
+  },
+  classYearText: {
+    fontSize: 15,
+    marginTop: 5,
+    marginBottom: 3,
+    marginHorizontal: 17,
+    color: 'white',
+    letterSpacing: 1.33,
   },
 })

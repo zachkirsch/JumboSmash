@@ -15,13 +15,13 @@ export interface User {
   major: string
   bio: string
   images: string[]
-  profileReacts: ProfileReact[]
+  profileReacts: LoadableValue<ProfileReact[]>
   tags: Tag[]
 }
 
 export interface SwipeState {
   allUsers: LoadableValue<Map<number, User>>
-  swipableUsers: LoadableValue<List<User>>
+  swipableUsers: LoadableValue<List<number>>
   indexOfUserOnTop: number
   lastFetchedAllUsers?: number
   lastFetchedSwipableUsers?: number // Unix timestamp

@@ -3,6 +3,10 @@ import { Credentials } from './types'
 /* Actions */
 
 export enum AuthActionType {
+  ATTEMPT_ACCEPT_COC = 'ATTEMPT_ACCEPT_COC',
+  ACCEPT_COC_SUCCESS = 'ACCEPT_COC_SUCCESS',
+  ACCEPT_COC_FAILURE = 'ACCEPT_COC_FAILURE',
+  SET_COC_READ_STATUS = 'SET_COC_READ_STATUS',
   ATTEMPT_REQUEST_VERIFICATION = 'ATTEMPT_REQUEST_VERIFICATION',
   REQUEST_VERIFICATION_SUCCESS = 'REQUEST_VERIFICATION_SUCCESS',
   REQUEST_VERIFICATION_FAILURE = 'REQUEST_VERIFICATION_FAILURE',
@@ -11,6 +15,7 @@ export enum AuthActionType {
   VERIFY_EMAIL_FAILURE = 'VERIFY_EMAIL_FAILURE',
   SET_SESSION_KEY = 'SET_SESSION_KEY',
   SET_ID = 'SET_ID',
+  FINISH_TUTORIAL = 'FINISH_TUTORIAL',
   CLEAR_AUTH_ERROR_MESSAGE = 'CLEAR_AUTH_ERROR_MESSAGE',
   LOGOUT = 'LOGOUT',
   OTHER_ACTION = '__any_other_action_type__',
@@ -50,6 +55,28 @@ export interface SetSessionKeyAction {
   sessionKey: string
 }
 
+export interface FinishTutorialAction {
+  type: AuthActionType.FINISH_TUTORIAL
+}
+
+export interface AttemptAcceptCoCAction {
+  type: AuthActionType.ATTEMPT_ACCEPT_COC
+}
+
+export interface AcceptCoCSuccessAction {
+  type: AuthActionType.ACCEPT_COC_SUCCESS
+}
+
+export interface AcceptCoCFailureAction {
+  type: AuthActionType.ACCEPT_COC_FAILURE
+  errorMessage: string
+}
+
+export interface SetCoCReadStatusAction {
+  type: AuthActionType.SET_COC_READ_STATUS,
+  readStatus: boolean
+}
+
 export interface ClearAuthErrorMessageAction {
   type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGE
 }
@@ -77,11 +104,29 @@ export type AuthAction =
 | VerifyEmailSuccessAction
 | VerifyEmailFailureAction
 | SetSessionKeyAction
+| FinishTutorialAction
+| AttemptAcceptCoCAction
+| AcceptCoCSuccessAction
+| AcceptCoCFailureAction
+| SetCoCReadStatusAction
 | ClearAuthErrorMessageAction
 | LogoutAction
 | OtherAction
 
 /* Action Creators */
+
+export const acceptCoC = (): AttemptAcceptCoCAction => {
+  return {
+    type: AuthActionType.ATTEMPT_ACCEPT_COC,
+  }
+}
+
+export const setCoCReadStatus = (readStatus: boolean): SetCoCReadStatusAction => {
+  return {
+    type: AuthActionType.SET_COC_READ_STATUS,
+    readStatus,
+  }
+}
 
 export const requestVerification = (credentials: Credentials): AttemptRequestVerificationAction => {
   return {
@@ -101,6 +146,12 @@ export const setSessionKey = (sessionKey: string): SetSessionKeyAction => {
   return {
     type: AuthActionType.SET_SESSION_KEY,
     sessionKey,
+  }
+}
+
+export const finishTutorial = (): FinishTutorialAction => {
+  return {
+    type: AuthActionType.FINISH_TUTORIAL,
   }
 }
 
