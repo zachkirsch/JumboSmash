@@ -48,7 +48,7 @@ export default HeaderBar
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 66,
+    height: 73,
     zIndex: 20,
     ...Platform.select({
       ios: {

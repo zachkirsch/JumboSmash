@@ -175,7 +175,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 5,
   },
   bannerProfile: {
     marginVertical: 5,
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   headerName: {
     color: 'gray',
     textAlign: 'center',
-    fontSize: 11,
+    fontSize: 12,
   },
   inputToolbarContainer: {
     flex: 1,

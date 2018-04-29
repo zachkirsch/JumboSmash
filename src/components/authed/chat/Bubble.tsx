@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 5,
     color: '#2F2E2E',
-    fontSize: 15,
+    fontSize: 16,
   },
   container: {
     flex: 1,
