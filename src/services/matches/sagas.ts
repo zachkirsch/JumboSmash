@@ -21,7 +21,6 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
       const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({
         ...message,
-        createdAt: message.createdAt.getTime(), // convert Date to number for firebase
       }, error => error ? reject(error) : resolve())
     })
   }

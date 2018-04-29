@@ -23,6 +23,4 @@ export interface SwipeState {
   allUsers: LoadableValue<Map<number, User>>
   swipableUsers: LoadableValue<List<number>>
   indexOfUserOnTop: number
-  lastFetchedAllUsers?: number
-  lastFetchedSwipableUsers?: number // Unix timestamp
 }

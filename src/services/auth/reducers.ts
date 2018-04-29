@@ -4,7 +4,7 @@ import { AuthState } from './types'
 const initialState: AuthState = {
   isLoggedIn: false,
   isNewUser: true,
-  email: 'zachary.kirsch@tufts.edu',
+  email: '',
   sessionKey: '',
   errorMessage: '',
   validVerificationCode: false,
@@ -13,6 +13,7 @@ const initialState: AuthState = {
   tutorialFinished: false,
   codeOfConductAccepted: false,
   nearTufts: false,
+  deviceId: '',
 }
 
 export function authReducer(state = initialState, action: AuthAction): AuthState {
@@ -29,6 +30,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...state,
         isNewUser: action.isNewUser,
+        deviceId: action.deviceId,
         waitingForRequestVerificationResponse: false,
       }
 

@@ -14,4 +14,5 @@ export interface AuthState {
   tutorialFinished: boolean
   codeOfConductAccepted: boolean
   nearTufts: boolean
+  deviceId: string
 }

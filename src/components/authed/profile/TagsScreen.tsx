@@ -1,4 +1,3 @@
-import update from 'immutability-helper'
 import React, { PureComponent } from 'react'
 import {
   ScrollView,
@@ -7,22 +6,29 @@ import {
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
+import { List } from 'immutable'
 import { RootState } from '../../../redux'
-import { TagSectionType, updateTags } from '../../../services/profile'
+import { Tag, TagSectionType, updateTagsLocally } from '../../../services/profile'
 import { HeaderBar } from '../../common'
 import { JSText } from '../../common/index'
 import TagsSection from './TagsSection'
 
-interface State {
-  tags: TagSectionType[]
+interface ImmutableTagSectionType {
+  name: string
+  tags: List<Tag>
 }
+
+interface State {
+  tags: List<ImmutableTagSectionType>
+}
+
 interface OwnProps {}
 
 interface StateProps {
   tags: TagSectionType[]
 }
 interface DispatchProps {
-  updateTags: (tags: TagSectionType[]) => void,
+  updateTagsLocally: (tags: TagSectionType[]) => void,
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
@@ -32,7 +38,10 @@ class TagsScreen extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      tags: props.tags,
+      tags: List(props.tags.map(section => ({
+        name: section.name,
+        tags: List(section.tags),
+      }))),
     }
   }
 
@@ -47,7 +56,10 @@ class TagsScreen extends PureComponent<Props, State> {
         <ScrollView>
           <View style={styles.topContainer}>
             <JSText style={styles.title}>
-              Tap the tags that apply to you. Everyone else will see the tags you choose.
+              Tap the tags that apply to you.
+            </JSText>
+            <JSText style={styles.title}>
+              Everyone else will see the tags you choose.
             </JSText>
           </View>
           <View style={styles.tagsContainer}>
@@ -60,11 +72,14 @@ class TagsScreen extends PureComponent<Props, State> {
 
   private renderTags = () => {
     return this.state.tags.map((section, sectionIndex) => {
+      if (!section || sectionIndex === undefined) {
+        return null
+      }
       return (
         <View key={section.name}>
           <JSText bold style={styles.sectionTitle}>{section.name}</JSText>
           <TagsSection
-            tags={section.tags}
+            tags={section.tags.toArray()}
             onPress={this.toggleTag(sectionIndex)}
             tagStyle={styles.tag}
             selectedTagStyle={styles.chosenTag}
@@ -76,35 +91,41 @@ class TagsScreen extends PureComponent<Props, State> {
   }
 
   private saveChanges = () => {
-    this.props.updateTags(this.state.tags)
+    this.props.updateTagsLocally(this.state.tags.map(section => {
+      return {
+        name: section!.name,
+        tags: section!.tags.toArray(),
+      }
+    }).toArray())
     this.props.navigation.goBack()
   }
 
   private toggleTag = (sectionIndex: number) => (tagIndex: number) => {
-    const updateConfig: any = {} /* tslint:disable-line:no-any */
-    updateConfig[sectionIndex] = {
-      tags: {},
-    }
-    updateConfig[sectionIndex].tags[tagIndex] = {
-      selected: {
-        $set: !this.state.tags[sectionIndex].tags[tagIndex].selected,
-      },
-    }
+    const tag = this.state.tags.get(sectionIndex).tags.get(tagIndex)
     this.setState({
-      tags: (update(this.state.tags, updateConfig) as TagSectionType[]),
+      tags: this.state.tags.set(
+        sectionIndex,
+        {
+          name: this.state.tags.get(sectionIndex).name,
+          tags: this.state.tags.get(sectionIndex).tags.set(tagIndex, {
+            ...tag,
+            selected: !tag.selected,
+          }),
+        }
+      ),
     })
   }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    tags: state.profile.tags.value,
+    tags: state.profile.tags.localValue || state.profile.tags.value,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    updateTags: (tags: TagSectionType[]) => dispatch(updateTags(tags)),
+    updateTagsLocally: (tags: TagSectionType[]) => dispatch(updateTagsLocally(tags)),
   }
 }
 
@@ -126,7 +147,6 @@ const styles = StyleSheet.create({
   },
   chosenTag: {
     opacity: 1,
-    fontWeight: 'bold',
   },
   tagSection: {
     marginBottom: 20,

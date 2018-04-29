@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
     borderRadius: WIDTH / 9,
   },
   textContainer: {
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
   },

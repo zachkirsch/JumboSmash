@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, ScrollView, Image, Dimensions, Alert } from 'react-native'
+import { View, StyleSheet, Platform, ScrollView, Image, Dimensions, Alert } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
@@ -56,43 +56,57 @@ class TutorialScreen extends PureComponent<Props, State> {
   componentDidMount() {
     firebase.messaging().hasPermission()
       .then(notificationsPermissed => this.setState({
-        notificationsPermissed,
+        notificationsPermissed: !!notificationsPermissed,
       }))
   }
 
   render() {
     return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} pagingEnabled style={{width, height}}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        pagingEnabled
+        style={styles.scrollView}
+      >
         {this.renderTutorialSlides()}
-        {this.renderLastSlide()}
       </ScrollView>
     )
   }
 
   private renderTutorialSlides = () => {
     return TUTORIAL_SLIDES.map((slide, i) => (
-      <View key={i} style={styles.slide}>
-        <Image resizeMode='stretch' source={slide.image}/>
-        <JSText style={styles.title}>{slide.title}</JSText>
-        <JSText style={styles.subtitle}>{slide.subtitle}</JSText>
-        {i === 0 && <Feather style={styles.chevron} name='chevrons-right' size={40} color='blue' />}
+      <View key={Platform.OS === 'android' ? undefined : i} style={styles.slide}>
+        <Image resizeMode='stretch' source={slide.image} style={styles.image} />
+        <View style={styles.textContainer}>
+          <JSText style={styles.title}>{slide.title}</JSText>
+          <JSText style={styles.subtitle}>{slide.subtitle}</JSText>
+        </View>
+        {i === 0 && this.renderChevrons()}
+        {i === TUTORIAL_SLIDES.length - 1 && this.state.notificationsPermissed && this.renderSmashButton()}
       </View>
     ))
   }
 
-  private renderLastSlide = () => {
-    if (this.state.notificationsPermissed) {
-      return (
-        <View style={styles.slide}>
-          <JSButton label="Let's Go" onPress={this.finishTutorial} />
-        </View>
-      )
+  private renderChevrons = () => (
+    <Feather
+      style={styles.bottomItem}
+      name='chevrons-right'
+      size={40}
+      color='rgba(172,203,238,0.6)'
+    />
+  )
+
+  private renderSmashButton = () => {
+    return (
+      <JSButton label="Let's Go" onPress={this.onPressSmash} containerStyle={styles.bottomItem}/>
+    )
+  }
+
+  private onPressSmash = () => {
+    if (!this.state.notificationsPermissed) {
+      this.requestNotificationsPermission()
     } else {
-      return (
-        <View style={styles.slide}>
-          <JSButton label='Set up Notifications' onPress={this.requestNotificationsPermission} />
-        </View>
-      )
+      this.finishTutorial()
     }
   }
 
@@ -102,19 +116,30 @@ class TutorialScreen extends PureComponent<Props, State> {
   }
 
   private requestNotificationsPermission = () => {
-    firebase.messaging().requestPermission()
-    .then(this.finishTutorial)
-    .catch(() =>
-      Alert.alert(
-        'Notifications are Disabled',
-        'If you want notifications for JumboSmash, please enable them in your phone Settings',
-        [
-          {
-            text: 'OK',
-            onPress: this.finishTutorial,
-          },
-        ]
-      )
+    Alert.alert(
+      'Push Notifications',
+      'Do you want to receive push notifications when someone matches with you?',
+      [
+        { text: 'No', onPress: this.finishTutorial },
+        {
+          text: 'Yes',
+          onPress: () => firebase.messaging().requestPermission()
+            .then(this.finishTutorial)
+            .catch(() =>
+              Alert.alert(
+                'Notifications are disabled',
+                'If you want notifications for JumboSmash, please enable them in the Settings app',
+                [
+                  {
+                    text: 'OK',
+                    onPress: this.finishTutorial,
+                  },
+                ]
+              )
+            ),
+        },
+      ],
+      { cancelable: false }
     )
   }
 }
@@ -141,17 +166,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
   },
+  scrollView: {
+    width,
+    height,
+    backgroundColor: 'white',
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginVertical: 10,
   },
   subtitle: {
     fontSize: 17,
     textAlign: 'center',
+    marginHorizontal: 30,
   },
-  chevron: {
+  bottomItem: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 60,
+  },
+  textContainer: {
+    marginVertical: 50,
+  },
+  image: {
   },
 })

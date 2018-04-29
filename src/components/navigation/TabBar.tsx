@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react'
-import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, Image, View } from 'react-native'
+import { SafeAreaView, Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, Image, View } from 'react-native'
 import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
 import { BlurView } from 'react-native-blur'
-import SafeAreaView from 'react-native-safe-area-view'
 import {
   NavigationRoute,
   NavigationScreenProp,
@@ -11,7 +10,7 @@ import {
 } from 'react-navigation'
 import { switchTab, RouteName } from '../../services/navigation'
 import { RootState } from '../../redux'
-import { xor } from '../../utils'
+import { xor, isIphoneX } from '../../utils'
 import { Images } from '../../assets'
 
 interface OwnProps {
@@ -136,7 +135,9 @@ class TabBar extends PureComponent<Props, State> {
       padding: this.state.overlayPadding,
     }
     return (
-      <Animated.View style={[StyleSheet.absoluteFill, containerStyle]}>
+      <Animated.View
+        style={[StyleSheet.absoluteFill, isIphoneX() && styles.iPhoneXOverlay, containerStyle]}
+      >
         {this.renderBlurView()}
         {this.tabBarOverlay}
       </Animated.View>
@@ -307,5 +308,9 @@ const styles = StyleSheet.create({
   },
   backupBlur: {
     backgroundColor: 'rgba(255, 255, 255, 0.75)',
+  },
+  iPhoneXOverlay: {
+    top: undefined,
+    height: 65,
   },
 })

@@ -3,6 +3,7 @@ import { GetEndpoint, HttpGetRequest } from './Endpoint'
 interface Request extends HttpGetRequest {
   email: string
   code: string
+  device_id: string
 }
 
 interface Response {

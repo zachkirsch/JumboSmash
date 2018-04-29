@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
-import { acceptCoC } from '../../services/coc'
+import { acceptCoC } from '../../services/auth'
 import CodeOfConductScreen from './CodeOfConductScreen'
 import { goToNextRoute } from '../navigation/LoginRouter'
 
@@ -12,7 +12,6 @@ interface OwnProps {
 
 interface StateProps {
   acceptedCoC: boolean
-  seenTutorial: boolean
 }
 
 interface DispatchProps {
@@ -45,8 +44,7 @@ class AcceptCoCScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    acceptedCoC: state.coc.codeOfConductAccepted,
-    seenTutorial: false, // TODO
+    acceptedCoC: state.auth.codeOfConductAccepted,
   }
 }
 

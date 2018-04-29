@@ -29,7 +29,7 @@ declare module 'react-native-gifted-chat' {
   export interface IChatMessage {
     _id: any
     text: string
-    createdAt: Date
+    createdAt: number
     user: {
       _id: any
       name: string

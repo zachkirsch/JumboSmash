@@ -29,6 +29,7 @@ export interface AttemptRequestVerificationAction {
 export interface RequestVerificationSuccessAction {
   type: AuthActionType.REQUEST_VERIFICATION_SUCCESS
   isNewUser: boolean
+  deviceId: string
 }
 
 export interface RequestVerificationFailureAction {

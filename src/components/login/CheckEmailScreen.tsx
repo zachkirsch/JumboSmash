@@ -1,12 +1,13 @@
 import React, { PureComponent } from 'react'
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  View
+  View,
+  Keyboard,
+  Alert,
 } from 'react-native'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
@@ -20,6 +21,10 @@ interface Props {
   waitingForVerificationResponse: boolean
   authError: AuthError
   clearAuthErrorMessage: () => void
+  codeLength: {
+    number: number
+    string: string
+  }
 }
 
 interface State {
@@ -28,7 +33,6 @@ interface State {
 }
 
 const INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL = 9
-const CODE_LENGTH = 6
 const INITIAL_STATE: State = {
   verificationCode: '',
   secondsUntilCanResendEmail: INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL,
@@ -52,6 +56,12 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     clearInterval(this.resendCodeTimer)
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (!this.props.authError && nextProps.authError) {
+      this.textInputRef && this.textInputRef.focus()
+    }
+  }
+
   public resetState = () => {
     this.setState(INITIAL_STATE)
   }
@@ -63,7 +73,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   public textInputIsFocused = () => this.textInputRef && this.textInputRef.isFocused()
 
   public render() {
-    const instructions = 'Please type in the six digit code we just emailed to '
+    const instructions = `Please type in the ${this.props.codeLength.string} digit code we just emailed to `
 
     const inputStyle = [styles.input]
     let underlineColorAndroid
@@ -76,9 +86,9 @@ class CheckEmailScreen extends PureComponent<Props, State> {
       }
     }
 
-    let resendEmailTitle = 'Resend Email'
+    let resendEmailTitle = 'Resend Code'
     if (this.state.secondsUntilCanResendEmail) {
-      resendEmailTitle += ' in ' + this.state.secondsUntilCanResendEmail
+      resendEmailTitle = 'You can resend the code in ' + this.state.secondsUntilCanResendEmail
     }
 
     const resendEmailButtonDisabled = this.state.secondsUntilCanResendEmail > 0
@@ -94,10 +104,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
         contentContainerStyle={styles.wrapper}
       >
         <View style={styles.header} />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.container}
-        >
+        <KeyboardAvoidingView behavior='padding' style={styles.container}>
           <View style={styles.messageContainer}>
             <SimpleLineIcons name='envelope' size={80} color='rgba(172,203,238,0.6)' />
             <View style={styles.contentTitleContainer}>
@@ -106,43 +113,40 @@ class CheckEmailScreen extends PureComponent<Props, State> {
               </JSText>
             </View>
           </View>
-          <View style={styles.instructionsContainer}>
-            <JSText style={styles.text}>
-              {instructions}
-              <JSText bold style={[styles.text]}>
-                {this.props.email}
-              </JSText>
-            </JSText>
-          </View>
-          <ActivityIndicator
-            size='large'
-            animating={this.props.waitingForVerificationResponse}
-            color='rgba(172,203,238,0.6)'
-          />
-          <View style={styles.codeContainer}>
-            <View style={styles.inputContainer}>
-              <JSTextInput
-                style={inputStyle}
-                onChangeText={this.onChangeCode}
-                value={this.state.verificationCode}
-                placeholder='✲ ✲ ✲ ✲ ✲ ✲'
-                keyboardType={'numeric'}
-                maxLength={CODE_LENGTH}
-                underlineColorAndroid={underlineColorAndroid}
-                enablesReturnKeyAutomatically
-                fancy
-                textInputRef={this.setTextInputRef}
-              />
-            </View>
-            <View style={styles.resendLinkContainer} >
-              <TouchableOpacity
-                onPress={this.requestResendVerificationCode}
-                disabled={resendEmailButtonDisabled}
-              >
-                <JSText style={resendLinkStyle}>
-                  {resendEmailTitle}
+          <View>
+            <View style={styles.instructionsContainer}>
+              <JSText style={styles.text}>
+                {instructions}
+                <JSText bold style={[styles.text]}>
+                  {this.props.email}
                 </JSText>
-              </TouchableOpacity>
+              </JSText>
+            </View>
+            <View style={styles.codeContainer}>
+              <View style={styles.inputContainer}>
+                <JSTextInput
+                  style={inputStyle}
+                  onChangeText={this.onChangeCode}
+                  value={this.state.verificationCode}
+                  placeholder='CODE'
+                  keyboardType={'numeric'}
+                  maxLength={this.props.codeLength.number}
+                  underlineColorAndroid={underlineColorAndroid}
+                  enablesReturnKeyAutomatically
+                  fancy
+                  textInputRef={this.setTextInputRef}
+                />
+              </View>
+              <View style={styles.resendLinkContainer} >
+                <TouchableOpacity
+                  onPress={this.requestResendVerificationCode}
+                  disabled={resendEmailButtonDisabled}
+                >
+                  <JSText style={resendLinkStyle}>
+                    {resendEmailTitle}
+                  </JSText>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -158,20 +162,23 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     this.setState({
       verificationCode: code,
     })
-    if (code.length === CODE_LENGTH) {
-      this.submitVerificationCode(code)
+    if (code.length === this.props.codeLength.number) {
+      Keyboard.dismiss()
+      this.props.submitVerificationCode(code)
     } else if (this.props.authError === AuthError.BAD_CODE) {
       this.props.clearAuthErrorMessage()
     }
   }
-
-  private submitVerificationCode = (code: string) => this.props.submitVerificationCode(code)
 
   private requestResendVerificationCode = () => {
     this.props.requestResend()
     this.setState({
       secondsUntilCanResendEmail: INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL,
     }, this.startResendTimer)
+    Alert.alert(
+      'New Code Requested',
+      'You may still receive an e-mail with the previous (now invalid) code'
+    )
   }
 
   private startResendTimer = () => {
@@ -214,6 +221,7 @@ const styles = StyleSheet.create({
   },
   instructionsContainer: {
     paddingHorizontal: '15%',
+    marginBottom: 15,
   },
   codeContainer: {
     justifyContent: 'flex-start',
@@ -223,7 +231,7 @@ const styles = StyleSheet.create({
   },
   contentTitle: {
     color: 'black',
-    fontSize: 18,
+    fontSize: 25,
   },
   inputContainer: {
     flexDirection: 'row',

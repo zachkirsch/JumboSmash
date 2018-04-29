@@ -80,6 +80,10 @@ class MatchesList extends PureComponent<Props, State> {
         const otherUser = this.props.allUsers.get(userId)
         return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
       })
+    }).sort((a, b) => {
+      const aTime = a.messages.size > 0 ? a.messages.last().createdAt : a.createdAt
+      const bTime = b.messages.size > 0 ? b.messages.last().createdAt : b.createdAt
+      return aTime - bTime
     })
   }
 

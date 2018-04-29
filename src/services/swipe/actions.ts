@@ -48,7 +48,7 @@ export interface AttemptFetchSwipableUsersAction {
 export interface FetchSwipableUsersSuccessAction {
   type: SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS
   allUsers: User[]
-  swipableUsers: User[]
+  swipableUsers: number[]
 }
 
 export interface FetchSwipableUsersFailureAction {

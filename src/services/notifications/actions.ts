@@ -1,13 +1,32 @@
+import { RehydrateAction } from '../redux'
+
 /* Actions */
 
 export enum NotificationsActionType {
   SET_NOTIFICATIONS_TOKEN = 'SET_NOTIFICATIONS_TOKEN',
+
+  ADD_IN_APP_NOTIFICATION = 'ADD_IN_APP_NOTIFICATION',
+  DELETE_IN_APP_NOTIFICATION = 'DELETE_IN_APP_NOTIFICATION',
+
   OTHER_ACTION = '__any_other_action_type__',
 }
 
 export interface SetNotificationsTokenAction {
   type: NotificationsActionType.SET_NOTIFICATIONS_TOKEN,
   token?: string
+}
+
+export interface AddInAppNotificationAction  {
+  type: NotificationsActionType.ADD_IN_APP_NOTIFICATION
+  title: string
+  subtitle: string
+  imageUri: string
+  conversationId: string
+}
+
+export interface DeleteInAppNotificationAction  {
+  type: NotificationsActionType.DELETE_IN_APP_NOTIFICATION
+  id: number
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
@@ -23,6 +42,9 @@ export interface OtherAction {
 
 export type NotificationsAction =
 SetNotificationsTokenAction
+| AddInAppNotificationAction
+| DeleteInAppNotificationAction
+| RehydrateAction
 | OtherAction
 
 /* Action Creators */
@@ -31,5 +53,24 @@ export const setNotificationsToken = (token?: string): SetNotificationsTokenActi
   return {
     type: NotificationsActionType.SET_NOTIFICATIONS_TOKEN,
     token,
+  }
+}
+
+export const addInAppNotification = (title: string, subtitle: string,
+                                     imageUri: string,
+                                     conversationId: string): AddInAppNotificationAction => {
+  return {
+    type: NotificationsActionType.ADD_IN_APP_NOTIFICATION,
+    title,
+    subtitle,
+    imageUri,
+    conversationId,
+  }
+}
+
+export const deleteInAppNotification = (id: number): DeleteInAppNotificationAction => {
+  return {
+    type: NotificationsActionType.DELETE_IN_APP_NOTIFICATION,
+    id,
   }
 }

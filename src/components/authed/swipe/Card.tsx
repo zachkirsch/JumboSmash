@@ -15,7 +15,6 @@ import {
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
-import Entypo from 'react-native-vector-icons/Entypo'
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
@@ -41,6 +40,7 @@ type Props = PreviewProps | LoadingProps | {
   type: 'normal'
   positionInStack: number
   profile: User
+  showClassYear?: boolean
   showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
   onCompleteSwipe?: (direction: Direction, onUser: User) => void
   react: (reacts: ProfileReact[], onUser: User) => void
@@ -170,11 +170,6 @@ class Card extends PureComponent<Props, State> {
       return
     }
 
-    if (this.reactSection && this.reactSection.reactsChanged()) {
-      this.props.react(this.reactSection.getReacts(), this.props.profile)
-      this.reactSection.setReacted()
-    }
-
     this.props.onExitExpandedView && this.props.onExitExpandedView()
     this.setState({
       fullyExpanded: false,
@@ -197,7 +192,11 @@ class Card extends PureComponent<Props, State> {
       ])
     }
     this.carousel && this.carousel.reset(false)
-    Animated.parallel(animations).start()
+    Animated.parallel(animations).start(() => {
+      if (this.props.type === 'normal' && this.reactSection && this.reactSection.reactsChanged()) {
+        this.props.react(this.reactSection.getReacts(), this.props.profile)
+      }
+    })
   }
 
   public swipeRight = () => {
@@ -401,10 +400,23 @@ class Card extends PureComponent<Props, State> {
             <JSText style={styles.bio}>
               {this.props.profile.bio}
             </JSText>
-            {this.props.type === 'normal' && <ReactSection profile={this.props.profile} ref={ref => this.reactSection = ref}/>}
+            {this.renderReactSection()}
           </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
+    )
+  }
+
+  private renderReactSection = () => {
+    if (this.props.type !== 'normal') {
+      return null
+    }
+    return (
+      <ReactSection
+        profile={this.props.profile}
+        enabled={this.state.fullyExpanded}
+        ref={ref => this.reactSection = ref}
+      />
     )
   }
 
@@ -437,6 +449,11 @@ class Card extends PureComponent<Props, State> {
   }
 
   private renderClassYear = () => {
+
+    if (this.props.type !== 'normal' || !this.props.showClassYear) {
+      return null
+    }
+
     let colors = []
     switch (CLASS_YEAR) {
       case 2018:
@@ -478,7 +495,7 @@ class Card extends PureComponent<Props, State> {
     return (
       <View style={styles.exitContainer}>
         <TouchableOpacity onPress={this.exitExpandedCard}>
-          <Entypo name='cross' size={40} style={styles.exitIcon} />
+          <JSImage cache={false} style={styles.exitIcon} resizeMode='contain' source={Images.cross} />
         </TouchableOpacity>
       </View>
     )
@@ -865,22 +882,13 @@ const styles = StyleSheet.create({
   exitContainer: {
     backgroundColor: 'transparent',
     position: 'absolute',
-    left: 5,
-    top: 5,
+    left: 0,
+    top: 0,
   },
   exitIcon: {
-    color: 'white',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOpacity: 1,
-        shadowRadius: 10,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
-      },
-    }),
+    height: 20,
+    width: 20,
+    margin: 10,
   },
   imagePlaceholder: {
     backgroundColor: 'rgb(240, 240, 240)',

@@ -4,6 +4,7 @@ import { IChatMessage } from 'react-native-gifted-chat'
 import { createMatch, receiveMessages } from '../matches'
 import { RootState } from '../../redux'
 import { GetUserResponse } from '../api'
+import { addInAppNotification } from '../notifications/actions'
 
 const chatroomsBeingListenedTo = new Set<string>()
 
@@ -52,11 +53,20 @@ ChatService.listenForNewChats = (conversationId: string) => {
       }
       const message: IChatMessage = {
         ...firebaseMessage.val(),
-        createdAt: new Date(firebaseMessage.val().createdAt), // convert firebase's number to Date
       }
 
       const conversation = ChatService.store!.getState().matches.chats.get(conversationId)
       if (conversation && !conversation.messageIDs.has(message._id)) {
+        /*
+        const otherUserId = conversation.otherUsers[0]
+        const otherUser = ChatService.store!.getState().swipe.allUsers.value.get(otherUserId)
+        ChatService.store!.dispatch(addInAppNotification(
+          `New message from ${otherUser.preferredName}`,
+          message.text,
+          otherUser.images[0],
+          conversationId
+        ))
+        */
         ChatService.store!.dispatch(receiveMessages(conversationId, [message]))
       }
     })

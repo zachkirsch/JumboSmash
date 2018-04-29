@@ -18,11 +18,12 @@ import {
 import { ReduxActionType } from '../redux'
 import { RootState } from '../../redux'
 import { EmojiProfileReact, ProfileReact, ImageProfileReact, EMOJI_REGEX } from '../profile'
+import { User } from './types'
 
 const getAllReacts = (state: RootState) => state.profile.reacts.value
 const getId = (state: RootState) => state.profile.id
 
-const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserResponse) => {
+const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserResponse): User => {
   return {
     id: user.id,
     bio: user.bio,
@@ -59,13 +60,12 @@ const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserRespons
 }
 
 const convertServerUserToUserWithReacts = (allReacts: ProfileReact[], user: GetAllUsersUser) => {
-  const convertedUser = convertServerUserToUser(allReacts, user)
-  convertedUser.profileReacts.value = convertedUser.profileReacts.value.map(react => {
-    return {
+  const updateReacted = (react: ProfileReact) => ({
       ...react,
       reacted: !!user.my_reacts.find(r => r.react_id === react.id),
-    }
   })
+  const convertedUser = convertServerUserToUser(allReacts, user)
+  convertedUser.profileReacts.value = convertedUser.profileReacts.value.map(updateReacted)
   return convertedUser
 }
 
@@ -76,9 +76,7 @@ function* attemptFetchSwipableUsers() {
     const allReacts: ProfileReact[] = yield select(getAllReacts)
     const successAction: FetchSwipableUsersSuccessAction = {
       type: SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS,
-      swipableUsers: swipableUsers.users
-        .filter(user => user.images.find(image => !!image.url))
-        .map(user => convertServerUserToUser(allReacts, user)),
+      swipableUsers: swipableUsers.users.map(u => u.id),
       allUsers: allUsers.users.map(user => convertServerUserToUserWithReacts(allReacts, user)),
     }
     yield put(successAction)
@@ -119,7 +117,7 @@ function* attemptSwipe(action: AttemptSwipeAction) {
       ChatService.createChat(
         response.match.id,
         response.match.conversation_uuid,
-        moment(response.match.createdAt).unix(),
+        moment(response.match.createdAt).valueOf(),
         response.match.users.filter(u => u.id !== myID)
       )
     }

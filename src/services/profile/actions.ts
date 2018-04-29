@@ -30,6 +30,7 @@ export enum ProfileActionType {
   UPDATE_IMAGE_FAILURE = 'UPDATE_IMAGE_FAILURE',
   SWAP_IMAGES = 'SWAP_IMAGES',
 
+  UPDATE_TAGS_LOCALLY = 'UPDATE_TAGS_LOCALLY',
   ATTEMPT_UPDATE_TAGS = 'ATTEMPT_UPDATE_TAGS',
   UPDATE_TAGS_SUCCESS = 'UPDATE_TAGS_SUCCESS',
   UPDATE_TAGS_FAILURE = 'UPDATE_TAGS_FAILURE',
@@ -153,6 +154,11 @@ export interface SwapImagesAction {
   index2: number
 }
 
+export interface UpdateTagsLocallyAction {
+  type: ProfileActionType.UPDATE_TAGS_LOCALLY
+  tags: TagSectionType[] | undefined
+}
+
 export interface AttemptUpdateTagsAction {
   type: ProfileActionType.ATTEMPT_UPDATE_TAGS
   tags: TagSectionType[]
@@ -234,6 +240,7 @@ export type ProfileAction = InitializeProfileAction
 | UpdateImageSuccessAction
 | UpdateImageFailureAction
 | SwapImagesAction
+| UpdateTagsLocallyAction
 | AttemptUpdateTagsAction
 | UpdateTagsSuccessAction
 | UpdateTagsFailureAction
@@ -314,6 +321,13 @@ export const swapImages = (index1: number, index2: number): SwapImagesAction => 
     type: ProfileActionType.SWAP_IMAGES,
     index1,
     index2,
+  }
+}
+
+export const updateTagsLocally = (tags: TagSectionType[] | undefined): UpdateTagsLocallyAction => {
+  return {
+    type: ProfileActionType.UPDATE_TAGS_LOCALLY,
+    tags,
   }
 }
 

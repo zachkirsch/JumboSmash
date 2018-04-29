@@ -3,6 +3,7 @@ import firebase from 'react-native-firebase'
 import moment from 'moment'
 import { reduxStore } from '../../redux'
 import { ChatService } from '../firebase'
+import { unmatch } from '../matches'
 import { Match, GetUserResponse } from '../api'
 
 /* tslint:disable:no-console */
@@ -13,7 +14,13 @@ interface NewMatchMessage {
   other_users: GetUserResponse[]
 }
 
-type Message = NewMatchMessage
+interface UnmatchMessage {
+  msg_type: 'unmatch'
+  conversation_uuid: string
+  match_id: number
+}
+
+type Message = NewMatchMessage | UnmatchMessage
 
 const dummy = () => {} /* tslint:disable-line:no-empty */
 
@@ -58,7 +65,7 @@ export const setupNotifications = () => {
   })
 
   messageListener = firebase.messaging().onMessage(message => {
-    console.log(message)
+    console.log(message, message.data, message._data)
     try {
       const data: Message = JSON.parse(message._data.data)
       console.log(data)
@@ -67,9 +74,13 @@ export const setupNotifications = () => {
           ChatService.createChat(
             data.match.id,
             data.match.conversation_uuid,
-            moment(data.match.createdAt).unix(),
+            moment(data.match.createdAt).valueOf(),
             data.other_users
           )
+          break
+        case 'unmatch':
+          reduxStore.dispatch(unmatch(data.match_id, data.conversation_uuid))
+          break
       }
     } catch (e) {
       // TODO: Query for new matches

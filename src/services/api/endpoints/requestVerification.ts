@@ -7,6 +7,7 @@ interface Request {
 interface Response {
   email: string
   new_user: boolean
+  device_id: string
   message: 'email_sent'
 }
 

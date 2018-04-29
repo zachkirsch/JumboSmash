@@ -2,14 +2,16 @@ import { Platform } from 'react-native'
 import { Store } from 'redux'
 import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
+import { logout } from '../../auth'
 
-const LOCAL_SERVER = false
+/*
+const LOCAL_SERVER = true
 const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' : Platform.select({
   ios: 'http://127.0.0.1:5000',
   android: 'http://10.0.2.2:5000',
 })
-
-// const SERVER = 'http://10.0.0.10:5000'
+*/
+const SERVER = 'http://10.245.151.127:5000'
 
 type HttpMethod = 'GET' | 'POST'
 
@@ -22,11 +24,15 @@ interface Token {
   session_key: string
 }
 
-export const TokenService = { /* tslint:disable-line:variable-name */
+export const ApiAuthService = { /* tslint:disable-line:variable-name */
   setStore: (store: Store<RootState>) => this.store = store,
   isLoggedIn: () => {
     const store: Store<RootState> = this.store
     return store && store.getState().auth.isLoggedIn
+  },
+  logout: () => {
+    const store: Store<RootState> = this.store
+    store && store.dispatch(logout())
   },
   getToken: (): Token => {
     if (!this.store) {
@@ -60,12 +66,15 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
       throw Error('Could not connect to the server')
     })
     .then((response) => {
-      if (!TokenService.isLoggedIn && this.requiresToken) {
+      if (!ApiAuthService.isLoggedIn && this.requiresToken) {
         return
       } else if (response.ok) {
         return response.json()
       } else if (response.status >= 500) {
         throw Error('Server Error')
+      } else if (ApiAuthService.isLoggedIn() && response.status === 401) {
+        ApiAuthService.logout()
+        return
       } else {
         return response.json().then((errorJson: ErrorResponse) => {
           throw Error(errorJson.message)
@@ -85,7 +94,7 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
 
     if (method === 'POST') {
       if (this.requiresToken) {
-        const bodyWithAuth = Object.assign(body, TokenService.getToken())
+        const bodyWithAuth = Object.assign(body, ApiAuthService.getToken())
         request.body = JSON.stringify(bodyWithAuth)
       } else {
         request.body = JSON.stringify(body || {})
@@ -116,7 +125,7 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
     let uri = endpoint + '?'
 
     if (this.requiresToken) {
-      uri += this.getQueryString({...TokenService.getToken()})
+      uri += this.getQueryString({...ApiAuthService.getToken()})
     }
 
     if (params) {

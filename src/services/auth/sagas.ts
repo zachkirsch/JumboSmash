@@ -3,7 +3,6 @@ import { call, put, select, takeLatest } from 'redux-saga/effects'
 import firebase from 'react-native-firebase'
 import { RootState } from '../../redux'
 import * as api from '../api'
-import { setCoCReadStatus } from '../coc'
 import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { clearMatchesState } from '../matches'
 import { clearProfileState, initializeProfile } from '../profile'
@@ -14,11 +13,13 @@ import * as AuthActions from './actions'
 import { ImageCacheService } from '../image-caching'
 
 const getEmail = (state: RootState) => state.auth.email
+const getDeviceId = (state: RootState) => state.auth.deviceId
 
-function* handleRequestVerificationSuccess(isNewUser: boolean) {
+function* handleRequestVerificationSuccess(isNewUser: boolean, deviceId: string) {
   const requestVerificationSuccessAction: AuthActions.RequestVerificationSuccessAction = {
     type: AuthActions.AuthActionType.REQUEST_VERIFICATION_SUCCESS,
     isNewUser,
+    deviceId,
   }
   yield put(requestVerificationSuccessAction)
 }
@@ -34,7 +35,7 @@ function* handleRequestVerificationError(error: Error) {
 function* attemptRequestVerification(payload: AuthActions.AttemptRequestVerificationAction) {
   try {
     const response: api.RequestVerificationResponse = yield call(api.api.requestVerification, payload.credentials)
-    yield handleRequestVerificationSuccess(response.new_user)
+    yield handleRequestVerificationSuccess(response.new_user, response.device_id)
 
     // if new user, log signup with Answers
     if (response.new_user) {
@@ -65,7 +66,12 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 
   let loginSuccess = true
   try {
-    const response: api.VerifyEmailResponse = yield call(api.api.verifyEmail, payload.verificationCode)
+    const deviceId: string = yield select(getDeviceId)
+    const response: api.VerifyEmailResponse = yield call(
+      api.api.verifyEmail,
+      payload.verificationCode,
+      deviceId
+    )
 
     /*
      * before setting the user as 'logged in', update what he/she has done so far
@@ -73,7 +79,7 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
      */
     yield put(AuthActions.setSessionKey(response.session_key))
     const meInfo: api.MeResponse = yield call(api.api.me)
-    yield put(setCoCReadStatus(meInfo.accepted_coc))
+    yield put(AuthActions.setCoCReadStatus(meInfo.accepted_coc))
 
     // rehydrate the user's profile
     const allTags: api.GetTagsResponse = yield call(api.api.getTags)
@@ -107,8 +113,24 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
   yield call(Answers.logLogin, 'Email', loginSuccess, { email })
 }
 
+function* handleAcceptCoCError(error: Error) {
+  const acceptCoCFailureAction: AuthActions.AcceptCoCFailureAction = {
+    type: AuthActions.AuthActionType.ACCEPT_COC_FAILURE,
+    errorMessage: error.message,
+  }
+  yield put(acceptCoCFailureAction)
+}
+
+function* acceptCoC(_: AuthActions.AttemptAcceptCoCAction) {
+    try {
+      yield call(api.api.acceptCoC)
+      yield put(AuthActions.setCoCReadStatus(true))
+    } catch (error) {
+      yield handleAcceptCoCError(error)
+    }
+}
+
 function* logout(_: AuthActions.LogoutAction) {
-  yield put(setCoCReadStatus(false))
   yield put(logoutFirebase())
   yield put(clearProfileState())
   yield put(clearNavigationState())
@@ -121,4 +143,5 @@ export function* authSaga() {
   yield takeLatest(AuthActions.AuthActionType.ATTEMPT_REQUEST_VERIFICATION, attemptRequestVerification)
   yield takeLatest(AuthActions.AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
   yield takeLatest(AuthActions.AuthActionType.LOGOUT, logout)
+  yield takeLatest(AuthActions.AuthActionType.ATTEMPT_ACCEPT_COC, acceptCoC)
 }

@@ -5,6 +5,7 @@ import LoginScreen from '../login/LoginScreen'
 import VerifyEmailScreen from '../login/VerifyEmailScreen'
 import ConfirmLocationScreen from '../login/ConfirmLocationScreen'
 import TutorialScreen from '../login/TutorialScreen'
+import CountdownScreen from '../login/CountdownScreen'
 import * as Profile from '../authed/profile'
 import { AuthState } from '../../services/auth'
 import { reduxStore } from '../../redux'
@@ -16,6 +17,7 @@ const styles = StyleSheet.create({
 })
 
 export enum LoginRoute {
+  CountdownScreen = 'CountdownScreen',
   LoginScreen = 'LoginScreen',
   VerifyEmailScreen = 'VerifyEmailScreen',
   ConfirmLocationScreen = 'ConfirmLocationScreen',
@@ -25,14 +27,14 @@ export enum LoginRoute {
 }
 
 export const goToNextRoute = (navigation: NavigationScreenProp<NavigationRoute>) => {
-  const nextRoute = getNextRoute(navigation.state.routeName)
+  const nextRoute = getNextPostLoginRoute(navigation.state.routeName)
   if (nextRoute) {
     navigation.navigate(nextRoute.key)
   }
 }
 
 /* tslint:disable:no-switch-case-fall-through */
-const getNextRoute = (currentRoute?: string) => {
+const getNextPostLoginRoute = (currentRoute?: string) => {
   const state = reduxStore.getState()
   const authState: AuthState = state.auth
   switch (currentRoute) {
@@ -90,6 +92,7 @@ const getNextRoute = (currentRoute?: string) => {
             },
           }, {
             headerMode: 'none',
+            cardStyle: styles.stackCard,
           }),
         }
       }
@@ -99,11 +102,11 @@ const getNextRoute = (currentRoute?: string) => {
 }
 /* tslint:enable:no-switch-case-fall-through */
 
-const getScreens = () => {
+const getPostLoginScreens = () => {
   let screens: { [key: string]: NavigationRouteConfig } = {}
   let routeName
   do {
-    const nextRoute = getNextRoute(routeName)
+    const nextRoute = getNextPostLoginRoute(routeName)
     routeName = nextRoute && nextRoute.key
     if (nextRoute) {
       screens[routeName!] = {
@@ -117,26 +120,37 @@ const getScreens = () => {
   return screens
 }
 
-export const generateLoginRouter = () => TabNavigator({
-  LoginScreen: {
+export const generateLoginRouter = () => {
+  const screens: { [key: string]: NavigationRouteConfig } = {}
+  const state = reduxStore.getState()
+  if (!state.time.postRelease) {
+    screens[LoginRoute.CountdownScreen] = {
+      screen: CountdownScreen,
+      navigationOptions: {
+        tabBarVisible: false,
+      },
+    }
+  }
+  screens[LoginRoute.LoginScreen] = {
     screen: LoginScreen,
     navigationOptions: {
       tabBarVisible: false,
     },
-  },
-  VerifyEmailScreen: {
+  }
+  screens[LoginRoute.VerifyEmailScreen] = {
     screen: VerifyEmailScreen,
     navigationOptions: {
       tabBarVisible: false,
     },
-  },
-}, {
-  swipeEnabled: false,
-  animationEnabled: true,
-  lazy: false,
-})
+  }
+  return TabNavigator(screens, {
+    swipeEnabled: false,
+    animationEnabled: true,
+    lazy: false,
+  })
+}
 
-export const generatePostLoginRouter = () => TabNavigator(getScreens(), {
+export const generatePostLoginRouter = () => TabNavigator(getPostLoginScreens(), {
   swipeEnabled: false,
   animationEnabled: true,
   lazy: false,

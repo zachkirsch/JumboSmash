@@ -6,6 +6,7 @@ import { User } from '../../../services/swipe'
 
 interface Props {
   profile: User
+  enabled: boolean
 }
 
 type StatefulProfileReact = ProfileReact & {
@@ -29,7 +30,7 @@ class ReactSection extends PureComponent<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.profile.id !== nextProps.profile.id) {
+    if (!this.props.enabled) {
       this.setState({
         reacts: nextProps.profile.profileReacts.value.map(react => ({
           ...react,
@@ -48,15 +49,18 @@ class ReactSection extends PureComponent<Props, State> {
   }
 
   public setReacted() {
+    /*
     this.setState({
       reacts: this.state.reacts.map(react => ({
         ...react,
         originallyReacted: !!react.reacted,
       })),
     })
+    */
   }
 
   public render() {
+
     const reactColumns = []
     for (let i = 0; i < this.state.reacts.length; i += 2) {
       reactColumns.push(

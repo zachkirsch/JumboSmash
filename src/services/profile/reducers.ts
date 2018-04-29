@@ -2,7 +2,17 @@ import { List } from 'immutable'
 import { LoadableValue } from '../redux'
 import { ProfileAction, ProfileActionType } from './actions'
 import { ReduxActionType } from '../redux'
-import { ProfileState, ImageUri, EmojiProfileReact, ImageProfileReact, EMOJI_REGEX } from './types'
+import {
+  ProfileState,
+  ImageUri,
+  BaseEmojiProfileReact,
+  BaseImageProfileReact,
+  BaseProfileReact,
+  EmojiProfileReact,
+  ImageProfileReact,
+  ProfileReact,
+  EMOJI_REGEX,
+} from './types'
 
 const initialState: ProfileState = {
   id: -1,
@@ -30,6 +40,7 @@ const initialState: ProfileState = {
     value: [],
     loading: false,
   },
+  allReacts: [],
   blockedUsers: List(),
 }
 
@@ -42,6 +53,7 @@ const newImage = () => ({
 })
 
 export function profileReducer(state = initialState, action: ProfileAction): ProfileState {
+
   const newState = {...state}
   switch (action.type) {
 
@@ -86,8 +98,8 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           loading: false,
         }))),
         reacts: {
-          value: action.allReacts.map(react => {
-            if (react.text.startsWith('EMOJI:')) {
+          value: action.allReacts.reduce((reacts, react) => {
+            if (react.text.lastIndexOf('EMOJI:', 0) === 0) {
               const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
               const emojiReact: EmojiProfileReact = {
                 type: 'emoji',
@@ -95,8 +107,8 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
                 emoji: react.text.replace('EMOJI:', ''),
                 count: profileReact ? profileReact.react_count : 0,
               }
-              return emojiReact
-            } else {
+              reacts.push(emojiReact)
+            } else if (react.text.lastIndexOf('IMAGE:', 0) === 0) {
               const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
               const imageReact: ImageProfileReact = {
                 type: 'image',
@@ -104,11 +116,30 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
                 imageUri: react.text.replace('IMAGE:', ''),
                 count: profileReact ? profileReact.react_count : 0,
               }
-              return imageReact
+              reacts.push(imageReact)
             }
-          }),
+            return reacts
+          }, [] as ProfileReact[]),
           loading: false,
         },
+        allReacts: action.allReacts.reduce((reacts, react) => {
+          if (react.text.lastIndexOf('EMOJI:', 0) === 0) {
+            const emojiReact: BaseEmojiProfileReact = {
+              type: 'emoji',
+              id: react.id,
+              emoji: react.text.replace('EMOJI:', ''),
+            }
+            reacts.push(emojiReact)
+          } else if (react.text.lastIndexOf('IMAGE:', 0) === 0) {
+            const imageReact: BaseImageProfileReact = {
+              type: 'image',
+              id: react.id,
+              imageUri: react.text.replace('IMAGE:', ''),
+            }
+            reacts.push(imageReact)
+          }
+          return reacts
+        }, [] as BaseProfileReact[]),
       }
 
     /* Preferred Name */
@@ -303,6 +334,13 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     /* Tags */
 
+    case ProfileActionType.UPDATE_TAGS_LOCALLY:
+      newState.tags = {
+        ...newState.tags,
+        localValue: action.tags,
+      }
+      return newState
+
     case ProfileActionType.ATTEMPT_UPDATE_TAGS:
       newState.tags = {
         prevValue: state.tags.loading ? state.tags.prevValue : state.tags.value,
@@ -312,7 +350,10 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       return newState
 
     case ProfileActionType.UPDATE_TAGS_SUCCESS:
-      newState.tags.loading = false
+      newState.tags = {
+        value: newState.tags.value,
+        loading: false,
+      }
       return newState
 
     case ProfileActionType.UPDATE_TAGS_FAILURE:
@@ -438,6 +479,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         images: List(action.payload.profile.images.map(image => getValue(image!, {uri: '', isLocal: true}))),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),
         reacts: getValue(action.payload.profile.reacts, initialState.reacts.value),
+        allReacts: action.payload.profile.allReacts || initialState.allReacts,
         blockedUsers: List(action.payload.profile.blockedUsers.map(user => getValue(user!, {email: '', blocked: false}))),
       }
 

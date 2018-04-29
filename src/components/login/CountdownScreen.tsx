@@ -1,36 +1,73 @@
 import moment from 'moment'
 import React, { PureComponent } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, ActivityIndicator } from 'react-native'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../redux'
+import { getServerTime } from '../../services/time'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
 import { JSText, JSImage } from '../common'
+import { LoadableValue } from '../../services/redux'
+import { LoginRoute } from '../navigation'
 
-interface State {
-  seconds: number,
-  minutes: number,
-  hours: number,
-  days: number,
+interface StateProps {
+  releaseDate: number
+  postRelease: boolean
+  serverTime: LoadableValue<number | undefined>
 }
 
-class CountdownScreen extends PureComponent<{}, State> {
+interface DispatchProps {
+  getServerTime: () => void
+}
 
-  private launchDay = moment([2018, 4, 12]) // Month is 0-based
+interface State {
+  seconds: number
+  minutes: number
+  hours: number
+  days: number
+  totalSecondsRemaining: number
+}
+
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
+
+class CountdownScreen extends PureComponent<Props, State> {
+
   private timer: number
+  private screenIsMounted: boolean
 
-  constructor(props: {}) {
+  constructor(props: Props) {
     super(props)
-    this.state = this.getTimeLeft()
+    this.state = {
+      ...this.getTimeLeft(),
+    }
   }
 
   public componentDidMount() {
+    this.screenIsMounted = true
+    this.props.getServerTime()
     this.timer = setInterval(() => {
-      this.setState(this.getTimeLeft())
+      const timeLeft = this.getTimeLeft()
+      if (timeLeft.totalSecondsRemaining <= 0 && this.props.serverTime.value) {
+        if (!this.props.serverTime.loading) {
+          this.props.getServerTime()
+        }
+      }
+      this.screenIsMounted && this.setState(timeLeft)
     }, 1000)
   }
 
   public componentWillUnmount() {
+    this.screenIsMounted = false
     clearInterval(this.timer)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.postRelease) {
+      clearInterval(this.timer)
+      this.props.navigation.navigate(LoginRoute.LoginScreen)
+    }
   }
 
   public render() {
@@ -62,6 +99,18 @@ class CountdownScreen extends PureComponent<{}, State> {
             <JSText semibold style={styles.titleText}>COMING SOON</JSText>
           </View>
         </View>
+        {this.renderServerTimeMessage()}
+      </View>
+    )
+  }
+
+  private renderServerTimeMessage = () => {
+    return (
+      <View>
+        <ActivityIndicator animating={this.props.serverTime.loading} />
+        <JSText semibold style={styles.serverTimeText}>
+          {this.props.serverTime.loading ? 'Checking Server Time...' : ''}
+        </JSText>
       </View>
     )
   }
@@ -96,19 +145,34 @@ class CountdownScreen extends PureComponent<{}, State> {
     <JSText style={[styles.chalkText, styles.colon]}>:</JSText>
   )
 
-  private getTimeLeft = (): State => {
-    const now = moment()
-    const diff = moment.duration(this.launchDay.diff(now))
+  private getTimeLeft = () => {
+    const now = moment((this.props.serverTime.value || 0) + Date.now() - (this.props.serverTime.lastFetched || 0))
+    const diff = moment.duration(moment(this.props.releaseDate).diff(now))
     return {
       seconds: Math.max(0, diff.seconds()),
       minutes: Math.max(0, diff.minutes()),
       hours: Math.max(0, diff.hours()),
-      days: Math.max(0, this.launchDay.diff(now, 'days')),
+      days: Math.max(0, moment(this.props.releaseDate).diff(now, 'days')),
+      totalSecondsRemaining: diff.asSeconds(),
     }
   }
 }
 
-export default CountdownScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    postRelease: state.time.postRelease,
+    releaseDate: state.time.releaseDate,
+    serverTime: state.time.serverTime,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    getServerTime: () => dispatch(getServerTime()),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CountdownScreen)
 
 const styles = StyleSheet.create({
   container: {
@@ -166,6 +230,14 @@ const styles = StyleSheet.create({
     color: '#738CB0',
     letterSpacing: 3.2,
     fontSize: 15,
+  },
+  serverTimeText: {
+    color: '#738CB0',
+    letterSpacing: 1,
+    fontSize: 12,
+    marginBottom: 15,
+    marginTop: 8,
+    textAlign: 'center',
   },
   rocket: {
     marginBottom: 15,

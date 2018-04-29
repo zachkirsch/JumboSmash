@@ -1,6 +1,11 @@
-import { Linking } from 'react-native'
+import { Linking, Dimensions, Platform } from 'react-native';
 
 const JUMBOSMASH_EMAIL = 'help@jumbosmash.com'
+
+export function isIphoneX() {
+  const dimen = Dimensions.get('window');
+  return Platform.OS === 'ios' && (dimen.height === 812 || dimen.width === 812)
+}
 
 export function emailSupport(subject: string) {
   Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)

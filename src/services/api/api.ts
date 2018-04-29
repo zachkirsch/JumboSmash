@@ -10,7 +10,11 @@ export const api = {
   /* LOGIN */
 
   requestVerification: (credentials: Credentials) => Endpoints.requestVerification.hit(credentials, {}),
-  verifyEmail: (code: string) => Endpoints.verifyEmail.hit({email: Endpoints.TokenService.getToken().email, code}, {}),
+  verifyEmail: (code: string, deviceId: string) => Endpoints.verifyEmail.hit({
+    email: Endpoints.ApiAuthService .getToken().email,
+    code,
+    device_id: deviceId,
+  }, {}),
   acceptCoC: () => Endpoints.acceptCoC.hit({}, {}),
 
   /* ME */
@@ -45,6 +49,10 @@ export const api = {
   unmatch: (matchId: number) => Endpoints.unmatch.hit({
     match_id_to_unmatch: matchId,
   }, {}),
+
+  /* MISC */
+
+  getServerTime: () => Endpoints.getServerTime.hit({}, {}),
 }
 
 // Errors

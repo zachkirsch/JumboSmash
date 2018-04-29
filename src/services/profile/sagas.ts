@@ -264,7 +264,7 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
       .filter(match => !match.unmatched)
       .map(match => ({
         id: match.id,
-        createdAt: moment(match.createdAt).unix(),
+        createdAt: moment(match.createdAt).valueOf(),
         otherUsers: match.users.filter(u => u.id !== meInfo.id),
         conversationId: match.conversation_uuid,
       }))

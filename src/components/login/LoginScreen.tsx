@@ -11,7 +11,6 @@ import { LoginRoute } from '../navigation'
 interface StateProps {
   email: string
   isLoggedIn: boolean
-  acceptedCoC: boolean
 }
 
 interface DispatchProps {
@@ -68,7 +67,7 @@ class LoginScreen extends PureComponent<Props, State> {
         keyboardShouldPersistTaps='handled'
         scrollEnabled={false}
       >
-        <KeyboardAvoidingView behavior='padding' style={styles.mainContainer} >
+        <KeyboardAvoidingView behavior='padding' style={styles.mainContainer}>
           <View style={styles.messageContainer}>
             <JSText bold style={styles.message}>CLASS OF 2018</JSText>
             <JSText style={styles.message}>IT'S TIME</JSText>
@@ -180,7 +179,6 @@ class LoginScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     email: state.auth.email,
-    acceptedCoC: state.coc.codeOfConductAccepted,
     isLoggedIn: state.auth.isLoggedIn,
   }
 }

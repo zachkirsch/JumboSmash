@@ -8,7 +8,7 @@ import { setRehydrated } from '../services/redux'
 import { rootReducer } from './rootReducer'
 import { rootSaga } from './rootSaga'
 import { RootState } from './types'
-import { TokenService } from '../services/api'
+import { ApiAuthService } from '../services/api'
 import { ChatService } from '../services/firebase'
 
 const sagaMiddleware = createSagaMiddleware()
@@ -89,6 +89,6 @@ persistStore(reduxStore, {storage: AsyncStorage}, () => {
   reduxStore.dispatch(setRehydrated())
 })
 
-TokenService.setStore(reduxStore)
+ApiAuthService.setStore(reduxStore)
 ChatService.setStore(reduxStore)
 sagaMiddleware.run(rootSaga)

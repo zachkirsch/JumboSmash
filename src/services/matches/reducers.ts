@@ -11,18 +11,7 @@ import { ReduxActionType } from '../redux'
 import { Conversation, MatchesState } from './types'
 
 const initialState: MatchesState = {
-  chats: Map<string, Conversation>({
-    1: {
-      matchId: 1,
-      conversationId: '1',
-      otherUsers: [1],
-      messages: List(),
-      messageIDs: Set(),
-      mostRecentMessage: '',
-      createdAt: 10000,
-      messagesUnread: false,
-    },
-  }),
+  chats: Map<string, Conversation>(),
 }
 
 const addMessagesToReduxState = (oldState: MatchesState,

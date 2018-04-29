@@ -8,4 +8,5 @@ export interface LoadableValue<T> {
   value: T
   loading: boolean
   errorMessage?: string
+  lastFetched?: number
 }

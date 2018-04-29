@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
   },
   tag: {
     color: '#29292C',
-    marginRight: 15,
+    paddingRight: 12,
+    marginRight: 4,
     marginBottom: 3,
   },
   underline: {

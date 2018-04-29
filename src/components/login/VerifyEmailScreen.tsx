@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react'
 import {
   ActivityIndicator,
-  Keyboard,
   Linking,
   Platform,
   StyleSheet,
@@ -18,7 +17,6 @@ import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } 
 import { JSText } from '../common'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
-import { goToNextRoute } from '../navigation/LoginRouter'
 
 interface OwnProps {
   focusKeyboardOnLoginScreen: () => void
@@ -29,8 +27,6 @@ interface StateProps {
   authError: AuthError
   waitingForRequestVerificationResponse: boolean
   waitingForVerificationResponse: boolean
-  isLoggedIn: boolean
-  acceptedCoC: boolean
 }
 
 interface DispatchProps {
@@ -45,8 +41,11 @@ interface State {
   requestedResend: boolean
 }
 
-const CODE_LENGTH = 6
-const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([A-Z0-9]{${CODE_LENGTH}})`)
+const CODE_LENGTH = {
+  number: 6,
+  string: 'six',
+}
+const MAGIC_LINK_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([0-9]{${CODE_LENGTH.number}})`)
 
 class VerifyEmailScreen extends PureComponent<Props, State> {
 
@@ -95,13 +94,6 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
   }
 
-  public componentWillReceiveProps(newProps: Props) {
-    if (newProps.isLoggedIn) {
-      Keyboard.dismiss()
-      goToNextRoute(this.props.navigation)
-    }
-  }
-
   public render() {
 
     let renderScreen: () => JSX.Element
@@ -126,6 +118,22 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
             <Ionicons name='ios-arrow-back' size={30} color='black' />
           </TouchableOpacity>
         </View>
+        {this.renderVerifyingOverlay()}
+      </View>
+    )
+  }
+
+  private renderVerifyingOverlay = () => {
+    if (!this.props.waitingForVerificationResponse) {
+      return null
+    }
+    return (
+      <View style={[StyleSheet.absoluteFill, {backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center'}]}>
+        <ActivityIndicator
+          size='large'
+          animating
+          color='white'
+        />
       </View>
     )
   }
@@ -184,6 +192,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       clearAuthErrorMessage={this.props.clearAuthErrorMessage}
       ref={ref => this.checkEmailScreen = ref}
       waitingForVerificationResponse={this.props.waitingForVerificationResponse}
+      codeLength={CODE_LENGTH}
     />
   )
 
@@ -192,7 +201,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private handleOpenURL = (url: string) => {
-    const match = VERIFY_EMAIL_INCOMING_URL_REGEX.exec(url)
+    const match = MAGIC_LINK_REGEX.exec(url)
     if (match) {
       const code = match[1]
       this.props.submitVerificationCode(code)
@@ -227,8 +236,6 @@ const mapStateToProps = (state: RootState): StateProps => {
     waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
     waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
     email: state.auth.email,
-    acceptedCoC: state.coc.codeOfConductAccepted,
-    isLoggedIn: state.auth.isLoggedIn,
   }
 }
 

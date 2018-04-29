@@ -17,7 +17,6 @@
 		},
 		"dependencies": {
 				"@expo/react-native-action-sheet": "^1.0.2",
-				"@types/immutability-helper": "^2.6.3",
 				"@types/immutable": "^3.8.7",
 				"@types/lodash": "^4.14.105",
 				"@types/moment": "^2.13.0",
@@ -30,7 +29,6 @@
 				"@types/react-redux": "^5.0.13",
 				"@types/redux-logger": "^3.0.5",
 				"babel-core": "^6.26.0",
-				"immutability-helper": "^2.6.6",
 				"immutable": "^3.8.2",
 				"lodash": "^4.17.5",
 				"moment": "^2.21.0",

@@ -15,28 +15,36 @@ export interface TagSectionType {
   tags: Tag[]
 }
 
-interface BaseProfileReact {
+export interface BaseEmojiProfileReact {
+  type: 'emoji'
+  id: number
+  emoji: string
+}
+
+export interface BaseImageProfileReact {
+  type: 'image'
+  id: number
+  imageUri: string
+}
+
+export type BaseProfileReact = BaseEmojiProfileReact | BaseImageProfileReact
+
+interface ReactableProfileReact {
   id: number
   count: number
   reacted?: boolean // whether the user of this phone has reacted in this way
 }
 
-export interface EmojiProfileReact extends BaseProfileReact {
-  type: 'emoji'
-  emoji: string
-}
+export type EmojiProfileReact = ReactableProfileReact & BaseEmojiProfileReact
 
-export interface ImageProfileReact extends BaseProfileReact {
-  type: 'image'
-  imageUri: string
-}
+export type ImageProfileReact = ReactableProfileReact & BaseImageProfileReact
 
 export interface ImageUri {
   uri: string
   isLocal: boolean
 }
 
-export type ProfileReact = EmojiProfileReact | ImageProfileReact
+export type ProfileReact = ReactableProfileReact & (EmojiProfileReact | ImageProfileReact)
 
 export interface BlockedUser {
   email: string
@@ -54,5 +62,6 @@ export interface ProfileState {
   images: List<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
   reacts: LoadableValue<ProfileReact[]>
+  allReacts: (BaseEmojiProfileReact | BaseImageProfileReact)[]
   blockedUsers: List<LoadableValue<BlockedUser>>
 }

@@ -24,6 +24,10 @@ import {
   onChangePreferredNameTextInput,
   onChangeMajorTextInput,
   onChangeBioTextInput,
+  updateTags,
+  updateTagsLocally,
+  TagSectionType,
+  Tag,
   ProfileState,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
@@ -57,6 +61,8 @@ interface DispatchProps {
   updateMajor: (major: string) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
   swapImages: (index1: number, index2: number) => void
+  updateTags: (tags: TagSectionType[]) => void
+  updateTagsLocally: (tags: TagSectionType[] | undefined) => void
   setTabBarOverlay: (component: () => JSX.Element) => void
   clearTabBarOverlay: () => void
 }
@@ -73,6 +79,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   private preferredNameTextInput: JSTextInput | null
   private majorTextInput: JSTextInput | null
   private bioTextInput: JSTextInput | null
+  private tagsRequiredSave = false
 
   constructor(props: Props) {
     super(props)
@@ -102,13 +109,31 @@ class ProfileScreen extends PureComponent<Props, State> {
     })
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    const tagsChanged = JSON.stringify(this.props.profile.tags.localValue) !== JSON.stringify(nextProps.profile.tags.localValue)
+    if (tagsChanged) {
+      if (nextProps.profile.tags.localValue) {
+        const tagsModified = !!nextProps.profile.tags.localValue.find((section, sectionIndex) => {
+          return !!section.tags.find((localTag, tagIndex) => {
+            const actualTag = nextProps.profile.tags.value[sectionIndex].tags[tagIndex]
+            return localTag.selected !== actualTag.selected
+          })
+        })
+        this.tagsRequiredSave = tagsModified
+      } else {
+        this.tagsRequiredSave = false
+      }
+      this.updateSaveOverlay()
+    }
+  }
+
   render() {
 
     let containerStyle
     if (this.setupMode()) {
       containerStyle = {
         paddingTop: Platform.select({
-          ios: 10,
+          ios: 20,
           android: 0,
         }),
       }
@@ -156,16 +181,22 @@ class ProfileScreen extends PureComponent<Props, State> {
           preferredName: this.state.preferredName,
           bio: this.state.bio,
           images: this.photosSection!.images().filter(image => !!image),
-          tags: flatten(this.props.profile.tags.value.map(section => section.tags)).filter(tag => tag.selected),
+          tags: this.getSelectedTags(),
         },
       })()
 
     })
   }
 
-  private renderTags = () => {
-    const tags = flatten(this.props.profile.tags.value.map(section => section.tags.filter(tag => tag.selected)))
+  private getSelectedTags = (): Tag[] => {
+    return flatten(
+      (this.props.profile.tags.localValue || this.props.profile.tags.value)
+        .map(section => section.tags.filter(tag => tag.selected))
+    )
+  }
 
+  private renderTags = () => {
+    const tags = this.getSelectedTags()
     let toRender
     if (tags.length > 0) {
       toRender = <TagsSection tags={tags} />
@@ -282,7 +313,6 @@ class ProfileScreen extends PureComponent<Props, State> {
         maxLength={MAX_BIO_LENGTH}
         value={this.state.bio}
         onChangeText={this.updateBio}
-        placeholder={'Actually, Monaco and I...'}
         fancy
         autoCorrect={false}
         style={styles.bio}
@@ -384,11 +414,16 @@ class ProfileScreen extends PureComponent<Props, State> {
     }, this.updateSaveOverlay)
   }
 
-  private saveRequired = () =>
-    this.state.photosSectionRequiresSave
-    || this.props.profile.bio.value !== this.state.bio
-    || this.props.profile.major.value !== this.state.major
-    || this.props.profile.preferredName.value !== this.state.preferredName
+  // ignores tags
+  private saveRequired = () => {
+    if (this.state.photosSectionRequiresSave
+        || this.props.profile.bio.value !== this.state.bio
+        || this.props.profile.major.value !== this.state.major
+        || this.props.profile.preferredName.value !== this.state.preferredName) {
+      return true
+    }
+    return this.tagsRequiredSave
+  }
 
   private revert = () => {
     const revert = () => {
@@ -400,6 +435,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       })
       this.props.clearTabBarOverlay()
       this.photosSection && this.photosSection.revert()
+      this.props.updateTagsLocally(undefined)
     }
 
     Keyboard.dismiss()
@@ -425,11 +461,15 @@ class ProfileScreen extends PureComponent<Props, State> {
         this.props.updateMajor(this.state.major)
         this.props.updatePreferredName(this.state.preferredName)
         this.photosSection && this.photosSection.save()
+        if (this.props.profile.tags.localValue) {
+          this.props.updateTags(this.props.profile.tags.localValue)
+        }
         this.props.clearTabBarOverlay()
         if (!this.setupMode()) {
           this.setState({
             photosSectionRequiresSave: false,
           })
+          this.tagsRequiredSave = false
         }
       })
     }, 50)
@@ -472,6 +512,8 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
       dispatch(updateImage(index, imageUri, mime))
     },
     swapImages: (index1: number, index2: number) => dispatch(swapImages(index1, index2)),
+    updateTags: (tags: TagSectionType[]) => dispatch(updateTags(tags)),
+    updateTagsLocally: (tags: TagSectionType[] | undefined) => dispatch(updateTagsLocally(tags)),
     setTabBarOverlay: (component: () => JSX.Element) => dispatch(setTabBarOverlay(component)),
     clearTabBarOverlay: () => dispatch(clearTabBarOverlay()),
   }

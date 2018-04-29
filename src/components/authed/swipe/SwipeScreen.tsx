@@ -23,7 +23,9 @@ interface OwnProps {
 
 export type SwipeScreenProps = OwnProps
 
-type StateProps = SwipeState
+type StateProps = SwipeState & {
+  postRelease2: boolean
+}
 
 interface DispatchProps {
   swipe: (direction: Direction, onUser: User) => void
@@ -37,10 +39,11 @@ interface State {
   mustShowLoadingScreen: boolean
   expansion: Animated.Value
   fullyExpanded: boolean
-  profiles: (number | undefined)[]
+  profiles: (number | undefined)[] // user ID's
+  topCardLoaded: boolean
 }
 
-const NUM_RENDERED_CARDS = 5
+const NUM_RENDERED_CARDS = 4
 
 @connectActionSheet
 class SwipeScreen extends PureComponent<Props, State> {
@@ -56,6 +59,7 @@ class SwipeScreen extends PureComponent<Props, State> {
       fullyExpanded: !!this.props.preview,
       profiles: [],
       mustShowLoadingScreen: true,
+      topCardLoaded: false,
     }
   }
 
@@ -121,11 +125,17 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
     const positionInStack = this.calculatePositionInStack(cardIndex)
 
+    // ensure that top card loads first
+    if (cardIndex > 0 && !this.state.topCardLoaded) {
+      return null
+    }
+
     return (
       <Card
         type='normal'
         positionInStack={positionInStack}
         profile={this.props.allUsers.value.get(card)}
+        showClassYear={this.props.postRelease2}
         onExpandCard={this.onExpandCard}
         onExitExpandedView={this.onExitExpandedView}
         onCompleteSwipe={this.onCompleteSwipe}
@@ -231,6 +241,11 @@ class SwipeScreen extends PureComponent<Props, State> {
   private assignCardRef = (positionInStack: number) => (ref: Card) => {
     if (positionInStack === 0) {
       this.topCard = ref
+      setTimeout(() => {
+        this.setState({
+          topCardLoaded: true,
+        })
+      }, 500)
     }
   }
 
@@ -286,7 +301,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     if (!this.props.swipableUsers.loading) {
       const numUserUntilEnd = this.props.swipableUsers.value.size - this.props.indexOfUserOnTop
       const beenLongEnough = (
-        !this.props.lastFetchedSwipableUsers || (Date.now() - this.props.lastFetchedSwipableUsers) / 1000 >= 10
+        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 10
       )
       if (numUserUntilEnd <= 10 && beenLongEnough) {
         this.fetchUsers()
@@ -335,7 +350,10 @@ class SwipeScreen extends PureComponent<Props, State> {
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
-  return state.swipe
+  return {
+    ...state.swipe,
+    postRelease2: state.time.postRelease2,
+  }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {

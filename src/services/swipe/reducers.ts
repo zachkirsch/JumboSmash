@@ -62,7 +62,14 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           ...existingUser,
           profileReacts: {
             prevValue: existingUser.profileReacts.value,
-            value: action.reacts,
+            value: existingUser.profileReacts.value.map(react => ({
+              ...react,
+              reacted: !!action.reacts.find(r => r.id === react.id),
+              count: react.count + (
+                action.reacts.find(r => r.id === react.id) && !react.reacted
+                ? 1 : !action.reacts.find(r => r.id === react.id) && react.reacted ? -1 : 0
+              ),
+            })),
             loading: true,
           },
         }
@@ -71,7 +78,7 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           ...state,
           allUsers: {
             value: state.allUsers.value.set(existingUser.id, newUser),
-            loading: false,
+            loading: state.allUsers.loading,
           },
         }
 
@@ -87,6 +94,7 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           profileReacts: {
             ...existingUser.profileReacts,
             loading: false,
+            lastFetched: Date.now(),
           },
         }
 
@@ -94,7 +102,7 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           ...state,
           allUsers: {
             value: state.allUsers.value.set(existingUser.id, newUser),
-            loading: false,
+            loading: state.allUsers.loading,
           },
         }
 
@@ -116,7 +124,7 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           ...state,
           allUsers: {
             value: state.allUsers.value.set(existingUser.id, newUser),
-            loading: false,
+            loading: state.allUsers.loading,
           },
         }
 
@@ -140,9 +148,14 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
         indexOfUserOnTop: 0,
         allUsers: {
           value: allUsersMap,
+          lastFetched: Date.now(),
           loading: false,
         },
-        lastFetchedAllUsers: Date.now(),
+        swipableUsers: {
+          ...state.swipableUsers,
+          lastFetched: Date.now(),
+          value: state.swipableUsers.value.filter(id => !!id && allUsersMap.has(id)).toList(),
+        },
       }
 
     case SwipeActionType.FETCH_ALL_USERS_FAILURE:
@@ -162,6 +175,10 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           value: state.swipableUsers.value,
           loading: true,
         },
+        allUsers: {
+          value: state.allUsers.value,
+          loading: true,
+        },
       }
 
     case SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS:
@@ -175,17 +192,23 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
         allUsers: {
           value: allUsersMap,
           loading: false,
+          lastFetched: Date.now(),
         },
         swipableUsers: {
-          value: List(shuffle(action.swipableUsers.map(u => u.id).filter(id => allUsersMap.has(id)))),
+          value: List(shuffle(action.swipableUsers.filter(id => allUsersMap.has(id)))),
           loading: false,
+          lastFetched: Date.now(),
         },
-        lastFetchedSwipableUsers: Date.now(),
       }
 
     case SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE:
       return {
         ...state,
+        allUsers: {
+          value: state.allUsers.value,
+          loading: false,
+          errorMessage: action.errorMessage,
+        },
         swipableUsers: {
           value: state.swipableUsers.value,
           loading: false,
