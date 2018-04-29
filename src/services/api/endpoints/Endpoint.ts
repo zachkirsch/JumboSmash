@@ -4,14 +4,12 @@ import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
 import { logout } from '../../auth'
 
-/*
-const LOCAL_SERVER = true
+const LOCAL_SERVER = false
 const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' : Platform.select({
   ios: 'http://127.0.0.1:5000',
   android: 'http://10.0.2.2:5000',
 })
-*/
-const SERVER = 'http://10.245.151.127:5000'
+// const SERVER = 'http://10.245.151.127:5000'
 
 type HttpMethod = 'GET' | 'POST'
 
