@@ -11,11 +11,12 @@ type Props = ActionSheetProps<BubbleProps>
 class Bubble extends PureComponent<Props, {}> {
 
   render() {
-    if (!this.props.currentMessage) {
+    if (!this.props.currentMessage || this.props.currentMessage.system) {
       return null
     }
+    const opacity = this.props.currentMessage.failedToSend ? 0.3 : 1
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { opacity }]}>
         <TouchableOpacity onPress={this.onPress}>
           <View style={styles.wrapper}>
             <View>

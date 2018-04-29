@@ -77,6 +77,17 @@ export default class Message extends PureComponent<Props, {}> {
     )
   }
 
+  renderFailedToSend() {
+    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.failedToSend) {
+      return null
+    }
+    return (
+      <View style={styles.failedToSendMessage}>
+        <JSText style={styles.failedToSendText}>Oops, failed to send. Try again</JSText>
+      </View>
+    )
+  }
+
   render() {
     if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.user) {
       return null
@@ -108,6 +119,7 @@ export default class Message extends PureComponent<Props, {}> {
             {this.renderBubble()}
           </LinearGradient>
         </View>
+        {this.renderFailedToSend()}
       </View>
     )
   }
@@ -164,4 +176,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
   },
+  failedToSendMessage: {
+    alignItems: 'flex-end',
+    marginRight: 8,
+  },
+  failedToSendText: {
+    color: 'rgb(214, 145, 145)',
+  }
 })

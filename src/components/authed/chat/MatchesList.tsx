@@ -58,7 +58,7 @@ class MatchesList extends PureComponent<Props, State> {
         <JSTextInput
           onChangeText={this.onChangeSearchBarText}
           style={styles.searchBar}
-          placeholder={'Search'}
+          placeholder={'Search!!!!!'}
           underline={false}
         />
       </View>

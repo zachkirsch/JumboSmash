@@ -78,7 +78,7 @@ function* attemptFetchAllUsers() {
     const allReacts: ProfileReact[] = yield select(getAllReacts)
     const successAction: FetchAllUsersSuccessAction = {
       type: SwipeActionType.FETCH_ALL_USERS_SUCCESS,
-      users: users.users[0].map(user => convertServerUserToUser(allReacts, user)),
+      users: users.users.map(user => convertServerUserToUser(allReacts, user)),
     }
     yield put(successAction)
   } catch (e) {

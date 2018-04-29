@@ -57,6 +57,9 @@ class ChatScreen extends PureComponent<Props, {}> {
   public render() {
     const conversation = this.getConversation()
     const messages = conversation.messages.toArray()
+
+    // toggle between these two depending on whether testing with fake zach or real user
+    // const user = conversation.otherUsers[0]
     const user = this.props.allUsers.get(conversation.otherUsers[0])
 
     return (
