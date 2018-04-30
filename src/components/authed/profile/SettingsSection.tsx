@@ -40,7 +40,7 @@ class SettingsSection extends PureComponent<Props, {}> {
         />
         {this.renderStartSmashingButton()}
         <RectangleButton
-          label={'Help & Feedback'}
+          label={'Report / Block'}
           onPress={this.openHelpActionSheet}
         />
         <RectangleButton

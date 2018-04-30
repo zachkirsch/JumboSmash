@@ -333,7 +333,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         {this.renderBio()}
         <View style={styles.personalInfo}>
           {this.renderPreferredName()}
-      
+
           <JSText bold style={[styles.title, styles.aboutMeTitle]}>ABOUT ME</JSText>
         </View>
       </View>
@@ -550,6 +550,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     letterSpacing: .8,
+  },
+  tagsTitle: {
+    marginBottom: 10,
   },
   bigInput: {
     fontSize: 20,

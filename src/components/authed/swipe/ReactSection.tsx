@@ -73,6 +73,7 @@ class ReactSection extends PureComponent<Props, State> {
 
     return (
       <View style={styles.reacts}>
+      <JSText bold style={[styles.title, styles.tagsTitle]}>React to {this.props.profile.fullName}'s Bio</JSText>
         {reactColumns}
       </View>
     )
@@ -177,5 +178,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 12,
     color: 'rgba(41,41,44,0.76)',
+  },
+  title: {
+    fontSize: 14,
+    letterSpacing: .8,
+  },
+  tagsTitle: {
+    marginBottom: 10,
   },
 })
