@@ -67,7 +67,7 @@ interface State {
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
-const CLASS_YEAR: number = 2020 // TODO: get from profile
+const CLASS_YEAR: number = 2018 // TODO: get from profile
 
 const WIDTH = Dimensions.get('window').width
 const HEIGHT = Dimensions.get('window').height

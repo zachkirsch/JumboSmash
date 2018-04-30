@@ -9,7 +9,7 @@ import { connect, Dispatch } from 'react-redux'
 import { List } from 'immutable'
 import { RootState } from '../../../redux'
 import { Tag, TagSectionType, updateTagsLocally } from '../../../services/profile'
-import { HeaderBar } from '../../common'
+import { HeaderBar, RectangleButton, JSButton } from '../../common'
 import { JSText } from '../../common/index'
 import TagsSection from './TagsSection'
 
@@ -52,7 +52,7 @@ class TagsScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View style={styles.fill}>
-        <HeaderBar title='Choose Tags' goBack={this.props.navigation.goBack} />
+        <HeaderBar title='Choose Tags' goBack={this.props.navigation.goBack} renderRightIcon={this.renderSave} onPressRight={this.saveTags}/>
         <ScrollView>
           <View style={styles.topContainer}>
             <JSText style={styles.title}>
@@ -70,6 +70,15 @@ class TagsScreen extends PureComponent<Props, State> {
     )
   }
 
+  private renderSave = () => {
+    return (
+        <JSButton onPress={this.saveTags} style={styles.saveButton} label='Save' />
+    )
+  }
+
+  private saveTags = () => {
+    return null
+  }
   private renderTags = () => {
     return this.state.tags.map((section, sectionIndex) => {
       if (!section || sectionIndex === undefined) {
@@ -164,4 +173,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgb(172,203,238)',
   },
+  saveButton: {
+    flex: 0.1,
+    marginHorizontal: 0
+  }
 })
