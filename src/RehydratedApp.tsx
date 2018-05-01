@@ -77,7 +77,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
   }
 
   private renderScreen() {
-    if (!this.props.authState.isLoggedIn) {
+    if (this.shouldShowLoginScreens()) {
       if (!this.loginRouter) {
         this.loginRouter = generateLoginRouter()
       }
@@ -93,6 +93,9 @@ class RehydratedApp extends PureComponent<Props, {}> {
   }
 
   private renderNotifications = () => {
+    if (this.shouldShowLoginScreens() || this.shouldShowPostLoginScreens()) {
+      return null
+    }
     return this.props.inAppNotifications.map((notification, i) => {
       return (
         <InAppNotificationBanner
@@ -104,6 +107,8 @@ class RehydratedApp extends PureComponent<Props, {}> {
       )
     })
   }
+
+  private shouldShowLoginScreens = () => !this.props.authState.isLoggedIn
 
   private deleteNotification = (notification: InAppNotification) => () => {
     this.props.deleteInAppNotification(notification.id)

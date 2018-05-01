@@ -20,26 +20,41 @@ class HeaderBar extends PureComponent<Props, {}> {
       : <JSText style={styles.title} bold>{this.props.title}</JSText>
     return (
       <SafeAreaView style={styles.container}>
-        <TouchableOpacity onPress={this.goBack} style={styles.sideView}>
-          <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
-        </TouchableOpacity>
+        {this.renderLeftView()}
         <View style={styles.titleContainer}>
           {title}
         </View>
-        <TouchableOpacity onPress={this.props.onPressRight} style={styles.sideView}>
-          {this.renderRightIcon()}
-        </TouchableOpacity>
+        {this.renderRightView()}
       </SafeAreaView>
     )
   }
 
   private goBack = () => this.props.goBack()
 
-  private renderRightIcon = () => {
-    if (!this.props.renderRightIcon) {
-      return null
+  private renderLeftView = () => {
+    if (!this.props.goBack) {
+      return <View style={styles.sideView} />
     }
-    return this.props.renderRightIcon()
+    return (
+      <TouchableOpacity onPress={this.goBack} style={styles.sideView}>
+        <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
+      </TouchableOpacity>
+    )
+  }
+
+  private renderRightView = () => {
+    if (!this.props.onPressRight || !this.props.renderRightIcon) {
+      return (
+        <View style={styles.sideView}>
+          {this.props.renderRightIcon && this.props.renderRightIcon()}
+        </View>
+      )
+    }
+    return (
+      <TouchableOpacity onPress={this.props.onPressRight} style={styles.sideView}>
+        {this.props.renderRightIcon()}
+      </TouchableOpacity>
+    )
   }
 }
 

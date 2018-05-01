@@ -31,6 +31,7 @@ interface PreviewProps {
   exit: () => void
   profile: User
   shouldShowReacts: boolean
+  react: (reacts: ProfileReact[], onUser: User) => void
 }
 
 interface LoadingProps {
@@ -198,6 +199,7 @@ class Card extends PureComponent<Props, State> {
       if (this.props.type === 'normal' && this.reactSection && this.reactSection.reactsChanged()) {
         this.props.react(this.reactSection.getReacts(), this.props.profile)
       }
+
     })
   }
 
@@ -402,7 +404,7 @@ class Card extends PureComponent<Props, State> {
             <JSText style={styles.bio}>
               {this.props.profile.bio}
             </JSText>
-            {this.renderReactSection()}
+            {((this.props.type === 'preview' && this.props.shouldShowReacts) || (this.props.type === 'normal')) && this.renderReactSection()}
           </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -412,7 +414,9 @@ class Card extends PureComponent<Props, State> {
   private renderReactSection = () => {
     if (this.props.type !== 'normal') {
       if (this.props.type === 'loading' || !this.props.shouldShowReacts){
+        console.log("HERE OMG")
         return null
+
       }
     }
     return (
@@ -625,6 +629,9 @@ class Card extends PureComponent<Props, State> {
 
   private exitExpandedCard = () => {
     if (this.props.type === 'preview') {
+      if (this.reactSection && this.reactSection.reactsChanged()) {
+        this.props.react(this.reactSection.getReacts(), this.props.profile)
+      }
       this.props.exit()
     } else if (this.props.type === 'normal') {
       if (this.state.fullyExpanded) {

@@ -8,11 +8,12 @@ import {
   UnmatchAction,
 } from './actions'
 import { IChatMessage } from 'react-native-gifted-chat'
+import { Conversation } from './types'
 import { api } from '../api'
 import { RootState } from '../../redux'
 
-const getOtherUsersInChat = (conversationId: string) => {
-  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers
+const getConversation = (conversationId: string) => {
+  return (state: RootState) => state.matches.chats.get(conversationId)
 }
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
@@ -38,8 +39,8 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
       yield put(failureAction)
     } else {
       try {
-        const otherUsers: number[] = yield select(getOtherUsersInChat(action.conversationId))
-        yield call(api.sendChat, otherUsers, message.text)
+        const conversation: Conversation = yield select(getConversation(action.conversationId))
+        yield call(api.sendChat, conversation.otherUsers, message.text, conversation.matchId)
       } catch (e) {} /* tslint:disable-line:no-empty */
       const successAction: SendMessagesSuccessAction = {
         type: MatchesActionType.SEND_MESSAGES_SUCCESS,

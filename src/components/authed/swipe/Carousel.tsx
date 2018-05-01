@@ -2,13 +2,12 @@ import React, { PureComponent } from 'react'
 import {
   Dimensions,
   Animated,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
   Platform,
+  ScrollEvent,
 } from 'react-native'
 import { JSImage } from '../../common'
 import { clamp } from '../../../utils'
@@ -25,8 +24,6 @@ interface Props {
 interface State {
   carouselIndex: number
 }
-
-type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
 const WIDTH = Dimensions.get('window').width
 
@@ -57,7 +54,7 @@ class Carousel extends PureComponent<Props, State> {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           ref={(ref) => this.carouselScrollView = ref}
-          scrollEventThrottle={1}
+          scrollEventThrottle={16}
           onScroll={this.onScroll}
           onTouchMove={this.onScrollBeginDrag}
           onTouchEnd={this.onScrollEndDrag}

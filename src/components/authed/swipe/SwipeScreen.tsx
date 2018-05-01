@@ -106,8 +106,9 @@ class SwipeScreen extends PureComponent<Props, State> {
         <Card
           type='preview'
           profile={this.props.preview.user}
-          exit={this.props.preview.onExit}
+          exit={this.onExitExpandedView}
           shouldShowReacts={this.props.preview.user.id !== this.props.currentUserID}
+          react={this.props.react}
         />
       )
     }
@@ -271,6 +272,7 @@ class SwipeScreen extends PureComponent<Props, State> {
       this.props.preview.onExit()
       return
     }
+    //console.log(this.props.currentUserID)
     this.setState({
       fullyExpanded: false,
     })

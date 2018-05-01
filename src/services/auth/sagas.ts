@@ -131,12 +131,17 @@ function* acceptCoC(_: AuthActions.AttemptAcceptCoCAction) {
 }
 
 function* logout(_: AuthActions.LogoutAction) {
+  try {
+    yield call(api.api.logout)
+  } catch (e) {} /* tslint:disable-line:no-empty */
   yield put(logoutFirebase())
   yield put(clearProfileState())
   yield put(clearNavigationState())
   yield put(clearSwipeState())
   yield put(clearMatchesState())
+  yield put(AuthActions.setSessionKey(''))
   ImageCacheService.clearCache()
+
 }
 
 export function* authSaga() {

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, Platform, ScrollView, Image, Dimensions, Alert } from 'react-native'
+import { View, StyleSheet, Platform, ScrollView, Image, Dimensions, Alert, ScrollEvent } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
@@ -7,6 +7,7 @@ import { finishTutorial } from '../../services/auth'
 import { JSText, JSButton } from '../common'
 import { goToNextRoute } from '../navigation/LoginRouter'
 import { Images } from '../../assets/img'
+import { clamp } from '../../utils'
 import Feather from 'react-native-vector-icons/Feather'
 import firebase from 'react-native-firebase'
 
@@ -21,6 +22,7 @@ interface DispatchProps {
 type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 
 interface State {
+  slideIndex: number
   notificationsPermissed: boolean
 }
 
@@ -46,9 +48,12 @@ const TUTORIAL_SLIDES = [
 
 class TutorialScreen extends PureComponent<Props, State> {
 
+  private scrollView: any /* tslint:disable-line:no-any */
+
   constructor(props: Props) {
     super(props)
     this.state = {
+      slideIndex: 0,
       notificationsPermissed: false,
     }
   }
@@ -62,27 +67,34 @@ class TutorialScreen extends PureComponent<Props, State> {
 
   render() {
     return (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        pagingEnabled
-        style={styles.scrollView}
-      >
-        {this.renderTutorialSlides()}
-      </ScrollView>
+      <View style={{flex: 1}}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled
+          style={styles.scrollView}
+          onScroll={this.onScroll}
+          scrollEventThrottle={16}
+          ref={ref => this.scrollView = ref}
+        >
+          {this.renderTutorialSlides()}
+        </ScrollView>
+        <View style={styles.dotsContainer}>
+          {this.renderDots()}
+        </View>
+    </View>
     )
   }
 
   private renderTutorialSlides = () => {
     return TUTORIAL_SLIDES.map((slide, i) => (
       <View key={Platform.OS === 'android' ? undefined : i} style={styles.slide}>
-        <Image resizeMode='stretch' source={slide.image} style={styles.image} />
+        <Image resizeMode='stretch' source={slide.image} />
         <View style={styles.textContainer}>
           <JSText style={styles.title}>{slide.title}</JSText>
           <JSText style={styles.subtitle}>{slide.subtitle}</JSText>
         </View>
-        {i === 0 && this.renderChevrons()}
-        {i === TUTORIAL_SLIDES.length - 1  && this.renderSmashButton()}
+        {i === TUTORIAL_SLIDES.length - 1 ? this.renderSmashButton() : this.renderChevrons()}
       </View>
     ))
   }
@@ -92,14 +104,42 @@ class TutorialScreen extends PureComponent<Props, State> {
       style={styles.bottomItem}
       name='chevrons-right'
       size={40}
-      color='rgba(172,203,238,0.6)'
+      color='rgba(172, 203, 238, 0.6)'
+      onPress={this.onPressChevrons}
     />
   )
 
   private renderSmashButton = () => {
     return (
-      <JSButton label="Let's Go" onPress={this.onPressSmash} containerStyle={styles.bottomItem}/>
+      <View style={styles.bottomItem}>
+        <JSButton label="Let's Go" onPress={this.onPressSmash} />
+      </View>
     )
+  }
+
+  private renderDots = () => {
+    return TUTORIAL_SLIDES.map((_, i) => {
+      const style = [styles.dot, {
+        backgroundColor: this.state.slideIndex === i ? 'lightgray' : 'white',
+      }]
+      return <View key={`dot-${i}`} style={style} />
+    })
+  }
+
+  private onScroll = (event: ScrollEvent) => {
+    const { layoutMeasurement, contentOffset } = event.nativeEvent
+    let slideIndex = Math.round(contentOffset.x / layoutMeasurement.width)
+    slideIndex = clamp(slideIndex, 0, TUTORIAL_SLIDES.length - 1)
+    this.setState({
+      slideIndex,
+    })
+  }
+
+  private onPressChevrons = () => {
+    this.scrollView && this.scrollView.scrollTo({
+      x: (this.state.slideIndex + 1) * width ,
+      animated: true,
+    })
   }
 
   private onPressSmash = () => {
@@ -189,6 +229,22 @@ const styles = StyleSheet.create({
   textContainer: {
     marginVertical: 50,
   },
-  image: {
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
+    marginBottom: 10,
+    width: width,
+  },
+  dot: {
+    borderWidth: 0.5,
+    borderColor: 'lightgray',
+    marginHorizontal: 5,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 })

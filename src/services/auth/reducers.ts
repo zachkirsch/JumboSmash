@@ -104,6 +104,10 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...initialState,
         email: state.email,
+        // we keep the session key around so we can logout from the server.
+        // after this is done, a SET_SESSION_KEY action should be dispatched
+        // to clear the session key.
+        sessionKey: state.sessionKey,
       }
 
     default:

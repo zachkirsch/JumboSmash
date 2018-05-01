@@ -24,6 +24,7 @@ interface State {
   credentials: Credentials,
   inputErrorMessage: string
   showTextInputPlaceholder: boolean
+  hasBeenVisitedBefore: boolean
 }
 
 enum EmailInputError {
@@ -53,7 +54,20 @@ class LoginScreen extends PureComponent<Props, State> {
       credentials: initialCredentials,
       inputErrorMessage: '',
       showTextInputPlaceholder: true,
+      hasBeenVisitedBefore: false,
     }
+  }
+
+  componentDidMount() {
+    this.props.navigation.addListener('didFocus', () => {
+      if (this.state.hasBeenVisitedBefore) {
+        this.textInputRef && this.textInputRef.focus()
+      } else {
+        this.setState({
+          hasBeenVisitedBefore: true,
+        })
+      }
+    })
   }
 
   public render() {
@@ -168,9 +182,7 @@ class LoginScreen extends PureComponent<Props, State> {
       this.props.onSubmitCredentials({
         email: this.state.credentials.email.toLowerCase(),
       })
-      this.props.navigation.navigate(LoginRoute.VerifyEmailScreen, {
-        focusKeyboardOnLoginScreen: () => this.textInputRef && this.textInputRef.focus(),
-      })
+      this.props.navigation.navigate(LoginRoute.VerifyEmailScreen)
     }
   }
 

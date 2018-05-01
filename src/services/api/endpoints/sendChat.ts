@@ -2,6 +2,7 @@ import { PostEndpoint } from './Endpoint'
 
 interface Request {
   to_users: number[]
+  match_id: number
   message: string
 }
 

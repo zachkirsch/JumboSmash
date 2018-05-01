@@ -7,7 +7,7 @@ export interface ErrorResponse {
 
 export const api = {
 
-  /* LOGIN */
+  /* AUTH */
 
   requestVerification: (credentials: Credentials) => Endpoints.requestVerification.hit(credentials, {}),
   verifyEmail: (code: string, deviceId: string) => Endpoints.verifyEmail.hit({
@@ -16,6 +16,7 @@ export const api = {
     device_id: deviceId,
   }, {}),
   acceptCoC: () => Endpoints.acceptCoC.hit({}, {}),
+  logout: () => Endpoints.logout.hit({}, {}),
 
   /* ME */
 
@@ -42,8 +43,9 @@ export const api = {
   getSwipableUsers: () => Endpoints.getSwipableUsers.hit({}, {}),
   swipe: (direction: Endpoints.Direction, onUser: number) => Endpoints.swipe.hit({}, {direction, onUser}),
   getUser: (userId: number) => Endpoints.getUser.hit({}, {userId}),
-  sendChat: (toUsers: number[], message: string) => Endpoints.sendChat.hit({
+  sendChat: (toUsers: number[], message: string, matchId: number) => Endpoints.sendChat.hit({
     to_users: toUsers,
+    match_id: matchId,
     message,
   }, {}),
   unmatch: (matchId: number) => Endpoints.unmatch.hit({
