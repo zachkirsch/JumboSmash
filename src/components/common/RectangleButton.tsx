@@ -10,19 +10,39 @@ class RectangleButton extends PureComponent<Props, {}> {
 
   render() {
 
-    const { containerStyle, ...otherProps } = this.props
+    const { containerStyle, textStyle, disabled, ...otherProps } = this.props
 
-    const colors = this.props.active
-                   ? ['rgba(231, 240, 253, 1)', '#B1CAEF']
-                   : ['rgba(211, 224, 240, 0.5)', 'rgba(211, 224, 240, 0.8)']
+    const colors = this.getColors()
+
+    const textStyles = [textStyle]
+    if (disabled) {
+      textStyles.push(styles.disabled)
+    }
 
     return (
       <JSButton
         {...otherProps}
+        disabled={disabled}
+        textStyle={textStyles}
         containerStyle={[styles.buttonContainer, containerStyle]}
         colors={colors}
       />
     )
+  }
+
+  private getColors = () => {
+    const opacity = this.props.disabled ? 0.75 : 1
+    if (this.props.active) {
+      return [
+        `rgba(231, 240, 252, ${opacity})`,
+        `rgba(178, 203, 238, ${opacity})`,
+      ]
+    } else {
+      return [
+        `rgba(231, 240, 253, ${opacity})`,
+        `rgba(219, 230, 242, ${opacity})`,
+      ]
+    }
   }
 }
 
@@ -33,5 +53,8 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     marginHorizontal: 20,
     borderRadius: 5,
+  },
+  disabled: {
+    color: 'gray',
   },
 })

@@ -1,18 +1,20 @@
 import { TimeAction, TimeActionType } from './actions'
 import { TimeState } from './types'
+import { ReduxActionType } from '../redux'
 
 const initialState: TimeState = {
   serverTime: {
     value: undefined,
     loading: false,
   },
-  releaseDate: 1525004190000,
-  postRelease: true, // false,
+  releaseDate: 1525996799999,
+  postRelease: false,
   postRelease2: false,
 }
 
+let error = true
+
 export function timeReducer(state = initialState, action: TimeAction): TimeState {
-  return initialState
   switch (action.type) {
 
     case TimeActionType.ATTEMPT_GET_SERVER_TIME:
@@ -25,6 +27,7 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
       }
 
     case TimeActionType.GET_SERVER_TIME_SUCCESS:
+      error = !error
       return {
         serverTime: {
           value: action.serverTime,
@@ -32,18 +35,24 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
           loading: false,
         },
         releaseDate: action.releaseDate,
-        postRelease: true,
+        postRelease:  action.postRelease,
         postRelease2: action.postRelease2,
       }
 
     case TimeActionType.GET_SERVER_TIME_FAILURE:
       return {
-        ...state,
+        ...initialState,
         serverTime: {
-          ...state.serverTime,
           loading: false,
+          value: undefined,
+          lastFetched: Date.now(),
           errorMessage: action.errorMessage,
         },
+      }
+
+    case ReduxActionType.REHYDRATE:
+      return {
+        ...initialState,
       }
 
     default:

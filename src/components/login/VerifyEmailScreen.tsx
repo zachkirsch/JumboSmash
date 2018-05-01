@@ -19,7 +19,6 @@ import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
 
 interface OwnProps {
-  focusKeyboardOnLoginScreen: () => void
 }
 
 interface StateProps {
@@ -38,7 +37,7 @@ interface DispatchProps {
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 interface State {
-  requestedResend: boolean
+  shouldForceShowVerifyingOverlay: boolean
 }
 
 const CODE_LENGTH = {
@@ -50,31 +49,21 @@ const MAGIC_LINK_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([0-9]{${CODE_LE
 class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private checkEmailScreen: CheckEmailScreen | null
+  private componentIsMounted = false
 
   constructor(props: Props) {
     super(props)
     this.state = {
-      requestedResend: false,
+      shouldForceShowVerifyingOverlay: false,
     }
   }
 
   public componentDidMount() {
+    this.componentIsMounted = true
     this.props.navigation.addListener(
       'willFocus',
       () => {
         this.props.clearAuthErrorMessage()
-      }
-    )
-
-    this.props.navigation.addListener(
-      'didBlur',
-      () => {
-        this.setState({
-          requestedResend: false,
-        })
-        if (this.checkEmailScreen) {
-          this.checkEmailScreen.resetState()
-        }
       }
     )
 
@@ -92,12 +81,13 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   public componentWillUnmount() {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
+    this.componentIsMounted = false
   }
 
   public render() {
 
     let renderScreen: () => JSX.Element
-    if (this.props.waitingForRequestVerificationResponse && !this.state.requestedResend) {
+    if (this.props.waitingForRequestVerificationResponse) {
       renderScreen = this.renderLoadingScreen
     } else if (this.props.authError !== AuthError.NO_ERROR && this.props.authError !== AuthError.BAD_CODE) {
       renderScreen = this.renderErrorScreen
@@ -124,7 +114,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private renderVerifyingOverlay = () => {
-    if (!this.props.waitingForVerificationResponse) {
+    if (!this.props.waitingForVerificationResponse && !this.state.shouldForceShowVerifyingOverlay) {
       return null
     }
     return (
@@ -187,14 +177,27 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     <CheckEmailScreen
       email={this.props.email}
       requestResend={this.requestResend}
-      submitVerificationCode={this.props.submitVerificationCode}
-      authError={this.props.authError}
+      submitVerificationCode={this.submitVerificationCode}
+      authError={this.state.shouldForceShowVerifyingOverlay ? undefined : this.props.authError}
       clearAuthErrorMessage={this.props.clearAuthErrorMessage}
       ref={ref => this.checkEmailScreen = ref}
       waitingForVerificationResponse={this.props.waitingForVerificationResponse}
       codeLength={CODE_LENGTH}
     />
   )
+
+  private submitVerificationCode = (code: string) => {
+    this.setState({
+      shouldForceShowVerifyingOverlay: true,
+    }, () => setTimeout(() => {
+      if (this.componentIsMounted) {
+        this.setState({
+          shouldForceShowVerifyingOverlay: false,
+        })
+      }
+    }, 1000))
+    this.props.submitVerificationCode(code)
+  }
 
   private handleOpenURLiOS = (event: {url: string}) => {
     this.handleOpenURL(event.url)
@@ -213,20 +216,10 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       email: this.props.email,
     }
     this.props.requestVerification(credentials)
-    this.setState({
-      requestedResend: true,
-    })
   }
 
   private goBack = () => {
-    if (this.checkEmailScreen && this.checkEmailScreen.textInputIsFocused()) {
-      this.getOwnProps().focusKeyboardOnLoginScreen()
-    }
     this.props.navigation.goBack()
-  }
-
-  private getOwnProps = (): OwnProps => {
-    return this.props.navigation.state.params || {}
   }
 }
 

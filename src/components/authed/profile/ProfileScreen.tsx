@@ -19,29 +19,24 @@ import {
   swapImages,
   updateBio,
   updateImage,
-  updateMajor,
   updatePreferredName,
   onChangePreferredNameTextInput,
-  onChangeMajorTextInput,
   onChangeBioTextInput,
-  updateTags,
-  updateTagsLocally,
-  TagSectionType,
   Tag,
   ProfileState,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { setTabBarOverlay, clearTabBarOverlay } from '../../../services/navigation'
-import { JSText, JSTextInput, JSImage, RectangleButton } from '../../common'
+import { JSText, JSTextInput, JSImage  } from '../../common'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
+import SaveOrRevert from './SaveOrRevert'
 
 interface State {
   previewingCard: boolean
   viewingCoC: boolean
   preferredName: string
-  major: string
   bio: string
   photosSectionRequiresSave: boolean
 }
@@ -54,15 +49,11 @@ interface StateProps {
 
 interface DispatchProps {
   onChangePreferredNameTextInput: (preferredName: string) => void
-  onChangeMajorTextInput: (major: string) => void
   onChangeBioTextInput: (bio: string) => void
   updatePreferredName: (preferredName: string) => void
   updateBio: (bio: string) => void
-  updateMajor: (major: string) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
   swapImages: (index1: number, index2: number) => void
-  updateTags: (tags: TagSectionType[]) => void
-  updateTagsLocally: (tags: TagSectionType[] | undefined) => void
   setTabBarOverlay: (component: () => JSX.Element) => void
   clearTabBarOverlay: () => void
 }
@@ -77,7 +68,6 @@ class ProfileScreen extends PureComponent<Props, State> {
   private mainScrollView: any /* tslint:disable-line:no-any */
   private photosSection: PhotosSection | null
   private preferredNameTextInput: JSTextInput | null
-  private majorTextInput: JSTextInput | null
   private bioTextInput: JSTextInput | null
   private tagsRequiredSave = false
 
@@ -96,7 +86,6 @@ class ProfileScreen extends PureComponent<Props, State> {
       previewingCard: false,
       viewingCoC: false,
       preferredName: getInitialValue(props.profile.preferredName),
-      major: getInitialValue(props.profile.major),
       bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
     }
@@ -109,26 +98,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     })
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const tagsChanged = JSON.stringify(this.props.profile.tags.localValue) !== JSON.stringify(nextProps.profile.tags.localValue)
-    if (tagsChanged) {
-      if (nextProps.profile.tags.localValue) {
-        const tagsModified = !!nextProps.profile.tags.localValue.find((section, sectionIndex) => {
-          return !!section.tags.find((localTag, tagIndex) => {
-            const actualTag = nextProps.profile.tags.value[sectionIndex].tags[tagIndex]
-            return localTag.selected !== actualTag.selected
-          })
-        })
-        this.tagsRequiredSave = tagsModified
-      } else {
-        this.tagsRequiredSave = false
-      }
-      this.updateSaveOverlay()
-    }
-  }
-
   render() {
-
     let containerStyle
     if (this.setupMode()) {
       containerStyle = {
@@ -290,22 +260,6 @@ class ProfileScreen extends PureComponent<Props, State> {
     </View>
   )
 
-  private renderMajor = () => (
-    <View>
-      <JSText bold style={[styles.title, styles.majorTitle]}>MAJOR AND MINOR</JSText>
-      <JSTextInput
-        maxLength={30}
-        value={this.state.major}
-        onChangeText={this.updateMajor}
-        autoCorrect={false}
-        selectTextOnFocus
-        style={[styles.bigInput, styles.major]}
-        onFocus={this.onFocus('major')}
-        ref={ref => this.majorTextInput = ref}
-      />
-    </View>
-  )
-
   private renderBio = () => (
     <View>
       <JSTextInput
@@ -332,21 +286,17 @@ class ProfileScreen extends PureComponent<Props, State> {
         {this.renderBio()}
         <View style={styles.personalInfo}>
           {this.renderPreferredName()}
-          {this.renderMajor()}
           <JSText bold style={[styles.title, styles.aboutMeTitle]}>ABOUT ME</JSText>
         </View>
       </View>
     )
   }
 
-  private onFocus = (inputName: 'preferredName' | 'major' | 'bio') => () => {
+  private onFocus = (inputName: 'preferredName' | 'bio') => () => {
     let ref: JSTextInput | null = null
     switch (inputName) {
       case 'preferredName':
         ref = this.preferredNameTextInput
-        break
-      case 'major':
-        ref = this.majorTextInput
         break
       case 'bio':
         ref = this.bioTextInput
@@ -370,11 +320,6 @@ class ProfileScreen extends PureComponent<Props, State> {
     this.props.onChangePreferredNameTextInput(preferredName)
   }
 
-  private updateMajor = (major: string) => {
-    this.setState({ major }, this.updateSaveOverlay)
-    this.props.onChangeMajorTextInput(major)
-  }
-
   private updateBio = (bio: string) => {
     this.setState({ bio }, this.updateSaveOverlay)
     this.props.onChangeBioTextInput(bio)
@@ -386,21 +331,13 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
     if (this.saveRequired()) {
       const saveOverlay = (
-        <View style={styles.saveOverlay}>
-          <RectangleButton
-            label='Revert'
-            style={styles.saveButton}
-            containerStyle={styles.saveButtonContainer}
-            onPress={this.revert}
-          />
-          <RectangleButton
-            active
-            label='Save'
-            style={styles.saveButton}
-            containerStyle={styles.saveButtonContainer}
-            onPress={this.save}
-          />
-        </View>
+        <SaveOrRevert
+          save={this.save}
+          revert={this.revert}
+          containerStyle={styles.saveOverlay}
+          buttonContainerStyle={styles.saveButtonContainer}
+          buttonStyle={styles.saveButton}
+        />
       )
       this.props.setTabBarOverlay(() => saveOverlay)
     } else {
@@ -418,7 +355,6 @@ class ProfileScreen extends PureComponent<Props, State> {
   private saveRequired = () => {
     if (this.state.photosSectionRequiresSave
         || this.props.profile.bio.value !== this.state.bio
-        || this.props.profile.major.value !== this.state.major
         || this.props.profile.preferredName.value !== this.state.preferredName) {
       return true
     }
@@ -429,13 +365,11 @@ class ProfileScreen extends PureComponent<Props, State> {
     const revert = () => {
       this.setState({
         bio: this.props.profile.bio.value,
-        major: this.props.profile.major.value,
         preferredName: this.props.profile.preferredName.value,
         photosSectionRequiresSave: false,
       })
       this.props.clearTabBarOverlay()
       this.photosSection && this.photosSection.revert()
-      this.props.updateTagsLocally(undefined)
     }
 
     Keyboard.dismiss()
@@ -458,12 +392,8 @@ class ProfileScreen extends PureComponent<Props, State> {
     setTimeout(() => {
       this.ifSaveable(() => {
         this.props.updateBio(this.state.bio)
-        this.props.updateMajor(this.state.major)
         this.props.updatePreferredName(this.state.preferredName)
         this.photosSection && this.photosSection.save()
-        if (this.props.profile.tags.localValue) {
-          this.props.updateTags(this.props.profile.tags.localValue)
-        }
         this.props.clearTabBarOverlay()
         if (!this.setupMode()) {
           this.setState({
@@ -503,17 +433,13 @@ const mapStateToProps = (state: RootState): StateProps => {
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     onChangePreferredNameTextInput: (preferredName: string) => dispatch(onChangePreferredNameTextInput(preferredName)),
-    onChangeMajorTextInput: (major: string) => dispatch(onChangeMajorTextInput(major)),
     onChangeBioTextInput: (bio: string) => dispatch(onChangeBioTextInput(bio)),
     updatePreferredName: (preferredName: string) => dispatch(updatePreferredName(preferredName)),
     updateBio: (bio: string) => dispatch(updateBio(bio)),
-    updateMajor: (major: string) => dispatch(updateMajor(major)),
     updateImage: (index: number, imageUri: string, mime: string) => {
       dispatch(updateImage(index, imageUri, mime))
     },
     swapImages: (index1: number, index2: number) => dispatch(swapImages(index1, index2)),
-    updateTags: (tags: TagSectionType[]) => dispatch(updateTags(tags)),
-    updateTagsLocally: (tags: TagSectionType[] | undefined) => dispatch(updateTagsLocally(tags)),
     setTabBarOverlay: (component: () => JSX.Element) => dispatch(setTabBarOverlay(component)),
     clearTabBarOverlay: () => dispatch(clearTabBarOverlay()),
   }
@@ -554,12 +480,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   aboutMeTitle: {
-    marginBottom: 5,
-  },
-  major: {
-    marginBottom: 40,
-  },
-  majorTitle: {
     marginBottom: 5,
   },
   preferredNameContainer: {
@@ -615,11 +535,12 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textDecorationColor: '#D5DCE2',
   },
+  emoji: {
+    fontSize: 23,
+  },
   saveOverlay: {
     flex: 1,
     marginTop: Platform.OS === 'ios' ? 20 : 5,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
   },
   saveButton: {
     flex: 1,
@@ -628,8 +549,5 @@ const styles = StyleSheet.create({
   saveButtonContainer: {
     flex: 1,
     backgroundColor: 'transparent',
-  },
-  emoji: {
-    fontSize: 23,
   },
 })

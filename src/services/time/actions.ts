@@ -1,3 +1,5 @@
+import { RehydrateAction } from '../redux'
+
 /* Actions */
 
 export enum TimeActionType {
@@ -39,6 +41,7 @@ export type TimeAction =
   AttempGetServerTimeAction
 | GetServerTimeSuccessAction
 | GetServerTimeFailureAction
+| RehydrateAction
 | OtherAction
 
 /* Action Creators */

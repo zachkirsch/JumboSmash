@@ -57,6 +57,9 @@ export default StackNavigator({
   },
   TagsScreen: {
     screen: Profile.TagsScreen,
+    navigationOptions: {
+      gesturesEnabled: false,
+    },
   },
   BlockScreen: {
     screen: Profile.BlockScreen,

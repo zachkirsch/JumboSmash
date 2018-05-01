@@ -1,11 +1,21 @@
 import React, { PureComponent } from 'react'
-import { Linking, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native'
+import {
+  Linking,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Platform,
+  Alert,
+  ScrollView,
+} from 'react-native'
 import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { HeaderBar, JSText, JSTextInput } from '../../common'
+import { HeaderBar, JSText, JSButton, JSTextInput } from '../../common'
+import { goToNextRoute } from '../../navigation'
 import { blockUser, unblockUser } from '../../../services/profile'
 import { RootState } from './../../../redux'
 
@@ -18,7 +28,9 @@ interface DispatchProps {
   unblockUser: (email: string) => void
 }
 
-type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps> & {
+  setupMode?: boolean
+}
 
 interface BlockedUserMap {
   [email: string]: 'blocked' | 'just_blocked' | 'just_unblocked'
@@ -54,53 +66,77 @@ class BlockScreen extends PureComponent<Props, State> {
   render() {
 
     return (
-      <View style={styles.fill}>
-        <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
-        <View style={styles.container}>
-          <View style={styles.upperContainer}>
-            <JSText style={[styles.instructions, { textAlign: 'justify' }]}>
-              {INSTRUCTIONS_START}
-              <JSText
-                style={styles.link}
-                onPress={this.openWhitePages}
-              >
-                {'Tufts Whitepages'}
+      <ScrollView contentContainerStyle={styles.fill} scrollEnabled={false}>
+        <View style={styles.fill}>
+          {this.renderHeaderBar()}
+          <View style={styles.fill}>
+            <View style={styles.upperContainer}>
+              <JSText style={[styles.instructions, { textAlign: 'justify' }]}>
+                {INSTRUCTIONS_START}
+                <JSText
+                  style={styles.link}
+                  onPress={this.openWhitePages}
+                >
+                  {'Tufts Whitepages'}
+                </JSText>
+                {' to look up a student.'}
               </JSText>
-              {' to look up a student.'}
-            </JSText>
-            <JSTextInput
-              fancy
-              autoCapitalize={'none'}
-              placeholder='firstname.lastname@tufts.edu'
-              returnKeyType={'go'}
-              keyboardType={'email-address'}
-              autoCorrect={false}
-              value={this.state.textInput}
-              style={styles.input}
-              onChangeText={this.onChangeText}
-              onSubmitEditing={this.blockUser(this.state.textInput)}
-            />
-            <JSText
-              bold
-              style={styles.currentlyBlocked}
-            >
-              Currently Blocked
-            </JSText>
+              <JSTextInput
+                fancy
+                autoCapitalize={'none'}
+                placeholder='firstname.lastname@tufts.edu'
+                returnKeyType={'done'}
+                keyboardType={'email-address'}
+                autoCorrect={false}
+                value={this.state.textInput}
+                style={styles.input}
+                onChangeText={this.onChangeText}
+                onSubmitEditing={this.blockUser(this.state.textInput)}
+              />
+              <JSText bold style={styles.currentlyBlocked}>
+                Currently Blocked:
+              </JSText>
+            </View>
+            {this.renderBlockedUsers()}
           </View>
-          {this.renderBlockedUsers()}
+          {this.renderGradient()}
         </View>
-        {this.renderGradient()}
-      </View>
+        {this.props.setupMode && this.renderContinue()}
+      </ScrollView>
+    )
+  }
+
+  private renderHeaderBar = () => {
+    if (this.props.setupMode) {
+      return (
+        <View style={styles.header}>
+          <JSText bold style={styles.headerText}>Block Users</JSText>
+        </View>
+      )
+    }
+    return (
+      <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
     )
   }
 
   private renderBlockedUsers = () => {
+
+    if (Object.keys(this.state.blockedUsers).length === 0) {
+      return (
+        <View style={styles.noBlockedUsersContainer}>
+          <JSText style={styles.noBlockedUsers}>No Blocked Users</JSText>
+        </View>
+      )
+    }
+
+    const blockedEmails = Object.keys(this.state.blockedUsers).sort().map(email => ({key: email, email}))
     return (
       <FlatList
-        data={Object.keys(this.state.blockedUsers).sort().map(email => ({key: email, email}))}
+        data={blockedEmails}
         renderItem={this.renderBlockedUser}
         style={styles.blockedUsersList}
         contentContainerStyle={styles.blockedUsersContainer}
+        ItemSeparatorComponent={this.renderSeparator}
       />
     )
   }
@@ -133,6 +169,14 @@ class BlockScreen extends PureComponent<Props, State> {
     )
   }
 
+  private renderSeparator = () => {
+    return (
+      <View
+        style={styles.separator}
+      />
+    )
+  }
+
   private renderGradient = () => {
     return (
       <View style={styles.overlay}>
@@ -142,9 +186,34 @@ class BlockScreen extends PureComponent<Props, State> {
           end={{x: 0, y: 1}}
           style={styles.fill}
         >
-            <View style={styles.fill} />
+          <View style={styles.fill} />
         </LinearGradient>
       </View>
+    )
+  }
+
+  private renderContinue = () => {
+    return (
+      <View style={styles.continue}>
+        <JSButton label='Continue' onPress={this.goToNextRoute} />
+      </View>
+    )
+  }
+
+  private goToNextRoute = () => {
+    Alert.alert(
+      'Pro Tip',
+      'You can always edit your blocked users in the Help & Feedback section'
+      + ' on your profile',
+      [
+        {text: 'OK', onPress: () => {
+          this.saveChanges()
+          goToNextRoute(this.props.navigation)
+        }},
+      ],
+      {
+        cancelable: false,
+      }
     )
   }
 
@@ -216,9 +285,6 @@ const styles = StyleSheet.create({
   fill: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-  },
   upperContainer: {
     padding: 20,
     paddingBottom: 0,
@@ -241,11 +307,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(230, 230, 230, 0.5)',
-    marginVertical: 5,
     paddingLeft: 20,
     paddingRight: 10,
-    paddingVertical: 10,
+    paddingVertical: 5,
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -262,10 +326,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  currentlyBlocked: {
-    fontSize: 15,
-    textAlign: 'center',
-  },
   overlay: {
     position: 'absolute',
     width: '100%',
@@ -275,5 +335,37 @@ const styles = StyleSheet.create({
   },
   instructions: {
     fontSize: 14,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'lightgray',
+  },
+  header: {
+    marginTop: Platform.select({
+      ios: 28,
+      android: 10,
+    }),
+  },
+  currentlyBlocked: {
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  headerText: {
+    fontSize: 20,
+    textAlign: 'center',
+  },
+  noBlockedUsersContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  noBlockedUsers: {
+    textAlign: 'center',
+    marginTop: 30,
+    fontSize: 20,
+    color: 'lightgray',
+  },
+  continue: {
+    marginBottom: 20,
+    marginHorizontal: 20,
   },
 })

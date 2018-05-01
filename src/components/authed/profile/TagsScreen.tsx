@@ -1,17 +1,15 @@
 import React, { PureComponent } from 'react'
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native'
+import { ScrollView, StyleSheet, View, Alert, Platform } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { List } from 'immutable'
 import { RootState } from '../../../redux'
-import { Tag, TagSectionType, updateTagsLocally } from '../../../services/profile'
-import { HeaderBar } from '../../common'
-import { JSText } from '../../common/index'
+import { Tag, TagSectionType, updateTags } from '../../../services/profile'
+import { goToNextRoute } from '../../navigation'
+import { HeaderBar, JSText, JSButton } from '../../common'
+import { xor } from '../../../utils'
 import TagsSection from './TagsSection'
+import SaveOrRevert from './SaveOrRevert'
 
 interface ImmutableTagSectionType {
   name: string
@@ -20,6 +18,7 @@ interface ImmutableTagSectionType {
 
 interface State {
   tags: List<ImmutableTagSectionType>
+  tagsModified: boolean
 }
 
 interface OwnProps {}
@@ -28,44 +27,64 @@ interface StateProps {
   tags: TagSectionType[]
 }
 interface DispatchProps {
-  updateTagsLocally: (tags: TagSectionType[]) => void,
+  updateTags: (tags: TagSectionType[]) => void,
 }
 
-type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps> & {
+  setupMode?: boolean
+}
 
 class TagsScreen extends PureComponent<Props, State> {
 
+  private initialState: State
+
   constructor(props: Props) {
     super(props)
-    this.state = {
-      tags: List(props.tags.map(section => ({
-        name: section.name,
-        tags: List(section.tags),
-      }))),
-    }
-  }
-
-  componentDidMount() {
-    this.props.navigation.addListener('willBlur', this.saveChanges)
+    this.state = this.getInitialState()
   }
 
   render() {
     return (
       <View style={styles.fill}>
-        <HeaderBar title='Choose Tags' goBack={this.props.navigation.goBack} />
+        {this.renderHeaderBar()}
+        {!this.props.setupMode && this.renderSaveOrRevert()}
+        <View style={styles.topContainer}>
+          <JSText style={styles.title}>
+            Tap the tags that apply to you!
+          </JSText>
+          <JSText style={styles.title}>
+            Everyone else will see the tags you choose.
+          </JSText>
+        </View>
         <ScrollView>
-          <View style={styles.topContainer}>
-            <JSText style={styles.title}>
-              Tap the tags that apply to you.
-            </JSText>
-            <JSText style={styles.title}>
-              Everyone else will see the tags you choose.
-            </JSText>
-          </View>
           <View style={styles.tagsContainer}>
             {this.renderTags()}
           </View>
+          {this.props.setupMode && this.renderContinue()}
         </ScrollView>
+      </View>
+    )
+  }
+
+  private renderHeaderBar = () => {
+    if (this.props.setupMode) {
+      if (Platform.OS === 'ios') {
+        return <View style={styles.statusBar} />
+      }
+      return null
+    }
+    return <HeaderBar title='Choose Tags' goBack={this.goBack}/>
+  }
+
+  private renderSaveOrRevert = () => {
+    return (
+      <View style={styles.saveOrRevertContainer}>
+        <SaveOrRevert
+          buttonStyle={styles.button}
+          save={this.saveChanges}
+          revert={this.revert()}
+          disabled={!this.saveRequired()}
+        />
       </View>
     )
   }
@@ -90,14 +109,64 @@ class TagsScreen extends PureComponent<Props, State> {
     })
   }
 
+  private renderContinue = () => {
+    return (
+      <View style={styles.continue}>
+      <JSButton label='Continue' onPress={this.goToNextRoute} />
+    </View>
+    )
+  }
+
+  private goToNextRoute = () => {
+    this.saveChanges()
+    goToNextRoute(this.props.navigation)
+  }
+
   private saveChanges = () => {
-    this.props.updateTagsLocally(this.state.tags.map(section => {
-      return {
-        name: section!.name,
-        tags: section!.tags.toArray(),
-      }
-    }).toArray())
-    this.props.navigation.goBack()
+    if (this.saveRequired()) {
+      this.props.updateTags(this.state.tags.map(section => {
+        return {
+          name: section!.name,
+          tags: section!.tags.toArray(),
+        }
+      }).toArray())
+    }
+  }
+
+  private saveRequired = () => {
+    return !!this.props.tags.find((section, i) => {
+      return !!section.tags.find((tag, j) => {
+        return xor(tag.selected, this.state.tags.get(i).tags.get(j).selected)
+      })
+    })
+  }
+
+  private revert = (alertIfUnsaved = true) => () => {
+    if (this.saveRequired() && alertIfUnsaved) {
+      Alert.alert(
+        '',
+        'Are you sure you want to revert your changes?',
+        [
+          {text: 'No', style: 'cancel'},
+          {text: 'Yes', onPress: () => this.setState(this.getInitialState()), style: 'destructive'},
+        ]
+      )
+    }
+  }
+
+  private goBack = () => {
+    if (this.saveRequired()) {
+      Alert.alert(
+        'Unsaved Changes',
+        'Do you want to discard your changes or continue editing?',
+        [
+          { text: 'Discard', style: 'destructive', onPress: this.props.navigation.goBack },
+          { text: 'Stay Here' },
+        ]
+      )
+    } else {
+      this.props.navigation.goBack()
+    }
   }
 
   private toggleTag = (sectionIndex: number) => (tagIndex: number) => {
@@ -115,17 +184,30 @@ class TagsScreen extends PureComponent<Props, State> {
       ),
     })
   }
+
+  private getInitialState = () => {
+    if (this.initialState) {
+      return this.initialState
+    }
+    return {
+      tagsModified: false,
+      tags: List(this.props.tags.map(section => ({
+        name: section.name,
+        tags: List(section.tags),
+      }))),
+    }
+  }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    tags: state.profile.tags.localValue || state.profile.tags.value,
+    tags: state.profile.tags.value,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    updateTagsLocally: (tags: TagSectionType[]) => dispatch(updateTagsLocally(tags)),
+    updateTags: (tags: TagSectionType[]) => dispatch(updateTags(tags)),
   }
 }
 
@@ -136,7 +218,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     backgroundColor: 'rgb(250, 250, 250)',
   },
   tag: {
@@ -163,5 +246,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     color: 'rgb(172,203,238)',
+  },
+  button: {
+    paddingVertical: 5,
+  },
+  saveOrRevertContainer: {
+    paddingVertical: 5,
+  },
+  statusBar: {
+    height: 18,
+  },
+  continue: {
+    marginBottom: 20,
+    marginHorizontal: 20,
   },
 })

@@ -65,10 +65,7 @@ class PhotosSection extends PureComponent<Props, State> {
 
   save = () => {
     this.collapseImages(() => {
-      for (let i = 0; i < this.state.images.length; i++) {
-        const image = this.state.images[i] || EMPTY_LOCAL_IMAGE
-        this.props.updateImage(i, image.uri, image.mime)
-      }
+      this.state.images.forEach((image, i) => this.props.updateImage(i, image.uri, image.mime))
     })
   }
 
@@ -108,10 +105,7 @@ class PhotosSection extends PureComponent<Props, State> {
     let overlayIcon
 
     if (this.state.swapping) {
-      if (index === this.state.swappingIndex) {
-        touchableDisabled = true
-      } else {
-        touchableDisabled = false
+      if (index !== this.state.swappingIndex) {
         overlayIcon = (
           <Foundation
             style={styles.overlayIcon}
@@ -285,21 +279,22 @@ class PhotosSection extends PureComponent<Props, State> {
   private onPressImage = (index: number) => () => {
 
     if (this.state.swapping) {
-      // this.props.swapImages(index, this.state.swappingIndex)
-      this.props.saveRequired()
-
-      const newImages = []
-      for (let i = 0; i < Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1); i++) {
-        let toPush = this.state.images[i]
-        if (i === index) {
-          toPush = this.state.images[this.state.swappingIndex]
-        } else if (i === this.state.swappingIndex) {
-          toPush = this.state.images[index]
+      let newImages = this.state.images
+      if (this.state.swappingIndex !== index) {
+        this.props.saveRequired()
+        newImages = []
+        const imageListSize = Math.max(this.state.images.length - 1, index, this.state.swappingIndex)
+        for (let i = 0; i < imageListSize; i++) {
+          let toPush = this.state.images[i]
+          if (i === index) {
+            toPush = this.state.images[this.state.swappingIndex]
+          } else if (i === this.state.swappingIndex) {
+            toPush = this.state.images[index]
+          }
+          newImages.push(toPush || EMPTY_LOCAL_IMAGE)
         }
-        newImages.push(toPush || EMPTY_LOCAL_IMAGE)
       }
-
-      this.setState({
+        this.setState({
         swapping: false,
         images: newImages,
       })

@@ -59,7 +59,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to your photo gallery so you can select photos</string>
 	<key>UIAppFonts</key>
@@ -88,8 +88,6 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
-	
-	
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

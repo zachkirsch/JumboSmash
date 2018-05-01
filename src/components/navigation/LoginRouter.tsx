@@ -1,3 +1,4 @@
+import React from 'react'
 import { StyleSheet } from 'react-native'
 import { TabNavigator, StackNavigator, NavigationRouteConfig, NavigationScreenProp, NavigationRoute } from 'react-navigation'
 import AcceptCoCScreen from '../login/AcceptCoCScreen'
@@ -24,6 +25,8 @@ export enum LoginRoute {
   AcceptCoCScreen = 'AcceptCoCScreen',
   TutorialScreen = 'TutorialScreen',
   ProfileScreen = 'ProfileScreen',
+  TagsScreenInitial = 'TagsScreenInitial',
+  BlockUsersInitial = 'BlockUsersInitial',
 }
 
 export const goToNextRoute = (navigation: NavigationScreenProp<NavigationRoute>) => {
@@ -60,44 +63,61 @@ const getNextPostLoginRoute = (currentRoute?: string) => {
         }
       }
     case LoginRoute.TutorialScreen:
-      if (state.profile.images.filter(i => !!i && !i.value.isLocal && !!i.value.uri).size === 0) {
+      if (state.profile.images.filter(i => !!i && !i.value.isLocal && !!i.value.uri).size > 0) {
+        return undefined
+      }
+      if (!state.profile.tags.value.find(section => !!section.tags.find(tag => !!tag && !!tag.selected))) {
         return {
-          key: LoginRoute.ProfileScreen,
-          screen: StackNavigator({
-            Profile: {
-              screen: StackNavigator({
-                ProfileEditScreen: {
-                  screen: Profile.ProfileScreen,
-                },
-                ProfilePreviewScreen: {
-                  screen: Profile.ProfilePreviewScreen,
-                  navigationOptions: {
-                    gesturesEnabled: false,
-                  },
-                },
-              }, {
-                mode: 'modal',
-                headerMode: 'none',
-                cardStyle: styles.stackCard,
-              }),
-            },
-            TagsScreen: {
-              screen: Profile.TagsScreen,
-            },
-            BlockScreen: {
-              screen: Profile.BlockScreen,
-            },
-            ReviewCoCScreen: {
-              screen: Profile.ReviewCoCScreen,
-            },
-          }, {
-            headerMode: 'none',
-            cardStyle: styles.stackCard,
-          }),
+          key: LoginRoute.TagsScreenInitial,
+          screen: props => <Profile.TagsScreen {...props} setupMode />,
         }
       }
-    default:
-      return undefined
+  }
+
+  if (currentRoute === LoginRoute.TagsScreenInitial) {
+    return {
+      key: LoginRoute.BlockUsersInitial,
+      screen: props => <Profile.BlockScreen {...props} setupMode />,
+    }
+  }
+
+  if (currentRoute === LoginRoute.ProfileScreen) {
+    return undefined
+  }
+
+  return {
+    key: LoginRoute.ProfileScreen,
+    screen: StackNavigator({
+      Profile: {
+        screen: StackNavigator({
+          ProfileEditScreen: {
+            screen: Profile.ProfileScreen,
+          },
+          ProfilePreviewScreen: {
+            screen: Profile.ProfilePreviewScreen,
+            navigationOptions: {
+              gesturesEnabled: false,
+            },
+          },
+        }, {
+          mode: 'modal',
+          headerMode: 'none',
+          cardStyle: styles.stackCard,
+        }),
+      },
+      TagsScreen: {
+        screen: Profile.TagsScreen,
+      },
+      BlockScreen: {
+        screen: Profile.BlockScreen,
+      },
+      ReviewCoCScreen: {
+        screen: Profile.ReviewCoCScreen,
+      },
+    }, {
+      headerMode: 'none',
+      cardStyle: styles.stackCard,
+    }),
   }
 }
 /* tslint:enable:no-switch-case-fall-through */
@@ -131,18 +151,23 @@ export const generateLoginRouter = () => {
       },
     }
   }
-  screens[LoginRoute.LoginScreen] = {
-    screen: LoginScreen,
-    navigationOptions: {
-      tabBarVisible: false,
+  screens[LoginRoute.LoginScreen] = StackNavigator({
+    Login: {
+      screen: LoginScreen,
+      navigationOptions: {
+        tabBarVisible: false,
+      },
     },
-  }
-  screens[LoginRoute.VerifyEmailScreen] = {
-    screen: VerifyEmailScreen,
-    navigationOptions: {
-      tabBarVisible: false,
+    VerifyEmailScreen: {
+      screen: VerifyEmailScreen,
+      navigationOptions: {
+        tabBarVisible: false,
+      },
     },
-  }
+  }, {
+      headerMode: 'none',
+      cardStyle: styles.stackCard,
+    })
   return TabNavigator(screens, {
     swipeEnabled: false,
     animationEnabled: true,

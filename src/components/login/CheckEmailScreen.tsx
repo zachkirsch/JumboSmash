@@ -19,7 +19,7 @@ interface Props {
   requestResend: () => void
   submitVerificationCode: (code: string) => void
   waitingForVerificationResponse: boolean
-  authError: AuthError
+  authError?: AuthError
   clearAuthErrorMessage: () => void
   codeLength: {
     number: number
