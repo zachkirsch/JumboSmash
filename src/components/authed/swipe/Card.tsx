@@ -46,6 +46,7 @@ type Props = PreviewProps | LoadingProps | {
   react: (reacts: ProfileReact[], onUser: User) => void
   onExpandCard?: () => void
   onExitExpandedView?: () => void
+  postRelease2: boolean
 }
 
 export type CardProps = Props
@@ -376,7 +377,7 @@ class Card extends PureComponent<Props, State> {
       styles.bottomContainer,
       { paddingHorizontal },
     ]
-
+    const year = "'" + CLASS_YEAR % 100
     return (
       <TouchableWithoutFeedback onPress={this.tap}>
         <Animated.View style={bottomContainerStyle}>
@@ -387,7 +388,7 @@ class Card extends PureComponent<Props, State> {
             <View style={{flex: 1}}>
               <Animated.View style={[hiddenWhenContractedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
                 <JSText style={styles.name} numberOfLines={1}>
-                  {`${this.props.profile.surname} '${CLASS_YEAR % 100}`}
+                  {`${this.props.profile.surname} ${this.props.type === 'normal' && this.props.postRelease2 ? year : ' '}`}
                 </JSText>
               </Animated.View>
               <Animated.View style={[hiddenWhenExpandedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>

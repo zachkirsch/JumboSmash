@@ -24,7 +24,6 @@ class TagsSection extends PureComponent<Props, {}> {
     const toRender = this.props.tags.map((tag, tagIndex) => {
       const textStyle: any = [styles.tag] /* tslint:disable-line:no-any */
       textStyle.push(this.props.tagStyle)
-      textStyle.push(styles.underline)
       if (!tag.emoji) {
         textStyle.push(styles.underline)
       } else {

@@ -143,6 +143,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         key={cardIndex}
         ref={this.assignCardRef(positionInStack)}
         showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
+        postRelease2={this.props.postRelease2}
       />
     )
   }
