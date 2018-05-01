@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     color: 'rgb(172,203,238)',
   },
   saveButton: {
-    flex: 0.1,
-    marginHorizontal: 0
+    flex: 5,
+    marginVertical: -10
   }
 })

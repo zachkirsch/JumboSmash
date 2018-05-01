@@ -52,25 +52,22 @@ class TagsScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View style={styles.fill}>
-        <HeaderBar title='Choose Tags' goBack={this.props.navigation.goBack}/>
+        <HeaderBar title='Your Reacts' goBack={this.props.navigation.goBack}/>
         <ScrollView>
           <View style={styles.topContainer}>
             <JSText style={styles.title}>
-              Tap the tags that apply to you.
-            </JSText>
-            <JSText style={styles.title}>
-              Everyone else will see the tags you choose.
+              Tap the icons to see who reacted on your bio!
             </JSText>
           </View>
           <View style={styles.tagsContainer}>
-            {this.renderTags()}
+            {this.renderReacts()}
           </View>
         </ScrollView>
       </View>
     )
   }
 
-  private renderTags = () => {
+  private renderReacts = () => {
     return this.state.tags.map((section, sectionIndex) => {
       if (!section || sectionIndex === undefined) {
         return null
