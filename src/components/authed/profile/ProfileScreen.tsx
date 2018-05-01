@@ -176,7 +176,8 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText>
+        <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
+        <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText></TouchableOpacity>
         <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
           {toRender}
         </TouchableOpacity>
@@ -475,6 +476,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     letterSpacing: .8,
+  },
+  tagsTitle: {
+    marginBottom: 10,
   },
   bigInput: {
     fontSize: 20,
