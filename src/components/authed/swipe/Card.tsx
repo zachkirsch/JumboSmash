@@ -30,6 +30,7 @@ interface PreviewProps {
   type: 'preview'
   exit: () => void
   profile: User
+  shouldShowReacts: boolean
 }
 
 interface LoadingProps {
@@ -410,7 +411,9 @@ class Card extends PureComponent<Props, State> {
 
   private renderReactSection = () => {
     if (this.props.type !== 'normal') {
-      return null
+      if (this.props.type === 'loading' || !this.props.shouldShowReacts){
+        return null
+      }
     }
     return (
       <ReactSection

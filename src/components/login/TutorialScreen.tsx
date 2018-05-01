@@ -82,7 +82,7 @@ class TutorialScreen extends PureComponent<Props, State> {
           <JSText style={styles.subtitle}>{slide.subtitle}</JSText>
         </View>
         {i === 0 && this.renderChevrons()}
-        {i === TUTORIAL_SLIDES.length - 1 && this.state.notificationsPermissed && this.renderSmashButton()}
+        {i === TUTORIAL_SLIDES.length - 1  && this.renderSmashButton()}
       </View>
     ))
   }

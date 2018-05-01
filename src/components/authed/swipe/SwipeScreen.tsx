@@ -25,6 +25,7 @@ export type SwipeScreenProps = OwnProps
 
 type StateProps = SwipeState & {
   postRelease2: boolean
+  currentUserID: number
 }
 
 interface DispatchProps {
@@ -106,6 +107,7 @@ class SwipeScreen extends PureComponent<Props, State> {
           type='preview'
           profile={this.props.preview.user}
           exit={this.props.preview.onExit}
+          shouldShowReacts={this.props.preview.user.id !== this.props.currentUserID}
         />
       )
     }
@@ -354,6 +356,7 @@ const mapStateToProps = (state: RootState): StateProps => {
   return {
     ...state.swipe,
     postRelease2: state.time.postRelease2,
+    currentUserID: state.profile.id,
   }
 }
 
