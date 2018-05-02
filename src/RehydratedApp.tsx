@@ -9,6 +9,7 @@ import { IChatMessage } from 'react-native-gifted-chat'
 import { ChatService } from './services/firebase'
 import { attemptConnectToFirebase } from './services/firebase'
 import firebase from 'react-native-firebase'
+import MatchPopUp from './MatchPopUp'
 
 interface StateProps {
   isLoggedIn: boolean
@@ -50,6 +51,12 @@ class RehydratedApp extends PureComponent<Props, {}> {
       <View style={styles.container}>
         <StatusBar networkActivityIndicatorVisible={this.props.networkRequestInProgress} />
         {this.renderScreen()}
+        <View style={StyleSheet.absoluteFill}>
+          <MatchPopUp
+            myAvatar={'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&_nc_eui2=v1%3AAeGrMD1dIxJNQkk-jGY1Bm-JqUqNTkuNoCcZmEHv5Z68u0_wDQvfg1ojwJ7mFaXKKyW3rE6F81WydXHMlZAaFpjlZDJhJo9rBW41-QX1KTGHpg&oh=aba1aa054a9dca11ab5ac4cf78878b62&oe=5B604D66'}
+            matchAvatar={'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&_nc_eui2=v1%3AAeGrMD1dIxJNQkk-jGY1Bm-JqUqNTkuNoCcZmEHv5Z68u0_wDQvfg1ojwJ7mFaXKKyW3rE6F81WydXHMlZAaFpjlZDJhJo9rBW41-QX1KTGHpg&oh=aba1aa054a9dca11ab5ac4cf78878b62&oe=5B604D66'}
+            matchName={'Zach'}/>
+        </View>
       </View>
     )
   }
