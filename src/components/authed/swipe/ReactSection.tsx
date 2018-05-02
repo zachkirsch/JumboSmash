@@ -7,6 +7,8 @@ import { User } from '../../../services/swipe'
 interface Props {
   profile: User
   enabled: boolean
+  ownReacts?: boolean
+  renderNamesFromReactID?: (id: number) => void
 }
 
 type StatefulProfileReact = ProfileReact & {
@@ -15,6 +17,7 @@ type StatefulProfileReact = ProfileReact & {
 
 interface State {
   reacts: StatefulProfileReact[]
+
 }
 
 class ReactSection extends PureComponent<Props, State> {
@@ -72,11 +75,8 @@ class ReactSection extends PureComponent<Props, State> {
     }
 
     return (
-      <View>
-      <JSText style={[styles.title]}>React to {this.props.profile.preferredName}'s Bio</JSText>
-      <View style={styles.reacts}>
+        <View style={styles.reacts}>
         {reactColumns}
-      </View>
       </View>
     )
   }
@@ -102,14 +102,22 @@ class ReactSection extends PureComponent<Props, State> {
           />
         )
     }
-
     let reactCount = react.count
+    if (this.props.ownReacts){
+      return (<TouchableOpacity
+        style={[styles.react, react.reacted && styles.selectedReact]}
+        onPress={this.toggleOwnReact(react)}
+      >
+        {toRender}
+        <JSText bold={react.reacted} style={styles.reactNum}>{` ${reactCount}`}</JSText>
+      </TouchableOpacity>
+    )
+  } else {
     if (react.reacted && !react.originallyReacted) {
       reactCount++
     } else if (!react.reacted && react.originallyReacted) {
       reactCount--
     }
-
     return (
       <TouchableOpacity
         style={[styles.react, react.reacted && styles.selectedReact]}
@@ -119,6 +127,7 @@ class ReactSection extends PureComponent<Props, State> {
         <JSText bold={react.reacted} style={styles.reactNum}>{` ${reactCount}`}</JSText>
       </TouchableOpacity>
     )
+    }
   }
 
   private toggleReact = (react: StatefulProfileReact) => () => {
@@ -134,6 +143,26 @@ class ReactSection extends PureComponent<Props, State> {
     this.setState({
       reacts,
     })
+    if (this.props.renderNamesFromReactID){
+      this.props.renderNamesFromReactID(react.id)
+    }
+
+  }
+
+  private toggleOwnReact = (react: StatefulProfileReact) => () => {
+    const reacts = this.state.reacts.map(r => {
+        if (r.id === react.id) {
+        return {
+          ...r,
+          reacted: true,
+        }
+      } else {
+        return {
+          ...r,
+          reacted: false,
+      }}
+    })
+    this.setState({reacts: reacts}, () => {console.log(this.state.reacts)})
   }
 }
 

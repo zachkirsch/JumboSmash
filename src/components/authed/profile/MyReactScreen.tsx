@@ -8,48 +8,58 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { List } from 'immutable'
 import { RootState } from '../../../redux'
-import { Tag, TagSectionType, updateTagsLocally } from '../../../services/profile'
+import { Tag, TagSectionType, updateTagsLocally, ProfileState } from '../../../services/profile'
 import { HeaderBar, RectangleButton, JSButton } from '../../common'
 import { JSText } from '../../common/index'
 import TagsSection from './TagsSection'
+import ReactSection from '../swipe/ReactSection';
+import { User } from '../../../services/swipe';
+import { FlatList } from 'react-native';
 
-interface ImmutableTagSectionType {
-  name: string
-  tags: List<Tag>
-}
+interface UserList {id: number, names: string[]}
 
 interface State {
-  tags: List<ImmutableTagSectionType>
+  ProfileUser: User
+  renderByID: number
+  renderedUsers: UserList[]
 }
 
-interface OwnProps {}
+interface OwnProps {
+  profile: ProfileState
+}
 
 interface StateProps {
-  tags: TagSectionType[]
+
 }
 interface DispatchProps {
-  updateTagsLocally: (tags: TagSectionType[]) => void,
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
-class TagsScreen extends PureComponent<Props, State> {
+class MyTagsScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
+    const PRO = this.props.navigation.state.params.profile
     this.state = {
-      tags: List(props.tags.map(section => ({
-        name: section.name,
-        tags: List(section.tags),
-      }))),
+      ProfileUser: {
+        id: PRO.id,
+        preferredName: PRO.preferredName.value,
+        surname: "",
+        fullName: "",
+        major: "",
+        bio: "",
+        images: [],
+        profileReacts: PRO.reacts,
+        tags: []
+      },
+      renderByID: 0,
+      renderedUsers: [{id: 1, names: ["Beyonce", "JAY Z", "Kanye West", "Yuki Zaninovich"]}, {id: 2, names: ["Lord Vader"]}
+        , {id: 3, names: ["Max Bernstein"]}, {id: 4, names: ["HAHA"]},{id: 5, names: [":()"]},{id: 6, names: [":)"]}]
     }
   }
-
-  componentDidMount() {
-    this.props.navigation.addListener('willBlur', this.saveChanges)
-  }
-
   render() {
+    console.log(this.state.ProfileUser)
     return (
       <View style={styles.fill}>
         <HeaderBar title='Your Reacts' goBack={this.props.navigation.goBack}/>
@@ -58,75 +68,51 @@ class TagsScreen extends PureComponent<Props, State> {
             <JSText style={styles.title}>
               Tap the icons to see who reacted on your bio!
             </JSText>
+            <ReactSection
+              profile={this.state.ProfileUser}
+              enabled={true}
+              ownReacts={true}
+              renderNamesFromReactID={(id: number)=>{this.setState({renderByID: id})}}
+            />
           </View>
-          <View style={styles.tagsContainer}>
-            {this.renderReacts()}
-          </View>
+          {this.renderNamesByReact()}
         </ScrollView>
       </View>
     )
   }
 
-  private renderReacts = () => {
-    return this.state.tags.map((section, sectionIndex) => {
-      if (!section || sectionIndex === undefined) {
-        return null
-      }
-      return (
-        <View key={section.name}>
-          <JSText bold style={styles.sectionTitle}>{section.name}</JSText>
-          <TagsSection
-            tags={section.tags.toArray()}
-            onPress={this.toggleTag(sectionIndex)}
-            tagStyle={styles.tag}
-            selectedTagStyle={styles.chosenTag}
-            containerStyle={styles.tagSection}
+  private createNameList = (name: string) => {
+    return (
+      <View style={}>{name}</View>
+    )
+  }
+
+  private renderNamesByReact = () => {
+    this.state.renderedUsers.map(u => {
+      if (this.state.renderByID === u.id){
+        return (
+          <FlatList
+          data={u.names}
+          renderItem={this.createNameList(item)}
           />
-        </View>
-      )
+        )
+      } return null
     })
   }
 
-  private saveChanges = () => {
-    this.props.updateTagsLocally(this.state.tags.map(section => {
-      return {
-        name: section!.name,
-        tags: section!.tags.toArray(),
-      }
-    }).toArray())
-    this.props.navigation.goBack()
-  }
-
-  private toggleTag = (sectionIndex: number) => (tagIndex: number) => {
-    const tag = this.state.tags.get(sectionIndex).tags.get(tagIndex)
-    this.setState({
-      tags: this.state.tags.set(
-        sectionIndex,
-        {
-          name: this.state.tags.get(sectionIndex).name,
-          tags: this.state.tags.get(sectionIndex).tags.set(tagIndex, {
-            ...tag,
-            selected: !tag.selected,
-          }),
-        }
-      ),
-    })
-  }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    tags: state.profile.tags.localValue || state.profile.tags.value,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    updateTagsLocally: (tags: TagSectionType[]) => dispatch(updateTagsLocally(tags)),
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(TagsScreen)
+export default connect(mapStateToProps, mapDispatchToProps)(MyTagsScreen)
 
 const styles = StyleSheet.create({
   fill: {

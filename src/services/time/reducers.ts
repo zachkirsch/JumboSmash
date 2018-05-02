@@ -9,7 +9,7 @@ const initialState: TimeState = {
   },
   releaseDate: 1525996799999,
   postRelease: true, //false
-  postRelease2: false,
+  postRelease2: true,
 }
 
 let error = true

@@ -109,6 +109,7 @@ class SwipeScreen extends PureComponent<Props, State> {
           exit={this.onExitExpandedView}
           shouldShowReacts={this.props.preview.user.id !== this.props.currentUserID}
           react={this.props.react}
+          showClassYear={this.props.postRelease2}
         />
       )
     }
@@ -146,7 +147,6 @@ class SwipeScreen extends PureComponent<Props, State> {
         key={cardIndex}
         ref={this.assignCardRef(positionInStack)}
         showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
-        postRelease2={this.props.postRelease2}
       />
     )
   }
@@ -272,7 +272,6 @@ class SwipeScreen extends PureComponent<Props, State> {
       this.props.preview.onExit()
       return
     }
-    //console.log(this.props.currentUserID)
     this.setState({
       fullyExpanded: false,
     })

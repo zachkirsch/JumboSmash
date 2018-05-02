@@ -248,10 +248,11 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
+      <View>
         <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText>
-        <View style={styles.reactColumns}>
+        <TouchableOpacity onPress={this.navigateTo('MyReactScreen', {profile: this.props.profile})} style={styles.reactColumns}>
           {reactColumns}
-        </View>
+        </TouchableOpacity></View>
       </View>
     )
   }
