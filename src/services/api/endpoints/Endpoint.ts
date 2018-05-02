@@ -10,7 +10,7 @@ import { logout } from '../../auth'
 //   android: 'http://10.0.2.2:5000',
 // })
 
-const SERVER = 'http://130.64.142.18:5000/'
+const SERVER = 'http://10.245.150.129:5000/'
 
 type HttpMethod = 'GET' | 'POST'
 
