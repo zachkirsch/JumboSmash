@@ -34,15 +34,17 @@ class MatchPopUp extends PureComponent<Props, {}> {
               <JSImage cache source={{uri: this.props.matchAvatar}} style={[styles.avatar]}/>
             </View>
             <View style={styles.matchText}>
-              <JSText style={styles.matchTextSettings}>You and {this.props.matchName} matched!</JSText>
+              <JSText style={styles.matchTextSettings}>You matched with {this.props.matchName}!</JSText>
             </View>
             <View style={styles.elephants}>
-              <JSImage cache source={require('./assets/img/logo.jpeg')} style={[styles.avatar,styles.myAvatar]}/>
-              <JSImage cache source={require('./assets/img/logo.jpeg')} style={[styles.avatar]}/>
+              <JSImage cache source={require('./assets/img/matchElephant.png')} style={[styles.elephantAvatar, styles.myAvatar]} resizeMode='contain'/>
+              <View style={styles.matchAvatar}>
+                <JSImage cache source={require('./assets/img/matchElephant.png')} style={[styles.elephantAvatar]} resizeMode='contain'/>
+              </View>
             </View>
             <View style={[StyleSheet.absoluteFill, styles.buttons]}>
-              <JSButton style={styles.button} onPress={this.props.onPressStartChat} label={'START A CHAT'} colors={['rgba(255,255,255,0.89)','rgba(255,255,255,0.89)']}/>
-              <JSButton containerStyle={styles.swipeButton} style={styles.button}  onPress={this.props.onDismiss} label={'KEEP SWIPING'} colors={['#DBA4A0','#DBA4A0']} textStyle={{ color: 'white' }}/>
+              <JSButton style={styles.button} onPress={this.props.onPressStartChat} label={'START A CHAT'} colors={['rgba(255,255,255,0.89)','rgba(255,255,255,0.89)']} textStyle={{ fontSize: 16 }}/>
+              <JSButton containerStyle={styles.swipeButton} style={styles.button}  onPress={this.props.onDismiss} label={'KEEP SWIPING'} colors={['#DBA4A0','#DBA4A0']} textStyle={{ color: 'white', fontSize: 16 }}/>
             </View>
           </LinearGradient>
         </View>
@@ -73,6 +75,13 @@ const styles = StyleSheet.create({
   myAvatar: {
     marginRight: 35,
   },
+  matchAvatar: {
+    transform: [
+      {
+        scaleX: -1,
+      },
+    ],
+  },
   gradient: {
     flex: 1,
     opacity: .99,
@@ -86,10 +95,11 @@ const styles = StyleSheet.create({
   elephants: {
     flex: 4,
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   elephantAvatar: {
-    marginRight: 75,
+    width: WIDTH / 3,
+    height: WIDTH / 3 * 229/222,
   },
   top: {
     flex: 1.2,
