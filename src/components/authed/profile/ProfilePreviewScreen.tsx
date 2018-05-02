@@ -33,6 +33,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: isIphoneX() ? 40 : 0,
-    backgroundColor: 'black',
+    backgroundColor: 'white',
   },
 })
