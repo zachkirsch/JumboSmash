@@ -130,7 +130,12 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       if (action.shouldShowMatchPopup) {
         matchPopup = {
           shouldShow: true,
-          conversationId: action.conversationId,
+          match: {
+            id: action.id,
+            createdAt: action.createdAt,
+            conversationId: action.conversationId,
+            otherUsers: action.otherUsers,
+          },
         }
       }
       return {

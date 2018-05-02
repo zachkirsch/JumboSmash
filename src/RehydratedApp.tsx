@@ -30,6 +30,7 @@ interface StateProps {
   profileSetUp: boolean
   inAppNotifications: InAppNotification[]
   matchPopup: MatchPopupSettings
+  myAvatar: string
 }
 
 interface DispatchProps {
@@ -97,19 +98,17 @@ class RehydratedApp extends PureComponent<Props, {}> {
   }
 
   private renderMatchPopup = () => {
-    if (!this.props.matchPopup.shouldShow && false) {
+    if (!this.props.matchPopup.shouldShow) {
       return null
     }
     return (
-      <View style={StyleSheet.absoluteFill}>
         <MatchPopUp
-          myAvatar={'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&_nc_eui2=v1%3AAeGrMD1dIxJNQkk-jGY1Bm-JqUqNTkuNoCcZmEHv5Z68u0_wDQvfg1ojwJ7mFaXKKyW3rE6F81WydXHMlZAaFpjlZDJhJo9rBW41-QX1KTGHpg&oh=aba1aa054a9dca11ab5ac4cf78878b62&oe=5B604D66'}
-          matchAvatar={'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&_nc_eui2=v1%3AAeGrMD1dIxJNQkk-jGY1Bm-JqUqNTkuNoCcZmEHv5Z68u0_wDQvfg1ojwJ7mFaXKKyW3rE6F81WydXHMlZAaFpjlZDJhJo9rBW41-QX1KTGHpg&oh=aba1aa054a9dca11ab5ac4cf78878b62&oe=5B604D66'}
-          matchName={'Zach'}
+          myAvatar={this.props.myAvatar}
+          matchAvatar={this.props.matchPopup.match.otherUsers[0].images[0].url}
+          matchName={this.props.matchPopup.match.otherUsers[0].preferred_name || 'someone'}
           onPressStartChat={this.onPressStartChat}
           onDismiss={this.props.dismissMatchPopup}
         />
-        </View>
     )
   }
 
@@ -118,7 +117,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
       return
     }
     this.props.dismissMatchPopup()
-    NavigationService.openChat(this.props.matchPopup.conversationId)
+    NavigationService.openChat(this.props.matchPopup.match.conversationId)
   }
 
   private renderNotifications = () => {
@@ -162,6 +161,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     classYear: state.profile.classYear,
     profileSetUp: state.profile.images.filter(i => !!i && !!i.value.uri).size > 0,
     inAppNotifications: state.notifications.inAppNotifications.toArray(),
+    myAvatar: state.profile.images.first() ? state.profile.images.first().value.uri : '',
     matchPopup: state.matches.matchPopup,
   }
 }

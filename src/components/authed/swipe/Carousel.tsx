@@ -76,7 +76,7 @@ class Carousel extends PureComponent<Props, State> {
         <TouchableWithoutFeedback onPress={this.onTap}>
           <View style={StyleSheet.absoluteFill}>
             <JSImage
-              cache={false}
+              cache
               source={{uri}}
               style={[styles.image, this.props.imageStyle]}
               resizeMode={'stretch'}

@@ -20,7 +20,10 @@ export interface Conversation {
   messagesUnread: boolean
 }
 
-export type MatchPopupSettings = { shouldShow: false } | { shouldShow: true, conversationId: string }
+export type MatchPopupSettings = { shouldShow: false } | {
+  shouldShow: true,
+  match: NewMatch
+}
 
 export interface MatchesState {
   chats: Map<string, Conversation> /* map from conversation ID to conversation */
