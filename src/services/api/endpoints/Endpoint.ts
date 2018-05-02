@@ -10,7 +10,7 @@ import { logout } from '../../auth'
 //   android: 'http://10.0.2.2:5000',
 // })
 
-const SERVER = 'http://10.245.150.71:5000/'
+const SERVER = 'http://130.64.142.18:5000/'
 
 type HttpMethod = 'GET' | 'POST'
 
@@ -94,7 +94,6 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     if (method === 'POST') {
       if (this.requiresToken) {
         const bodyWithAuth = Object.assign(body, ApiAuthService.getToken())
-        console.log(ApiAuthService.getToken(), bodyWithAuth)
         request.body = JSON.stringify(bodyWithAuth)
       } else {
         request.body = JSON.stringify(body || {})
