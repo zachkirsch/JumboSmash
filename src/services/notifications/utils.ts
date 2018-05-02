@@ -103,7 +103,9 @@ export const setupNotifications = () => {
             data.match.id,
             data.match.conversation_uuid,
             moment(data.match.createdAt).valueOf(),
-            otherUsers
+            otherUsers,
+            false,
+            false
           )
           const otherUser = otherUsers[0]
           reduxStore.dispatch(addInAppNotification(
@@ -138,7 +140,8 @@ export const setupNotifications = () => {
             data.match.conversation_uuid,
             moment(data.match.createdAt).valueOf(),
             otherUsers,
-            true
+            true,
+            false
           )
           break
       }

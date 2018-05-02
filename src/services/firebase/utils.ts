@@ -14,7 +14,12 @@ export const getRefToChatMessages = (conversationId: string) => getRefToChatSect
 interface ChatServiceType {
   store?: Store<RootState>
   setStore: (store: Store<RootState>) => void
-  createChat: (matchId: number, conversationId: string, createdAt: number, withUsers: GetUserResponse[], openChatScreen?: boolean) => void
+  createChat: (matchId: number,
+               conversationId: string,
+               createdAt: number,
+               withUsers: GetUserResponse[],
+               openChatScreen: boolean,
+               shouldOpenMatchPopup: boolean) => void
   listenForNewChats: (conversationId: string) => void
   stopListeningForNewChats: () => void
 }
@@ -36,7 +41,8 @@ ChatService.createChat = (matchId: number,
                           conversationId: string,
                           createdAt: number,
                           withUsers: GetUserResponse[],
-                          openChatAfterCreation?: boolean) => {
+                          openChatAfterCreation: boolean,
+                          shouldOpenMatchPopup: boolean) => {
   /* TODO permissions
   const dbRef = getRefToChatSection(conversationId).child('members')
   const permissionsObject: { [uid: string]: string} = {}
@@ -44,7 +50,7 @@ ChatService.createChat = (matchId: number,
   dbRef.push(permissionsObject)
   */
   ChatService.listenForNewChats(conversationId)
-  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers, openChatAfterCreation))
+  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers, openChatAfterCreation, shouldOpenMatchPopup))
 }
 
 ChatService.listenForNewChats = (conversationId: string) => {

@@ -8,42 +8,13 @@ import {
   SendMessagesSuccessAction,
 } from './actions'
 import { ReduxActionType } from '../redux'
-import { Conversation, MatchesState } from './types'
+import { Conversation, MatchesState, MatchPopupSettings } from './types'
 
 const initialState: MatchesState = {
-  // chats: Map<string, Conversation>(),
-  chats: Map<string, Conversation>({
-    2: {
-      conversationId: '2',
-      otherUsers: List([{
-        id: 1,
-        preferredName: 'Zach Kirsch',
-        bio: 'Gotta catch em all',
-        images: ['https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png'],
-        tags: ['tag1', 'tag2'],
-      }]),
-      messages: List([
-        {
-          _id: 0,
-          text: 'This is Zach',
-          createdAt: new Date(),
-          user: {
-            _id: 1,
-            name: 'Zach Kirsch',
-            avatar: 'https://cdn.bulbagarden.net/upload/thumb/7/78/150Mewtwo.png/250px-150Mewtwo.png',
-          },
-          sending: false,
-          failedToSend: true,
-          sent: true,
-          received: true,
-          read: false,
-        },
-      ]),
-      messageIDs: Set([0]),
-      mostRecentMessage: 'This is Zach',
-      messagesUnread: true,
-    },
-  }),
+  chats: Map<string, Conversation>(),
+  matchPopup: {
+    shouldShow: false,
+  },
 }
 
 const addMessagesToReduxState = (oldState: MatchesState,
@@ -77,6 +48,7 @@ const addMessagesToReduxState = (oldState: MatchesState,
   }
 
   return {
+    ...oldState,
     chats: oldState.chats.set(action.conversationId, newConversation),
   }
 }
@@ -111,6 +83,7 @@ const updateSentStatus = (oldState: MatchesState,
   }
 
   return {
+    ...oldState,
     chats: oldState.chats.set(action.conversationId, newConversation),
   }
 }
@@ -132,17 +105,36 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
     case MatchesActionType.SET_CONVERSATION_AS_READ:
       let newConversation = state.chats.get(action.conversationId)
       return {
+        ...state,
         chats: state.chats.set(action.conversationId, {
           ...newConversation,
           messagesUnread: false,
         }),
       }
 
+    case MatchesActionType.DISMISS_MATCH_POPUP:
+      return {
+        ...state,
+        matchPopup: {
+          shouldShow: false,
+        },
+      }
+
     case MatchesActionType.CREATE_MATCH:
       if (state.chats.has(action.conversationId)) {
         return state
       }
+      let matchPopup: MatchPopupSettings = {
+        shouldShow: false,
+      }
+      if (action.shouldShowMatchPopup) {
+        matchPopup = {
+          shouldShow: true,
+          conversationId: action.conversationId,
+        }
+      }
       return {
+        matchPopup,
         chats: state.chats.set(action.conversationId, {
           matchId: action.id,
           conversationId: action.conversationId,
@@ -177,11 +169,13 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         }
       })
       return {
+        ...state,
         chats,
       }
 
     case MatchesActionType.UNMATCH:
       return {
+        ...state,
         chats: state.chats.remove(action.conversationId),
       }
 

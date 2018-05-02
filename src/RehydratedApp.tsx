@@ -15,9 +15,11 @@ import { IChatMessage } from 'react-native-gifted-chat'
 import { ChatService } from './services/firebase'
 import { attemptConnectToFirebase } from './services/firebase'
 import { NavigationService } from './services/navigation'
+import { dismissMatchPopup, MatchPopupSettings } from './services/matches'
 import { AuthState } from './services/auth'
 import firebase from 'react-native-firebase'
 import { InAppNotification, deleteInAppNotification } from './services/notifications'
+import MatchPopUp from './MatchPopUp'
 
 interface StateProps {
   authState: AuthState
@@ -27,12 +29,14 @@ interface StateProps {
   classYear: number
   profileSetUp: boolean
   inAppNotifications: InAppNotification[]
+  matchPopup: MatchPopupSettings
 }
 
 interface DispatchProps {
   attemptConnectToFirebase: (token: string) => void
   receiveMessages: (conversationId: string, messages: IChatMessage[]) => void
   deleteInAppNotification: (id: number) => void
+  dismissMatchPopup: () => void
 }
 
 type Props = StateProps & DispatchProps
@@ -70,6 +74,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
       <View style={styles.container}>
         <StatusBar networkActivityIndicatorVisible={this.props.networkRequestInProgress} />
         {this.renderScreen()}
+        {this.renderMatchPopup()}
         {this.renderNotifications()}
       </View>
     )
@@ -89,6 +94,31 @@ class RehydratedApp extends PureComponent<Props, {}> {
     } else {
       return <AuthedRouter ref={ref => NavigationService.setRouter(ref)}/>
     }
+  }
+
+  private renderMatchPopup = () => {
+    if (!this.props.matchPopup.shouldShow && false) {
+      return null
+    }
+    return (
+      <View style={StyleSheet.absoluteFill}>
+        <MatchPopUp
+          myAvatar={'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&_nc_eui2=v1%3AAeGrMD1dIxJNQkk-jGY1Bm-JqUqNTkuNoCcZmEHv5Z68u0_wDQvfg1ojwJ7mFaXKKyW3rE6F81WydXHMlZAaFpjlZDJhJo9rBW41-QX1KTGHpg&oh=aba1aa054a9dca11ab5ac4cf78878b62&oe=5B604D66'}
+          matchAvatar={'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_6623819361607561120_o.jpg?_nc_cat=0&_nc_eui2=v1%3AAeGrMD1dIxJNQkk-jGY1Bm-JqUqNTkuNoCcZmEHv5Z68u0_wDQvfg1ojwJ7mFaXKKyW3rE6F81WydXHMlZAaFpjlZDJhJo9rBW41-QX1KTGHpg&oh=aba1aa054a9dca11ab5ac4cf78878b62&oe=5B604D66'}
+          matchName={'Zach'}
+          onPressStartChat={this.onPressStartChat}
+          onDismiss={this.props.dismissMatchPopup}
+        />
+        </View>
+    )
+  }
+
+  private onPressStartChat = () => {
+    if (!this.props.matchPopup.shouldShow) {
+      return
+    }
+    this.props.dismissMatchPopup()
+    NavigationService.openChat(this.props.matchPopup.conversationId)
   }
 
   private renderNotifications = () => {
@@ -132,6 +162,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     classYear: state.profile.classYear,
     profileSetUp: state.profile.images.filter(i => !!i && !!i.value.uri).size > 0,
     inAppNotifications: state.notifications.inAppNotifications.toArray(),
+    matchPopup: state.matches.matchPopup,
   }
 }
 
@@ -156,6 +187,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     },
     attemptConnectToFirebase: (token: string) => dispatch(attemptConnectToFirebase(token)),
     deleteInAppNotification: (id: number) => dispatch(deleteInAppNotification(id)),
+    dismissMatchPopup: () => dispatch(dismissMatchPopup()),
   }
 }
 

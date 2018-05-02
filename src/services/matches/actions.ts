@@ -7,6 +7,7 @@ import { NewMatch } from './types'
 
 export enum MatchesActionType {
   CREATE_MATCH = 'CREATE_MATCH',
+  DISMISS_MATCH_POPUP = 'DISMISS_MATCH_POPUP',
 
   ATTEMPT_SEND_MESSAGES = 'ATTEMPT_SEND_MESSAGES',
   SEND_MESSAGES_SUCCESS = 'SEND_MESSAGES_SUCCESS',
@@ -23,7 +24,12 @@ export enum MatchesActionType {
 
 export interface CreateMatchAction extends NewMatch {
   type: MatchesActionType.CREATE_MATCH
-  openChatAfterCreation?: boolean
+  openChatAfterCreation: boolean
+  shouldShowMatchPopup: boolean
+}
+
+export interface DismissMatchPopupAction {
+  type: MatchesActionType.DISMISS_MATCH_POPUP
 }
 
 export interface AttemptSendMessagesAction {
@@ -83,6 +89,7 @@ export interface OtherAction {
 }
 
 export type MatchesAction = CreateMatchAction
+| DismissMatchPopupAction
 | AttemptSendMessagesAction
 | SendMessagesSuccessAction
 | SendMessagesFailureAction
@@ -107,7 +114,8 @@ export const createMatch = (id: number,
                             conversationId: string,
                             createdAt: number,
                             otherUsers: GetUserResponse[],
-                            openChatAfterCreation?: boolean): CreateMatchAction => {
+                            openChatAfterCreation: boolean,
+                            shouldShowMatchPopup: boolean): CreateMatchAction => {
   return {
     type: MatchesActionType.CREATE_MATCH,
     id,
@@ -115,6 +123,13 @@ export const createMatch = (id: number,
     conversationId,
     otherUsers,
     openChatAfterCreation,
+    shouldShowMatchPopup,
+  }
+}
+
+export const dismissMatchPopup = (): DismissMatchPopupAction => {
+  return {
+    type: MatchesActionType.DISMISS_MATCH_POPUP,
   }
 }
 

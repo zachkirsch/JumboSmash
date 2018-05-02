@@ -118,7 +118,9 @@ function* attemptSwipe(action: AttemptSwipeAction) {
         response.match.id,
         response.match.conversation_uuid,
         moment(response.match.createdAt).valueOf(),
-        response.match.users.filter(u => u.id !== myID)
+        response.match.users.filter(u => u.id !== myID),
+        false,
+        true
       )
     }
 
