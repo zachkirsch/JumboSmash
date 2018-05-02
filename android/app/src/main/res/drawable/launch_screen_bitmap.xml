@@ -2,7 +2,7 @@
   <item android:drawable="@color/splashBackground"/>
   <item>
     <bitmap
-      android:src="@drawable/launch_screen"
-      android:gravity="center"/>
+      android:gravity="center"
+      android:src="@mipmap/ic_launcher"/>
   </item>
 </layer-list>

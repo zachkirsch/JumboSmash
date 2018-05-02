@@ -32,6 +32,9 @@ interface PreviewProps {
   exit: () => void
   profile: User
   containerStyle?: ViewStyle
+  shouldShowReacts: boolean
+  showClassYear: boolean
+  react: (reacts: ProfileReact[], onUser: User) => void
 }
 
 interface LoadingProps {
@@ -200,6 +203,7 @@ class Card extends PureComponent<Props, State> {
       if (this.props.type === 'normal' && this.reactSection && this.reactSection.reactsChanged()) {
         this.props.react(this.reactSection.getReacts(), this.props.profile)
       }
+
     })
   }
 
@@ -380,7 +384,8 @@ class Card extends PureComponent<Props, State> {
       styles.bottomContainer,
       { paddingHorizontal },
     ]
-
+    const year = "'" + CLASS_YEAR % 100
+    console.log(this.props.showClassYear)
     return (
       <TouchableWithoutFeedback onPress={this.tap}>
         <Animated.View style={bottomContainerStyle}>
@@ -391,7 +396,7 @@ class Card extends PureComponent<Props, State> {
             <View style={{flex: 1}}>
               <Animated.View style={[hiddenWhenContractedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
                 <JSText style={styles.name} numberOfLines={1}>
-                  {`${this.props.profile.surname} '${CLASS_YEAR % 100}`}
+                  {`${this.props.profile.surname} ${this.props.showClassYear ? year : ' '}`}
                 </JSText>
               </Animated.View>
               <Animated.View style={[hiddenWhenExpandedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
@@ -404,7 +409,7 @@ class Card extends PureComponent<Props, State> {
             <JSText style={styles.bio}>
               {this.props.profile.bio}
             </JSText>
-            {this.renderReactSection()}
+            {((this.props.type === 'preview' && this.props.shouldShowReacts) || (this.props.type === 'normal')) && this.renderReactSection()}
           </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -413,7 +418,10 @@ class Card extends PureComponent<Props, State> {
 
   private renderReactSection = () => {
     if (this.props.type !== 'normal') {
-      return null
+      if (this.props.type === 'loading' || !this.props.shouldShowReacts){
+        return null
+
+      }
     }
     return (
       <ReactSection
@@ -454,7 +462,7 @@ class Card extends PureComponent<Props, State> {
 
   private renderClassYear = () => {
 
-    if (this.props.type !== 'normal' || !this.props.showClassYear) {
+    if (this.props.type === 'loading' || !this.props.showClassYear) {
       return null
     }
 
@@ -625,6 +633,9 @@ class Card extends PureComponent<Props, State> {
 
   private exitExpandedCard = () => {
     if (this.props.type === 'preview') {
+      if (this.reactSection && this.reactSection.reactsChanged()) {
+        this.props.react(this.reactSection.getReacts(), this.props.profile)
+      }
       this.props.exit()
     } else if (this.props.type === 'normal') {
       if (this.state.fullyExpanded) {

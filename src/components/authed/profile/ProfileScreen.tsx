@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react'
 import {
   Alert,
   Keyboard,
+  Switch,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -39,12 +40,14 @@ interface State {
   preferredName: string
   bio: string
   photosSectionRequiresSave: boolean
+  nonseniorsToggled: boolean
 }
 
 interface OwnProps {}
 
 interface StateProps {
   profile: ProfileState
+  postRelease2: boolean
 }
 
 interface DispatchProps {
@@ -88,6 +91,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       preferredName: getInitialValue(props.profile.preferredName),
       bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
+      nonseniorsToggled: false,
     }
   }
 
@@ -127,6 +131,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           {this.renderPersonalInfo()}
           {this.renderTags()}
           {this.renderReacts()}
+          {this.props.postRelease2 && this.renderSecondRelease()}
           <SettingsSection
             block={this.navigateTo('BlockScreen')}
             viewCoC={this.navigateTo('ReviewCoCScreen')}
@@ -142,12 +147,23 @@ class ProfileScreen extends PureComponent<Props, State> {
     return () => this.props.navigation.navigate(screen, props)
   }
 
+  private renderSecondRelease = () => {
+    return (
+      <View style={styles.secondReleaseContainer}>
+      <JSText bold style={[styles.title, styles.secondReleaseTitle]}>TOGGLE NON-SENIORS</JSText>
+      <Switch style={styles.toggle}
+            onValueChange = {() => {this.setState({nonseniorsToggled : !this.state.nonseniorsToggled}, () => {if (this.state.nonseniorsToggled) {console.log("ON")} else {console.log("OFF")}}); }}
+            value = {this.state.nonseniorsToggled}/>
+      </View>
+    )
+  }
+
   private previewProfile = () => () => {
     this.ifSaveable(() => {
       this.navigateTo('ProfilePreviewScreen', {
         preview: {
           ...this.props.profile,
-          id: -1,
+
           preferredName: this.state.preferredName,
           bio: this.state.bio,
           images: this.photosSection!.images().filter(image => !!image),
@@ -231,10 +247,11 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
+      <View>
         <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText>
-        <View style={styles.reactColumns}>
+        <TouchableOpacity onPress={this.navigateTo('MyReactScreen', {profile: this.props.profile})} style={styles.reactColumns}>
           {reactColumns}
-        </View>
+        </TouchableOpacity></View>
       </View>
     )
   }
@@ -427,6 +444,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     profile: state.profile,
+    postRelease2: state.time.postRelease2,
   }
 }
 
@@ -550,4 +568,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
+  emoji: {
+    fontSize: 23,
+  },
+  secondReleaseContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    margin: 25,
+    paddingTop: 15
+  },
+  secondReleaseTitle: {
+    flex: 3,
+    paddingTop: 10
+  },
+  toggle: {
+    flex: 0.5
+  }
 })

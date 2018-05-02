@@ -70,20 +70,22 @@ class MatchesList extends PureComponent<Props, State> {
   }
 
   private getMatches = () => {
-
-    if (!this.state.searchBarText) {
-      return this.props.chats.toArray()
-    }
-
-    return this.props.chats.toArray().filter(chat => {
-      return chat.otherUsers.find(userId => {
-        const otherUser = this.props.allUsers.get(userId)
-        return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
-      })
-    }).sort((a, b) => {
+    if (this.state.searchBarText) {
+      return this.props.chats.toArray().filter(chat => {
+        return chat.otherUsers.find(userId => {
+          const otherUser = this.props.allUsers.get(userId)
+          return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
+        })
+      }).sort((a, b) => {
+        const aTime = a.messages.size > 0 ? a.messages.last().createdAt : a.createdAt
+        const bTime = b.messages.size > 0 ? b.messages.last().createdAt : b.createdAt
+        return bTime - aTime
+    })}
+    return this.props.chats.toArray().sort((a, b) => {
       const aTime = a.messages.size > 0 ? a.messages.last().createdAt : a.createdAt
       const bTime = b.messages.size > 0 ? b.messages.last().createdAt : b.createdAt
-      return aTime - bTime
+      return bTime - aTime
+
     })
   }
 

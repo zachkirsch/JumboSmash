@@ -4,17 +4,18 @@ import { ReduxActionType } from '../redux'
 
 const initialState: TimeState = {
   serverTime: {
-    value: undefined,
+    value:1525996799999,
     loading: false,
   },
   releaseDate: 1525996799999,
-  postRelease: false,
-  postRelease2: false,
+  postRelease: true, //false
+  postRelease2: true,
 }
 
 let error = true
 
 export function timeReducer(state = initialState, action: TimeAction): TimeState {
+  return initialState
   switch (action.type) {
 
     case TimeActionType.ATTEMPT_GET_SERVER_TIME:
