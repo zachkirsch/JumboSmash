@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     color: '#474747',
-    fontSize: 15,
+    fontSize: 16,
   },
   readText: {
     color: 'gray',
@@ -161,6 +161,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
   },
   messagePreview: {
-    fontSize: 15,
+    fontSize: 16,
   },
 })

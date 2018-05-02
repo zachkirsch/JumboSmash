@@ -68,6 +68,9 @@ class ChatScreen extends PureComponent<Props, {}> {
       return null
     }
     const messages = conversation.messages.toArray()
+
+    // toggle between these two depending on whether testing with fake zach or real user
+    // const user = conversation.otherUsers[0]
     const user = this.props.allUsers.get(conversation.otherUsers[0])
 
     return (
@@ -189,7 +192,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 5,
   },
   bannerProfile: {
     marginVertical: 5,
@@ -204,7 +208,7 @@ const styles = StyleSheet.create({
   headerName: {
     color: 'gray',
     textAlign: 'center',
-    fontSize: 11,
+    fontSize: 12,
   },
   inputToolbarContainer: {
     flex: 1,
