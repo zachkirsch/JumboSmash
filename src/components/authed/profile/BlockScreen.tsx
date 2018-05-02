@@ -18,6 +18,7 @@ import { HeaderBar, JSText, JSButton, JSTextInput } from '../../common'
 import { goToNextRoute } from '../../navigation'
 import { blockUser, unblockUser } from '../../../services/profile'
 import { RootState } from './../../../redux'
+import { EMAIL_REGEX } from '../../../utils'
 
 interface StateProps {
   blockedUsers: string[]
@@ -42,7 +43,6 @@ interface State {
 }
 
 const INSTRUCTIONS_START = "You won't see the users you block anywhere on the app, and they won't see you."
-  + ' To block a user, enter their Tufts email address below.'
   + ' You can use the '
 
 class BlockScreen extends PureComponent<Props, State> {
@@ -64,14 +64,13 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   render() {
-
     return (
       <ScrollView contentContainerStyle={styles.fill} scrollEnabled={false}>
         <View style={styles.fill}>
           {this.renderHeaderBar()}
           <View style={styles.fill}>
             <View style={styles.upperContainer}>
-              <JSText style={[styles.instructions, { textAlign: 'justify' }]}>
+              <JSText style={[styles.instructions, { textAlign: 'center' }]}>
                 {INSTRUCTIONS_START}
                 <JSText
                   style={styles.link}
@@ -115,7 +114,7 @@ class BlockScreen extends PureComponent<Props, State> {
       )
     }
     return (
-      <HeaderBar title='Block Users' goBack={this.props.navigation.goBack} />
+      <HeaderBar title='Block Users' onPressLeft={this.props.navigation.goBack} />
     )
   }
 
@@ -222,6 +221,21 @@ class BlockScreen extends PureComponent<Props, State> {
   private onChangeText = (value: string) => {this.setState({textInput: value})}
 
   private blockUser = (email: string) => () => {
+    if (!email) {
+      return
+    }
+
+    if (!EMAIL_REGEX.test(email) || !email.endsWith('@tufts.edu')) {
+      Alert.alert(
+        'Oops',
+        "That's not a Tufts e-mail",
+        [
+          { text: 'OK' },
+        ]
+      )
+      return
+    }
+
     const additionalBlockedUsers: BlockedUserMap = {}
     additionalBlockedUsers[email] = 'just_blocked'
 
@@ -286,8 +300,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   upperContainer: {
-    padding: 20,
-    paddingBottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   link: {
     fontSize: 14,

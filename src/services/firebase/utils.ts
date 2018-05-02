@@ -14,7 +14,7 @@ export const getRefToChatMessages = (conversationId: string) => getRefToChatSect
 interface ChatServiceType {
   store?: Store<RootState>
   setStore: (store: Store<RootState>) => void
-  createChat: (matchId: number, conversationId: string, createdAt: number, withUsers: GetUserResponse[]) => void
+  createChat: (matchId: number, conversationId: string, createdAt: number, withUsers: GetUserResponse[], openChatScreen?: boolean) => void
   listenForNewChats: (conversationId: string) => void
   stopListeningForNewChats: () => void
 }
@@ -32,13 +32,19 @@ const ChatService: ChatServiceType = {
 
 ChatService.setStore = (store: Store<RootState>) => ChatService.store = store
 
-ChatService.createChat = (matchId: number, conversationId: string, createdAt: number, withUsers: GetUserResponse[]) => {
+ChatService.createChat = (matchId: number,
+                          conversationId: string,
+                          createdAt: number,
+                          withUsers: GetUserResponse[],
+                          openChatAfterCreation?: boolean) => {
+  /* TODO permissions
   const dbRef = getRefToChatSection(conversationId).child('members')
   const permissionsObject: { [uid: string]: string} = {}
   permissionsObject[firebase.auth().currentUser!.uid] = 'owner'
   dbRef.push(permissionsObject)
+  */
   ChatService.listenForNewChats(conversationId)
-  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers))
+  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers, openChatAfterCreation))
 }
 
 ChatService.listenForNewChats = (conversationId: string) => {
@@ -57,7 +63,6 @@ ChatService.listenForNewChats = (conversationId: string) => {
 
       const conversation = ChatService.store!.getState().matches.chats.get(conversationId)
       if (conversation && !conversation.messageIDs.has(message._id)) {
-        /*
         const otherUserId = conversation.otherUsers[0]
         const otherUser = ChatService.store!.getState().swipe.allUsers.value.get(otherUserId)
         ChatService.store!.dispatch(addInAppNotification(
@@ -66,7 +71,6 @@ ChatService.listenForNewChats = (conversationId: string) => {
           otherUser.images[0],
           conversationId
         ))
-        */
         ChatService.store!.dispatch(receiveMessages(conversationId, [message]))
       }
     })

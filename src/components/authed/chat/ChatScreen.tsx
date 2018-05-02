@@ -74,8 +74,8 @@ class ChatScreen extends PureComponent<Props, {}> {
       <View style={styles.container}>
         <HeaderBar
           renderTitle={this.renderHeaderBarTitle(user)}
-          goBack={this.props.navigation.goBack}
-          renderRightIcon={this.renderRightIcon}
+          onPressLeft={this.props.navigation.goBack}
+          renderRight={this.renderRightIcon}
           onPressRight={this.onPressEllipsis}
         />
         <View style={styles.chat}>

@@ -42,7 +42,6 @@ class RehydratedApp extends PureComponent<Props, {}> {
   private onUserChanged: () => void
   private loginRouter?: NavigationContainer
   private postLoginRouter?: NavigationContainer
-  private authedRouter: any /* tslint:disable-line:no-any */
 
   componentDidMount() {
     // navigator.geolocation.getCurrentPosition(success => console.log(success), error => console.log(error))
@@ -88,7 +87,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
       }
       return <this.postLoginRouter screenProps={{setupMode: true}}/>
     } else {
-      return <AuthedRouter ref={ref => this.authedRouter = ref}/>
+      return <AuthedRouter ref={ref => NavigationService.setRouter(ref)}/>
     }
   }
 
@@ -115,7 +114,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
   }
 
   private openChat = (notification: InAppNotification) => () => {
-    NavigationService.openChat(this.authedRouter, notification.conversationId)
+    NavigationService.openChat(notification.conversationId)
   }
 
   private shouldShowPostLoginScreens = () => !this.props.authState.codeOfConductAccepted

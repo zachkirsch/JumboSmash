@@ -130,6 +130,11 @@ class SwipeScreen extends PureComponent<Props, State> {
       return null
     }
 
+    let containerStyle
+    if (positionInStack > 0 && this.props.swipableUsers.value.size <= 1) {
+      containerStyle = styles.hidden
+    }
+
     return (
       <Card
         type='normal'
@@ -143,6 +148,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         key={cardIndex}
         ref={this.assignCardRef(positionInStack)}
         showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
+        containerStyle={containerStyle}
       />
     )
   }
@@ -392,5 +398,8 @@ const styles = StyleSheet.create({
         elevation: 12,
       },
     }),
+  },
+  hidden: {
+    opacity: 0,
   },
 })

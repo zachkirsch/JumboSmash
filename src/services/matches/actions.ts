@@ -23,6 +23,7 @@ export enum MatchesActionType {
 
 export interface CreateMatchAction extends NewMatch {
   type: MatchesActionType.CREATE_MATCH
+  openChatAfterCreation?: boolean
 }
 
 export interface AttemptSendMessagesAction {
@@ -102,13 +103,18 @@ export const rehydrateMatchesFromServer = (matches: NewMatch[]): RehydrateMatche
   }
 }
 
-export const createMatch = (id: number, conversationId: string, createdAt: number, otherUsers: GetUserResponse[]): CreateMatchAction => {
+export const createMatch = (id: number,
+                            conversationId: string,
+                            createdAt: number,
+                            otherUsers: GetUserResponse[],
+                            openChatAfterCreation?: boolean): CreateMatchAction => {
   return {
     type: MatchesActionType.CREATE_MATCH,
     id,
     createdAt,
     conversationId,
     otherUsers,
+    openChatAfterCreation,
   }
 }
 

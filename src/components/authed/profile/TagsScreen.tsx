@@ -9,7 +9,6 @@ import { goToNextRoute } from '../../navigation'
 import { HeaderBar, JSText, JSButton } from '../../common'
 import { xor } from '../../../utils'
 import TagsSection from './TagsSection'
-import SaveOrRevert from './SaveOrRevert'
 
 interface ImmutableTagSectionType {
   name: string
@@ -47,15 +46,7 @@ class TagsScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.fill}>
         {this.renderHeaderBar()}
-        {!this.props.setupMode && this.renderSaveOrRevert()}
-        <View style={styles.topContainer}>
-          <JSText style={styles.title}>
-            Tap the tags that apply to you!
-          </JSText>
-          <JSText style={styles.title}>
-            Everyone else will see the tags you choose.
-          </JSText>
-        </View>
+        {this.renderTopContainer()}
         <ScrollView>
           <View style={styles.tagsContainer}>
             {this.renderTags()}
@@ -67,24 +58,47 @@ class TagsScreen extends PureComponent<Props, State> {
   }
 
   private renderHeaderBar = () => {
+
     if (this.props.setupMode) {
-      if (Platform.OS === 'ios') {
-        return <View style={styles.statusBar} />
-      }
       return null
     }
-    return <HeaderBar title='Choose Tags' goBack={this.goBack}/>
+    return (
+      <HeaderBar
+        title='Choose Tags'
+        onPressLeft={this.revert}
+        renderLeft={this.saveRequired() ? this.renderHeaderLeft : undefined}
+        onPressRight={this.saveAndGoBack}
+        renderRight={this.renderHeaderRight}
+      />
+    )
   }
 
-  private renderSaveOrRevert = () => {
+  private renderHeaderLeft = () => {
     return (
-      <View style={styles.saveOrRevertContainer}>
-        <SaveOrRevert
-          buttonStyle={styles.button}
-          save={this.saveChanges}
-          revert={this.revert()}
-          disabled={!this.saveRequired()}
-        />
+      <JSText>Revert</JSText>
+    )
+  }
+
+  private renderHeaderRight = () => {
+    return (
+      <JSText>Save</JSText>
+    )
+  }
+
+  private renderTopContainer = () => {
+    const containerStyle = [styles.topContainer]
+    if (this.props.setupMode && Platform.OS === 'ios') {
+      containerStyle.push(styles.topContainerWithRoomForStatusBar)
+    }
+
+    return (
+      <View style={containerStyle}>
+        <JSText style={styles.title}>
+          Tap the tags that apply to you!
+        </JSText>
+        <JSText style={styles.title}>
+          Everyone else will see the tags you choose.
+        </JSText>
       </View>
     )
   }
@@ -112,8 +126,8 @@ class TagsScreen extends PureComponent<Props, State> {
   private renderContinue = () => {
     return (
       <View style={styles.continue}>
-      <JSButton label='Continue' onPress={this.goToNextRoute} />
-    </View>
+        <JSButton label='Continue' onPress={this.goToNextRoute} />
+      </View>
     )
   }
 
@@ -124,13 +138,20 @@ class TagsScreen extends PureComponent<Props, State> {
 
   private saveChanges = () => {
     if (this.saveRequired()) {
-      this.props.updateTags(this.state.tags.map(section => {
-        return {
-          name: section!.name,
-          tags: section!.tags.toArray(),
-        }
-      }).toArray())
+      this.props.updateTags(
+        this.state.tags.map(section => {
+          return {
+            name: section!.name,
+            tags: section!.tags.toArray(),
+          }
+        }).toArray()
+      )
     }
+  }
+
+  private saveAndGoBack = () => {
+    this.saveChanges()
+    this.props.navigation.goBack()
   }
 
   private saveRequired = () => {
@@ -141,27 +162,14 @@ class TagsScreen extends PureComponent<Props, State> {
     })
   }
 
-  private revert = (alertIfUnsaved = true) => () => {
-    if (this.saveRequired() && alertIfUnsaved) {
+  private revert = () => {
+    if (this.saveRequired()) {
       Alert.alert(
         '',
         'Are you sure you want to revert your changes?',
         [
           {text: 'No', style: 'cancel'},
-          {text: 'Yes', onPress: () => this.setState(this.getInitialState()), style: 'destructive'},
-        ]
-      )
-    }
-  }
-
-  private goBack = () => {
-    if (this.saveRequired()) {
-      Alert.alert(
-        'Unsaved Changes',
-        'Do you want to discard your changes or continue editing?',
-        [
-          { text: 'Discard', style: 'destructive', onPress: this.props.navigation.goBack },
-          { text: 'Stay Here' },
+          {text: 'Yes', style: 'destructive', onPress: this.props.navigation.goBack},
         ]
       )
     } else {
@@ -221,6 +229,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: 'rgb(250, 250, 250)',
+    ...Platform.select({
+      ios: {
+        shadowColor: 'lightgray',
+        shadowRadius: 5,
+        shadowOpacity: 1,
+      },
+    }),
+  },
+  topContainerWithRoomForStatusBar: {
+    paddingTop: 28,
   },
   tag: {
     color: 'black',
@@ -252,9 +270,6 @@ const styles = StyleSheet.create({
   },
   saveOrRevertContainer: {
     paddingVertical: 5,
-  },
-  statusBar: {
-    height: 18,
   },
   continue: {
     marginBottom: 20,

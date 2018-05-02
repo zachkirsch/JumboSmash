@@ -177,8 +177,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.personalInfo}>
         <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
-        <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText></TouchableOpacity>
-        <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
+          <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText>
           {toRender}
         </TouchableOpacity>
       </View>
@@ -500,9 +499,6 @@ const styles = StyleSheet.create({
   },
   lastName: {
     color: 'gray',
-  },
-  tagsTitle: {
-    marginBottom: 10,
   },
   reactColumn: {
     flex: 1,

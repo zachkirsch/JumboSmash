@@ -69,7 +69,8 @@ const getNextPostLoginRoute = (currentRoute?: string) => {
       if (!state.profile.tags.value.find(section => !!section.tags.find(tag => !!tag && !!tag.selected))) {
         return {
           key: LoginRoute.TagsScreenInitial,
-          screen: props => <Profile.TagsScreen {...props} setupMode />,
+          /* tslint:disable-next-line:no-any */
+          screen: (props: any) => <Profile.TagsScreen {...props} setupMode />,
         }
       }
   }
@@ -77,7 +78,8 @@ const getNextPostLoginRoute = (currentRoute?: string) => {
   if (currentRoute === LoginRoute.TagsScreenInitial) {
     return {
       key: LoginRoute.BlockUsersInitial,
-      screen: props => <Profile.BlockScreen {...props} setupMode />,
+      /* tslint:disable-next-line:no-any */
+      screen: (props: any) => <Profile.BlockScreen {...props} setupMode />,
     }
   }
 
@@ -126,7 +128,8 @@ const getPostLoginScreens = () => {
   let screens: { [key: string]: NavigationRouteConfig } = {}
   let routeName
   do {
-    const nextRoute = getNextPostLoginRoute(routeName)
+    /* tslint:disable-next-line:no-any */
+    const nextRoute: any = getNextPostLoginRoute(routeName)
     routeName = nextRoute && nextRoute.key
     if (nextRoute) {
       screens[routeName!] = {

@@ -5,12 +5,14 @@ import {
   MatchesActionType,
   SendMessagesFailureAction,
   SendMessagesSuccessAction,
+  CreateMatchAction,
   UnmatchAction,
 } from './actions'
 import { IChatMessage } from 'react-native-gifted-chat'
 import { Conversation } from './types'
 import { api } from '../api'
 import { RootState } from '../../redux'
+import { NavigationService } from '../navigation'
 
 const getConversation = (conversationId: string) => {
   return (state: RootState) => state.matches.chats.get(conversationId)
@@ -52,6 +54,12 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
   }
 }
 
+function openConversationIfRequested(payload: CreateMatchAction) {
+  if (payload.openChatAfterCreation) {
+    NavigationService.openChat(payload.conversationId)
+  }
+}
+
 function* unmatch(payload: UnmatchAction) {
   try {
     yield call(api.unmatch, payload.matchId)
@@ -60,5 +68,6 @@ function* unmatch(payload: UnmatchAction) {
 
 export function* matchesSaga() {
   yield takeEvery(MatchesActionType.ATTEMPT_SEND_MESSAGES, attemptSendMessages)
+  yield takeEvery(MatchesActionType.CREATE_MATCH, openConversationIfRequested)
   yield takeEvery(MatchesActionType.UNMATCH, unmatch)
 }

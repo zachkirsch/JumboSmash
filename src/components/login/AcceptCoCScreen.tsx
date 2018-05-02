@@ -25,20 +25,13 @@ type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps
 
 class AcceptCoCScreen extends PureComponent<Props, State> {
 
-  componentDidMount() {
-    if (this.props.acceptedCoC) {
-      goToNextRoute(this.props.navigation)
-    }
-  }
-
-  componentWillReceiveProps(newProps: Props) {
-    if (newProps.acceptedCoC) {
-      goToNextRoute(this.props.navigation)
-    }
-  }
-
   render() {
-    return <CodeOfConductScreen onPress={this.props.acceptCoC}/>
+    return <CodeOfConductScreen onPress={this.goToNextRoute}/>
+  }
+
+  private goToNextRoute = () => {
+    this.props.acceptCoC()
+    goToNextRoute(this.props.navigation)
   }
 }
 

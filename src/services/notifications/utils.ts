@@ -4,23 +4,26 @@ import moment from 'moment'
 import { reduxStore } from '../../redux'
 import { ChatService } from '../firebase'
 import { unmatch } from '../matches'
+import { addInAppNotification } from './actions'
 import { Match, GetUserResponse } from '../api'
 
 /* tslint:disable:no-console */
 
-interface NewMatchMessage {
+interface NewMatchNotification {
   msg_type: 'new_match'
   match: Match
   other_users: GetUserResponse[]
 }
 
-interface UnmatchMessage {
+interface UnmatchDataMessage {
   msg_type: 'unmatch'
   conversation_uuid: string
   match_id: number
 }
 
-type Message = NewMatchMessage | UnmatchMessage
+type DataMessage = UnmatchDataMessage
+
+type Notification = NewMatchNotification
 
 const dummy = () => {} /* tslint:disable-line:no-empty */
 
@@ -67,22 +70,15 @@ export const setupNotifications = () => {
   messageListener = firebase.messaging().onMessage(message => {
     console.log(message, message.data, message._data)
     try {
-      const data: Message = JSON.parse(message._data.data)
+      const data: DataMessage = JSON.parse(message._data.data)
       console.log(data)
       switch (data.msg_type) {
-        case 'new_match':
-          ChatService.createChat(
-            data.match.id,
-            data.match.conversation_uuid,
-            moment(data.match.createdAt).valueOf(),
-            data.other_users
-          )
-          break
         case 'unmatch':
           reduxStore.dispatch(unmatch(data.match_id, data.conversation_uuid))
           break
       }
     } catch (e) {
+      console.log(e)
       // TODO: Query for new matches
     }
   })
@@ -97,6 +93,31 @@ export const setupNotifications = () => {
   notificationListener = firebase.notifications().onNotification((notification) => {
     // Process your notification as required
     console.log('listened!', notification)
+    try {
+      const data: Notification = JSON.parse(notification._data.data)
+      console.log(data)
+      switch (data.msg_type) {
+        case 'new_match':
+          const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
+          ChatService.createChat(
+            data.match.id,
+            data.match.conversation_uuid,
+            moment(data.match.createdAt).valueOf(),
+            otherUsers
+          )
+          const otherUser = otherUsers[0]
+          reduxStore.dispatch(addInAppNotification(
+            `You matched with ${otherUser.preferred_name}!`,
+            `Tap to start chatting`,
+            otherUser.images[0].url,
+            data.match.conversation_uuid
+          ))
+          break
+      }
+    } catch (e) {
+      console.log(e)
+      // TODO: Query for new matches
+    }
   })
 
   notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
@@ -106,6 +127,25 @@ export const setupNotifications = () => {
     const notification = notificationOpen.notification
     console.log('opened action', action)
     console.log('opened notification', notification)
+    try {
+      const data: Notification = JSON.parse(notification._data.data)
+      console.log(data)
+      switch (data.msg_type) {
+        case 'new_match':
+          const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
+          ChatService.createChat(
+            data.match.id,
+            data.match.conversation_uuid,
+            moment(data.match.createdAt).valueOf(),
+            otherUsers,
+            true
+          )
+          break
+      }
+    } catch (e) {
+      console.log(e)
+      // TODO: Query for new matches
+    }
   })
 }
 /* TODO: delete

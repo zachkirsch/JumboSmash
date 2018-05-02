@@ -3,15 +3,16 @@ import { NavigationAction, NavigationActions } from 'react-navigation'
 /* tslint:disable-next-line:variable-name */
 export const NavigationService = {
   /* tslint:disable-next-line:no-any */
-  openChat: (router: any, conversationId: string) => {
-    if (!router) {
+  setRouter: (router: any) => this.router = router,
+  openChat: (conversationId: string) => {
+    if (!this.router) {
       return
     }
     let actions: NavigationAction[] = []
 
-    const onChatScreen = router.state.nav.routes[1] && router.state.nav.routes[1].routeName === 'Chat'
+    const onChatScreen = this.router.state.nav.routes[1] && this.router.state.nav.routes[1].routeName === 'Chat'
     if (onChatScreen) {
-      if (router.state.nav.index > 0) {
+      if (this.router.state.nav.index > 0) {
         actions.push(NavigationActions.popToTop({}))
       }
     /*
@@ -28,6 +29,6 @@ export const NavigationService = {
       },
     }))
 
-    actions.forEach(action => router.dispatch(action))
+    actions.forEach(action => this.router.dispatch(action))
   },
 }

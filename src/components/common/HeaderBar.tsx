@@ -7,9 +7,10 @@ import JSText from './JSText'
 interface Props {
   renderTitle?: () => JSX.Element
   title?: string
-  goBack: () => void
-  renderRightIcon?: () => JSX.Element
+  renderRight?: () => JSX.Element
   onPressRight?: () => void
+  renderLeft?: () => JSX.Element // if onPressLeft is defined, this defaults to a left chevron
+  onPressLeft?: () => void
 }
 
 class HeaderBar extends PureComponent<Props, {}> {
@@ -29,30 +30,45 @@ class HeaderBar extends PureComponent<Props, {}> {
     )
   }
 
-  private goBack = () => this.props.goBack()
+  private onPress = (onPressProp: () => void) => () => onPressProp()
 
   private renderLeftView = () => {
-    if (!this.props.goBack) {
-      return <View style={styles.sideView} />
+
+    const leftView = this.props.renderLeft
+      ? this.props.renderLeft()
+      : this.props.onPressLeft && <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
+
+    const containerStyle = [styles.sideView, styles.leftView]
+
+    if (this.props.onPressLeft) {
+      return (
+        <TouchableOpacity onPress={this.onPress(this.props.onPressLeft)} style={containerStyle}>
+          {leftView}
+        </TouchableOpacity>
+      )
     }
+
     return (
-      <TouchableOpacity onPress={this.goBack} style={styles.sideView}>
-        <Ionicons name='ios-arrow-back' size={30} color='rgb(172,203,238)' />
-      </TouchableOpacity>
+      <View style={containerStyle}>
+        {leftView}
+      </View>
     )
   }
 
   private renderRightView = () => {
-    if (!this.props.onPressRight || !this.props.renderRightIcon) {
+
+    const containerStyle = [styles.sideView, styles.rightView]
+
+    if (!this.props.onPressRight || !this.props.renderRight) {
       return (
-        <View style={styles.sideView}>
-          {this.props.renderRightIcon && this.props.renderRightIcon()}
+        <View style={containerStyle}>
+          {this.props.renderRight && this.props.renderRight()}
         </View>
       )
     }
     return (
-      <TouchableOpacity onPress={this.props.onPressRight} style={styles.sideView}>
-        {this.props.renderRightIcon()}
+      <TouchableOpacity onPress={this.onPress(this.props.onPressRight)} style={containerStyle}>
+        {this.props.renderRight()}
       </TouchableOpacity>
     )
   }
@@ -63,11 +79,12 @@ export default HeaderBar
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     height: 66,
     zIndex: 20,
     ...Platform.select({
       ios: {
-        shadowColor: 'gray',
+        shadowColor: 'lightgray',
         shadowRadius: 5,
         shadowOpacity: 1,
       },
@@ -80,16 +97,24 @@ const styles = StyleSheet.create({
     }),
   },
   sideView: {
-    width: 40,
+    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+  },
+  leftView: {
+    alignItems: 'flex-start',
+    marginLeft: 10,
+  },
+  rightView: {
+    alignItems: 'flex-end',
+    marginRight: 10,
   },
   titleContainer: {
-    flex: 3,
+    flex: 1,
+    flexGrow: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
   },
 })

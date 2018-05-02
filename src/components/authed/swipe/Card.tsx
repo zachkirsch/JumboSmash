@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ViewStyle,
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
@@ -30,10 +31,12 @@ interface PreviewProps {
   type: 'preview'
   exit: () => void
   profile: User
+  containerStyle?: ViewStyle
 }
 
 interface LoadingProps {
   type: 'loading'
+  containerStyle?: ViewStyle
 }
 
 type Props = PreviewProps | LoadingProps | {
@@ -46,6 +49,7 @@ type Props = PreviewProps | LoadingProps | {
   react: (reacts: ProfileReact[], onUser: User) => void
   onExpandCard?: () => void
   onExitExpandedView?: () => void
+  containerStyle?: ViewStyle
 }
 
 export type CardProps = Props

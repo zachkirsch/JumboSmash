@@ -108,6 +108,9 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
       }
 
     case MatchesActionType.CREATE_MATCH:
+      if (state.chats.has(action.conversationId)) {
+        return state
+      }
       return {
         chats: state.chats.set(action.conversationId, {
           matchId: action.id,
