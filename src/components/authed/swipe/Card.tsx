@@ -21,7 +21,7 @@ import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { ProfileReact } from '../../../services/profile'
 import { JSText, JSImage } from '../../common'
-import { clamp, generateActionSheetOptions } from '../../../utils'
+import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import { Images } from '../../../assets'
@@ -584,7 +584,12 @@ class Card extends PureComponent<Props, State> {
       },
       {
         title: 'Report User',
-        // TODO add on press
+        onPress: () => {
+          if (this.props.type !== 'normal') {
+            return
+          }
+          reportUser(this.props.profile)
+        },
       },
     ]
     const {options, callback} = generateActionSheetOptions(buttons)
@@ -680,7 +685,12 @@ class Card extends PureComponent<Props, State> {
   }
 
   private swipe = (direction: Direction, withAnimation = true) => {
-    const onComplete = () => this.onCompleteSwipe(direction)
+    const onComplete = () => {
+      if (this.props.type === 'normal') {
+        this.props.onExitExpandedView && this.props.onExitExpandedView()
+        this.onCompleteSwipe(direction)
+      }
+    }
     if (withAnimation) {
       this.isSwipingProgrammatically = true
       const xValue = this.cardWidth() * 2 * (direction === 'right' ? 1 : -1)

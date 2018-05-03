@@ -192,7 +192,6 @@ class SwipeScreen extends PureComponent<Props, State> {
         containerStyle={containerStyle}
         cardContainerStyle={styles.extraRoomForButtons}
         block={this.props.blockUser}
-        report={this.props.report}
       />
     )
   }

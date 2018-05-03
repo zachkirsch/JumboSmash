@@ -24,7 +24,6 @@ class TagsSection extends PureComponent<Props, {}> {
     const toRender = this.props.tags.map((tag, tagIndex) => {
       const textStyle: any = [styles.tag] /* tslint:disable-line:no-any */
       textStyle.push(this.props.tagStyle)
-      textStyle.push(styles.underline)
       if (!tag.emoji) {
         textStyle.push(styles.underline)
       } else {
@@ -71,9 +70,8 @@ const styles = StyleSheet.create({
   },
   tag: {
     color: '#29292C',
-    paddingRight: 12,
-    marginRight: 4,
-    marginBottom: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 1.5,
   },
   underline: {
     textDecorationLine: 'underline',

@@ -3,7 +3,7 @@ import React, { PureComponent } from 'react'
 import { Alert, StyleSheet, View} from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
-import { logout } from '../../../services/auth'
+import { logout, deactivate } from '../../../services/auth'
 import { RectangleButton } from '../../common/index'
 import { ActionSheetOption, reportUser, sendFeedback, generateActionSheetOptions } from '../../../utils'
 
@@ -20,6 +20,7 @@ interface StateProps {
 
 interface DispatchProps {
   logout: () => void
+  deactivate: () => void
 }
 
 type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
@@ -92,7 +93,7 @@ class SettingsSection extends PureComponent<Props, {}> {
           'Deactivate My Account',
           'This will prevent others from seeing your profile until you log back in again.',
           [
-            {text: 'Deactivate', onPress: () => this.props.logout()},
+            {text: 'Deactivate', onPress: this.props.deactivate },
             {text: 'Cancel', style: 'cancel'},
           ]
         )
@@ -139,6 +140,7 @@ class SettingsSection extends PureComponent<Props, {}> {
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     logout: () => dispatch(logout()),
+    deactivate: () => dispatch(deactivate()),
   }
 }
 

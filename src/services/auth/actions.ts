@@ -22,6 +22,7 @@ export enum AuthActionType {
   FINISH_TUTORIAL = 'FINISH_TUTORIAL',
   CLEAR_AUTH_ERROR_MESSAGE = 'CLEAR_AUTH_ERROR_MESSAGE',
   LOGOUT = 'LOGOUT',
+  DEACTIVATE = 'DEACTIVATE',
   OTHER_ACTION = '__any_other_action_type__',
 }
 
@@ -109,6 +110,10 @@ export interface LogoutAction {
   type: AuthActionType.LOGOUT
 }
 
+export interface DeactivateAction {
+  type: AuthActionType.DEACTIVATE
+}
+
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
  * have a default case when processing actions. We will never dispatch
  * OtherAction, but we do need a default case for the other Actions that are
@@ -138,6 +143,7 @@ export type AuthAction = AttemptLoginAction
 | SetCoCReadStatusAction
 | ClearAuthErrorMessageAction
 | LogoutAction
+| DeactivateAction
 | OtherAction
 
 /* Action Creators */
@@ -203,5 +209,11 @@ export const clearAuthErrorMessage = (): ClearAuthErrorMessageAction => {
 export const logout = (): LogoutAction => {
   return {
     type: AuthActionType.LOGOUT,
+  }
+}
+
+export const deactivate = (): DeactivateAction => {
+  return {
+    type: AuthActionType.DEACTIVATE,
   }
 }

@@ -102,13 +102,13 @@ class PhotosSection extends PureComponent<Props, State> {
     const image = allImages[index] || EMPTY_IMAGE_WITH_STATUS
 
     let touchableDisabled = false
-    let overlayIcon
+    let plusIcon // TODO swap image
 
     if (this.state.swapping) {
       if (index !== this.state.swappingIndex) {
-        overlayIcon = (
+        plusIcon = (
           <Foundation
-            style={styles.overlayIcon}
+            style={styles.plusIcon}
             name={'target-two'}
             size={40}
             color={getLightColor()}
@@ -121,9 +121,9 @@ class PhotosSection extends PureComponent<Props, State> {
         indexOfFirstEmpty = allImages.length
       }
       if (indexOfFirstEmpty === index) {
-        overlayIcon = (
+        plusIcon = (
           <Feather
-            style={styles.overlayIcon}
+            style={styles.plusIcon}
             name={'plus'}
             size={50}
             color={getLightColor()}
@@ -200,7 +200,7 @@ class PhotosSection extends PureComponent<Props, State> {
         {imageToRender}
         <TouchableWithoutFeedback disabled={touchableDisabled} onPress={this.onPressImage(index)}>
           <View style={styles.photoOverlay}>
-            {overlayIcon}
+            {plusIcon}
           </View>
         </TouchableWithoutFeedback>
         {cornerButton}
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     zIndex: 5,
   },
-  overlayIcon: {
+  plusIcon: {
     backgroundColor: 'transparent',
   },
   cornerButton: {
@@ -444,8 +444,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 0,
     marginBottom: 3,
-    borderColor: 'gray',
-    borderWidth: StyleSheet.hairlineWidth,
     backgroundColor: getMainColor(),
     zIndex: 600,
     elevation: 600,

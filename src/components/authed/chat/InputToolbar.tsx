@@ -8,7 +8,8 @@ import {
   SendProps,
 } from 'react-native-gifted-chat'
 import LinearGradient from 'react-native-linear-gradient'
-import { JSText } from '../../common'
+import { JSText, JSFontStyle } from '../../common'
+import { getMainColor } from '../../../utils'
 
 type OnSend = ({ text }: { text: string }, shouldResetInputToolbar: boolean) => void
 
@@ -44,7 +45,7 @@ export default class extends PureComponent<InputToolbarProps, {}> {
       >
         <Composer // TODO: use our font for this text input
           {...props}
-          textInputStyle={styles.composer}
+          textInputStyle={[styles.composer, JSFontStyle]}
           placeholder='Text to impress...'
         />
       </LinearGradient>
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendText: {
-    color: 'blue',
+    color: getMainColor(),
     fontWeight: '600',
     fontSize: 16,
     backgroundColor: 'transparent',
@@ -98,6 +99,9 @@ const styles = StyleSheet.create({
     marginLeft: 13,
     marginRight: 50,
     marginBottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 10,
   },
   inputToolbarContainer: {
     borderTopWidth: 0,

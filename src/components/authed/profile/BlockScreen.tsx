@@ -200,20 +200,8 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   private goToNextRoute = () => {
-    Alert.alert(
-      'Pro Tip',
-      'You can always edit your blocked users in the Help & Feedback section'
-      + ' on your profile',
-      [
-        {text: 'OK', onPress: () => {
-          this.saveChanges()
-          goToNextRoute(this.props.navigation)
-        }},
-      ],
-      {
-        cancelable: false,
-      }
-    )
+    this.saveChanges()
+    goToNextRoute(this.props.navigation)
   }
 
   private openWhitePages = () => Linking.openURL('https://whitepages.tufts.edu/')

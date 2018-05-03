@@ -103,11 +103,11 @@ const styles = StyleSheet.create({
   },
   leftView: {
     alignItems: 'flex-start',
-    marginLeft: 10,
+    paddingLeft: 10,
   },
   rightView: {
     alignItems: 'flex-end',
-    marginRight: 10,
+    paddingRight: 10,
   },
   titleContainer: {
     flex: 1,

@@ -11,7 +11,6 @@ import {
   EmojiProfileReact,
   ImageProfileReact,
   ProfileReact,
-  EMOJI_REGEX,
 } from './types'
 import { AuthActionType } from '../auth'
 
@@ -85,7 +84,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
               tags: category.tags.map(tag => ({
                 id: tag.tag_id,
                 name: tag.tag_text,
-                emoji: !tag.tag_text.match(EMOJI_REGEX),
+                emoji: tag.tag_type === 'emoji',
                 selected: !!selectedTagIds.find(selectedTagId => selectedTagId === tag.tag_id),
               })),
             }
@@ -101,21 +100,21 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         }))),
         profileReacts: {
           value: action.allReacts.reduce((reacts, react) => {
-            if (react.text.lastIndexOf('EMOJI:', 0) === 0) {
+            if (react.type === 'emoji') {
               const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
               const emojiReact: EmojiProfileReact = {
                 type: 'emoji',
                 id: react.id,
-                emoji: react.text.replace('EMOJI:', ''),
+                emoji: react.text,
                 count: profileReact ? profileReact.react_count : 0,
               }
               reacts.push(emojiReact)
-            } else if (react.text.lastIndexOf('IMAGE:', 0) === 0) {
+            } else if (react.type === 'image') {
               const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
               const imageReact: ImageProfileReact = {
                 type: 'image',
                 id: react.id,
-                imageUri: react.text.replace('IMAGE:', ''),
+                imageUri: react.text,
                 count: profileReact ? profileReact.react_count : 0,
               }
               reacts.push(imageReact)
@@ -125,18 +124,18 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           loading: false,
         },
         allReacts: action.allReacts.reduce((reacts, react) => {
-          if (react.text.lastIndexOf('EMOJI:', 0) === 0) {
+          if (react.type === 'emoji') {
             const emojiReact: BaseEmojiProfileReact = {
               type: 'emoji',
               id: react.id,
-              emoji: react.text.replace('EMOJI:', ''),
+              emoji: react.text,
             }
             reacts.push(emojiReact)
-          } else if (react.text.lastIndexOf('IMAGE:', 0) === 0) {
+          } else if (react.type === 'image') {
             const imageReact: BaseImageProfileReact = {
               type: 'image',
               id: react.id,
-              imageUri: react.text.replace('IMAGE:', ''),
+              imageUri: react.text,
             }
             reacts.push(imageReact)
           }

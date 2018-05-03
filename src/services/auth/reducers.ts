@@ -53,7 +53,6 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         validVerificationCode: true,
         waitingForVerificationResponse: false,
         sessionKey: action.sessionKey,
-        classYear: action.classYear,
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
@@ -113,6 +112,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         errorMessage: '',
       }
 
+    case AuthActionType.DEACTIVATE:
     case AuthActionType.LOGOUT:
       return {
         ...initialState,

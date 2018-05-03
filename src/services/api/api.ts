@@ -17,6 +17,7 @@ export const api = {
   }, {}),
   acceptCoC: () => Endpoints.acceptCoC.hit({}, {}),
   logout: () => Endpoints.logout.hit({}, {}),
+  deactivate: () => Endpoints.deactivate.hit({}, {}),
 
   /* ME */
 

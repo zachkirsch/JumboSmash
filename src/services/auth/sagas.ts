@@ -130,10 +130,7 @@ function* acceptCoC(_: AuthActions.AttemptAcceptCoCAction) {
     }
 }
 
-function* logout(_: AuthActions.LogoutAction) {
-  try {
-    yield call(api.api.logout)
-  } catch (e) {} /* tslint:disable-line:no-empty */
+function* clearState() {
   yield put(logoutFirebase())
   yield put(clearProfileState())
   yield put(clearNavigationState())
@@ -141,7 +138,20 @@ function* logout(_: AuthActions.LogoutAction) {
   yield put(clearMatchesState())
   yield put(AuthActions.setSessionKey(''))
   ImageCacheService.clearCache()
+}
 
+function* logout() {
+  try {
+    yield call(api.api.logout)
+  } catch (e) {} /* tslint:disable-line:no-empty */
+  yield clearState()
+}
+
+function* deactivate() {
+  try {
+    yield call(api.api.deactivate)
+  } catch (e) {} /* tslint:disable-line:no-empty */
+  yield clearState()
 }
 
 export function* authSaga() {
@@ -149,6 +159,7 @@ export function* authSaga() {
   yield takeLatest(AuthActions.AuthActionType.ATTEMPT_VERIFY_EMAIL, attemptVerifyEmail)
   yield takeLatest(AuthActions.AuthActionType.ATTEMPT_LOGIN, attemptLogin)
   yield takeLatest(AuthActions.AuthActionType.LOGOUT, logout)
+  yield takeLatest(AuthActions.AuthActionType.DEACTIVATE, deactivate)
   yield takeLatest(AuthActions.AuthActionType.ATTEMPT_ACCEPT_COC, acceptCoC)
   yield takeLatest(AuthActions.AuthActionType.CONFIRM_NEAR_TUFTS, confirmNearTufts)
 }

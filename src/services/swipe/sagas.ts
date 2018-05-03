@@ -18,7 +18,7 @@ import {
 } from './actions'
 import { ReduxActionType } from '../redux'
 import { RootState } from '../../redux'
-import { EmojiProfileReact, ProfileReact, ImageProfileReact, EMOJI_REGEX } from '../profile'
+import { EmojiProfileReact, ProfileReact, ImageProfileReact } from '../profile'
 import { User } from './types'
 
 const getAllReacts = (state: RootState) => state.profile.profileReacts.value
@@ -38,7 +38,7 @@ const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserRespons
     images: user.images.map(image => image.url),
     tags: user.tags.map(tag => ({
       name: tag.text,
-      emoji: !tag.text.match(EMOJI_REGEX),
+      emoji: tag.type === 'emoji',
     })),
     profileReacts: {
       value: allReacts.map(react => {

@@ -6,6 +6,7 @@ interface Request extends HttpGetRequest {
 interface React {
   id: number
   text: string
+  type: 'emoji' | 'image'
 }
 
 type Response = React[]

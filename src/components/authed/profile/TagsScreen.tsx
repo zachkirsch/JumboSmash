@@ -7,7 +7,7 @@ import { RootState } from '../../../redux'
 import { Tag, TagSectionType, updateTags } from '../../../services/profile'
 import { goToNextRoute } from '../../navigation'
 import { HeaderBar, JSText, JSButton } from '../../common'
-import { xor, getMainColor } from '../../../utils'
+import { xor, getMainColor, getLightColor } from '../../../utils'
 import TagsSection from './TagsSection'
 
 interface ImmutableTagSectionType {
@@ -242,12 +242,14 @@ const styles = StyleSheet.create({
   },
   tag: {
     color: 'black',
-    marginBottom: 5,
+    paddingVertical: 2.5,
     fontSize: 16,
     opacity: 0.6,
   },
   chosenTag: {
     opacity: 1,
+    shadowColor: getLightColor(),
+    shadowOpacity: 1,
   },
   tagSection: {
     marginBottom: 20,

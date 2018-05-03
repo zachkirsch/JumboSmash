@@ -1,8 +1,6 @@
 import { List } from 'immutable'
 import { LoadableValue } from '../redux'
 
-export const EMOJI_REGEX = /^[A-Za-z0-9\ ]*$/
-
 export interface Tag {
   id: number
   name: string

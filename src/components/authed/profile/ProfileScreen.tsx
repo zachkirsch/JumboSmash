@@ -257,6 +257,8 @@ class ProfileScreen extends PureComponent<Props, State> {
           autoCorrect={false}
           selectTextOnFocus
           onFocus={this.onFocus('preferredName')}
+          onSubmitEditing={Keyboard.dismiss}
+          returnKeyType='done'
           ref={ref => this.preferredNameTextInput = ref}
         />
         <JSText style={[styles.bigInput, styles.lastName]}>
@@ -277,6 +279,8 @@ class ProfileScreen extends PureComponent<Props, State> {
         autoCorrect={false}
         style={styles.bio}
         onFocus={this.onFocus('bio')}
+        onSubmitEditing={Keyboard.dismiss}
+        returnKeyType='done'
         ref={ref => this.bioTextInput = ref}
       />
       <JSText style={styles.bioCharacterCount}>

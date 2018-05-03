@@ -36,8 +36,8 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
           lastFetched: Date.now(),
           loading: false,
         },
-        releaseDate: now + 6000, // action.releaseDate,
-        postRelease:  action.serverTime > now + 6000, // action.postRelease,
+        releaseDate: action.releaseDate,
+        postRelease:  action.postRelease,
         postRelease2: action.postRelease2,
       }
 

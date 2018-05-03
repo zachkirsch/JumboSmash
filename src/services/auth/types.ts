@@ -13,6 +13,6 @@ export interface AuthState {
   waitingForVerificationResponse: boolean
   tutorialFinished: boolean
   codeOfConductAccepted: boolean
-  nearTufts?: boolean
+  nearTufts: boolean
   deviceId: string
 }

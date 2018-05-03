@@ -124,6 +124,7 @@ class ChatScreen extends PureComponent<Props, {}> {
       name='ellipsis-v'
       size={30}
       color='rgb(172,203,238)'
+      style={styles.rightIcon}
     />
   )
 
@@ -220,5 +221,8 @@ const styles = StyleSheet.create({
   },
   headerBar: {
     height: 73,
+  },
+  rightIcon: {
+    paddingRight: 10,
   },
 })

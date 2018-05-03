@@ -15,11 +15,13 @@ export interface ProfileReact {
   react_id: number
   react_count: number
   react_text: string
+  type: 'image' | 'emoji'
 }
 
 interface Tag {
   id: number
   text: string
+  type: 'text' | 'emoji'
 }
 
 interface Response {
