@@ -139,7 +139,7 @@ function* handleUpdateImagesFailure(error: Error, index: number, localUri: strin
   yield put(failureAction)
 }
 
-function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) {
+function* attemptUpdateImage(payload: ProfileActions.AttemptUpdateImageAction) {
   function uploadImageToFirebase() {
     if (payload.imageUri === '') {
       return payload.imageUri
@@ -280,7 +280,7 @@ export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_MAJOR, attemptUpdateMajor)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
-  yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
+  yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImage)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_BLOCK_USER, attemptBlockUser)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UNBLOCK_USER, attemptUnblockUser)
   yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)

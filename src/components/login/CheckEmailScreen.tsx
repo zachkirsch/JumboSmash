@@ -12,6 +12,7 @@ import {
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
 import { JSText, JSTextInput, TextInputRef } from '../common'
+import { getLightColor } from '../../utils'
 import EmailUsFooter from './EmailUsFooter'
 
 interface Props {
@@ -106,7 +107,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
         <View style={styles.header} />
         <KeyboardAvoidingView behavior='padding' style={styles.container}>
           <View style={styles.messageContainer}>
-            <SimpleLineIcons name='envelope' size={80} color='rgba(172,203,238,0.6)' />
+            <SimpleLineIcons name='envelope' size={80} color={getLightColor()} />
             <View style={styles.contentTitleContainer}>
               <JSText bold style={[styles.text, styles.contentTitle]}>
                 CHECK YOUR EMAIL!

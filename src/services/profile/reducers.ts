@@ -13,6 +13,7 @@ import {
   ProfileReact,
   EMOJI_REGEX,
 } from './types'
+import { AuthActionType } from '../auth'
 
 const initialState: ProfileState = {
   id: -1,
@@ -22,7 +23,7 @@ const initialState: ProfileState = {
   },
   surname: '',
   fullName: '',
-  classYear: 18,
+  classYear: -1,
   major: {
     value: '',
     loading: false,
@@ -36,12 +37,13 @@ const initialState: ProfileState = {
     value: [],
     loading: false,
   },
-  reacts: {
+  profileReacts: {
     value: [],
     loading: false,
   },
   allReacts: [],
   blockedUsers: List(),
+  showUnderclassmen: false,
 }
 
 const newImage = () => ({
@@ -97,7 +99,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           },
           loading: false,
         }))),
-        reacts: {
+        profileReacts: {
           value: action.allReacts.reduce((reacts, react) => {
             if (react.text.lastIndexOf('EMOJI:', 0) === 0) {
               const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
@@ -140,6 +142,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           }
           return reacts
         }, [] as BaseProfileReact[]),
+        showUnderclassmen: false,
       }
 
     /* Preferred Name */
@@ -444,16 +447,45 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }).toList()
       return newState
 
+    case ProfileActionType.UPDATE_PROFILE_REACTS:
+      const newReacts: ProfileReact[] = []
+      state.profileReacts.value.forEach(react => {
+        const newReact = action.profileReacts.find(r => r.react_id === react.id)
+        newReacts.push({
+          ...react,
+          count: newReact ? newReact.react_count : 0,
+        })
+      })
+      newState.profileReacts = {
+        value: newReacts,
+        loading: false,
+      }
+      return newState
+
+    case ProfileActionType.TOGGLE_UNDERCLASSMEN:
+      return {
+        ...state,
+        showUnderclassmen: action.showUnderclassmen,
+      }
+
+    case AuthActionType.VERIFY_EMAIL_SUCCESS:
+      return {
+        ...state,
+        classYear: action.classYear,
+      }
+
     case ReduxActionType.REHYDRATE:
 
-      // for unit tests when root state is empty
+      // for when root state is empty
       if (!action.payload.profile) {
         return state
       }
 
       function getValue<T>(oldStateValue: LoadableValue<T>, defaultValue: T): LoadableValue<T> {
         let value: T
-        if (oldStateValue.loading) {
+        if (!oldStateValue) {
+          value = defaultValue
+        } else if (oldStateValue.loading) {
           if (oldStateValue.prevValue !== undefined) {
             value = oldStateValue.prevValue
           } else {
@@ -471,16 +503,17 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       return {
         id: action.payload.profile.id,
         preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
-        surname: action.payload.profile.surname || initialState.surname,
-        fullName: action.payload.profile.fullName || initialState.fullName,
-        classYear: action.payload.profile.classYear || initialState.classYear,
+        surname: action.payload.profile.surname,
+        fullName: action.payload.profile.fullName,
+        classYear: action.payload.profile.classYear,
         major: getValue(action.payload.profile.major, initialState.major.value),
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
         images: List(action.payload.profile.images.map(image => getValue(image!, {uri: '', isLocal: true}))),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),
-        reacts: getValue(action.payload.profile.reacts, initialState.reacts.value),
-        allReacts: action.payload.profile.allReacts || initialState.allReacts,
+        profileReacts: getValue(action.payload.profile.profileReacts, initialState.profileReacts.value),
+        allReacts: action.payload.profile.allReacts,
         blockedUsers: List(action.payload.profile.blockedUsers.map(user => getValue(user!, {email: '', blocked: false}))),
+        showUnderclassmen: action.payload.profile.showUnderclassmen,
       }
 
     case ProfileActionType.CLEAR_PROFILE_STATE:

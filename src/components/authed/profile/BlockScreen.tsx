@@ -228,10 +228,7 @@ class BlockScreen extends PureComponent<Props, State> {
     if (!EMAIL_REGEX.test(email) || !email.endsWith('@tufts.edu')) {
       Alert.alert(
         'Oops',
-        "That's not a Tufts e-mail",
-        [
-          { text: 'OK' },
-        ]
+        "That's not a Tufts e-mail"
       )
       return
     }

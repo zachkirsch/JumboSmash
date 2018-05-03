@@ -1,5 +1,6 @@
 import React, { Component, ComponentState, PureComponent } from 'react'
 import { Platform, StyleSheet, TextInput, TextInputProperties, TextInputStatic, TextStyle } from 'react-native'
+import { getMainColor } from '../../utils'
 
 export type TextInputRef = TextInputStatic & Component<TextInputProperties, ComponentState>
 
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   fancy: {
     ...Platform.select({
       ios: {
-        shadowColor: 'rgba(172, 203, 238, 0.75)',
+        shadowColor: getMainColor(0.75),
         shadowOpacity: 1,
         shadowRadius: 50,
       },

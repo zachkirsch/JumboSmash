@@ -69,17 +69,16 @@ class ChatScreen extends PureComponent<Props, {}> {
     }
     const messages = conversation.messages.toArray()
 
-    // toggle between these two depending on whether testing with fake zach or real user
-    // const user = conversation.otherUsers[0]
     const user = this.props.allUsers.get(conversation.otherUsers[0])
 
     return (
       <View style={styles.container}>
         <HeaderBar
           renderTitle={this.renderHeaderBarTitle(user)}
-          onPressLeft={this.props.navigation.goBack}
+          onPressLeft={this.goBack}
           renderRight={this.renderRightIcon}
           onPressRight={this.onPressEllipsis}
+          containerStyle={styles.headerBar}
         />
         <View style={styles.chat}>
           <GiftedChat
@@ -109,14 +108,16 @@ class ChatScreen extends PureComponent<Props, {}> {
 
   private renderInputToolbar = (props: InputToolbarProps) => <InputToolbar {...props} />
 
-  private renderHeaderBarTitle = (user: User) => () => (
-    <View style={styles.bannerProfile}>
-      <TouchableOpacity onPress={this.previewProfile(user)} style={{alignItems: 'center'}}>
-        <JSImage cache source={{uri: user.images[0]}} style={styles.avatarPhoto} />
-        <JSText style={styles.headerName}>{user.preferredName}</JSText>
-      </TouchableOpacity>
-    </View>
-  )
+  private renderHeaderBarTitle = (user: User) => () => {
+    return (
+      <View style={styles.bannerProfile}>
+        <TouchableOpacity onPress={this.previewProfile(user)} style={{alignItems: 'center'}}>
+          <JSImage cache source={{uri: user.images[0]}} style={styles.avatarPhoto} />
+          <JSText style={styles.headerName}>{user.preferredName}</JSText>
+        </TouchableOpacity>
+      </View>
+    )
+  }
 
   private renderRightIcon = () => (
     <FontAwesome
@@ -126,8 +127,10 @@ class ChatScreen extends PureComponent<Props, {}> {
     />
   )
 
+  private goBack = () => this.props.navigation.goBack()
+
   private previewProfile = (user: User) => () => {
-    this.props.navigation.navigate('ViewProfileScreen', { preview: user })
+    this.props.navigation.navigate('ViewProfileScreen', { type: 'other', userId: user.id })
   }
 
   private onPressEllipsis = () => {
@@ -141,7 +144,7 @@ class ChatScreen extends PureComponent<Props, {}> {
       {
         title: 'Unmatch',
         onPress: () => {
-          this.props.navigation.popToTop()
+          this.goBack()
           this.props.unmatch(this.getConversation().matchId, this.getConversationId())
         },
       },
@@ -214,5 +217,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     marginBottom: 7,
+  },
+  headerBar: {
+    height: 73,
   },
 })

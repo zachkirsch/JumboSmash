@@ -1,6 +1,6 @@
 import moment from 'moment'
 import React, { PureComponent } from 'react'
-import { Animated, TouchableOpacity, StyleSheet, View, ActivityIndicator } from 'react-native'
+import { Animated, Easing, TouchableOpacity, StyleSheet, View, ActivityIndicator, Dimensions } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
@@ -32,10 +32,13 @@ interface State {
     animating: boolean
     alreadyAnimated: boolean
     rotation: Animated.Value
+    translateY: Animated.Value
   }
 }
 
 type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
+
+const HEIGHT = Dimensions.get('window').height
 
 class CountdownScreen extends PureComponent<Props, State> {
 
@@ -45,14 +48,7 @@ class CountdownScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {
-      ...this.getTimeLeft(),
-      rocket: {
-        animating: false,
-        alreadyAnimated: false,
-        rotation: new Animated.Value(0),
-      },
-    }
+    this.state = this.getInitialState()
   }
 
   public componentDidMount() {
@@ -75,13 +71,7 @@ class CountdownScreen extends PureComponent<Props, State> {
         // they tried to cheat
         if (this.state.rocket.animating || this.state.rocket.alreadyAnimated) {
           this.state.rocket.rotation.stopAnimation()
-          this.setState({
-            rocket: {
-              alreadyAnimated: true,
-              animating: false,
-              rotation: new Animated.Value(0),
-            },
-          })
+          this.setState(this.getInitialState())
         }
         if (!this.timer) {
           this.timer = setInterval(this.updateCountdown, 1000)
@@ -154,6 +144,18 @@ class CountdownScreen extends PureComponent<Props, State> {
               outputRange: ['0deg', '-45deg'],
             }),
           },
+          {
+            translateY: this.state.rocket.translateY.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, -HEIGHT * 2 / 3],
+            }),
+          },
+          {
+            translateX: this.state.rocket.translateY.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, HEIGHT * 2 / 3],
+            }),
+          },
         ],
       })
     }
@@ -170,6 +172,9 @@ class CountdownScreen extends PureComponent<Props, State> {
   }
 
   private renderCountdown = () => {
+    if (this.state.totalSecondsRemaining === 0) {
+      return null
+    }
     const style = [
       styles.countdown,
       {
@@ -210,7 +215,7 @@ class CountdownScreen extends PureComponent<Props, State> {
   )
 
   private renderOverlayContents = () => {
-    if (this.state.rocket.animating || this.props.serverTime.loading && this.state.totalSecondsRemaining <= 0) {
+    if (this.state.rocket.alreadyAnimated && this.props.serverTime.loading && this.state.totalSecondsRemaining <= 0) {
       return <ActivityIndicator />
     }
     if (this.props.serverTime.errorMessage) {
@@ -251,13 +256,22 @@ class CountdownScreen extends PureComponent<Props, State> {
             animating: true,
           },
         }, () => {
-          Animated.timing(
+          const rotation = Animated.timing(
             this.state.rocket.rotation,
             {
               toValue: 1,
               duration: 5000,
             }
-          ).start(() => {
+          )
+          const translation = Animated.timing(
+            this.state.rocket.translateY,
+            {
+              toValue: 1,
+              duration: 1000,
+              easing: Easing.exp,
+            }
+          )
+          Animated.sequence([rotation, translation]).start(() => {
             this.setState({
               rocket: {
                 ...this.state.rocket,
@@ -276,11 +290,19 @@ class CountdownScreen extends PureComponent<Props, State> {
     if (this.state.rocket.animating) {
       this.navigateTimer = setTimeout(this.navigateWhenReady, 1000)
     } else {
-      this.navigateTimer = setTimeout(() => {
-        this.props.navigation.navigate(LoginRoute.LoginScreen)
-      }, 1000)
+      this.props.navigation.navigate(LoginRoute.LoginScreen)
     }
   }
+
+  private getInitialState = (): State => ({
+    ...this.getTimeLeft(),
+    rocket: {
+      animating: false,
+      alreadyAnimated: false,
+      rotation: new Animated.Value(0),
+      translateY: new Animated.Value(0),
+    },
+  })
 }
 
 const mapStateToProps = (state: RootState): StateProps => {

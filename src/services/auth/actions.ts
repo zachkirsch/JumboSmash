@@ -3,6 +3,9 @@ import { Credentials } from './types'
 /* Actions */
 
 export enum AuthActionType {
+  ATTEMPT_LOGIN = 'ATTEMPT_LOGIN',
+  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
+  LOGIN_FAILURE = 'LOGIN_FAILURE',
   ATTEMPT_ACCEPT_COC = 'ATTEMPT_ACCEPT_COC',
   ACCEPT_COC_SUCCESS = 'ACCEPT_COC_SUCCESS',
   ACCEPT_COC_FAILURE = 'ACCEPT_COC_FAILURE',
@@ -10,6 +13,7 @@ export enum AuthActionType {
   ATTEMPT_REQUEST_VERIFICATION = 'ATTEMPT_REQUEST_VERIFICATION',
   REQUEST_VERIFICATION_SUCCESS = 'REQUEST_VERIFICATION_SUCCESS',
   REQUEST_VERIFICATION_FAILURE = 'REQUEST_VERIFICATION_FAILURE',
+  CONFIRM_NEAR_TUFTS = 'CONFIRM_NEAR_TUFTS',
   ATTEMPT_VERIFY_EMAIL = 'ATTEMPT_VERIFY_EMAIL',
   VERIFY_EMAIL_SUCCESS = 'VERIFY_EMAIL_SUCCESS',
   VERIFY_EMAIL_FAILURE = 'VERIFY_EMAIL_FAILURE',
@@ -19,6 +23,19 @@ export enum AuthActionType {
   CLEAR_AUTH_ERROR_MESSAGE = 'CLEAR_AUTH_ERROR_MESSAGE',
   LOGOUT = 'LOGOUT',
   OTHER_ACTION = '__any_other_action_type__',
+}
+
+export interface AttemptLoginAction {
+  type: AuthActionType.ATTEMPT_LOGIN
+}
+
+export interface LoginSuccessAction {
+  type: AuthActionType.LOGIN_SUCCESS
+}
+
+export interface LoginFailureAction {
+  type: AuthActionType.LOGIN_FAILURE
+  errorMessage: string
 }
 
 export interface AttemptRequestVerificationAction {
@@ -44,11 +61,17 @@ export interface AttemptVerifyEmailAction {
 
 export interface VerifyEmailSuccessAction {
   type: AuthActionType.VERIFY_EMAIL_SUCCESS
+  sessionKey: string
+  classYear: number
 }
 
 export interface VerifyEmailFailureAction {
   type: AuthActionType.VERIFY_EMAIL_FAILURE
   errorMessage: string
+}
+
+export interface ConfirmNearTuftsAction {
+  type: AuthActionType.CONFIRM_NEAR_TUFTS
 }
 
 export interface SetSessionKeyAction {
@@ -97,13 +120,16 @@ export interface OtherAction {
   type: AuthActionType.OTHER_ACTION
 }
 
-export type AuthAction =
-  AttemptRequestVerificationAction
+export type AuthAction = AttemptLoginAction
+| LoginSuccessAction
+| LoginFailureAction
+| AttemptRequestVerificationAction
 | RequestVerificationSuccessAction
 | RequestVerificationFailureAction
 | AttemptVerifyEmailAction
 | VerifyEmailSuccessAction
 | VerifyEmailFailureAction
+| ConfirmNearTuftsAction
 | SetSessionKeyAction
 | FinishTutorialAction
 | AttemptAcceptCoCAction
@@ -115,6 +141,12 @@ export type AuthAction =
 | OtherAction
 
 /* Action Creators */
+
+export const attemptLogin = (): AttemptLoginAction => {
+  return {
+    type: AuthActionType.ATTEMPT_LOGIN,
+  }
+}
 
 export const acceptCoC = (): AttemptAcceptCoCAction => {
   return {
@@ -140,6 +172,12 @@ export const verifyEmail = (code: string): AttemptVerifyEmailAction => {
   return {
     type: AuthActionType.ATTEMPT_VERIFY_EMAIL,
     verificationCode: code,
+  }
+}
+
+export const confirmNearTufts = (): ConfirmNearTuftsAction => {
+  return {
+    type: AuthActionType.CONFIRM_NEAR_TUFTS,
   }
 }
 

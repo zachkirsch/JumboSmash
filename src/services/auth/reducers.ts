@@ -50,9 +50,10 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
       return {
         ...state,
-        isLoggedIn: true,
         validVerificationCode: true,
         waitingForVerificationResponse: false,
+        sessionKey: action.sessionKey,
+        classYear: action.classYear,
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
@@ -62,10 +63,22 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         waitingForVerificationResponse: false,
       }
 
+    case AuthActionType.CONFIRM_NEAR_TUFTS:
+      return {
+        ...state,
+        nearTufts: true,
+      }
+
     case AuthActionType.SET_SESSION_KEY:
       return {
         ...state,
         sessionKey: action.sessionKey,
+      }
+
+    case AuthActionType.LOGIN_SUCCESS:
+      return {
+        ...state,
+        isLoggedIn: true,
       }
 
     case AuthActionType.FINISH_TUTORIAL:

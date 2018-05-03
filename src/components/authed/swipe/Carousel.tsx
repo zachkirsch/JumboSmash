@@ -90,14 +90,14 @@ class Carousel extends PureComponent<Props, State> {
   }
 
   private renderDots = () => {
-    if (!this.props.enabled || this.props.imageUris.length <= 1) {
+    if (!this.props.enabled) {
       return null
     }
 
     return this.props.imageUris.map((_, i) => {
       const style = [styles.dot, {
-        backgroundColor: this.state.carouselIndex === i ? 'gray' : 'white',
-        borderColor:     this.state.carouselIndex === i ? 'white' : 'gray',
+        backgroundColor: this.state.carouselIndex === i ? 'white' : 'lightgray',
+        borderColor: this.state.carouselIndex === i ? 'gray' : 'white',
       }]
       return <View key={`dot-${i}`} style={style} />
     })

@@ -9,7 +9,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { CircleButton, JSImage, JSImageProps } from '../../common'
-import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
+import { ActionSheetOption, generateActionSheetOptions, getMainColor, getLightColor } from '../../../utils'
 
 interface Props {
   images: Array<LoadableValue<ImageUri>>
@@ -111,7 +111,7 @@ class PhotosSection extends PureComponent<Props, State> {
             style={styles.overlayIcon}
             name={'target-two'}
             size={40}
-            color='rgba(172,203,238,0.6)'
+            color={getLightColor()}
           />
         )
       }
@@ -126,7 +126,7 @@ class PhotosSection extends PureComponent<Props, State> {
             style={styles.overlayIcon}
             name={'plus'}
             size={50}
-            color='rgba(172,203,238,0.6)'
+            color={getLightColor()}
           />
         )
       } else {
@@ -283,7 +283,7 @@ class PhotosSection extends PureComponent<Props, State> {
       if (this.state.swappingIndex !== index) {
         this.props.saveRequired()
         newImages = []
-        const imageListSize = Math.max(this.state.images.length - 1, index, this.state.swappingIndex)
+        const imageListSize = Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1)
         for (let i = 0; i < imageListSize; i++) {
           let toPush = this.state.images[i]
           if (i === index) {
@@ -294,7 +294,7 @@ class PhotosSection extends PureComponent<Props, State> {
           newImages.push(toPush || EMPTY_LOCAL_IMAGE)
         }
       }
-        this.setState({
+      this.setState({
         swapping: false,
         images: newImages,
       })
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     ...Platform.select({
       ios: {
-        shadowColor: 'rgb(172, 203, 238)',
+        shadowColor: getLightColor(),
         shadowOpacity: 0.75,
         shadowRadius: .02 * WIDTH,
       },
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
     borderColor: 'gray',
     borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: '#0F52BA',
+    backgroundColor: getMainColor(),
     zIndex: 600,
     elevation: 600,
   },

@@ -1,8 +1,9 @@
 import { TagSectionType } from './types'
 import { RehydrateAction } from '../redux'
-import { GetTagsResponse, GetReactsResponse, MeResponse } from '../api'
-/* Actions */
+import { GetTagsResponse, GetReactsResponse, MeResponse, ProfileReact } from '../api'
+import { VerifyEmailSuccessAction } from '../auth'
 
+/* Actions */
 export enum ProfileActionType {
 
   INITIALIZE_PROFILE = 'INITIALIZE_PROFILE',
@@ -42,6 +43,10 @@ export enum ProfileActionType {
   ATTEMPT_UNBLOCK_USER = 'ATTEMPT_UNBLOCK_USER',
   UNBLOCK_USER_SUCCESS = 'UNBLOCK_USER_SUCCESS',
   UNBLOCK_USER_FAILURE = 'UNBLOCK_USER_FAILURE',
+
+  UPDATE_PROFILE_REACTS = 'UPDATE_PROFILE_REACTS',
+
+  TOGGLE_UNDERCLASSMEN = 'TOGGLE_UNDERCLASSMEN',
 
   CLEAR_PROFILE_STATE = 'CLEAR_PROFILE_STATE',
 
@@ -205,6 +210,16 @@ export interface UnblockUserFailureAction {
   errorMessage: string
 }
 
+export interface UpdateProfileReactsAction {
+  type: ProfileActionType.UPDATE_PROFILE_REACTS
+  profileReacts: ProfileReact[]
+}
+
+export interface ToggleUnderclassmenAction {
+  type: ProfileActionType.TOGGLE_UNDERCLASSMEN
+  showUnderclassmen: boolean
+}
+
 export interface ClearProfileStateAction {
   type: ProfileActionType.CLEAR_PROFILE_STATE
 }
@@ -250,7 +265,10 @@ export type ProfileAction = InitializeProfileAction
 | AttemptUnblockUserAction
 | UnblockUserSuccessAction
 | UnblockUserFailureAction
+| UpdateProfileReactsAction
+| ToggleUnderclassmenAction
 | ClearProfileStateAction
+| VerifyEmailSuccessAction
 | RehydrateAction
 | OtherAction
 
@@ -349,6 +367,20 @@ export const unblockUser = (email: string): AttemptUnblockUserAction => {
   return {
     type: ProfileActionType.ATTEMPT_UNBLOCK_USER,
     email,
+  }
+}
+
+export const updateProfileReacts = (profileReacts: ProfileReact[]): UpdateProfileReactsAction => {
+  return {
+    type: ProfileActionType.UPDATE_PROFILE_REACTS,
+    profileReacts,
+  }
+}
+
+export const toggleUnderclassmen = (showUnderclassmen: boolean): ToggleUnderclassmenAction => {
+  return {
+    type: ProfileActionType.TOGGLE_UNDERCLASSMEN,
+    showUnderclassmen,
   }
 }
 

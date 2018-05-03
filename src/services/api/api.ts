@@ -11,7 +11,7 @@ export const api = {
 
   requestVerification: (credentials: Credentials) => Endpoints.requestVerification.hit(credentials, {}),
   verifyEmail: (code: string, deviceId: string) => Endpoints.verifyEmail.hit({
-    email: Endpoints.ApiAuthService .getToken().email,
+    email: Endpoints.ApiAuthService.getToken().email,
     code,
     device_id: deviceId,
   }, {}),
@@ -22,7 +22,6 @@ export const api = {
 
   setFirebaseUid: (uid: string) => Endpoints.setFirebaseUid.hit({firebase_uid: uid}, {}),
   setFirebaseNotificationToken: (token: string) => Endpoints.setFirebaseNotificationToken.hit({firebase_notification_token: token}, {}),
-
   me: () => Endpoints.me.hit({}, {}),
   updateBio: (bio: string) => Endpoints.updateBio.hit({bio}, {}),
   updateName: (preferredName: string) => Endpoints.updateName.hit({preferred_name: preferredName}, {}),
@@ -61,6 +60,7 @@ export const api = {
 
 export enum AuthError {
   NO_ERROR,
+  NOT_TUFTS,
   NOT_SENIOR,
   BAD_CODE,
   SERVER_ERROR,
@@ -72,6 +72,8 @@ export const getAuthErrorFromMessage = (errorMessage: string): AuthError => {
       return AuthError.NO_ERROR
     case 'not_senior':
       return AuthError.NOT_SENIOR
+    case 'not_tufts':
+      return AuthError.NOT_TUFTS
     case 'bad_code':
       return AuthError.BAD_CODE
     default:

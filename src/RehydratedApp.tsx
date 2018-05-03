@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { StatusBar, StyleSheet, View } from 'react-native'
+import { Alert, StatusBar, StyleSheet, View } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
 import { NavigationContainer } from 'react-navigation'
 import {
@@ -15,11 +15,11 @@ import { IChatMessage } from 'react-native-gifted-chat'
 import { ChatService } from './services/firebase'
 import { attemptConnectToFirebase } from './services/firebase'
 import { NavigationService } from './services/navigation'
-import { dismissMatchPopup, MatchPopupSettings } from './services/matches'
+import { dismissMatchPopup, MatchesState } from './services/matches'
 import { AuthState } from './services/auth'
 import firebase from 'react-native-firebase'
 import { InAppNotification, deleteInAppNotification } from './services/notifications'
-import MatchPopUp from './MatchPopUp'
+import { MatchPopUp } from './components/authed/swipe'
 
 interface StateProps {
   authState: AuthState
@@ -29,7 +29,7 @@ interface StateProps {
   classYear: number
   profileSetUp: boolean
   inAppNotifications: InAppNotification[]
-  matchPopup: MatchPopupSettings
+  matches: MatchesState
   myAvatar: string
 }
 
@@ -49,8 +49,6 @@ class RehydratedApp extends PureComponent<Props, {}> {
   private postLoginRouter?: NavigationContainer
 
   componentDidMount() {
-    // navigator.geolocation.getCurrentPosition(success => console.log(success), error => console.log(error))
-
     this.onUserChanged = firebase.auth().onUserChanged(() => {
       if (!firebase.auth().currentUser && this.props.authState.isLoggedIn) {
         this.props.attemptConnectToFirebase(this.props.firebaseToken)
@@ -98,26 +96,34 @@ class RehydratedApp extends PureComponent<Props, {}> {
   }
 
   private renderMatchPopup = () => {
-    if (!this.props.matchPopup.shouldShow) {
+    if (!this.props.matches.matchPopup.shouldShow) {
       return null
     }
     return (
-        <MatchPopUp
-          myAvatar={this.props.myAvatar}
-          matchAvatar={this.props.matchPopup.match.otherUsers[0].images[0].url}
-          matchName={this.props.matchPopup.match.otherUsers[0].preferred_name || 'someone'}
-          onPressStartChat={this.onPressStartChat}
-          onDismiss={this.props.dismissMatchPopup}
-        />
+      <MatchPopUp
+        myAvatar={this.props.myAvatar}
+        matchAvatar={this.props.matches.matchPopup.match.otherUsers[0].images[0].url}
+        matchName={this.props.matches.matchPopup.match.otherUsers[0].preferred_name || 'someone'}
+        onPressStartChat={this.onPressStartChat}
+        onDismiss={this.props.dismissMatchPopup}
+      />
     )
   }
 
   private onPressStartChat = () => {
-    if (!this.props.matchPopup.shouldShow) {
+    if (!this.props.matches.matchPopup.shouldShow) {
       return
     }
     this.props.dismissMatchPopup()
-    NavigationService.openChat(this.props.matchPopup.match.conversationId)
+    const conversationId = this.props.matches.matchPopup.match.conversationId
+    if (this.props.matches.chats.has(conversationId)) {
+      NavigationService.openChat(conversationId)
+    } else {
+      Alert.alert(
+        'Oops',
+        "Looks like you two aren't matched anymore"
+      )
+    }
   }
 
   private renderNotifications = () => {
@@ -148,7 +154,6 @@ class RehydratedApp extends PureComponent<Props, {}> {
 
   private shouldShowPostLoginScreens = () => !this.props.authState.codeOfConductAccepted
     || !this.props.authState.tutorialFinished
-    || this.props.classYear !== 18 && !this.props.authState.nearTufts
     || !this.props.profileSetUp
 }
 
@@ -162,7 +167,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     profileSetUp: state.profile.images.filter(i => !!i && !!i.value.uri).size > 0,
     inAppNotifications: state.notifications.inAppNotifications.toArray(),
     myAvatar: state.profile.images.first() ? state.profile.images.first().value.uri : '',
-    matchPopup: state.matches.matchPopup,
+    matches: state.matches,
   }
 }
 

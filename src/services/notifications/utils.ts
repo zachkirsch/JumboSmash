@@ -4,26 +4,40 @@ import moment from 'moment'
 import { reduxStore } from '../../redux'
 import { ChatService } from '../firebase'
 import { unmatch } from '../matches'
+import { updateProfileReacts } from '../profile'
 import { addInAppNotification } from './actions'
-import { Match, GetUserResponse } from '../api'
+import { Match, ProfileReact, GetUserResponse } from '../api'
+import { NavigationService } from '../navigation'
 
 /* tslint:disable:no-console */
 
-interface NewMatchNotification {
+interface NewMatchMessage {
   msg_type: 'new_match'
   match: Match
   other_users: GetUserResponse[]
 }
 
-interface UnmatchDataMessage {
+interface NewChatMessage {
+  msg_type: 'new_chat'
+  message: string
+  from_user: GetUserResponse
+  conversation_uuid: string
+}
+
+interface ReactMessage {
+  msg_type: 'react',
+  profile_reacts: ProfileReact[]
+}
+
+interface UnmatchMessage {
   msg_type: 'unmatch'
   conversation_uuid: string
   match_id: number
 }
 
-type DataMessage = UnmatchDataMessage
+type DataMessage = UnmatchMessage | NewMatchMessage | ReactMessage
 
-type Notification = NewMatchNotification
+type Notification = NewMatchMessage | NewChatMessage
 
 const dummy = () => {} /* tslint:disable-line:no-empty */
 
@@ -74,8 +88,21 @@ export const setupNotifications = () => {
       console.log(data)
       switch (data.msg_type) {
         case 'unmatch':
+          NavigationService.popChatIfOpen(data.conversation_uuid)
           reduxStore.dispatch(unmatch(data.match_id, data.conversation_uuid))
           break
+        case 'new_match':
+          const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
+          ChatService.createChat(
+            data.match.id,
+            data.match.conversation_uuid,
+            moment(data.match.createdAt).valueOf(),
+            otherUsers,
+            false
+          )
+          break
+        case 'react':
+          reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
       }
     } catch (e) {
       console.log(e)
@@ -99,14 +126,6 @@ export const setupNotifications = () => {
       switch (data.msg_type) {
         case 'new_match':
           const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
-          ChatService.createChat(
-            data.match.id,
-            data.match.conversation_uuid,
-            moment(data.match.createdAt).valueOf(),
-            otherUsers,
-            false,
-            false
-          )
           const otherUser = otherUsers[0]
           reduxStore.dispatch(addInAppNotification(
             `You matched with ${otherUser.preferred_name}!`,
@@ -115,9 +134,18 @@ export const setupNotifications = () => {
             data.match.conversation_uuid
           ))
           break
+        case 'new_chat':
+          if (!NavigationService.chatIsOpen(data.conversation_uuid)) {
+            ChatService.store!.dispatch(addInAppNotification(
+              `New message from ${data.from_user.preferred_name}`,
+              data.message,
+              data.from_user.images[0].url,
+              data.conversation_uuid
+            ))
+          }
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
       // TODO: Query for new matches
     }
   })
@@ -134,19 +162,14 @@ export const setupNotifications = () => {
       console.log(data)
       switch (data.msg_type) {
         case 'new_match':
-          const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
-          ChatService.createChat(
-            data.match.id,
-            data.match.conversation_uuid,
-            moment(data.match.createdAt).valueOf(),
-            otherUsers,
-            true,
-            false
-          )
+          NavigationService.openChat(data.match.conversation_uuid)
+          break
+        case 'new_chat':
+          NavigationService.openChat(data.conversation_uuid)
           break
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
       // TODO: Query for new matches
     }
   })

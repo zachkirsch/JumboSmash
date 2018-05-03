@@ -29,16 +29,19 @@ class Bubble extends PureComponent<Props, {}> {
   }
 
   private onPress = () => {
-    if (this.props.currentMessage && this.props.currentMessage.text) {
-      const text = this.props.currentMessage.text
-      const { options, callback } = generateActionSheetOptions([
-        {
-          title: 'Copy Message',
-          onPress: () => Clipboard.setString(text),
-        },
-      ])
-      this.props.showActionSheetWithOptions!(options, callback)
+    if (!this.props.currentMessage || !this.props.currentMessage.text || this.props.currentMessage.system) {
+      return
     }
+    const text = this.props.currentMessage.text
+
+    const actionSheetOptions = [
+      {
+        title: 'Copy Message',
+        onPress: () => Clipboard.setString(text),
+      },
+    ]
+    const { options, callback } = generateActionSheetOptions(actionSheetOptions)
+    this.props.showActionSheetWithOptions!(options, callback)
   }
 
   private renderMessageText = () => {

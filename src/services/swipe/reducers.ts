@@ -217,9 +217,32 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
     case SwipeActionType.CLEAR_SWIPE_STATE:
-    case ReduxActionType.REHYDRATE:
       return {
         ...initialState,
+      }
+
+    case ReduxActionType.REHYDRATE:
+
+      // for when root state is empty
+      if (!action.payload.swipe) {
+        return state
+      }
+
+      allUsersMap = Map()
+      Object.keys(action.payload.swipe.allUsers.value).forEach(id => {
+        /* tslint:disable-next-line:no-any */
+        allUsersMap = allUsersMap.set(parseInt(id, 10), (action.payload.swipe.allUsers.value as any)[id])
+      })
+      return {
+        swipableUsers: {
+          value: List(action.payload.swipe.swipableUsers.value),
+          loading: false,
+        },
+        allUsers: {
+          value: allUsersMap,
+          loading: false,
+        },
+        indexOfUserOnTop: 0,
       }
 
     default:

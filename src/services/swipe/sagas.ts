@@ -14,23 +14,27 @@ import {
   FetchSwipableUsersFailureAction,
   FetchSwipableUsersSuccessAction,
   SwipeActionType,
+  fetchSwipableUsers,
 } from './actions'
 import { ReduxActionType } from '../redux'
 import { RootState } from '../../redux'
 import { EmojiProfileReact, ProfileReact, ImageProfileReact, EMOJI_REGEX } from '../profile'
 import { User } from './types'
 
-const getAllReacts = (state: RootState) => state.profile.reacts.value
+const getAllReacts = (state: RootState) => state.profile.profileReacts.value
 const getId = (state: RootState) => state.profile.id
+const getSignedInStatus = (state: RootState) => state.auth.isLoggedIn
 
 const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserResponse): User => {
   return {
     id: user.id,
+    email: user.email,
     bio: user.bio,
     major: user.major || '',
     preferredName: user.preferred_name || '',
     surname: user.surname,
     fullName: user.full_name,
+    classYear: user.class_year,
     images: user.images.map(image => image.url),
     tags: user.tags.map(tag => ({
       name: tag.text,
@@ -81,10 +85,10 @@ function* attemptFetchSwipableUsers() {
     }
     yield put(successAction)
   } catch (e) {
-    const failureAction: FetchSwipableUsersFailureAction = {
-      type: SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE,
-      errorMessage: e.message,
-    }
+  const failureAction: FetchSwipableUsersFailureAction = {
+    type: SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE,
+    errorMessage: e.message,
+  }
     yield put(failureAction)
   }
 }
@@ -119,7 +123,6 @@ function* attemptSwipe(action: AttemptSwipeAction) {
         response.match.conversation_uuid,
         moment(response.match.createdAt).valueOf(),
         response.match.users.filter(u => u.id !== myID),
-        false,
         true
       )
     }
@@ -160,10 +163,17 @@ function* attemptReact(action: AttemptReactAction) {
   }
 }
 
+function* rehydateUsers() {
+  const isLoggedIn: boolean = yield select(getSignedInStatus)
+  if (isLoggedIn) {
+    yield put(fetchSwipableUsers())
+  }
+}
+
 export function* swipeSaga() {
   yield takeLatest(SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS, attemptFetchSwipableUsers)
   yield takeLatest(SwipeActionType.ATTEMPT_FETCH_ALL_USERS, attemptFetchAllUsers)
   yield takeEvery(SwipeActionType.ATTEMPT_SWIPE, attemptSwipe)
   yield takeEvery(SwipeActionType.ATTEMPT_REACT, attemptReact)
-  yield takeLatest(ReduxActionType.REHYDRATE, attemptFetchSwipableUsers)
+  yield takeLatest(ReduxActionType.REHYDRATE, rehydateUsers)
 }

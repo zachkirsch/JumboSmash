@@ -7,7 +7,7 @@ import { finishTutorial } from '../../services/auth'
 import { JSText, JSButton } from '../common'
 import { goToNextRoute } from '../navigation/LoginRouter'
 import { Images } from '../../assets/img'
-import { clamp } from '../../utils'
+import { clamp, getLightColor } from '../../utils'
 import Feather from 'react-native-vector-icons/Feather'
 import firebase from 'react-native-firebase'
 
@@ -49,6 +49,7 @@ const TUTORIAL_SLIDES = [
 class TutorialScreen extends PureComponent<Props, State> {
 
   private scrollView: any /* tslint:disable-line:no-any */
+  private componentIsMounted = false
 
   constructor(props: Props) {
     super(props)
@@ -59,10 +60,15 @@ class TutorialScreen extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
+    this.componentIsMounted = true
     firebase.messaging().hasPermission()
-      .then(notificationsPermissed => this.setState({
+      .then(notificationsPermissed => this.componentIsMounted && this.setState({
         notificationsPermissed: !!notificationsPermissed,
       }))
+  }
+
+  componentWillUnmount() {
+    this.componentIsMounted = false
   }
 
   render() {
@@ -104,7 +110,7 @@ class TutorialScreen extends PureComponent<Props, State> {
       style={styles.bottomItem}
       name='chevrons-right'
       size={40}
-      color='rgba(172, 203, 238, 0.6)'
+      color={getLightColor()}
       onPress={this.onPressChevrons}
     />
   )

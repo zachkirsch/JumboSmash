@@ -1,11 +1,12 @@
 import React, { PureComponent } from 'react'
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Platform, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native'
 import SafeAreaView from 'react-native-safe-area-view'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import JSText from './JSText'
 
 interface Props {
   renderTitle?: () => JSX.Element
+  containerStyle?: ViewStyle
   title?: string
   renderRight?: () => JSX.Element
   onPressRight?: () => void
@@ -20,7 +21,7 @@ class HeaderBar extends PureComponent<Props, {}> {
       ? this.props.renderTitle()
       : <JSText style={styles.title} bold>{this.props.title}</JSText>
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, this.props.containerStyle]}>
         {this.renderLeftView()}
         <View style={styles.titleContainer}>
           {title}
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 73,
+    height: 40,
     zIndex: 20,
     ...Platform.select({
       ios: {

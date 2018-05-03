@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Switch,
   Platform,
   findNodeHandle,
 } from 'react-native'
@@ -22,12 +23,14 @@ import {
   updatePreferredName,
   onChangePreferredNameTextInput,
   onChangeBioTextInput,
+  toggleUnderclassmen,
   Tag,
   ProfileState,
 } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { setTabBarOverlay, clearTabBarOverlay } from '../../../services/navigation'
 import { JSText, JSTextInput, JSImage  } from '../../common'
+import { isSenior } from '../../../utils'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import TagsSection from './TagsSection'
@@ -45,6 +48,7 @@ interface OwnProps {}
 
 interface StateProps {
   profile: ProfileState
+  postRelease2: boolean
 }
 
 interface DispatchProps {
@@ -56,6 +60,7 @@ interface DispatchProps {
   swapImages: (index1: number, index2: number) => void
   setTabBarOverlay: (component: () => JSX.Element) => void
   clearTabBarOverlay: () => void
+  toggleUnderclassmen: (showUnderclassmen: boolean) => void
 }
 
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
@@ -119,7 +124,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           <PhotosSection
             images={this.props.profile.images.toJS()}
             swapImages={this.props.swapImages}
-            updateImage={this.props.updateImage}
+            updateImage={this.updateImage}
             showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
             saveRequired={this.markPhotosSectionAsRequiringSave}
             ref={ref => this.photosSection = ref}
@@ -127,6 +132,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           {this.renderPersonalInfo()}
           {this.renderTags()}
           {this.renderReacts()}
+          {this.renderSecondRelease()}
           <SettingsSection
             block={this.navigateTo('BlockScreen')}
             viewCoC={this.navigateTo('ReviewCoCScreen')}
@@ -145,9 +151,9 @@ class ProfileScreen extends PureComponent<Props, State> {
   private previewProfile = () => () => {
     this.ifSaveable(() => {
       this.navigateTo('ProfilePreviewScreen', {
-        preview: {
+        type: 'self',
+        profile: {
           ...this.props.profile,
-          id: -1,
           preferredName: this.state.preferredName,
           bio: this.state.bio,
           images: this.photosSection!.images().filter(image => !!image),
@@ -220,11 +226,11 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
 
     const reactColumns = []
-    for (let i = 0; i < this.props.profile.reacts.value.length; i += 2) {
+    for (let i = 0; i < this.props.profile.profileReacts.value.length; i += 2) {
       reactColumns.push(
         <View style={styles.reactColumn} key={i}>
-          {this.renderReact(this.props.profile.reacts.value[i])}
-          {this.renderReact(this.props.profile.reacts.value[i + 1])}
+          {this.renderReact(this.props.profile.profileReacts.value[i])}
+          {this.renderReact(this.props.profile.profileReacts.value[i + 1])}
         </View>
       )
     }
@@ -292,6 +298,27 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
+  private renderSecondRelease = () => {
+    if (!this.props.postRelease2 || !isSenior(this.props.profile.classYear)) {
+      return null
+    }
+    return (
+      <View style={[styles.personalInfo, styles.secondReleaseContainer]}>
+        <JSText bold style={[styles.title, styles.secondReleaseTitle]}>
+          SHOW ONLY SENIORS
+        </JSText>
+        <Switch
+          onValueChange={this.onToggleUnderclassmenVisibility}
+          value={!this.props.profile.showUnderclassmen}
+        />
+      </View>
+    )
+  }
+
+  private onToggleUnderclassmenVisibility = (showOnlySeniors: boolean) => {
+    this.props.toggleUnderclassmen(!showOnlySeniors)
+  }
+
   private onFocus = (inputName: 'preferredName' | 'bio') => () => {
     let ref: JSTextInput | null = null
     switch (inputName) {
@@ -313,6 +340,13 @@ class ProfileScreen extends PureComponent<Props, State> {
         .getScrollResponder()
         .scrollResponderScrollNativeHandleToKeyboard(findNodeHandle(ref), 90, true)
     }, 50)
+  }
+
+  private updateImage = (index: number, imageUri: string, mime: string) => {
+    const existingPhoto = this.props.profile.images.get(index)
+    if (!existingPhoto || existingPhoto.value.uri !== imageUri) {
+      this.props.updateImage(index, imageUri, mime)
+    }
   }
 
   private updatePreferredName = (preferredName: string) => {
@@ -391,8 +425,12 @@ class ProfileScreen extends PureComponent<Props, State> {
     // setTimeout is used so that the keyboard actually has time to close before the alert shows
     setTimeout(() => {
       this.ifSaveable(() => {
-        this.props.updateBio(this.state.bio)
-        this.props.updatePreferredName(this.state.preferredName)
+        if (this.props.profile.preferredName.value !== this.state.preferredName) {
+          this.props.updatePreferredName(this.state.preferredName)
+        }
+        if (this.props.profile.bio.value !== this.state.bio) {
+          this.props.updateBio(this.state.bio)
+        }
         this.photosSection && this.photosSection.save()
         this.props.clearTabBarOverlay()
         if (!this.setupMode()) {
@@ -427,6 +465,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     profile: state.profile,
+    postRelease2: state.time.postRelease2,
   }
 }
 
@@ -442,6 +481,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     swapImages: (index1: number, index2: number) => dispatch(swapImages(index1, index2)),
     setTabBarOverlay: (component: () => JSX.Element) => dispatch(setTabBarOverlay(component)),
     clearTabBarOverlay: () => dispatch(clearTabBarOverlay()),
+    toggleUnderclassmen: (showUnderclassmen: boolean) => dispatch(toggleUnderclassmen(showUnderclassmen)),
   }
 }
 
@@ -549,5 +589,12 @@ const styles = StyleSheet.create({
   saveButtonContainer: {
     flex: 1,
     backgroundColor: 'transparent',
+  },
+  secondReleaseContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  secondReleaseTitle: {
+    marginTop: 10,
   },
 })

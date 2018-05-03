@@ -9,6 +9,7 @@ interface Request extends HttpGetRequest {
 interface Response {
   email: string
   session_key: string
+  class_year: number
 }
 
 export const verifyEmail = new GetEndpoint<Request, Response>('/users/verify', false)

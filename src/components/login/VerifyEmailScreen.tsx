@@ -15,6 +15,7 @@ import { RootState } from '../../redux'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
 import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } from '../../services/auth'
 import { JSText } from '../common'
+import { getMainColor, getLightColor } from '../../utils'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
 
@@ -26,6 +27,10 @@ interface StateProps {
   authError: AuthError
   waitingForRequestVerificationResponse: boolean
   waitingForVerificationResponse: boolean
+  isLoggedIn: boolean
+  nearTufts: boolean
+  classYear: number
+  validVerificationCode: boolean
 }
 
 interface DispatchProps {
@@ -84,6 +89,13 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     this.componentIsMounted = false
   }
 
+  public componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.classYear !== 18 && !nextProps.nearTufts && nextProps.validVerificationCode) {
+      this.props.navigation.navigate('ConfirmLocationScreen')
+      // this.props.navigation.popToTop()
+    }
+  }
+
   public render() {
 
     let renderScreen: () => JSX.Element
@@ -105,7 +117,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
             onPress={this.goBack}
             style={styles.goBack}
           >
-            <Ionicons name='ios-arrow-back' size={30} color='black' />
+            <Ionicons name='ios-arrow-back' size={30} color={getMainColor()} />
           </TouchableOpacity>
         </View>
         {this.renderVerifyingOverlay()}
@@ -118,7 +130,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       return null
     }
     return (
-      <View style={[StyleSheet.absoluteFill, {backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center'}]}>
+      <View style={styles.overlay}>
         <ActivityIndicator
           size='large'
           animating
@@ -130,7 +142,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private renderLoadingScreen = () => (
     <View style={styles.loadingScreen}>
-      <ActivityIndicator size='large' color='rgba(172,203,238,0.6)' />
+      <ActivityIndicator size='large' color={getLightColor()} />
     </View>
   )
 
@@ -139,12 +151,14 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     let messageToUser: string
     switch (this.props.authError) {
       case AuthError.NOT_SENIOR:
-        messageToUser = 'JumboSmash is only open to Tufts seniors. According to our records, '
-        messageToUser += "you don't have senior status."
+        messageToUser = 'JumboSmash is only open to Tufts seniors.'
+        break
+      case AuthError.NOT_TUFTS:
+        messageToUser = 'JumboSmash is only open to Tufts students.'
         break
       case AuthError.SERVER_ERROR:
       default:
-        messageToUser = "There's been a server error. Please go back and try again."
+        messageToUser = "There's been a server error.\nPlease go back and try again."
         break
     }
 
@@ -162,7 +176,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       <View>
         <View style={styles.errorContentContainer}>
           <View style={styles.errorIconContainer}>
-            <MaterialIcons name='error-outline' size={75} color='rgba(172,203,238,0.6)' />
+            <MaterialIcons name='error-outline' size={75} color={getLightColor()} />
           </View>
           <JSText style={[styles.text, styles.largeMargin]}>
             {messageToUser}
@@ -229,6 +243,10 @@ const mapStateToProps = (state: RootState): StateProps => {
     waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
     waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
     email: state.auth.email,
+    isLoggedIn: state.auth.isLoggedIn,
+    nearTufts: state.auth.nearTufts,
+    classYear: state.profile.classYear,
+    validVerificationCode: state.auth.validVerificationCode,
   }
 }
 
@@ -283,6 +301,12 @@ const styles = StyleSheet.create({
     flex: 1.6,
     marginBottom: 30,
     justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
 })

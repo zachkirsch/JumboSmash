@@ -9,9 +9,11 @@ interface Tag {
 
 export interface User {
   id: number
+  email: string
   preferredName: string
   surname: string
   fullName: string
+  classYear: number
   major: string
   bio: string
   images: string[]

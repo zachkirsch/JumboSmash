@@ -4,7 +4,6 @@ import { IChatMessage } from 'react-native-gifted-chat'
 import { createMatch, receiveMessages } from '../matches'
 import { RootState } from '../../redux'
 import { GetUserResponse } from '../api'
-import { addInAppNotification } from '../notifications/actions'
 
 const chatroomsBeingListenedTo = new Set<string>()
 
@@ -18,7 +17,6 @@ interface ChatServiceType {
                conversationId: string,
                createdAt: number,
                withUsers: GetUserResponse[],
-               openChatScreen: boolean,
                shouldOpenMatchPopup: boolean) => void
   listenForNewChats: (conversationId: string) => void
   stopListeningForNewChats: () => void
@@ -41,7 +39,6 @@ ChatService.createChat = (matchId: number,
                           conversationId: string,
                           createdAt: number,
                           withUsers: GetUserResponse[],
-                          openChatAfterCreation: boolean,
                           shouldOpenMatchPopup: boolean) => {
   /* TODO permissions
   const dbRef = getRefToChatSection(conversationId).child('members')
@@ -50,7 +47,7 @@ ChatService.createChat = (matchId: number,
   dbRef.push(permissionsObject)
   */
   ChatService.listenForNewChats(conversationId)
-  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers, openChatAfterCreation, shouldOpenMatchPopup))
+  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers, shouldOpenMatchPopup))
 }
 
 ChatService.listenForNewChats = (conversationId: string) => {
@@ -69,14 +66,6 @@ ChatService.listenForNewChats = (conversationId: string) => {
 
       const conversation = ChatService.store!.getState().matches.chats.get(conversationId)
       if (conversation && !conversation.messageIDs.has(message._id)) {
-        const otherUserId = conversation.otherUsers[0]
-        const otherUser = ChatService.store!.getState().swipe.allUsers.value.get(otherUserId)
-        ChatService.store!.dispatch(addInAppNotification(
-          `New message from ${otherUser.preferredName}`,
-          message.text,
-          otherUser.images[0],
-          conversationId
-        ))
         ChatService.store!.dispatch(receiveMessages(conversationId, [message]))
       }
     })

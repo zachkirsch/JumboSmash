@@ -77,7 +77,6 @@ class CircleButton extends PureComponent<Props, State> {
             size={this.props.iconSize}
             color={this.state.buttonPressedIn ? 'white' : this.props.iconColor}
           />
-
         </Animated.View>
       </TouchableWithoutFeedback>
     )

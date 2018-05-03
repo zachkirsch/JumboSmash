@@ -8,29 +8,44 @@ import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Direction } from '../../../services/api'
 import { fetchSwipableUsers, swipe, react, User, SwipeState } from '../../../services/swipe'
-import { ProfileReact } from '../../../services/profile'
+import { ProfileReact, blockUser } from '../../../services/profile'
 import { CircleButton, CircleButtonProps } from '../../common'
-import { mod } from '../../../utils'
+import { mod, isSenior } from '../../../utils'
 import Card from './Card'
 import NoMoreCards from './NoMoreCards'
 
+interface PreviewProps {
+  onExit: () => void
+}
+
+interface SelfPreviewProps extends PreviewProps {
+  type: 'self'
+  profile: User
+}
+
+interface OtherPreviewProps extends PreviewProps {
+  type: 'other'
+  userId: number
+}
+
 interface OwnProps {
-  preview?: {
-    user: User
-    onExit: () => void
-  }
+  preview?: SelfPreviewProps | OtherPreviewProps
 }
 
 export type SwipeScreenProps = OwnProps
 
 type StateProps = SwipeState & {
+  meId: number
   postRelease2: boolean
+  classYear: number
+  showUnderclassmen: boolean
 }
 
 interface DispatchProps {
   swipe: (direction: Direction, onUser: User) => void
   react: (reacts: ProfileReact[], onUser: User) => void
   fetchSwipableUsers: () => void
+  blockUser: (email: string) => void
 }
 
 type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
@@ -51,6 +66,7 @@ class SwipeScreen extends PureComponent<Props, State> {
   private topCard: Card
   private cardIndexOfTopCard = 0
   private loadingScreenTimer: number
+  private componentIsMounted = false
 
   constructor(props: Props) {
     super(props)
@@ -64,18 +80,22 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    if (!this.props.swipableUsers.loading && this.props.swipableUsers.value.size === 0) {
-      this.fetchUsers()
+    this.componentIsMounted = true
+    if (!this.props.preview) {
+      if (!this.props.swipableUsers.loading && this.props.swipableUsers.value.size === 0) {
+        this.fetchUsers()
+      }
+      this.loadingScreenTimer = setTimeout(() => {
+        this.safeSetState({
+          mustShowLoadingScreen: false,
+        })
+      }, 2000)
     }
-    this.loadingScreenTimer = setTimeout(() => {
-      this.setState({
-        mustShowLoadingScreen: false,
-      })
-    }, 2000)
   }
 
   componentWillUnmount() {
     clearTimeout(this.loadingScreenTimer)
+    this.componentIsMounted = false
   }
 
   public render() {
@@ -84,7 +104,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         if (this.props.swipableUsers.loading || this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
           return <Card type='loading' />
         } else {
-          return <NoMoreCards requestMoreCards={this.requestMoreUsers}/>
+          return <NoMoreCards requestMoreCards={this.requestMoreUsers} issue='outOfCards' />
         }
       }
     }
@@ -92,20 +112,27 @@ class SwipeScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.fill}>
         {this.renderCards()}
-        {this.renderGradient()}
-        {this.renderCrossButton()}
-        {this.renderHeartButton()}
+        {!this.props.preview && this.renderGradient()}
+        {!this.props.preview && this.renderCrossButton()}
+        {!this.props.preview && this.renderHeartButton()}
       </View>
     )
   }
 
   private renderCards = () => {
     if (this.props.preview) {
+      let profile = this.getProfileForPreview()
+      if (!profile) {
+        return null
+      }
       return (
         <Card
           type='preview'
-          profile={this.props.preview.user}
+          profile={profile}
           exit={this.props.preview.onExit}
+          react={this.props.react}
+          reactsEnabled={this.props.meId !== profile.id}
+          showClassYear={this.shouldShowClassYear(profile)}
         />
       )
     }
@@ -117,13 +144,24 @@ class SwipeScreen extends PureComponent<Props, State> {
     return cards
   }
 
+  private getProfileForPreview = (): User | undefined => {
+    if (!this.props.preview) {
+      return
+    }
+    switch (this.props.preview.type) {
+      case 'self':
+        return this.props.preview.profile
+      case 'other':
+        return this.props.allUsers.value.get(this.props.preview.userId)
+    }
+  }
+
   private renderCard = (cardIndex: number) => {
 
     const card = this.getCard(cardIndex)
     if (card === undefined) {
       return null
     }
-    const positionInStack = this.calculatePositionInStack(cardIndex)
 
     // ensure that top card loads first
     if (cardIndex > 0 && !this.state.topCardLoaded) {
@@ -131,16 +169,19 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
 
     let containerStyle
-    if (positionInStack > 0 && this.props.swipableUsers.value.size <= 1) {
+    const positionInStack = this.calculatePositionInStack(cardIndex)
+    if (positionInStack >= this.props.swipableUsers.value.size) {
       containerStyle = styles.hidden
     }
+
+    const profile = this.props.allUsers.value.get(card)
 
     return (
       <Card
         type='normal'
         positionInStack={positionInStack}
-        profile={this.props.allUsers.value.get(card)}
-        showClassYear={this.props.postRelease2}
+        profile={profile}
+        showClassYear={this.shouldShowClassYear(profile)}
         onExpandCard={this.onExpandCard}
         onExitExpandedView={this.onExitExpandedView}
         onCompleteSwipe={this.onCompleteSwipe}
@@ -149,6 +190,9 @@ class SwipeScreen extends PureComponent<Props, State> {
         ref={this.assignCardRef(positionInStack)}
         showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
         containerStyle={containerStyle}
+        cardContainerStyle={styles.extraRoomForButtons}
+        block={this.props.blockUser}
+        report={this.props.report}
       />
     )
   }
@@ -158,11 +202,11 @@ class SwipeScreen extends PureComponent<Props, State> {
     const gradientStyle = {
       height: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: ['20%', '0%'],
+        outputRange: ['20%', '20%'],
       }),
       opacity: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0],
+        outputRange: [1, 1],
       }),
     }
 
@@ -182,14 +226,10 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private renderCircleButton = (props: CircleButtonProps, style: ViewStyle) => {
 
-    if (this.state.fullyExpanded) {
-      return null
-    }
-
     const containerStyle = {
       opacity: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0],
+        outputRange: [1, 1],
       }),
     }
 
@@ -227,18 +267,24 @@ class SwipeScreen extends PureComponent<Props, State> {
     )
   }
 
+  private shouldShowClassYear = (user: User) => {
+    return this.props.postRelease2
+      && isSenior(this.props.classYear)
+      && (this.props.showUnderclassmen || !isSenior(user.classYear))
+  }
+
   private requestMoreUsers = () => {
-    this.setState({
+    this.safeSetState({
       profiles: [],
     }, this.fetchUsers)
   }
 
   private fetchUsers = () => {
     this.props.fetchSwipableUsers()
-    this.setState({
+    this.safeSetState({
       mustShowLoadingScreen: true,
     }, () => setTimeout(() => {
-      this.setState({
+      this.safeSetState({
         mustShowLoadingScreen: false,
       })
     }, 2000))
@@ -248,7 +294,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     if (positionInStack === 0) {
       this.topCard = ref
       setTimeout(() => {
-        this.setState({
+        this.safeSetState({
           topCardLoaded: true,
         })
       }, 500)
@@ -263,7 +309,7 @@ class SwipeScreen extends PureComponent<Props, State> {
         duration: 300,
       }
     ).start(() => {
-      this.setState({
+      this.safeSetState({
         fullyExpanded: true,
       })
     })
@@ -274,7 +320,7 @@ class SwipeScreen extends PureComponent<Props, State> {
       this.props.preview.onExit()
       return
     }
-    this.setState({
+    this.safeSetState({
       fullyExpanded: false,
     })
     Animated.timing(
@@ -298,7 +344,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     }
     this.cardIndexOfTopCard += 1
     this.cardIndexOfTopCard %= NUM_RENDERED_CARDS
-    this.setState({
+    this.safeSetState({
       profiles: newProfiles,
     })
 
@@ -353,12 +399,21 @@ class SwipeScreen extends PureComponent<Props, State> {
         return currentCard
     }
   }
+
+  private safeSetState = (newState: Partial<State>, callback?: () => void) => {
+    if (this.componentIsMounted) {
+      this.setState(newState as any, callback) /* tslint:disable-line:no-any */
+    }
+  }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     ...state.swipe,
+    meId: state.profile.id,
     postRelease2: state.time.postRelease2,
+    classYear: state.profile.classYear,
+    showUnderclassmen: state.profile.showUnderclassmen,
   }
 }
 
@@ -367,6 +422,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
     fetchSwipableUsers: () => dispatch(fetchSwipableUsers()),
     swipe: (direction: Direction, onUser: User) => dispatch(swipe(direction, onUser)),
     react: (reacts: ProfileReact[], onUser: User) => dispatch(react(reacts, onUser)),
+    blockUser: (email: string) => dispatch(blockUser(email)),
   }
 }
 
@@ -401,5 +457,8 @@ const styles = StyleSheet.create({
   },
   hidden: {
     opacity: 0,
+  },
+  extraRoomForButtons: {
+    paddingBottom: 100,
   },
 })

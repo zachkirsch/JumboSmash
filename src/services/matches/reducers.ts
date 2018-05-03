@@ -186,7 +186,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
 
     case ReduxActionType.REHYDRATE:
 
-      // for unit tests when root state is empty
+      // for when root state is empty
       if (!action.payload.matches) {
         return state
       }

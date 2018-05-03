@@ -59,9 +59,9 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string>$(PRODUCT_NAME) needs access your location to ensure you are at Tufts</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to your photo gallery so you can select photos</string>
+	<string>$(PRODUCT_NAME) needs access to your photo gallery so you can select photos for your profile</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>

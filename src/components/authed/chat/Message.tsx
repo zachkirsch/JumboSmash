@@ -83,7 +83,7 @@ export default class Message extends PureComponent<Props, {}> {
     }
     return (
       <View style={styles.failedToSendMessage}>
-        <JSText style={styles.failedToSendText}>Oops, failed to send. Try again</JSText>
+        <JSText style={styles.failedToSendText}>Failed to send</JSText>
       </View>
     )
   }
@@ -105,9 +105,9 @@ export default class Message extends PureComponent<Props, {}> {
     const containerStyle = this.props.position && styles[this.props.position]
 
     return (
-      <View>
+      <View style={{ marginBottom }}>
         {this.renderDay()}
-        <View style={[styles.container, { marginBottom }, containerStyle]}>
+        <View style={[styles.container, containerStyle]}>
           {this.renderAvatar()}
           <LinearGradient
             colors={colors}
@@ -182,5 +182,5 @@ const styles = StyleSheet.create({
   },
   failedToSendText: {
     color: 'rgb(214, 145, 145)',
-  }
+  },
 })

@@ -7,7 +7,7 @@ import { RootState } from '../../../redux'
 import { Tag, TagSectionType, updateTags } from '../../../services/profile'
 import { goToNextRoute } from '../../navigation'
 import { HeaderBar, JSText, JSButton } from '../../common'
-import { xor } from '../../../utils'
+import { xor, getMainColor } from '../../../utils'
 import TagsSection from './TagsSection'
 
 interface ImmutableTagSectionType {
@@ -75,13 +75,13 @@ class TagsScreen extends PureComponent<Props, State> {
 
   private renderHeaderLeft = () => {
     return (
-      <JSText>Revert</JSText>
+      <JSText style={styles.headerBarSideText}>Revert</JSText>
     )
   }
 
   private renderHeaderRight = () => {
     return (
-      <JSText>Save</JSText>
+      <JSText style={styles.headerBarSideText}>Save</JSText>
     )
   }
 
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    color: 'rgb(172,203,238)',
+    color: getMainColor(),
   },
   button: {
     paddingVertical: 5,
@@ -274,5 +274,9 @@ const styles = StyleSheet.create({
   continue: {
     marginBottom: 20,
     marginHorizontal: 20,
+  },
+  headerBarSideText: {
+    color: getMainColor(),
+    fontSize: 15,
   },
 })

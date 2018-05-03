@@ -5,7 +5,7 @@ import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { logout } from '../../../services/auth'
 import { RectangleButton } from '../../common/index'
-import { ActionSheetOption, emailSupport, generateActionSheetOptions } from '../../../utils'
+import { ActionSheetOption, reportUser, sendFeedback, generateActionSheetOptions } from '../../../utils'
 
 interface OwnProps {
   previewProfile: () => void
@@ -44,7 +44,7 @@ class SettingsSection extends PureComponent<Props, {}> {
           onPress={this.openHelpActionSheet}
         />
         <RectangleButton
-          label='Stop Smashing'
+          label='Logout'
           onPress={this.openSettingsActionSheet}
         />
       </View>
@@ -110,7 +110,7 @@ class SettingsSection extends PureComponent<Props, {}> {
     // REPORT USER
     buttons.push({
       title: 'Report User',
-      onPress: () => emailSupport('Report User'),
+      onPress: reportUser,
     })
 
     // BLOCK USER
@@ -128,7 +128,7 @@ class SettingsSection extends PureComponent<Props, {}> {
     // Feedback
     buttons.push({
       title: 'Submit Feedback',
-      onPress: () => emailSupport('JumboSmash Feedback'),
+      onPress: sendFeedback,
     })
 
     const {options, callback} = generateActionSheetOptions(buttons)

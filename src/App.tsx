@@ -4,8 +4,9 @@ import { connect, Dispatch } from 'react-redux'
 import { getServerTime } from './services/time'
 import { RootState } from './redux'
 import RehydratedApp from './RehydratedApp'
-import { JSText, JSButton } from './components/common'
+import { JSText, JSButton, JSImage } from './components/common'
 import { LoadableValue } from './services/redux'
+import { Images } from './assets'
 
 enum FetchResult {
   loading,
@@ -15,6 +16,7 @@ enum FetchResult {
 
 interface StateProps {
   rehydrated: boolean
+  isLoggedIn: boolean
   serverTime: LoadableValue<number | undefined>
 }
 
@@ -26,19 +28,19 @@ type Props = StateProps & DispatchProps
 
 interface State {
   forceShowLoadingScreen: boolean
-  doneWithLoading: boolean
+  serverTimeFetched: boolean
 }
 
 class App extends PureComponent<Props, State> {
 
   private loadingScreenTimers: number[] = []
-  private doneWithLoading = false
+  private showedRehydratedApp = false
 
   constructor(props: Props) {
     super(props)
     this.state = {
       forceShowLoadingScreen: true,
-      doneWithLoading: false,
+      serverTimeFetched: false,
     }
   }
 
@@ -56,16 +58,16 @@ class App extends PureComponent<Props, State> {
     if (nextProps.rehydrated && !this.props.rehydrated) {
       this.getServerTime()
     }
-    if (this.shouldShowRehydratedApp(nextProps)) {
+    if (this.getServerTimeStatus(nextProps) === FetchResult.success) {
       this.setState({
-        doneWithLoading: true,
+        serverTimeFetched: true,
       })
     }
   }
 
   public render() {
-    if (this.shouldShowRehydratedApp()) {
-      this.doneWithLoading = true
+    if (this.shouldShowRehydratedApp() && !this.state.forceShowLoadingScreen) {
+      this.showedRehydratedApp = true
       return <RehydratedApp />
     } else if (this.state.forceShowLoadingScreen || this.getServerTimeStatus() !== FetchResult.error) {
       return this.renderLoadingScreen()
@@ -77,7 +79,7 @@ class App extends PureComponent<Props, State> {
   private renderLoadingScreen = () => {
     return (
       <View style={styles.container}>
-        <ActivityIndicator style={styles.topSpace}/>
+        <ActivityIndicator style={styles.activityIndicator}/>
         <JSText>
           Connecting to server...
         </JSText>
@@ -88,24 +90,25 @@ class App extends PureComponent<Props, State> {
   private renderErrorScreen = () => {
     return (
       <View style={styles.container}>
-        <JSText style={styles.topSpace}>
-          Could not connect to the server
+        <JSImage cache={false} source={Images.sad} style={styles.sadImage} />
+        <JSText style={styles.errorMessage}>
+          Couldn't connect to the server
         </JSText>
         <JSButton label='Retry' onPress={this.getServerTime}/>
       </View>
     )
   }
 
-  private shouldShowRehydratedApp = (props?: Props) => {
-    if (!props) {
-      props = this.props
+  private shouldShowRehydratedApp = () => {
+    if (this.showedRehydratedApp) {
+      return true
     }
 
-    return this.doneWithLoading || (
-      props.rehydrated
-      && this.getServerTimeStatus() === FetchResult.success
-      && !this.state.forceShowLoadingScreen
-    )
+    if (this.state.forceShowLoadingScreen) {
+      return false
+    }
+
+    return this.props.rehydrated && this.state.serverTimeFetched
   }
 
   private getServerTime = () => {
@@ -121,11 +124,14 @@ class App extends PureComponent<Props, State> {
     })
   }
 
-  private getServerTimeStatus = (): FetchResult => {
-    if (this.props.serverTime.errorMessage) {
+  private getServerTimeStatus = (props?: Props): FetchResult => {
+    if (!props) {
+      props = this.props
+    }
+    if (props.serverTime.errorMessage) {
       return FetchResult.error
     }
-    if (this.props.serverTime.value !== undefined && !this.props.serverTime.loading) {
+    if (props.serverTime.value !== undefined && !props.serverTime.loading) {
       return FetchResult.success
     }
     return FetchResult.loading
@@ -134,6 +140,7 @@ class App extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
+    isLoggedIn: state.auth.isLoggedIn,
     rehydrated: state.redux.rehydrated,
     serverTime: state.time.serverTime,
   }
@@ -153,7 +160,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  topSpace: {
+  activityIndicator: {
     marginBottom: 10,
+  },
+  errorMessage: {
+    marginTop: 15,
+    marginBottom: 30,
+    fontSize: 15,
+  },
+  sadImage: {
+    width: 75,
+    height: 75,
   },
 })

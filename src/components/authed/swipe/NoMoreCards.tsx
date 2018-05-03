@@ -1,58 +1,76 @@
 import React, { PureComponent } from 'react'
-import { TouchableOpacity, View, Image, StyleSheet} from 'react-native'
+import { Platform, TouchableOpacity, View, Image, StyleSheet} from 'react-native'
 import { JSText } from '../../common'
+import { Images } from '../../../assets'
 
 interface Props {
   requestMoreCards: () => void
+  issue: 'outOfCards' | 'noNetworkConnection'
 }
 
 class NoMoreCards extends PureComponent<Props, {}> {
 
   render() {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <Image resizeMode='contain' source={require('../../../assets/img/butt.png')} style={styles.image} />
+      <View style={styles.container}>
+        <Image resizeMode='contain' source={Images.butt} style={styles.butt} />
           <JSText style={styles.text}>
-            You've run out of people to swipe on!
+            {this.getMessage()}
           </JSText>
-          <JSText style={styles.subtext}>
-            Tap the button below to load more cards.
-          </JSText>
-        <TouchableOpacity onPress={this.props.requestMoreCards}>
-          <Image resizeMode='contain' source={require('../../../assets/img/restartButton.png')} style={styles.Smallimage} />
+        <TouchableOpacity onPress={this.props.requestMoreCards} style={styles.reloadContainer}>
+          <Image resizeMode='contain' source={Images.reload} style={styles.reload} />
         </TouchableOpacity>
       </View>
     )
   }
+
+  private getMessage = () => {
+    switch (this.props.issue) {
+      case 'outOfCards':
+        return "You've run out of people to swipe on!\nTap the button below to load more cards."
+      case 'noNetworkConnection':
+        return "Can't connect to the server\nTap the button below to try to reconnect."
+    }
+  }
+
 }
 
 export default NoMoreCards
 
 const styles = StyleSheet.create({
-  image: {
+  container: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 10,
+  },
+  butt: {
     width: 100,
     height: 100,
   },
-  Smallimage: {
-    justifyContent: 'center',
+  reload: {
+    width: 25,
+    height: 25,
+  },
+  reloadContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
-    padding: 10,
-    width: 60,
-    height: 60,
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowOpacity: 1,
+        shadowColor: 'rgb(231, 240, 249)',
+        shadowOffset: {
+          width: 1,
+          height: 1,
+        },
+        shadowRadius: 5,
+      },
+    }),
   },
   text: {
-    paddingLeft: 45,
-    paddingRight: 45,
-    paddingTop: 45,
-    textAlign: 'center',
-  },
-  subtext: {
-    paddingLeft: 45,
-    paddingRight: 45,
-    paddingBottom: 45,
+    padding: 25,
     textAlign: 'center',
   },
 })

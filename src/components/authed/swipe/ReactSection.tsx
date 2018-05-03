@@ -6,56 +6,20 @@ import { User } from '../../../services/swipe'
 
 interface Props {
   profile: User
+  react: (reacts: ProfileReact[]) => void
   enabled: boolean
 }
 
-type StatefulProfileReact = ProfileReact & {
-  originallyReacted: boolean
-}
-
-interface State {
-  reacts: StatefulProfileReact[]
-}
-
-class ReactSection extends PureComponent<Props, State> {
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      reacts: this.props.profile.profileReacts.value.map(react => ({
-        ...react,
-        originallyReacted: !!react.reacted,
-      })),
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (!this.props.enabled) {
-      this.setState({
-        reacts: nextProps.profile.profileReacts.value.map(react => ({
-          ...react,
-          originallyReacted: !!react.reacted,
-        })),
-      })
-    }
-  }
-
-  public reactsChanged() {
-    return !!this.state.reacts.find(r => r.reacted !== r.originallyReacted)
-  }
-
-  public getReacts() {
-    return this.state.reacts.filter(r => r.reacted)
-  }
+class ReactSection extends PureComponent<Props, {}> {
 
   public render() {
 
     const reactColumns = []
-    for (let i = 0; i < this.state.reacts.length; i += 2) {
+    for (let i = 0; i < this.props.profile.profileReacts.value.length; i += 2) {
       reactColumns.push(
         <View style={styles.reactColumn} key={i}>
-          {this.renderReact(this.state.reacts[i])}
-          {this.renderReact(this.state.reacts[i + 1])}
+          {this.renderReact(this.props.profile.profileReacts.value[i])}
+          {this.renderReact(this.props.profile.profileReacts.value[i + 1])}
         </View>
       )
     }
@@ -67,7 +31,7 @@ class ReactSection extends PureComponent<Props, State> {
     )
   }
 
-  private renderReact = (react: StatefulProfileReact | undefined) => {
+  private renderReact = (react: ProfileReact | undefined) => {
 
     if (react === undefined) {
       return null
@@ -88,38 +52,27 @@ class ReactSection extends PureComponent<Props, State> {
           />
         )
     }
-
-    let reactCount = react.count
-    if (react.reacted && !react.originallyReacted) {
-      reactCount++
-    } else if (!react.reacted && react.originallyReacted) {
-      reactCount--
-    }
-
     return (
       <TouchableOpacity
         style={[styles.react, react.reacted && styles.selectedReact]}
         onPress={this.toggleReact(react)}
+        disabled={!this.props.enabled}
       >
         {toRender}
-        <JSText bold={react.reacted} style={styles.reactNum}>{` ${reactCount}`}</JSText>
+        <JSText bold={react.reacted} style={styles.reactNum}>{` ${react.count}`}</JSText>
       </TouchableOpacity>
     )
   }
 
-  private toggleReact = (react: StatefulProfileReact) => () => {
-    const reacts = this.state.reacts.map(r => {
-      if (r.id === react.id) {
-        return {
-          ...react,
-          reacted: !react.reacted,
-        }
+  private toggleReact = (react: ProfileReact) => () => {
+    this.props.react(this.props.profile.profileReacts.value.reduce((reacts, r) => {
+      if (react.id !== r.id && r.reacted) {
+        reacts.push(r)
+      } else if (react.id === r.id && !r.reacted) {
+        reacts.push(r)
       }
-      return r
-    })
-    this.setState({
-      reacts,
-    })
+      return reacts
+    }, [] as ProfileReact[]))
   }
 }
 

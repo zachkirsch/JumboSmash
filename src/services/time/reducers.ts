@@ -12,6 +12,8 @@ const initialState: TimeState = {
   postRelease2: false,
 }
 
+const now = Date.now()
+
 let error = true
 
 export function timeReducer(state = initialState, action: TimeAction): TimeState {
@@ -34,8 +36,8 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
           lastFetched: Date.now(),
           loading: false,
         },
-        releaseDate: action.releaseDate,
-        postRelease:  action.postRelease,
+        releaseDate: now + 6000, // action.releaseDate,
+        postRelease:  action.serverTime > now + 6000, // action.postRelease,
         postRelease2: action.postRelease2,
       }
 

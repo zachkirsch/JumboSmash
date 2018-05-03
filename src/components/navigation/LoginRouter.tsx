@@ -21,7 +21,6 @@ export enum LoginRoute {
   CountdownScreen = 'CountdownScreen',
   LoginScreen = 'LoginScreen',
   VerifyEmailScreen = 'VerifyEmailScreen',
-  ConfirmLocationScreen = 'ConfirmLocationScreen',
   AcceptCoCScreen = 'AcceptCoCScreen',
   TutorialScreen = 'TutorialScreen',
   ProfileScreen = 'ProfileScreen',
@@ -42,13 +41,6 @@ const getNextPostLoginRoute = (currentRoute?: string) => {
   const authState: AuthState = state.auth
   switch (currentRoute) {
     case undefined:
-      if (state.profile.classYear !== 18) {
-        return {
-          key: LoginRoute.ConfirmLocationScreen,
-          screen: ConfirmLocationScreen,
-        }
-      }
-    case LoginRoute.ConfirmLocationScreen:
       if (!authState.codeOfConductAccepted) {
         return {
           key: LoginRoute.AcceptCoCScreen,
@@ -167,10 +159,16 @@ export const generateLoginRouter = () => {
         tabBarVisible: false,
       },
     },
+    ConfirmLocationScreen: {
+      screen: ConfirmLocationScreen,
+      navigationOptions: {
+        tabBarVisible: false,
+      },
+    },
   }, {
-      headerMode: 'none',
-      cardStyle: styles.stackCard,
-    })
+    headerMode: 'none',
+    cardStyle: styles.stackCard,
+  })
   return TabNavigator(screens, {
     swipeEnabled: false,
     animationEnabled: true,

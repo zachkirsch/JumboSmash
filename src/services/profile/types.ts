@@ -61,7 +61,8 @@ export interface ProfileState {
   bio: LoadableValue<string>
   images: List<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
-  reacts: LoadableValue<ProfileReact[]>
+  profileReacts: LoadableValue<ProfileReact[]>
   allReacts: (BaseEmojiProfileReact | BaseImageProfileReact)[]
   blockedUsers: List<LoadableValue<BlockedUser>>
+  showUnderclassmen: boolean
 }

@@ -24,7 +24,6 @@ export enum MatchesActionType {
 
 export interface CreateMatchAction extends NewMatch {
   type: MatchesActionType.CREATE_MATCH
-  openChatAfterCreation: boolean
   shouldShowMatchPopup: boolean
 }
 
@@ -114,7 +113,6 @@ export const createMatch = (id: number,
                             conversationId: string,
                             createdAt: number,
                             otherUsers: GetUserResponse[],
-                            openChatAfterCreation: boolean,
                             shouldShowMatchPopup: boolean): CreateMatchAction => {
   return {
     type: MatchesActionType.CREATE_MATCH,
@@ -122,7 +120,6 @@ export const createMatch = (id: number,
     createdAt,
     conversationId,
     otherUsers,
-    openChatAfterCreation,
     shouldShowMatchPopup,
   }
 }
