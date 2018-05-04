@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, Platform, ScrollView, Image, Dimensions, Alert, ScrollEvent } from 'react-native'
+import { View, Image, StyleSheet, Platform, ScrollView, Dimensions, Alert, ScrollEvent, TouchableWithoutFeedback } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
@@ -85,7 +85,7 @@ class TutorialScreen extends PureComponent<Props, State> {
         >
           {this.renderTutorialSlides()}
         </ScrollView>
-        <View style={styles.dotsContainer}>
+        <View style={styles.dotsContainer} pointerEvents='none'>
           {this.renderDots()}
         </View>
     </View>
@@ -106,18 +106,21 @@ class TutorialScreen extends PureComponent<Props, State> {
   }
 
   private renderChevrons = () => (
-    <Feather
-      style={styles.bottomItem}
-      name='chevrons-right'
-      size={40}
-      color={getLightColor()}
-      onPress={this.onPressChevrons}
-    />
+    <View style={styles.chevronContainer}>
+      <TouchableWithoutFeedback onPress={this.onPressChevrons}>
+        <Feather
+          name='chevrons-right'
+          size={40}
+          color={getLightColor()}
+          style={styles.chevron}
+        />
+      </TouchableWithoutFeedback>
+    </View>
   )
 
   private renderSmashButton = () => {
     return (
-      <View style={styles.bottomItem}>
+      <View style={styles.smashButton}>
         <JSButton label="Let's Go" onPress={this.onPressSmash} />
       </View>
     )
@@ -228,9 +231,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 30,
   },
-  bottomItem: {
+  smashButton: {
     position: 'absolute',
     bottom: 60,
+  },
+  chevronContainer: {
+    position: 'absolute',
+    bottom: 25,
+  },
+  chevron: {
+    padding: 35,
   },
   textContainer: {
     marginVertical: 50,

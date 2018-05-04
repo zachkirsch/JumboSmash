@@ -2,8 +2,6 @@ import React, { PureComponent } from 'react'
 import { Animated, Platform, StyleSheet, View, ViewStyle } from 'react-native'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
-import Entypo from 'react-native-vector-icons/Entypo'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Direction } from '../../../services/api'
@@ -11,6 +9,7 @@ import { fetchSwipableUsers, swipe, react, User, SwipeState } from '../../../ser
 import { ProfileReact, blockUser } from '../../../services/profile'
 import { CircleButton, CircleButtonProps } from '../../common'
 import { mod, isSenior } from '../../../utils'
+import { Images } from '../../../assets'
 import Card from './Card'
 import NoMoreCards from './NoMoreCards'
 
@@ -235,18 +234,17 @@ class SwipeScreen extends PureComponent<Props, State> {
     return (
       <CircleButton
         {...props}
-        style={[styles.circleButton, containerStyle, style]}
+        containerStyle={[styles.circleButton, containerStyle, style]}
+        imageStyle={styles.buttonImage}
       />
     )
   }
 
   private renderCrossButton = () => {
     return this.renderCircleButton({
-        IconClass: Entypo,
-        iconName: 'cross',
-        iconSize: 50,
-        iconColor: 'rgba(172,203,238,0.6)',
-        onPress: () => this.topCard && this.topCard.swipeLeft(),
+      type: 'image',
+      onPress: () => this.topCard && this.topCard.swipeLeft(),
+      source: Images.cross,
       }, {
         left: '15%',
       }
@@ -255,10 +253,8 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private renderHeartButton = () => {
     return this.renderCircleButton({
-        IconClass: MaterialCommunityIcons,
-        iconName: 'heart',
-        iconSize: 40,
-        iconColor: '#ACCBEE',
+        type: 'image',
+        source: Images.heart,
         onPress: () => this.topCard && this.topCard.swipeRight(),
       }, {
         right: '15%',
@@ -354,7 +350,10 @@ class SwipeScreen extends PureComponent<Props, State> {
       const beenLongEnough = (
         !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 10
       )
-      if (numUserUntilEnd <= 10 && beenLongEnough) {
+      const beenTooLong = (
+        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 / 60 >= 10
+      )
+      if (beenTooLong || numUserUntilEnd <= 10 && beenLongEnough) {
         this.fetchUsers()
       }
     }
@@ -453,6 +452,10 @@ const styles = StyleSheet.create({
         elevation: 12,
       },
     }),
+  },
+  buttonImage: {
+    width: 30,
+    height: 30,
   },
   hidden: {
     opacity: 0,

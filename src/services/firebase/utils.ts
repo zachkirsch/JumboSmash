@@ -3,7 +3,6 @@ import { Store } from 'react-redux'
 import { IChatMessage } from 'react-native-gifted-chat'
 import { createMatch, receiveMessages } from '../matches'
 import { RootState } from '../../redux'
-import { GetUserResponse } from '../api'
 
 const chatroomsBeingListenedTo = new Set<string>()
 
@@ -15,10 +14,11 @@ interface ChatServiceType {
   setStore: (store: Store<RootState>) => void
   createChat: (matchId: number,
                conversationId: string,
-               createdAt: number,
-               withUsers: GetUserResponse[],
+               createdAt: string,
+               otherUsers: number[],
                shouldOpenMatchPopup: boolean) => void
   listenForNewChats: (conversationId: string) => void
+  stopListeningToChat: (conversationId: string) => void
   stopListeningForNewChats: () => void
 }
 
@@ -29,6 +29,7 @@ const ChatService: ChatServiceType = {
   setStore: dummy,
   createChat: dummy,
   listenForNewChats: dummy,
+  stopListeningToChat: dummy,
   stopListeningForNewChats: dummy,
 }
 /* tslint:enable */
@@ -37,17 +38,39 @@ ChatService.setStore = (store: Store<RootState>) => ChatService.store = store
 
 ChatService.createChat = (matchId: number,
                           conversationId: string,
-                          createdAt: number,
-                          withUsers: GetUserResponse[],
+                          createdAt: string,
+                          otherUsers: number[],
                           shouldOpenMatchPopup: boolean) => {
-  /* TODO permissions
-  const dbRef = getRefToChatSection(conversationId).child('members')
-  const permissionsObject: { [uid: string]: string} = {}
-  permissionsObject[firebase.auth().currentUser!.uid] = 'owner'
-  dbRef.push(permissionsObject)
-  */
+  const store = ChatService.store
+  if (!store) {
+    return
+  }
+
+  // PERMISSIONS
+  const dbRef = getRefToChatSection(conversationId)
+  dbRef.child('members').once('value', snapshot => {
+    if (snapshot.val()) {
+      return
+    }
+
+    // other users
+    const firebaseUids: (string | undefined)[] = otherUsers.map(id => {
+      const user = store.getState().swipe.allUsers.value.get(id)
+      return user && user.firebaseUid
+    })
+
+    // this user
+    const currentUser = firebase.auth().currentUser
+    firebaseUids.push(currentUser ? currentUser.uid : undefined)
+
+    const permissionsObject: { [uid: string]: string} = {}
+    firebaseUids.forEach(uid => uid && (permissionsObject[uid] = 'member'))
+    dbRef.child('members').set(permissionsObject)
+  })
+
   ChatService.listenForNewChats(conversationId)
-  ChatService.store!.dispatch(createMatch(matchId, conversationId, createdAt, withUsers, shouldOpenMatchPopup))
+  store.dispatch(createMatch(matchId, conversationId, createdAt,
+                             otherUsers, shouldOpenMatchPopup))
 }
 
 ChatService.listenForNewChats = (conversationId: string) => {
@@ -72,11 +95,16 @@ ChatService.listenForNewChats = (conversationId: string) => {
   }
 }
 
-ChatService.stopListeningForNewChats = () => {
-  chatroomsBeingListenedTo.forEach(conversationId => {
+ChatService.stopListeningToChat = (conversationId: string) => {
+  if (chatroomsBeingListenedTo.has(conversationId)) {
     const dbRef = getRefToChatMessages(conversationId)
     dbRef.off('child_added')
-  })
+    chatroomsBeingListenedTo.delete(conversationId)
+  }
+}
+
+ChatService.stopListeningForNewChats = () => {
+  chatroomsBeingListenedTo.forEach(ChatService.stopListeningToChat)
   chatroomsBeingListenedTo.clear()
 }
 

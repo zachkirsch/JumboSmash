@@ -15,13 +15,11 @@ export function notificationsReducer(state = initialState, action: Notifications
       const id = state.inAppNotifications.size === 0
         ? 0
         : state.inAppNotifications.last().id + 1
+
       return {
         inAppNotifications: state.inAppNotifications.push({
           id,
-          title: action.title,
-          subtitle: action.subtitle,
-          imageUri: action.imageUri,
-          conversationId: action.conversationId,
+          ...action.notification,
         }),
       }
 
@@ -30,6 +28,7 @@ export function notificationsReducer(state = initialState, action: Notifications
         inAppNotifications: state.inAppNotifications.filter(n => !!n && n.id !== action.id).toList(),
       }
 
+    case NotificationsActionType.CLEAR_NOTIFICATIONS_STATE:
     case ReduxActionType.REHYDRATE:
       return {
         ...initialState,

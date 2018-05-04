@@ -13,7 +13,7 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
-import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } from '../../services/auth'
+import { AuthState, clearAuthErrorMessages, Credentials, requestVerification, verifyEmail } from '../../services/auth'
 import { JSText } from '../common'
 import { getMainColor, getLightColor } from '../../utils'
 import CheckEmailScreen from './CheckEmailScreen'
@@ -23,20 +23,14 @@ interface OwnProps {
 }
 
 interface StateProps {
-  email: string
-  authError: AuthError
-  waitingForRequestVerificationResponse: boolean
-  waitingForVerificationResponse: boolean
-  isLoggedIn: boolean
-  nearTufts: boolean
+  authState: AuthState
   classYear: number
-  validVerificationCode: boolean
 }
 
 interface DispatchProps {
   submitVerificationCode: (code: string) => void
   requestVerification: (credentials: Credentials) => void
-  clearAuthErrorMessage: () => void
+  clearAuthErrorMessages: () => void
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
@@ -68,7 +62,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
     this.props.navigation.addListener(
       'willFocus',
       () => {
-        this.props.clearAuthErrorMessage()
+        this.props.clearAuthErrorMessages()
       }
     )
 
@@ -90,18 +84,19 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   public componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.classYear !== 18 && !nextProps.nearTufts && nextProps.validVerificationCode) {
+    if (nextProps.classYear !== 18 && !nextProps.authState.nearTufts && nextProps.authState.verified.value) {
       this.props.navigation.navigate('ConfirmLocationScreen')
-      // this.props.navigation.popToTop()
     }
   }
 
   public render() {
 
     let renderScreen: () => JSX.Element
-    if (this.props.waitingForRequestVerificationResponse) {
+    if (this.props.authState.waitingForRequestVerificationResponse) {
       renderScreen = this.renderLoadingScreen
-    } else if (this.props.authError !== AuthError.NO_ERROR && this.props.authError !== AuthError.BAD_CODE) {
+    } else if (this.getVerificationError() !== AuthError.NO_ERROR && this.getVerificationError() !== AuthError.BAD_CODE) {
+      renderScreen = this.renderErrorScreen
+    } else if (this.props.authState.loggedIn.errorMessage) {
       renderScreen = this.renderErrorScreen
     } else {
       renderScreen = this.renderCheckEmailScreen
@@ -126,7 +121,9 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private renderVerifyingOverlay = () => {
-    if (!this.props.waitingForVerificationResponse && !this.state.shouldForceShowVerifyingOverlay) {
+    if (!this.props.authState.verified.loading
+        && !this.props.authState.loggedIn.loading
+        && !this.state.shouldForceShowVerifyingOverlay) {
       return null
     }
     return (
@@ -148,22 +145,18 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private renderErrorScreen = () => {
 
-    let messageToUser: string
-    switch (this.props.authError) {
+    let messageToUser = "There's been a error.\nPlease go back and try again."
+    switch (this.getVerificationError()) {
       case AuthError.NOT_SENIOR:
         messageToUser = 'JumboSmash is only open to Tufts seniors.'
         break
       case AuthError.NOT_TUFTS:
         messageToUser = 'JumboSmash is only open to Tufts students.'
         break
-      case AuthError.SERVER_ERROR:
-      default:
-        messageToUser = "There's been a server error.\nPlease go back and try again."
-        break
     }
 
     let bottomSection = null
-    if (this.props.authError === AuthError.NOT_SENIOR) {
+    if (this.getVerificationError() === AuthError.NOT_SENIOR) {
       bottomSection = (
         <EmailUsFooter
           emailSubject="I'm a senior... let me into JumboSmash"
@@ -189,16 +182,23 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private renderCheckEmailScreen = () => (
     <CheckEmailScreen
-      email={this.props.email}
+      email={this.props.authState.email}
       requestResend={this.requestResend}
       submitVerificationCode={this.submitVerificationCode}
-      authError={this.state.shouldForceShowVerifyingOverlay ? undefined : this.props.authError}
-      clearAuthErrorMessage={this.props.clearAuthErrorMessage}
+      authError={this.state.shouldForceShowVerifyingOverlay ? undefined : this.getVerificationError()}
+      clearAuthErrorMessages={this.props.clearAuthErrorMessages}
       ref={ref => this.checkEmailScreen = ref}
-      waitingForVerificationResponse={this.props.waitingForVerificationResponse}
+      waitingForVerificationResponse={this.props.authState.verified.loading}
       codeLength={CODE_LENGTH}
     />
   )
+
+  private getVerificationError = () => {
+    if (this.state.shouldForceShowVerifyingOverlay) {
+      return AuthError.NO_ERROR
+    }
+    return getAuthErrorFromMessage(this.props.authState.verified.errorMessage)
+  }
 
   private submitVerificationCode = (code: string) => {
     this.setState({
@@ -227,7 +227,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private requestResend = () => {
     const credentials: Credentials = {
-      email: this.props.email,
+      email: this.props.authState.email,
     }
     this.props.requestVerification(credentials)
   }
@@ -239,14 +239,8 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    authError: getAuthErrorFromMessage(state.auth.errorMessage),
-    waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
-    waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
-    email: state.auth.email,
-    isLoggedIn: state.auth.isLoggedIn,
-    nearTufts: state.auth.nearTufts,
+    authState: state.auth,
     classYear: state.profile.classYear,
-    validVerificationCode: state.auth.validVerificationCode,
   }
 }
 
@@ -254,7 +248,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
     submitVerificationCode: (code: string) => dispatch(verifyEmail(code)),
-    clearAuthErrorMessage: () => dispatch(clearAuthErrorMessage()),
+    clearAuthErrorMessages: () => dispatch(clearAuthErrorMessages()),
   }
 }
 

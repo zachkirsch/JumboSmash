@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
-import { SafeAreaView, Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, Image, View } from 'react-native'
+import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, Image, View } from 'react-native'
+import SafeAreaView from 'react-native-safe-area-view'
 import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
 import { BlurView } from 'react-native-blur'

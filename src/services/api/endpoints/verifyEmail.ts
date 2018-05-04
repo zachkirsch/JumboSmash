@@ -9,6 +9,7 @@ interface Request extends HttpGetRequest {
 interface Response {
   email: string
   session_key: string
+  firebase_token: string
   class_year: number
 }
 

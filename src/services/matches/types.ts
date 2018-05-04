@@ -1,19 +1,22 @@
 import { List, Map, Set } from 'immutable'
-import { GetUserResponse } from '../api'
 import { IChatMessage } from 'react-native-gifted-chat'
+
+export type ChatMessage = IChatMessage & {
+  createdAt: number
+}
 
 export interface NewMatch {
   id: number
-  createdAt: number
+  createdAt: string
   conversationId: string
-  otherUsers: GetUserResponse[]
+  otherUsers: number[]
 }
 
 export interface Conversation {
   matchId: number
   conversationId: string
   otherUsers: number[]
-  messages: List<IChatMessage>
+  messages: List<ChatMessage>
   messageIDs: Set<string>
   mostRecentMessage: string
   createdAt: number // Unix timestamp
@@ -21,8 +24,11 @@ export interface Conversation {
 }
 
 export type MatchPopupSettings = { shouldShow: false } | {
-  shouldShow: true,
-  match: NewMatch
+  shouldShow: true
+  match: {
+    conversationId: string
+    otherUsers: number[]
+  }
 }
 
 export interface MatchesState {

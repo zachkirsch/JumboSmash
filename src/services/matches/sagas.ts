@@ -5,11 +5,15 @@ import {
   MatchesActionType,
   SendMessagesFailureAction,
   SendMessagesSuccessAction,
+  RehydrateMatchesFromServerAction,
   UnmatchAction,
+  RemoveChatAction,
 } from './actions'
 import { IChatMessage } from 'react-native-gifted-chat'
+import { ChatService } from '../firebase'
 import { Conversation } from './types'
 import { api } from '../api'
+// import { ChatService } from '../firebase'
 import { RootState } from '../../redux'
 
 const getConversation = (conversationId: string) => {
@@ -52,13 +56,24 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
   }
 }
 
+function rehydrateMatchesFromServer(payload: RehydrateMatchesFromServerAction) {
+  payload.matches.forEach(match => ChatService.listenForNewChats(match.conversationId))
+}
+
+function removeChat(payload: RemoveChatAction) {
+  ChatService.stopListeningToChat(payload.conversationId)
+}
+
 function* unmatch(payload: UnmatchAction) {
   try {
+    ChatService.stopListeningToChat(payload.conversationId)
     yield call(api.unmatch, payload.matchId)
   } catch (e) {} /* tslint:disable-line:no-empty */
 }
 
 export function* matchesSaga() {
   yield takeEvery(MatchesActionType.ATTEMPT_SEND_MESSAGES, attemptSendMessages)
+  yield takeEvery(MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER, rehydrateMatchesFromServer)
+  yield takeEvery(MatchesActionType.REMOVE_CHAT, removeChat)
   yield takeEvery(MatchesActionType.UNMATCH, unmatch)
 }

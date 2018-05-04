@@ -31,6 +31,13 @@ export function firebaseReducer(state = initialState, action: FirebaseAction): F
       }
       return newState
 
+    case FirebaseActionType.SET_FIREBASE_TOKEN:
+      newState.token = {
+        value: action.token,
+        loading: false,
+      }
+      return newState
+
     case FirebaseActionType.LOGOUT_FIREBASE:
       return {
         ...initialState,

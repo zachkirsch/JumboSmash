@@ -51,7 +51,7 @@ class MatchesList extends PureComponent<Props, State> {
       <View style={styles.searchBarContainer}>
         <Ionicons
           name='ios-search'
-          style={{marginLeft: 10, marginVertical: 3}}
+          style={{position: 'absolute', left: 10}}
           color='gray'
           size={20}
         />
@@ -71,20 +71,22 @@ class MatchesList extends PureComponent<Props, State> {
 
   private getMatches = () => {
 
-    if (!this.state.searchBarText) {
-      return this.props.chats.toArray()
+    let chats = this.props.chats.toArray()
+    if (this.state.searchBarText) {
+      chats = this.props.chats.toArray().filter(chat => {
+        return chat.otherUsers.find(userId => {
+          const otherUser = this.props.allUsers.get(userId)
+          return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
+        })
+      })
     }
 
-    return this.props.chats.toArray().filter(chat => {
-      return chat.otherUsers.find(userId => {
-        const otherUser = this.props.allUsers.get(userId)
-        return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
-      })
-    }).sort((a, b) => {
-      const aTime = a.messages.size > 0 ? a.messages.last().createdAt : a.createdAt
-      const bTime = b.messages.size > 0 ? b.messages.last().createdAt : b.createdAt
-      return aTime - bTime
+    const sortedChats = chats.sort((a, b) => {
+      const aTime = a.messages.size > 0 ? a.messages.first().createdAt : a.createdAt
+      const bTime = b.messages.size > 0 ? b.messages.first().createdAt : b.createdAt
+      return bTime - aTime
     })
+    return sortedChats
   }
 
   private extractConversationId = (item: Conversation) => item.conversationId
@@ -143,5 +145,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginLeft: 3,
     marginRight: 7,
+    paddingVertical: 5,
+    paddingHorizontal: 25,
+    fontSize: 20,
   },
 })

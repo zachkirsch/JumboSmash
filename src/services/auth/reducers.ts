@@ -2,14 +2,18 @@ import { AuthAction, AuthActionType } from './actions'
 import { AuthState } from './types'
 
 const initialState: AuthState = {
-  isLoggedIn: false,
+  loggedIn: {
+    value: false,
+    loading: false,
+  },
+  verified: {
+    value: false,
+    loading: false,
+  },
   isNewUser: true,
   email: '',
   sessionKey: '',
-  errorMessage: '',
-  validVerificationCode: false,
   waitingForRequestVerificationResponse: false,
-  waitingForVerificationResponse: false,
   tutorialFinished: false,
   codeOfConductAccepted: false,
   nearTufts: false,
@@ -37,29 +41,68 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
     case AuthActionType.REQUEST_VERIFICATION_FAILURE:
       return {
         ...state,
-        errorMessage: action.errorMessage,
+        verified: {
+          value: false,
+          loading: false,
+          errorMessage: action.errorMessage,
+        },
         waitingForRequestVerificationResponse: false,
       }
 
     case AuthActionType.ATTEMPT_VERIFY_EMAIL:
       return {
         ...state,
-        waitingForVerificationResponse: true,
+        loggedIn: {
+          value: false,
+          loading: true,
+        },
+        verified: {
+          value: false,
+          loading: true,
+        },
       }
 
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
       return {
         ...state,
-        validVerificationCode: true,
-        waitingForVerificationResponse: false,
+        verified: {
+          value: true,
+          loading: false,
+        },
         sessionKey: action.sessionKey,
       }
 
     case AuthActionType.VERIFY_EMAIL_FAILURE:
       return {
         ...state,
-        errorMessage: action.errorMessage,
-        waitingForVerificationResponse: false,
+        loggedIn: {
+          value: false,
+          loading: false,
+        },
+        verified: {
+          value: false,
+          loading: false,
+          errorMessage: action.errorMessage,
+        },
+      }
+
+    case AuthActionType.LOGIN_SUCCESS:
+      return {
+        ...state,
+        loggedIn: {
+          value: true,
+          loading: false,
+        },
+      }
+
+    case AuthActionType.LOGIN_FAILURE:
+      return {
+        ...state,
+        loggedIn: {
+          value: false,
+          loading: false,
+          errorMessage: action.errorMessage,
+        },
       }
 
     case AuthActionType.CONFIRM_NEAR_TUFTS:
@@ -74,12 +117,6 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         sessionKey: action.sessionKey,
       }
 
-    case AuthActionType.LOGIN_SUCCESS:
-      return {
-        ...state,
-        isLoggedIn: true,
-      }
-
     case AuthActionType.FINISH_TUTORIAL:
       return {
         ...state,
@@ -91,13 +128,11 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...state,
         codeOfConductAccepted: true,
-        errorMessage: '',
       }
 
     case AuthActionType.ACCEPT_COC_FAILURE:
       return {
         ...state,
-        errorMessage: action.errorMessage,
       }
 
     case AuthActionType.SET_COC_READ_STATUS:
@@ -106,13 +141,21 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
         codeOfConductAccepted: action.readStatus,
       }
 
-    case AuthActionType.CLEAR_AUTH_ERROR_MESSAGE:
+    case AuthActionType.CLEAR_AUTH_ERROR_MESSAGES:
       return {
         ...state,
-        errorMessage: '',
+        loggedIn: {
+          ...state.loggedIn,
+          errorMessage: undefined,
+        },
+        verified: {
+          ...state.verified,
+          errorMessage: undefined,
+        },
       }
 
     case AuthActionType.DEACTIVATE:
+    case AuthActionType.LOGIN_FAILURE:
     case AuthActionType.LOGOUT:
       return {
         ...initialState,

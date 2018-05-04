@@ -1,53 +1,11 @@
-import { Platform } from 'react-native'
-import { Store } from 'redux'
-import { RootState } from '../../../redux'
 import { ErrorResponse } from '../api'
-import { logout } from '../../auth'
-
-/*
-const LOCAL_SERVER = true
-const SERVER = !LOCAL_SERVER ? 'https://jumbosmash2018-staging.herokuapp.com/' : Platform.select({
-  ios: 'http://127.0.0.1:5000',
-  android: 'http://10.0.2.2:5000',
-})
-*/
-const SERVER = 'http://130.64.142.18:5000'
+import { ApiAuthService } from './utils'
+import { SERVER_URL } from '../../../globals'
 
 type HttpMethod = 'GET' | 'POST'
 
 export interface HttpGetRequest {
   [key: string]: string | number
-}
-
-interface Token {
-  email: string
-  session_key: string
-}
-
-export const ApiAuthService = { /* tslint:disable-line:variable-name */
-  setStore: (store: Store<RootState>) => this.store = store,
-  isLoggedIn: () => {
-    const store: Store<RootState> = this.store
-    return store && store.getState().auth.isLoggedIn
-  },
-  logout: () => {
-    const store: Store<RootState> = this.store
-    store && store.dispatch(logout())
-  },
-  getToken: (): Token => {
-    if (!this.store) {
-      return {
-        email: '',
-        session_key: '',
-      }
-    } else {
-      const store: Store<RootState> = this.store
-      return {
-        email: store.getState().auth.email,
-        session_key: store.getState().auth.sessionKey,
-      }
-    }
-  },
 }
 
 abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
@@ -61,7 +19,7 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
   }
 
   protected makeRequest(endpoint: string, method: HttpMethod, body?: Request): Promise<SuccessResponse> {
-    return fetch(SERVER.replace(/\/$/, '') + endpoint, this.buildRequest(method, body))
+    return fetch(SERVER_URL.replace(/\/$/, '') + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
       throw Error('Could not connect to the server')
     })

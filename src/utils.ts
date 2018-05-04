@@ -10,8 +10,18 @@ export function isIphoneX() {
   return Platform.OS === 'ios' && (dimen.height === 812 || dimen.width === 812)
 }
 
+function openUrl(url: string) {
+  Linking.canOpenURL(url).then(can => can && Linking.openURL(url))
+}
+
+export function openTermsOfService() {
+  const url = 'http://jumbosmash.com/terms'
+  openUrl(url)
+}
+
 export function emailSupport(subject: string, body = '') {
-  Linking.openURL(`mailto://${globals.JUMBOSMASH_EMAIL}?subject=${subject}&body=${body}`)
+  const url = `mailto://${globals.JUMBOSMASH_EMAIL}?subject=${subject}&body=${body}`
+  openUrl(url)
 }
 
 export function reportUser(user?: User) {

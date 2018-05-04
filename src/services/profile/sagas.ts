@@ -1,6 +1,5 @@
 import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
-import moment from 'moment'
 import { List } from 'immutable'
 import { RootState } from '../../redux'
 import * as api from '../api'
@@ -10,10 +9,9 @@ import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
 import { rehydrateMatchesFromServer } from '../matches'
 import { ImageUri } from './types'
-import { ChatService } from '../firebase'
 
 const getImages = (state: RootState) => state.profile.images
-const getSignedInStatus = (state: RootState) => state.auth.isLoggedIn
+const getSignedInStatus = (state: RootState) => state.auth.loggedIn.value
 
 /* Preferred Name */
 
@@ -46,40 +44,6 @@ function* attemptUpdatePreferredName(payload: ProfileActions.AttemptUpdatePrefer
     yield handleUpdatePreferredNameSuccess()
   } catch (error) {
     yield handleUpdatePreferredNameFailure(error)
-  }
-}
-
-/* Major */
-
-function* onChangeMajorTextInput(action: ProfileActions.OnChangeMajorTextInputAction) {
-  const updateLocallyAction: ProfileActions.UpdateMajorLocallyAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_LOCALLY,
-    major: action.major,
-  }
-  yield put(updateLocallyAction)
-}
-
-function* handleUpdateMajorSuccess() {
-  const successAction: ProfileActions.UpdateMajorSuccessAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_SUCCESS,
-  }
-  yield put(successAction)
-}
-
-function* handleUpdateMajorFailure(error: Error) {
-  const failureAction: ProfileActions.UpdateMajorFailureAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_FAILURE,
-    errorMessage: error.message,
-  }
-  yield put(failureAction)
-}
-
-function* attemptUpdateMajor(_: ProfileActions.AttemptUpdateMajorAction) {
-  try {
-    // yield call(api.api.updateMajor, payload.major) TODO: update major via API
-    yield handleUpdateMajorSuccess()
-  } catch (error) {
-    yield handleUpdateMajorFailure(error)
   }
 }
 
@@ -264,12 +228,16 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
       .filter(match => !match.unmatched)
       .map(match => ({
         id: match.id,
-        createdAt: moment(match.createdAt).valueOf(),
-        otherUsers: match.users.filter(u => u.id !== meInfo.id),
+        createdAt: match.createdAt,
+        otherUsers: match.users.reduce((acc, user) => {
+          if (user.id !== meInfo.id) {
+            acc.push(user.id)
+          }
+          return acc
+        }, [] as number[]),
         conversationId: match.conversation_uuid,
       }))
     ))
-    meInfo.active_matches.forEach(match => ChatService.listenForNewChats(match.conversation_uuid))
   } catch (e) {} /* tslint:disable-line:no-empty */ // TODO: something?
 }
 
@@ -277,7 +245,6 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
 
 export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME, attemptUpdatePreferredName)
-  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_MAJOR, attemptUpdateMajor)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImage)
@@ -288,11 +255,6 @@ export function* profileSaga() {
     500,
     ProfileActions.ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
     onChangePreferredNameTextInput
-  )
-  yield throttle(
-    500,
-    ProfileActions.ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
-    onChangeMajorTextInput
   )
   yield throttle(
     500,

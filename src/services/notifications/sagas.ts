@@ -8,7 +8,7 @@ import { ReduxActionType } from '../redux'
 import { RootState } from '../../redux'
 import { api } from '../api'
 
-const getLoggedInStatus = (state: RootState) => state.auth.isLoggedIn
+const getLoggedInStatus = (state: RootState) => state.auth.loggedIn.value
 
 function* setToken(payload: SetNotificationsTokenAction) {
   try {

@@ -12,8 +12,6 @@ const initialState: TimeState = {
   postRelease2: false,
 }
 
-const now = Date.now()
-
 let error = true
 
 export function timeReducer(state = initialState, action: TimeAction): TimeState {

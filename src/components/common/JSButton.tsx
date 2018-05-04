@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 19,
     backgroundColor: 'transparent',
-    fontFamily: 'Avenir',
     marginVertical: 5,
     color: '#4A4A4A',
   },

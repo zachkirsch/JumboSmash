@@ -146,7 +146,10 @@ class ChatScreen extends PureComponent<Props, {}> {
         title: 'Unmatch',
         onPress: () => {
           this.goBack()
-          this.props.unmatch(this.getConversation().matchId, this.getConversationId())
+          const conversation = this.getConversation()
+          if (conversation) {
+            this.props.unmatch(conversation.matchId, this.getConversationId())
+          }
         },
       },
     ]

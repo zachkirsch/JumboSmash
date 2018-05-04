@@ -6,6 +6,7 @@ import {
   View,
 } from 'react-native'
 import { JSText, RectangleButton } from '../common'
+import { openTermsOfService } from '../../utils'
 
 interface CoCRule {
   emojiTitle: string
@@ -27,14 +28,8 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '✅🙋',
-    description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
+    description: 'If you see someone breaking the rules, please report them from the Profile tab.',
   },
-  /*
-  {
-    emojiTitle: '🔐💌',
-    description: 'We value your privacy! Jumbosmash will delete all your data after graduation.',
-  },
-  */
 ]
 
 interface Props {
@@ -43,22 +38,22 @@ interface Props {
   onPress?: () => void
 }
 
+/*tslint:disable-next-line:max-line-length */
+const TERMS_OF_SERVICE = 'To access this app, you must agree to our terms of service, which more formally states the above rules. Violating these terms will lead to an instant termination of your account.'
+
 class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
       <View style={styles.flex}>
         {this.props.reviewing || <View style={styles.statusBar} />}
-        <ScrollView>
-          <View style={styles.container}>
-            {this.props.reviewing || this.renderTitle()}
-            {this.renderDescription()}
-            {this.renderRules()}
-          </View>
-          <View style={styles.container}>
-            {this.renderSignoff()}
-          </View>
-          {this.props.reviewing || this.renderButton()}
+        <ScrollView contentContainerStyle={styles.container}>
+          {this.props.reviewing || this.renderTitle()}
+          {this.renderDescription()}
+          {this.renderRules()}
+          {this.renderTermsOfService()}
+          {this.renderSignoff()}
+          {this.props.reviewing || this.renderButtons()}
         </ScrollView>
       </View>
     )
@@ -79,7 +74,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   private renderRules = () => {
     return COC_RULES.map((rule, index) => (
       <View style={styles.rule} key={index}>
-        {Platform.OS === 'ios' ? <JSText style={styles.emoji}>{rule.emojiTitle}</JSText> : null}
+        {Platform.OS === 'ios' && <JSText style={styles.emoji}>{rule.emojiTitle}</JSText>}
         <JSText>{rule.description}</JSText>
       </View>
     ))
@@ -93,17 +88,33 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
     }
 
     return (
-      <View>
+      <View style={styles.signoff}>
         <JSText>Happy smashing 💕</JSText>
         <JSText>{signoff}</JSText>
       </View>
     )
   }
 
-  private renderButton = () => {
+  private renderTermsOfService = () => {
+    if (Platform.OS !== 'ios') {
+      return null
+    }
+    return (
+      <View style={styles.termsOfService}>
+        <JSText bold>{TERMS_OF_SERVICE}</JSText>
+      </View>
+    )
+  }
+
+  private renderButtons = () => {
     return (
       <View style={styles.buttonContainer}>
         <RectangleButton
+          onPress={openTermsOfService}
+          label='Read Terms of Service'
+        />
+        <RectangleButton
+          active
           onPress={this.props.onPress}
           label={this.props.buttonLabel || "I agree. Let's smash!"}
         />
@@ -140,6 +151,12 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 20,
+  },
+  termsOfService: {
+    marginTop: 30,
+  },
+  signoff: {
+    marginTop: 30,
   },
 })
 

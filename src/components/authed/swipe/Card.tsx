@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   View,
   ViewStyle,
+  Image,
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
@@ -20,7 +21,7 @@ import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { ProfileReact } from '../../../services/profile'
-import { JSText, JSImage } from '../../common'
+import { JSText } from '../../common'
 import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
@@ -460,12 +461,7 @@ class Card extends PureComponent<Props, State> {
     return (
       <View style={styles.tagsContainer}>
         <View style={styles.hashContainer}>
-          <JSImage
-            cache={false}
-            source={Images.hash}
-            style={styles.hash}
-            resizeMode='contain'
-          />
+          <Image source={Images.hash} style={styles.hash} resizeMode='contain' />
         </View>
         <View style={styles.tagsSectionContainer} >
           <TagsSection
@@ -525,7 +521,7 @@ class Card extends PureComponent<Props, State> {
     return (
       <View style={styles.exitContainer}>
         <TouchableOpacity onPress={this.exitExpandedCard}>
-          <JSImage cache={false} style={styles.exitIcon} resizeMode='contain' source={Images.cross} />
+          <Image style={styles.exitIcon} resizeMode='contain' source={Images.exit} />
         </TouchableOpacity>
       </View>
     )
@@ -699,7 +695,7 @@ class Card extends PureComponent<Props, State> {
       Animated.parallel([
         Animated.timing(this.state.pan, { toValue: {x: xValue, y: yValue}, duration: 300 }),
         Animated.timing(this.state.panX, { toValue: xValue, duration: 300 }),
-      ]).start(() => onComplete)
+      ]).start(onComplete)
     } else {
       onComplete()
     }

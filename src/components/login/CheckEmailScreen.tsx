@@ -21,7 +21,7 @@ interface Props {
   submitVerificationCode: (code: string) => void
   waitingForVerificationResponse: boolean
   authError?: AuthError
-  clearAuthErrorMessage: () => void
+  clearAuthErrorMessages: () => void
   codeLength: {
     number: number
     string: string
@@ -167,7 +167,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
       Keyboard.dismiss()
       this.props.submitVerificationCode(code)
     } else if (this.props.authError === AuthError.BAD_CODE) {
-      this.props.clearAuthErrorMessage()
+      this.props.clearAuthErrorMessages()
     }
   }
 
@@ -250,16 +250,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
     fontSize: 30,
-  },
-  activityIndicatorContainer: {
-    position: 'absolute',
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
   badCode: {
     color: '#A82A2A',

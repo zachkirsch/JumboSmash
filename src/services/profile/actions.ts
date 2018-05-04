@@ -14,12 +14,6 @@ export enum ProfileActionType {
   UPDATE_PREFERRED_NAME_SUCCESS = 'UPDATE_PREFERRED_NAME_SUCCESS',
   UPDATE_PREFERRED_NAME_FAILURE = 'UPDATE_PREFERRED_NAME_FAILURE',
 
-  ON_CHANGE_MAJOR_TEXTINPUT = 'ON_CHANGE_MAJOR_TEXTINPUT',
-  UPDATE_MAJOR_LOCALLY = 'UPDATE_MAJOR_LOCALLY',
-  ATTEMPT_UPDATE_MAJOR = 'ATTEMPT_UPDATE_MAJOR',
-  UPDATE_MAJOR_SUCCESS = 'UPDATE_MAJOR_SUCCESS',
-  UPDATE_MAJOR_FAILURE = 'UPDATE_MAJOR_FAILURE',
-
   ON_CHANGE_BIO_TEXTINPUT = 'ON_CHANGE_BIO_TEXTINPUT',
   UPDATE_BIO_LOCALLY = 'UPDATE_BIO_LOCALLY',
   ATTEMPT_UPDATE_BIO = 'ATTEMPT_UPDATE_BIO',
@@ -81,30 +75,6 @@ export interface UpdatePreferredNameSuccessAction {
 
 export interface UpdatePreferredNameFailureAction {
   type: ProfileActionType.UPDATE_PREFERRED_NAME_FAILURE
-  errorMessage: string
-}
-
-export interface OnChangeMajorTextInputAction {
-  type: ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
-  major: string,
-}
-
-export interface UpdateMajorLocallyAction {
-  type: ProfileActionType.UPDATE_MAJOR_LOCALLY
-  major: string
-}
-
-export interface AttemptUpdateMajorAction {
-  type: ProfileActionType.ATTEMPT_UPDATE_MAJOR
-  major: string
-}
-
-export interface UpdateMajorSuccessAction {
-  type: ProfileActionType.UPDATE_MAJOR_SUCCESS
-}
-
-export interface UpdateMajorFailureAction {
-  type: ProfileActionType.UPDATE_MAJOR_FAILURE
   errorMessage: string
 }
 
@@ -241,11 +211,6 @@ export type ProfileAction = InitializeProfileAction
 | AttemptUpdatePreferredNameAction
 | UpdatePreferredNameSuccessAction
 | UpdatePreferredNameFailureAction
-| OnChangeMajorTextInputAction
-| UpdateMajorLocallyAction
-| AttemptUpdateMajorAction
-| UpdateMajorSuccessAction
-| UpdateMajorFailureAction
 | OnChangeBioTextInputAction
 | UpdateBioLocallyAction
 | AttemptUpdateBioAction
@@ -294,20 +259,6 @@ export const updatePreferredName = (preferredName: string): AttemptUpdatePreferr
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME,
     preferredName,
-  }
-}
-
-export const onChangeMajorTextInput = (major: string): OnChangeMajorTextInputAction => {
-  return {
-    type: ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
-    major,
-  }
-}
-
-export const updateMajor = (major: string): AttemptUpdateMajorAction => {
-  return {
-    type: ProfileActionType.ATTEMPT_UPDATE_MAJOR,
-    major,
   }
 }
 

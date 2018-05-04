@@ -9,6 +9,7 @@ interface Tag {
 
 export interface User {
   id: number
+  firebaseUid: string
   email: string
   preferredName: string
   surname: string

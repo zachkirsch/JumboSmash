@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Animated, Easing, Dimensions, StyleSheet, View } from 'react-native'
+import { Animated, Image, Easing, Dimensions, StyleSheet, View } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import { JSText, JSImage, JSButton } from '../../common'
 import { Images } from '../../../assets'
@@ -60,22 +60,20 @@ class MatchPopUp extends PureComponent<Props, State> {
           >
             <View style={styles.top}/>
             <View style={styles.avatarSection}>
-              <JSImage cache={false} source={{uri: this.props.myAvatar}} style={[styles.avatar, styles.myAvatar]} />
-              <JSImage cache={false} source={{uri: this.props.matchAvatar}} style={[styles.avatar]} />
+              <JSImage cache source={{uri: this.props.myAvatar}} style={[styles.avatar, styles.myAvatar]} />
+              <JSImage cache source={{uri: this.props.matchAvatar}} style={[styles.avatar]} />
             </View>
             <View style={styles.matchText}>
               <JSText style={styles.matchTextSettings}>You matched with {this.props.matchName}!</JSText>
             </View>
             <View style={styles.elephants}>
-              <JSImage
-                cache={false}
+              <Image
                 source={Images.matchElephant}
                 style={[styles.elephantAvatar, styles.myAvatar]}
                 resizeMode='contain'
               />
               <View style={styles.reverse}>
-                <JSImage
-                  cache={false}
+                <Image
                   source={Images.matchElephant}
                   style={[styles.elephantAvatar]}
                   resizeMode='contain'

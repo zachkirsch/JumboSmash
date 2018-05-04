@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'ProximaNovaSoft-Regular',
     paddingVertical: 0,
+    fontSize: 16,
   },
   fancy: {
     ...Platform.select({

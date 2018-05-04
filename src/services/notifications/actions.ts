@@ -1,5 +1,5 @@
 import { RehydrateAction } from '../redux'
-
+import { InAppNotificationWithoutId } from './types'
 /* Actions */
 
 export enum NotificationsActionType {
@@ -7,6 +7,8 @@ export enum NotificationsActionType {
 
   ADD_IN_APP_NOTIFICATION = 'ADD_IN_APP_NOTIFICATION',
   DELETE_IN_APP_NOTIFICATION = 'DELETE_IN_APP_NOTIFICATION',
+
+  CLEAR_NOTIFICATIONS_STATE = 'CLEAR_NOTIFICATIONS_STATE',
 
   OTHER_ACTION = '__any_other_action_type__',
 }
@@ -16,17 +18,18 @@ export interface SetNotificationsTokenAction {
   token?: string
 }
 
-export interface AddInAppNotificationAction  {
+export interface AddInAppNotificationAction {
   type: NotificationsActionType.ADD_IN_APP_NOTIFICATION
-  title: string
-  subtitle: string
-  imageUri: string
-  conversationId: string
+  notification: InAppNotificationWithoutId
 }
 
 export interface DeleteInAppNotificationAction  {
   type: NotificationsActionType.DELETE_IN_APP_NOTIFICATION
   id: number
+}
+
+export interface ClearNotificationsStateAction {
+  type: NotificationsActionType.CLEAR_NOTIFICATIONS_STATE
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
@@ -44,6 +47,7 @@ export type NotificationsAction =
 SetNotificationsTokenAction
 | AddInAppNotificationAction
 | DeleteInAppNotificationAction
+| ClearNotificationsStateAction
 | RehydrateAction
 | OtherAction
 
@@ -56,15 +60,10 @@ export const setNotificationsToken = (token?: string): SetNotificationsTokenActi
   }
 }
 
-export const addInAppNotification = (title: string, subtitle: string,
-                                     imageUri: string,
-                                     conversationId: string): AddInAppNotificationAction => {
+export const addInAppNotification = (notification: InAppNotificationWithoutId): AddInAppNotificationAction => {
   return {
     type: NotificationsActionType.ADD_IN_APP_NOTIFICATION,
-    title,
-    subtitle,
-    imageUri,
-    conversationId,
+    notification,
   }
 }
 
@@ -72,5 +71,11 @@ export const deleteInAppNotification = (id: number): DeleteInAppNotificationActi
   return {
     type: NotificationsActionType.DELETE_IN_APP_NOTIFICATION,
     id,
+  }
+}
+
+export const clearNotificationsState = (): ClearNotificationsStateAction => {
+  return {
+    type: NotificationsActionType.CLEAR_NOTIFICATIONS_STATE,
   }
 }

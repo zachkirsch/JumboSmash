@@ -1,5 +1,5 @@
 import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
-import moment from 'moment'
+import firebase from 'react-native-firebase'
 import { api, GetUserResponse, GetAllUsersUser, GetAllUsersResponse, GetSwipableUsersResponse, SwipeResponse } from '../api'
 import { ChatService } from '../firebase/utils'
 import {
@@ -20,14 +20,16 @@ import { ReduxActionType } from '../redux'
 import { RootState } from '../../redux'
 import { EmojiProfileReact, ProfileReact, ImageProfileReact } from '../profile'
 import { User } from './types'
+import { addInAppNotification, setNotificationsToken } from '../notifications/actions'
 
 const getAllReacts = (state: RootState) => state.profile.profileReacts.value
 const getId = (state: RootState) => state.profile.id
-const getSignedInStatus = (state: RootState) => state.auth.isLoggedIn
+const getSignedInStatus = (state: RootState) => state.auth.loggedIn.value
 
 const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserResponse): User => {
   return {
     id: user.id,
+    firebaseUid: user.firebase_uid,
     email: user.email,
     bio: user.bio,
     major: user.major || '',
@@ -91,6 +93,13 @@ function* attemptFetchSwipableUsers() {
   }
     yield put(failureAction)
   }
+
+  // as a weird workaround to tokens not being refreshed,
+  // set it every time we fetch more users
+  try {
+    const token: string = yield firebase.messaging().getToken()
+    yield put(setNotificationsToken(token))
+  } catch (e) {} /* tslint:disable-line:no-empty */
 }
 
 function* attemptFetchAllUsers() {
@@ -121,8 +130,8 @@ function* attemptSwipe(action: AttemptSwipeAction) {
       ChatService.createChat(
         response.match.id,
         response.match.conversation_uuid,
-        moment(response.match.createdAt).valueOf(),
-        response.match.users.filter(u => u.id !== myID),
+        response.match.createdAt,
+        response.match.users.map(u => u.id).filter(id => id !== myID),
         true
       )
     }
@@ -143,6 +152,15 @@ function* attemptSwipe(action: AttemptSwipeAction) {
     }
     yield put(failureAction)
   }
+}
+
+function* swipeFailure(action: SwipeFailureAction) {
+  yield put(addInAppNotification({
+    type: 'actionless',
+    title: `Your swipe on ${action.onUser.fullName} failed`,
+    subtitle: 'Check your network connection',
+  }))
+
 }
 
 function* attemptReact(action: AttemptReactAction) {
@@ -174,6 +192,7 @@ export function* swipeSaga() {
   yield takeLatest(SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS, attemptFetchSwipableUsers)
   yield takeLatest(SwipeActionType.ATTEMPT_FETCH_ALL_USERS, attemptFetchAllUsers)
   yield takeEvery(SwipeActionType.ATTEMPT_SWIPE, attemptSwipe)
+  yield takeEvery(SwipeActionType.SWIPE_FAILURE, swipeFailure)
   yield takeEvery(SwipeActionType.ATTEMPT_REACT, attemptReact)
   yield takeLatest(ReduxActionType.REHYDRATE, rehydateUsers)
 }

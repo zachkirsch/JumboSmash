@@ -55,7 +55,6 @@ export interface ProfileState {
   surname: string
   fullName: string
   classYear: number
-  major: LoadableValue<string>
   bio: LoadableValue<string>
   images: List<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>

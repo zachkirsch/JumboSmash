@@ -140,7 +140,7 @@ class App extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    isLoggedIn: state.auth.isLoggedIn,
+    isLoggedIn: state.auth.loggedIn.value,
     rehydrated: state.redux.rehydrated,
     serverTime: state.time.serverTime,
   }

@@ -67,9 +67,10 @@ export enum AuthError {
   SERVER_ERROR,
 }
 
-export const getAuthErrorFromMessage = (errorMessage: string): AuthError => {
+export const getAuthErrorFromMessage = (errorMessage: string | undefined): AuthError => {
   switch (errorMessage) {
     case '':
+    case undefined:
       return AuthError.NO_ERROR
     case 'not_senior':
       return AuthError.NOT_SENIOR

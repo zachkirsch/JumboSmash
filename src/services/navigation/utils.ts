@@ -1,20 +1,28 @@
 import { NavigationActions } from 'react-navigation'
 
+interface NavigationServiceType {
+  router?: any /* tslint:disable-line:no-any */
+  setRouter: (router: any) => void /* tslint:disable-line:no-any */
+  openChat: (conversationId: string) => void
+  chatIsOpen: (conversationId: string) => boolean
+  popChatIfOpen: (conversationId: string) => void
+}
+
 /* tslint:disable-next-line:variable-name */
-export const NavigationService = {
+export const NavigationService: NavigationServiceType = {
   /* tslint:disable-next-line:no-any */
-  setRouter: (router: any) => this.router = router,
+  setRouter: (router: any) => NavigationService.router = router,
   openChat: (conversationId: string) => {
-    if (!this.router) {
+    if (!NavigationService.router) {
       return
     }
-    const onChatScreen = this.router.state.nav.routes[1] && this.router.state.nav.routes[1].routeName === 'Chat'
+    const onChatScreen = NavigationService.router.state.nav.routes[1] && NavigationService.router.state.nav.routes[1].routeName === 'Chat'
     if (onChatScreen) {
-      if (this.router.state.nav.index > 0) {
-        this.router.dispatch(NavigationActions.popToTop({}))
+      if (NavigationService.router.state.nav.index > 0) {
+        NavigationService.router.dispatch(NavigationActions.popToTop({}))
       }
     }
-    this.router.dispatch(NavigationActions.navigate({
+    NavigationService.router.dispatch(NavigationActions.navigate({
       routeName: 'Chat',
       params: {
         conversationId: conversationId,
@@ -22,22 +30,25 @@ export const NavigationService = {
     }))
   },
   chatIsOpen: (conversationId: string) => {
-    const onChatScreen = this.router.state.nav.routes[1] && this.router.state.nav.routes[1].routeName === 'Chat'
+    if (!NavigationService.router) {
+      return false
+    }
+    const onChatScreen = NavigationService.router.state.nav.routes[1] && NavigationService.router.state.nav.routes[1].routeName === 'Chat'
     if (onChatScreen) {
-      const onConversationScreen = this.router.state.nav.index > 0
+      const onConversationScreen = NavigationService.router.state.nav.index > 0
       if (onConversationScreen) {
-        return this.router.state.nav.routes[1].params
-               && this.router.state.nav.routes[1].params.conversationId === conversationId
+        return NavigationService.router.state.nav.routes[1].params
+               && NavigationService.router.state.nav.routes[1].params.conversationId === conversationId
       }
     }
     return false
   },
   popChatIfOpen: (conversationId: string) => {
-    if (!this.router) {
+    if (!NavigationService.router) {
       return
     }
-    if (this.chatIsOpen(conversationId)) {
-      this.router.dispatch(NavigationActions.popToTop({}))
+    if (NavigationService.chatIsOpen(conversationId)) {
+      NavigationService.router.dispatch(NavigationActions.popToTop({}))
     }
   },
 }

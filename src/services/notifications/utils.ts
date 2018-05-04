@@ -1,20 +1,21 @@
 import { setNotificationsToken } from './actions'
 import firebase from 'react-native-firebase'
-import moment from 'moment'
 import { reduxStore } from '../../redux'
 import { ChatService } from '../firebase'
-import { unmatch } from '../matches'
+import { unmatch, removeChat } from '../matches'
 import { updateProfileReacts } from '../profile'
 import { addInAppNotification } from './actions'
-import { Match, ProfileReact, GetUserResponse } from '../api'
+import { ProfileReact, GetUserResponse } from '../api'
 import { NavigationService } from '../navigation'
 
 /* tslint:disable:no-console */
 
 interface NewMatchMessage {
   msg_type: 'new_match'
-  match: Match
-  other_users: GetUserResponse[]
+  match_id: number
+  conversation_uuid: string
+  createdAt: string
+  users: number[]
 }
 
 interface NewChatMessage {
@@ -35,9 +36,30 @@ interface UnmatchMessage {
   match_id: number
 }
 
-type DataMessage = UnmatchMessage | NewMatchMessage | ReactMessage
+interface DeactivateMessage {
+  msg_type: 'deactivate'
+  conversation_uuid: string
+  match_id: number
+  user_id: number
+}
 
-type Notification = NewMatchMessage | NewChatMessage
+interface ReactivateMessage {
+  msg_type: 'reactivate'
+  match_id: number
+  conversation_uuid: string
+  createdAt: string
+  users: number[]
+}
+
+interface GeneralNotification {
+  msg_type: 'general'
+  title: string
+  subtitle?: string
+}
+
+type DataMessage = UnmatchMessage | NewMatchMessage | ReactMessage | DeactivateMessage | ReactivateMessage
+
+type Notification = NewMatchMessage | NewChatMessage | GeneralNotification
 
 const dummy = () => {} /* tslint:disable-line:no-empty */
 
@@ -81,34 +103,7 @@ export const setupNotifications = () => {
     reduxStore.dispatch(setNotificationsToken(fcmToken))
   })
 
-  messageListener = firebase.messaging().onMessage(message => {
-    console.log(message, message.data, message._data)
-    try {
-      const data: DataMessage = JSON.parse(message._data.data)
-      console.log(data)
-      switch (data.msg_type) {
-        case 'unmatch':
-          NavigationService.popChatIfOpen(data.conversation_uuid)
-          reduxStore.dispatch(unmatch(data.match_id, data.conversation_uuid))
-          break
-        case 'new_match':
-          const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
-          ChatService.createChat(
-            data.match.id,
-            data.match.conversation_uuid,
-            moment(data.match.createdAt).valueOf(),
-            otherUsers,
-            false
-          )
-          break
-        case 'react':
-          reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
-      }
-    } catch (e) {
-      console.log(e)
-      // TODO: Query for new matches
-    }
-  })
+  messageListener = firebase.messaging().onMessage(onMessage)
 
   notificationDisplayedListener = firebase.notifications().onNotificationDisplayed((notification) => {
     // Process your notification as required
@@ -125,29 +120,36 @@ export const setupNotifications = () => {
       console.log(data)
       switch (data.msg_type) {
         case 'new_match':
-          const otherUsers = data.match.users.filter(u => u.id !== reduxStore.getState().profile.id)
-          const otherUser = otherUsers[0]
-          reduxStore.dispatch(addInAppNotification(
-            `You matched with ${otherUser.preferred_name}!`,
-            `Tap to start chatting`,
-            otherUser.images[0].url,
-            data.match.conversation_uuid
-          ))
+          const otherUsers = data.users.filter(id => id !== reduxStore.getState().profile.id)
+          const otherUser = reduxStore.getState().swipe.allUsers.value.get(otherUsers[0])
+            reduxStore.dispatch(addInAppNotification({
+              type: 'chat',
+              title: `You matched with ${otherUser.preferredName}!`,
+              subtitle: `Tap to start chatting`,
+              imageUri: otherUser.images[0],
+              conversationId: data.conversation_uuid,
+            }))
           break
         case 'new_chat':
           if (!NavigationService.chatIsOpen(data.conversation_uuid)) {
-            ChatService.store!.dispatch(addInAppNotification(
-              `New message from ${data.from_user.preferred_name}`,
-              data.message,
-              data.from_user.images[0].url,
-              data.conversation_uuid
-            ))
+            reduxStore.dispatch(addInAppNotification({
+              type: 'chat',
+              title: `New message from ${data.from_user.preferred_name}`,
+              subtitle: data.message,
+              imageUri: data.from_user.images[0].url,
+              conversationId: data.conversation_uuid,
+            }))
           }
+          break
+        case 'general':
+          reduxStore.dispatch(addInAppNotification({
+            type: 'actionless',
+            title: data.title,
+            subtitle: data.subtitle || '',
+          }))
+          break
       }
-    } catch (e) {
-      console.error(e)
-      // TODO: Query for new matches
-    }
+    } catch (e) {} /* tslint:disable-line:no-empty */
   })
 
   notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
@@ -162,38 +164,43 @@ export const setupNotifications = () => {
       console.log(data)
       switch (data.msg_type) {
         case 'new_match':
-          NavigationService.openChat(data.match.conversation_uuid)
-          break
         case 'new_chat':
           NavigationService.openChat(data.conversation_uuid)
           break
       }
-    } catch (e) {
-      console.error(e)
-      // TODO: Query for new matches
-    }
-  })
-}
-/* TODO: delete
-export const requestPermissions = () => {
-  firebase.messaging().requestPermission()
-  .then(() => {
-    console.log('user has authorized')
-  })
-  .catch(error => {
-    console.log('user has not authorized', error)
+    } catch (e) {} /* tslint:disable-line:no-empty */
   })
 }
 
-export const hasPermissions = () => {
-  firebase.messaging().hasPermission()
-  .then(enabled => {
-    if (enabled) {
-      console.log('has permissions')
-    } else {
-      console.log('DOES NOT HAVE permissions')
+/* tslint:disable-next-line:no-any */
+const onMessage = (message: any) => {
+  console.log(message, message.data, message._data)
+  try {
+    const data: DataMessage = JSON.parse(message._data.data)
+    console.log(data)
+    switch (data.msg_type) {
+      case 'unmatch':
+        NavigationService.popChatIfOpen(data.conversation_uuid)
+        reduxStore.dispatch(unmatch(data.match_id, data.conversation_uuid))
+        break
+      case 'deactivate':
+        NavigationService.popChatIfOpen(data.conversation_uuid)
+        ChatService.stopListeningToChat(data.conversation_uuid)
+        reduxStore.dispatch(removeChat(data.conversation_uuid))
+        break
+      case 'new_match':
+      case 'reactivate':
+        const otherUsers = data.users.filter(id => id !== reduxStore.getState().profile.id)
+        ChatService.createChat(
+          data.match_id,
+          data.conversation_uuid,
+          data.createdAt,
+          otherUsers,
+          false
+        )
+        break
+      case 'react':
+        reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
     }
-  })
+  } catch (e) {} /* tslint:disable-line:no-empty */
 }
-*/
-/* tslint:enable:no-console */

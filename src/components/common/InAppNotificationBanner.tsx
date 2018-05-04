@@ -13,13 +13,14 @@ interface Props {
 }
 
 interface State {
-  transateY: Animated.Value
+  translateY: Animated.Value
   entered: boolean
 }
 
-const HEIGHT = 65
+const HEIGHT = 80
 const TOP_BUFFER = isIphoneX() ? 20 : 0
 const INITIAL_TRANSLATE_Y = -HEIGHT - TOP_BUFFER - 40
+const TIME_FOR_NOTIFICATION = 3000 // in milliseconds
 
 class InAppNotificationBanner extends PureComponent<Props, State> {
 
@@ -28,7 +29,7 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      transateY: new Animated.Value(0),
+      translateY: new Animated.Value(0),
       entered: false,
     }
     this.panResponder = PanResponder.create({
@@ -37,7 +38,7 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
       onPanResponderTerminationRequest: () => !this.state.entered,
       onPanResponderGrant: () => this.stopDismissTimer(),
       onPanResponderMove: (_, gestureState) => {
-        this.state.transateY.setValue(
+        this.state.translateY.setValue(
           this.finalTranslateY() + Math.min(0, gestureState.dy)
         )
       },
@@ -53,18 +54,16 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
 
   componentDidMount() {
     Animated.timing(
-      this.state.transateY,
+      this.state.translateY,
       {
         toValue: this.finalTranslateY(),
         duration: 750,
         easing: Easing.inOut(Easing.cubic),
-        delay: 2000,
       }
     ).start(() => {
       this.setState({
         entered: true,
-      })
-      this.startDismissTimer()
+      }, this.startDismissTimer)
     })
   }
 
@@ -72,7 +71,7 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
     const style = [
       styles.outerContainer,
       {
-        transform: [{ translateY: this.state.transateY }],
+        transform: [{ translateY: this.state.translateY }],
       },
     ]
 
@@ -86,11 +85,7 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
           style={styles.gradient}
         >
           <View style={styles.innerContainer}>
-            <JSImage
-              cache
-              source={{uri: this.props.notification.imageUri}}
-              style={styles.image}
-            />
+            {this.renderImage()}
             <View style={styles.textContainer}>
               <JSText bold style={styles.title}>{this.props.notification.title}</JSText>
               <JSText numberOfLines={1}>{this.props.notification.subtitle}</JSText>
@@ -101,9 +96,22 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
     )
   }
 
-  private startDismissTimer = (delay = 3000, onComplete?: () => void) => {
+  private renderImage = () => {
+    if (this.props.notification.type === 'chat') {
+      return (
+        <JSImage
+          cache
+          source={{uri: this.props.notification.imageUri}}
+          style={styles.image}
+        />
+      )
+    }
+    return null
+  }
+
+  private startDismissTimer = (delay = TIME_FOR_NOTIFICATION, onComplete?: () => void) => {
     Animated.timing(
-      this.state.transateY,
+      this.state.translateY,
       {
         toValue: 0,
         duration: 350,
@@ -114,7 +122,7 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
   }
 
   private stopDismissTimer = () => {
-    this.state.transateY.stopAnimation()
+    this.state.translateY.stopAnimation()
   }
 
   private finalTranslateY = () => -INITIAL_TRANSLATE_Y

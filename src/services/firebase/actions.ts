@@ -4,6 +4,7 @@ export enum FirebaseActionType {
   ATTEMPT_CONNECT_TO_FIREBASE = 'ATTEMPT_CONNECT_TO_FIREBASE',
   CONNECT_TO_FIREBASE_SUCCESS = 'CONNECT_TO_FIREBASE_SUCCESS',
   CONNECT_TO_FIREBASE_FAILURE = 'CONNECT_TO_FIREBASE_FAILURE',
+  SET_FIREBASE_TOKEN = 'SET_FIREBASE_TOKEN',
   LOGOUT_FIREBASE = 'LOGOUT_FIREBASE',
   OTHER_ACTION = '__any_other_action_type__',
 }
@@ -20,6 +21,11 @@ export interface ConnectToFirebaseSuccessAction {
 export interface ConnectToFirebaseFailureAction {
   type: FirebaseActionType.CONNECT_TO_FIREBASE_FAILURE
   errorMessage: string
+}
+
+export interface SetFirebaseTokenAction {
+  type: FirebaseActionType.SET_FIREBASE_TOKEN
+  token: string
 }
 
 export interface LogoutFirebaseAction {
@@ -41,6 +47,7 @@ export type FirebaseAction =
 AttemptConnectToFirebaseAction
 | ConnectToFirebaseSuccessAction
 | ConnectToFirebaseFailureAction
+| SetFirebaseTokenAction
 | LogoutFirebaseAction
 | OtherAction
 
@@ -50,6 +57,13 @@ export const attemptConnectToFirebase = (firebaseToken: string): AttemptConnectT
   return {
     type: FirebaseActionType.ATTEMPT_CONNECT_TO_FIREBASE,
     token: firebaseToken,
+  }
+}
+
+export const setFirebaseToken = (token: string): SetFirebaseTokenAction => {
+  return {
+    type: FirebaseActionType.SET_FIREBASE_TOKEN,
+    token,
   }
 }
 

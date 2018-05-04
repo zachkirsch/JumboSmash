@@ -189,7 +189,7 @@ class LoginScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     email: state.auth.email,
-    isLoggedIn: state.auth.isLoggedIn,
+    isLoggedIn: state.auth.loggedIn.value,
   }
 }
 

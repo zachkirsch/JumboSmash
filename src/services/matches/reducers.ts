@@ -1,4 +1,5 @@
 import { List, Map, Set } from 'immutable'
+import moment from 'moment'
 import {
   AttemptSendMessagesAction,
   MatchesAction,
@@ -33,6 +34,7 @@ const addMessagesToReduxState = (oldState: MatchesState,
       newMessageIDs = newMessageIDs.add(message._id)
       newMessages = newMessages.unshift({
         ...message,
+        createdAt: moment(message.createdAt).valueOf(),
         failedToSend: false,
         sending,
       })
@@ -131,8 +133,6 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         matchPopup = {
           shouldShow: true,
           match: {
-            id: action.id,
-            createdAt: action.createdAt,
             conversationId: action.conversationId,
             otherUsers: action.otherUsers,
           },
@@ -143,8 +143,8 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         chats: state.chats.set(action.conversationId, {
           matchId: action.id,
           conversationId: action.conversationId,
-          createdAt: action.createdAt,
-          otherUsers: action.otherUsers.map(user => user.id),
+          createdAt: moment(action.createdAt).valueOf(),
+          otherUsers: action.otherUsers,
           messages: List(),
           messageIDs: Set(),
           mostRecentMessage: '',
@@ -159,11 +159,11 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
           chats = chats.set(match.conversationId, {
             matchId: match.id,
             conversationId: match.conversationId,
-            otherUsers: match.otherUsers.map(user => user.id),
+            otherUsers: match.otherUsers,
             messages: List(),
             messageIDs: Set(),
             mostRecentMessage: '',
-            createdAt: match.createdAt,
+            createdAt: moment(match.createdAt).valueOf(),
             messagesUnread: false,
           })
         }
@@ -178,6 +178,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         chats,
       }
 
+    case MatchesActionType.REMOVE_CHAT:
     case MatchesActionType.UNMATCH:
       return {
         ...state,

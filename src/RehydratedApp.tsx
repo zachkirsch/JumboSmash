@@ -16,6 +16,7 @@ import { ChatService } from './services/firebase'
 import { attemptConnectToFirebase } from './services/firebase'
 import { NavigationService } from './services/navigation'
 import { dismissMatchPopup, MatchesState } from './services/matches'
+import { User } from './services/swipe'
 import { AuthState } from './services/auth'
 import firebase from 'react-native-firebase'
 import { InAppNotification, deleteInAppNotification } from './services/notifications'
@@ -25,6 +26,7 @@ interface StateProps {
   authState: AuthState
   networkRequestInProgress: boolean
   chats: Map<string, Conversation>
+  allUsers: Map<number, User>
   firebaseToken: string
   classYear: number
   profileSetUp: boolean
@@ -50,7 +52,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
 
   componentDidMount() {
     this.onUserChanged = firebase.auth().onUserChanged(() => {
-      if (!firebase.auth().currentUser && this.props.authState.isLoggedIn) {
+      if (!firebase.auth().currentUser && this.props.authState.loggedIn.value) {
         this.props.attemptConnectToFirebase(this.props.firebaseToken)
       }
     })
@@ -62,7 +64,8 @@ class RehydratedApp extends PureComponent<Props, {}> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.authState.isLoggedIn && !nextProps.authState.isLoggedIn) {
+    // if logged out
+    if (this.props.authState.loggedIn.value && !nextProps.authState.loggedIn.value) {
       this.loginRouter = undefined
       this.postLoginRouter = undefined
     }
@@ -99,11 +102,12 @@ class RehydratedApp extends PureComponent<Props, {}> {
     if (!this.props.matches.matchPopup.shouldShow) {
       return null
     }
+    const otherUser = this.props.allUsers.get(this.props.matches.matchPopup.match.otherUsers[0])
     return (
       <MatchPopUp
         myAvatar={this.props.myAvatar}
-        matchAvatar={this.props.matches.matchPopup.match.otherUsers[0].images[0].url}
-        matchName={this.props.matches.matchPopup.match.otherUsers[0].preferred_name || 'someone'}
+        matchAvatar={otherUser.images[0]}
+        matchName={otherUser.preferredName || 'someone'}
         onPressStartChat={this.onPressStartChat}
         onDismiss={this.props.dismissMatchPopup}
       />
@@ -142,14 +146,17 @@ class RehydratedApp extends PureComponent<Props, {}> {
     })
   }
 
-  private shouldShowLoginScreens = () => !this.props.authState.isLoggedIn
+  private shouldShowLoginScreens = () => !this.props.authState.loggedIn.value
 
   private deleteNotification = (notification: InAppNotification) => () => {
     this.props.deleteInAppNotification(notification.id)
   }
 
   private openChat = (notification: InAppNotification) => () => {
-    NavigationService.openChat(notification.conversationId)
+    switch (notification.type) {
+      case 'chat':
+        NavigationService.openChat(notification.conversationId)
+    }
   }
 
   private shouldShowPostLoginScreens = () => !this.props.authState.codeOfConductAccepted
@@ -162,6 +169,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     authState: state.auth,
     networkRequestInProgress: networkRequestInProgress(state),
     chats: state.matches.chats,
+    allUsers: state.swipe.allUsers.value,
     firebaseToken: state.firebase.token.value,
     classYear: state.profile.classYear,
     profileSetUp: state.profile.images.filter(i => !!i && !!i.value.uri).size > 0,
@@ -174,15 +182,16 @@ const mapStateToProps = (state: RootState): StateProps => {
 // TODO: update with other ways of network requests
 const networkRequestInProgress = (state: RootState) => {
   return state.auth.waitingForRequestVerificationResponse
-  || state.auth.waitingForVerificationResponse
+  || state.auth.verified.loading
+  || state.auth.loggedIn.loading
   || state.firebase.token.loading
   || state.profile.preferredName.loading
-  || state.profile.major.loading
   || state.profile.bio.loading
   || !!state.profile.images.find(image => !!image && image.loading)
   || state.profile.tags.loading
   || state.swipe.allUsers.loading
   || state.swipe.swipableUsers.loading
+  || state.time.serverTime.loading
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {

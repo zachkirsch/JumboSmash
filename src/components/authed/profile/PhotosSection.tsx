@@ -1,15 +1,15 @@
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
-import { Alert, Dimensions, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { Alert, Dimensions, Platform, StyleSheet, TouchableWithoutFeedback, View, Image } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Feather from 'react-native-vector-icons/Feather'
-import Foundation from 'react-native-vector-icons/Foundation'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
 import { CircleButton, JSImage, JSImageProps } from '../../common'
 import { ActionSheetOption, generateActionSheetOptions, getMainColor, getLightColor } from '../../../utils'
+import { Images } from '../../../assets'
 
 interface Props {
   images: Array<LoadableValue<ImageUri>>
@@ -102,18 +102,21 @@ class PhotosSection extends PureComponent<Props, State> {
     const image = allImages[index] || EMPTY_IMAGE_WITH_STATUS
 
     let touchableDisabled = false
-    let plusIcon // TODO swap image
+    let plusIcon
+    let swapImage
 
     if (this.state.swapping) {
       if (index !== this.state.swappingIndex) {
-        plusIcon = (
-          <Foundation
-            style={styles.plusIcon}
-            name={'target-two'}
-            size={40}
-            color={getLightColor()}
-          />
-        )
+        if (image.uri) {
+          swapImage = (
+            <Image
+              source={Images.swap}
+              style={styles.swapImage}
+            />
+          )
+        } else {
+          touchableDisabled = true
+        }
       }
     } else if (!image.uri) {
       let indexOfFirstEmpty = allImages.findIndex((imageWithStatus) => !imageWithStatus.uri)
@@ -156,7 +159,7 @@ class PhotosSection extends PureComponent<Props, State> {
       if (image.uri.startsWith('http')) {
         imageToRender = <JSImage {...imageProps} cache />
       } else {
-        imageToRender = <JSImage {...imageProps} cache={false} />
+        imageToRender = <Image {...imageProps} />
       }
     } else {
       const imageStyles = [
@@ -172,6 +175,7 @@ class PhotosSection extends PureComponent<Props, State> {
         if (image.uploading) {
           cornerButton = (
             <CircleButton
+              type='icon'
               IconClass={Ionicons}
               iconName={'md-sync'}
               iconSize={13}
@@ -184,6 +188,7 @@ class PhotosSection extends PureComponent<Props, State> {
         } else if (this.canDeleteImage(index, allImages)) {
           cornerButton = (
             <CircleButton
+              type='icon'
               IconClass={Entypo}
               iconName={'cross'}
               iconSize={15}
@@ -203,6 +208,7 @@ class PhotosSection extends PureComponent<Props, State> {
             {plusIcon}
           </View>
         </TouchableWithoutFeedback>
+        {swapImage}
         {cornerButton}
       </View>
     )
@@ -273,7 +279,9 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private canSwapImage = (index: number) => {
-    return this.state.images[index] && this.state.images[index].uri
+    return this.state.images[index]
+      && this.state.images[index].uri
+      && this.getImages().filter(image => image.uri).length > 1
   }
 
   private onPressImage = (index: number) => () => {
@@ -306,8 +314,8 @@ class PhotosSection extends PureComponent<Props, State> {
     buttons.push({
       title: this.state.images[index] && this.state.images[index].uri ? 'Change Photo' : 'Choose Photo',
       onPress: () => ImagePicker.openPicker({
-          width: 2000,
-          height: 2000,
+          width: 500,
+          height: 500,
           cropping: true,
           mediaType: 'photo',
           cropperToolbarTitle: 'Move and Scale to Crop',
@@ -447,5 +455,12 @@ const styles = StyleSheet.create({
     backgroundColor: getMainColor(),
     zIndex: 600,
     elevation: 600,
+  },
+  swapImage: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    height: 50,
+    width: 50,
   },
 })

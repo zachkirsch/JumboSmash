@@ -2,16 +2,19 @@ import { Answers } from 'react-native-fabric'
 import { call, put, select, takeLatest } from 'redux-saga/effects'
 import { RootState } from '../../redux'
 import * as api from '../api'
-import { attemptConnectToFirebase, logoutFirebase } from '../firebase'
+import { ChatService, setFirebaseToken, attemptConnectToFirebase, logoutFirebase } from '../firebase'
 import { clearMatchesState } from '../matches'
 import { clearProfileState, initializeProfile } from '../profile'
 import { clearSwipeState, fetchAllUsers, fetchSwipableUsers } from '../swipe'
 import { isSenior } from '../../utils'
 import { clearNavigationState } from '../navigation'
+import { clearNotificationsState } from '../notifications/actions'
 import * as AuthActions from './actions'
+import { rehydrateMatchesFromServer } from '../matches/actions'
 import { ImageCacheService } from '../image-caching'
 
 const getDeviceId = (state: RootState) => state.auth.deviceId
+const getFirebaseToken = (state: RootState) => state.firebase.token
 
 function* handleRequestVerificationSuccess(isNewUser: boolean, deviceId: string) {
   const requestVerificationSuccessAction: AuthActions.RequestVerificationSuccessAction = {
@@ -71,12 +74,21 @@ function* attemptLogin() {
     const allTags: api.GetTagsResponse = yield call(api.api.getTags)
     const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
     yield put(initializeProfile(allTags, allReacts, meInfo))
+    yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => ({
+      id: match.id,
+      createdAt: match.createdAt,
+      conversationId: match.conversation_uuid,
+      otherUsers: match.users.reduce((acc, user) => {
+        if (user.id !== meInfo.id) {
+          acc.push(user.id)
+        }
+        return acc
+      }, [] as number[]),
+    }))))
+
     // fetch users
     yield put(fetchAllUsers())
     yield put(fetchSwipableUsers())
-
-    // connect to firebase
-    yield put(attemptConnectToFirebase(meInfo.firebase_token))
 
     const loginSuccessAction: AuthActions.LoginSuccessAction = {
       type: AuthActions.AuthActionType.LOGIN_SUCCESS,
@@ -102,7 +114,9 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 
     yield handleEmailVerificationSuccess(response.session_key, response.class_year)
     if (response && isSenior(response.class_year)) {
-      yield put(AuthActions.attemptLogin())
+      yield put(attemptConnectToFirebase(response.firebase_token))
+    } else {
+      yield put(setFirebaseToken(response.firebase_token))
     }
   } catch (error) {
     yield handleEmailVerificationError(error)
@@ -110,7 +124,8 @@ function* attemptVerifyEmail(payload: AuthActions.AttemptVerifyEmailAction) {
 }
 
 function* confirmNearTufts() {
-  yield put(AuthActions.attemptLogin())
+  const firebaseToken: string = yield select(getFirebaseToken)
+  yield put(attemptConnectToFirebase(firebaseToken))
 }
 
 function* handleAcceptCoCError(error: Error) {
@@ -131,13 +146,15 @@ function* acceptCoC(_: AuthActions.AttemptAcceptCoCAction) {
 }
 
 function* clearState() {
-  yield put(logoutFirebase())
   yield put(clearProfileState())
   yield put(clearNavigationState())
   yield put(clearSwipeState())
   yield put(clearMatchesState())
+  yield put(clearNotificationsState())
   yield put(AuthActions.setSessionKey(''))
   ImageCacheService.clearCache()
+  ChatService.stopListeningForNewChats()
+  yield put(logoutFirebase())
 }
 
 function* logout() {

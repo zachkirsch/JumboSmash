@@ -72,30 +72,16 @@ class Carousel extends PureComponent<Props, State> {
   private renderImages = () => {
 
     return this.props.imageUris.map((uri, i) => {
-      let image
-      if (i === 0) {
-        image = (
-          <JSImage
-            cache
-            source={{uri}}
-            style={[styles.image, this.props.imageStyle]}
-            resizeMode={'stretch'}
-            activityIndicatorSize='large'
-            containerStyle={StyleSheet.absoluteFill}
-          />
-        )
-      } else {
-        image = (
-          <JSImage
-            cache={false}
-            source={{uri}}
-            style={[styles.image, this.props.imageStyle]}
-            resizeMode={'stretch'}
-            activityIndicatorSize='large'
-            containerStyle={StyleSheet.absoluteFill}
-          />
-        )
-      }
+      const image = (
+        <JSImage
+          cache={(i === 0) as any} /* tslint:disable-line:no-any */
+          source={{uri}}
+          style={[styles.image, this.props.imageStyle]}
+          resizeMode={'stretch'}
+          activityIndicatorSize='large'
+          containerStyle={StyleSheet.absoluteFill}
+        />
+      )
       return (
         <Animated.View key={i} style={this.props.imageContainerStyle}>
           <TouchableWithoutFeedback onPress={this.onTap}>

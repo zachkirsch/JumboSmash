@@ -1,6 +1,6 @@
 import moment from 'moment'
 import React, { PureComponent } from 'react'
-import { Animated, Easing, TouchableOpacity, StyleSheet, View, ActivityIndicator, Dimensions } from 'react-native'
+import { Animated, Image, Easing, TouchableOpacity, StyleSheet, View, ActivityIndicator, Dimensions } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
@@ -8,7 +8,7 @@ import { getServerTime } from '../../services/time'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
-import { JSText, JSImage } from '../common'
+import { JSText } from '../common'
 import { LoadableValue } from '../../services/redux'
 import { LoginRoute } from '../navigation'
 
@@ -107,8 +107,7 @@ class CountdownScreen extends PureComponent<Props, State> {
   private renderLogo = () => {
     return (
       <View style={styles.logoContainer}>
-        <JSImage
-          cache={false}
+        <Image
           source={Images.jumbo2018}
           style={styles.logo}
           resizeMode={'contain'}

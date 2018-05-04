@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react'
-import { Platform, TouchableOpacity, View, Image, StyleSheet} from 'react-native'
-import { JSText } from '../../common'
+import { View, Image, StyleSheet} from 'react-native'
+import { JSText, CircleButton } from '../../common'
 import { Images } from '../../../assets'
 
 interface Props {
@@ -17,9 +17,12 @@ class NoMoreCards extends PureComponent<Props, {}> {
           <JSText style={styles.text}>
             {this.getMessage()}
           </JSText>
-        <TouchableOpacity onPress={this.props.requestMoreCards} style={styles.reloadContainer}>
-          <Image resizeMode='contain' source={Images.reload} style={styles.reload} />
-        </TouchableOpacity>
+          <CircleButton
+            type='image'
+            onPress={this.props.requestMoreCards}
+            source={Images.reload}
+            imageStyle={styles.reload}
+          />
       </View>
     )
   }
@@ -50,24 +53,6 @@ const styles = StyleSheet.create({
   reload: {
     width: 25,
     height: 25,
-  },
-  reloadContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowOpacity: 1,
-        shadowColor: 'rgb(231, 240, 249)',
-        shadowOffset: {
-          width: 1,
-          height: 1,
-        },
-        shadowRadius: 5,
-      },
-    }),
   },
   text: {
     padding: 25,

@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react'
-import { ActivityIndicator, Alert, StyleSheet, View, GeolocationReturnType, GeolocationError } from 'react-native'
+import { ActivityIndicator, Image, Alert, StyleSheet, View, GeolocationReturnType, GeolocationError } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
-import { JSText, JSButton, JSImage } from '../common'
+import { JSText, JSButton } from '../common'
 import { confirmNearTufts } from '../../services/auth'
 import { nearTufts, getMainColor } from '../../utils'
 import { Images } from '../../assets'
@@ -30,7 +30,7 @@ class ConfirmLocationScreen extends PureComponent<Props, State> {
   public render() {
     return (
       <View style={styles.container}>
-        <JSImage cache={false} source={Images.location} resizeMode='contain' style={styles.locationImage} />
+        <Image source={Images.location} resizeMode='contain' style={styles.locationImage} />
         <View>
           <JSText style={[styles.text, styles.largeMargin]}>
             JumboSmash is only open to non-seniors who are at Tufts. Are you at Tufts right now?

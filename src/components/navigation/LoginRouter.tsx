@@ -172,12 +172,12 @@ export const generateLoginRouter = () => {
   return TabNavigator(screens, {
     swipeEnabled: false,
     animationEnabled: true,
-    lazy: false,
+    lazy: true,
   })
 }
 
 export const generatePostLoginRouter = () => TabNavigator(getPostLoginScreens(), {
   swipeEnabled: false,
   animationEnabled: true,
-  lazy: false,
+  lazy: true,
 })

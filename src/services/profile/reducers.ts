@@ -23,10 +23,6 @@ const initialState: ProfileState = {
   surname: '',
   fullName: '',
   classYear: -1,
-  major: {
-    value: '',
-    loading: false,
-  },
   bio: {
     value: '',
     loading: false,
@@ -67,7 +63,6 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         fullName: action.payload.full_name,
         classYear: action.payload.class_year,
         bio: { value: action.payload.bio, loading: false },
-        major: { value: action.payload.major || '', loading: false },
         images: List(action.payload.images.map(({url}) => {
           return {
             value: {
@@ -169,36 +164,6 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       newState.preferredName = {
         prevValue: undefined,
         value: state.preferredName.prevValue || '',
-        loading: false,
-        errorMessage: action.errorMessage,
-      }
-      return newState
-
-    /* Major */
-
-    case ProfileActionType.UPDATE_MAJOR_LOCALLY:
-      newState.major = {
-        ...newState.major,
-        localValue: action.major,
-      }
-      return newState
-
-    case ProfileActionType.ATTEMPT_UPDATE_MAJOR:
-      newState.major = {
-        prevValue: state.major.loading ? state.major.prevValue : state.major.value,
-        value: action.major,
-        loading: true,
-      }
-      return newState
-
-    case ProfileActionType.UPDATE_MAJOR_SUCCESS:
-      newState.major.loading = false
-      return newState
-
-    case ProfileActionType.UPDATE_MAJOR_FAILURE:
-      newState.major = {
-        prevValue: undefined,
-        value: state.major.prevValue || '',
         loading: false,
         errorMessage: action.errorMessage,
       }
@@ -505,7 +470,6 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         surname: action.payload.profile.surname,
         fullName: action.payload.profile.fullName,
         classYear: action.payload.profile.classYear,
-        major: getValue(action.payload.profile.major, initialState.major.value),
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
         images: List(action.payload.profile.images.map(image => getValue(image!, {uri: '', isLocal: true}))),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),

@@ -13,12 +13,15 @@ const images: { [imageName: string]: any } = { /* tslint:disable-line:no-any */
 
   jumbo2018: require('./jumbo2018.png'),
   hash: require('./hash.png'),
-  cross: require('./cross.png'),
+  exit: require('./exit.png'),
   sad: require('./sad.png'),
   matchElephant: require('./matchElephant.png'),
   butt: require('./butt.png'),
   reload: require('./reload.png'),
   location: require('./location.png'),
+  heart: require('./heart.png'),
+  cross: require('./cross.png'),
+  swap: require('./swap.png'),
 }
 
 export { images as Images }

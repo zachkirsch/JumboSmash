@@ -1,7 +1,5 @@
-import { IChatMessage } from 'react-native-gifted-chat'
 import { RehydrateAction } from '../redux'
-import { GetUserResponse } from '../api'
-import { NewMatch } from './types'
+import { NewMatch, ChatMessage } from './types'
 
 /* Actions */
 
@@ -17,6 +15,7 @@ export enum MatchesActionType {
 
   REHYDRATE_MATCHES_FROM_SERVER = 'REHYDRATE_MATCHES_FROM_SERVER',
   UNMATCH = 'UNMATCH',
+  REMOVE_CHAT = 'REMOVE_CHAT',
 
   CLEAR_MATCHES_STATE = 'CLEAR_MATCHES_STATE',
   OTHER_ACTION = '__any_other_action_type__',
@@ -34,7 +33,7 @@ export interface DismissMatchPopupAction {
 export interface AttemptSendMessagesAction {
   type: MatchesActionType.ATTEMPT_SEND_MESSAGES
   conversationId: string
-  messages: IChatMessage[]
+  messages: ChatMessage[]
 }
 
 export interface SendMessagesSuccessAction {
@@ -67,6 +66,11 @@ export interface UnmatchAction {
   conversationId: string
 }
 
+export interface RemoveChatAction {
+  type: MatchesActionType.REMOVE_CHAT
+  conversationId: string
+}
+
 export interface RehydrateMatchesFromServerAction {
   type: MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER,
   matches: NewMatch[]
@@ -96,6 +100,7 @@ export type MatchesAction = CreateMatchAction
 | SetConversationAsReadAction
 | ClearMatchesStateAction
 | UnmatchAction
+| RemoveChatAction
 | RehydrateMatchesFromServerAction
 | RehydrateAction
 | OtherAction
@@ -111,8 +116,8 @@ export const rehydrateMatchesFromServer = (matches: NewMatch[]): RehydrateMatche
 
 export const createMatch = (id: number,
                             conversationId: string,
-                            createdAt: number,
-                            otherUsers: GetUserResponse[],
+                            createdAt: string,
+                            otherUsers: number[],
                             shouldShowMatchPopup: boolean): CreateMatchAction => {
   return {
     type: MatchesActionType.CREATE_MATCH,
@@ -135,6 +140,13 @@ export const unmatch = (matchId: number, conversationId: string): UnmatchAction 
     type: MatchesActionType.UNMATCH,
     conversationId,
     matchId,
+  }
+}
+
+export const removeChat = (conversationId: string): RemoveChatAction => {
+  return {
+    type: MatchesActionType.REMOVE_CHAT,
+    conversationId,
   }
 }
 

@@ -59,7 +59,7 @@ class ReactSection extends PureComponent<Props, {}> {
         disabled={!this.props.enabled}
       >
         {toRender}
-        <JSText bold={react.reacted} style={styles.reactNum}>{` ${react.count}`}</JSText>
+        <JSText bold={react.reacted} style={styles.reactNum}>{` ${Math.round(Math.random() * 100)}`}</JSText>
       </TouchableOpacity>
     )
   }

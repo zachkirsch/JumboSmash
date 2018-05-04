@@ -20,7 +20,7 @@ export enum AuthActionType {
   SET_SESSION_KEY = 'SET_SESSION_KEY',
   SET_ID = 'SET_ID',
   FINISH_TUTORIAL = 'FINISH_TUTORIAL',
-  CLEAR_AUTH_ERROR_MESSAGE = 'CLEAR_AUTH_ERROR_MESSAGE',
+  CLEAR_AUTH_ERROR_MESSAGES = 'CLEAR_AUTH_ERROR_MESSAGES',
   LOGOUT = 'LOGOUT',
   DEACTIVATE = 'DEACTIVATE',
   OTHER_ACTION = '__any_other_action_type__',
@@ -102,8 +102,8 @@ export interface SetCoCReadStatusAction {
   readStatus: boolean
 }
 
-export interface ClearAuthErrorMessageAction {
-  type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGE
+export interface ClearAuthErrorMessagesAction {
+  type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGES
 }
 
 export interface LogoutAction {
@@ -141,7 +141,7 @@ export type AuthAction = AttemptLoginAction
 | AcceptCoCSuccessAction
 | AcceptCoCFailureAction
 | SetCoCReadStatusAction
-| ClearAuthErrorMessageAction
+| ClearAuthErrorMessagesAction
 | LogoutAction
 | DeactivateAction
 | OtherAction
@@ -200,9 +200,9 @@ export const finishTutorial = (): FinishTutorialAction => {
   }
 }
 
-export const clearAuthErrorMessage = (): ClearAuthErrorMessageAction => {
+export const clearAuthErrorMessages = (): ClearAuthErrorMessagesAction => {
   return {
-    type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGE,
+    type: AuthActionType.CLEAR_AUTH_ERROR_MESSAGES,
   }
 }
 

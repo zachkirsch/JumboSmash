@@ -43,7 +43,7 @@ export default class extends PureComponent<InputToolbarProps, {}> {
         locations={[0, 1]}
         style={gradientStyle}
       >
-        <Composer // TODO: use our font for this text input
+        <Composer
           {...props}
           textInputStyle={[styles.composer, JSFontStyle]}
           placeholder='Text to impress...'
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 10,
+    paddingTop: 7,
   },
   inputToolbarContainer: {
     borderTopWidth: 0,
