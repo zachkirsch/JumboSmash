@@ -9,9 +9,8 @@ import {
   UnmatchAction,
   RemoveChatAction,
 } from './actions'
-import { IChatMessage } from 'react-native-gifted-chat'
 import { ChatService } from '../firebase'
-import { Conversation } from './types'
+import { ChatMessage, Conversation } from './types'
 import { api } from '../api'
 // import { ChatService } from '../firebase'
 import { RootState } from '../../redux'
@@ -21,7 +20,7 @@ const getConversation = (conversationId: string) => {
 }
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
-  function pushMessagetoFirebase(message: IChatMessage) {
+  function pushMessagetoFirebase(message: ChatMessage) {
     return new Promise((resolve, reject) => {
       const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({

@@ -1,8 +1,18 @@
 import { List, Map, Set } from 'immutable'
-import { IChatMessage } from 'react-native-gifted-chat'
 
-export type ChatMessage = IChatMessage & {
+export interface ChatMessage {
+  _id: any /* tslint:disable-line:no-any */
+  text: string
   createdAt: number
+  user: {
+    _id: any /* tslint:disable-line:no-any */
+    name: string
+    avatar: string
+  }
+  image: string
+  sending: boolean
+  failedToSend: boolean
+  system: false
 }
 
 export interface NewMatch {

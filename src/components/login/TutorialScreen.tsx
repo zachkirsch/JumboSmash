@@ -113,6 +113,7 @@ class TutorialScreen extends PureComponent<Props, State> {
           size={40}
           color={getLightColor()}
           style={styles.chevron}
+          onPress={this.onPressChevrons}
         />
       </TouchableWithoutFeedback>
     </View>

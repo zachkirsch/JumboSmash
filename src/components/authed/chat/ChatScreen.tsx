@@ -4,14 +4,15 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { GiftedChat, InputToolbarProps, MessageProps, IChatMessage } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
+import moment from 'moment'
 import { RootState } from '../../../redux'
 import {
   Conversation,
   sendMessages,
   setConversationAsRead,
+  ChatMessage,
 } from '../../../services/matches'
-import { JSImage, JSText } from '../../common'
-import { HeaderBar } from '../../common'
+import { JSImage, JSText, HeaderBar } from '../../common'
 import { User } from '../../../services/swipe'
 import Message from './Message'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
@@ -34,7 +35,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  sendMessages: (conversationId: string, messages: IChatMessage[]) => void
+  sendMessages: (conversationId: string, messages: ChatMessage[]) => void
   setConversationAsRead: () => void
   unmatch: (matchId: number, conversationId: string) => void
 }
@@ -158,7 +159,10 @@ class ChatScreen extends PureComponent<Props, {}> {
   }
 
   private onSend = (messages: IChatMessage[] = []) => {
-    this.props.sendMessages(this.getConversationId(), messages)
+    this.props.sendMessages(this.getConversationId(), messages.map(message => ({
+      ...message,
+      createdAt: moment(message.createdAt).valueOf(),
+    })))
   }
 
   private getConversationId = () => this.props.navigation.state.params.conversationId
@@ -181,7 +185,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>, ownProps: Props): DispatchProps => {
   return {
-    sendMessages: (conversationId: string, messages: IChatMessage[]) => {
+    sendMessages: (conversationId: string, messages: ChatMessage[]) => {
       dispatch(sendMessages(conversationId, messages))
     },
     setConversationAsRead: () => dispatch(setConversationAsRead(ownProps.navigation.state.params.conversationId)),

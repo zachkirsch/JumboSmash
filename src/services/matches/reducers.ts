@@ -9,7 +9,7 @@ import {
   SendMessagesSuccessAction,
 } from './actions'
 import { ReduxActionType } from '../redux'
-import { Conversation, MatchesState, MatchPopupSettings } from './types'
+import { Conversation, MatchesState, MatchPopupSettings, ChatMessage } from './types'
 
 const initialState: MatchesState = {
   chats: Map<string, Conversation>(),
@@ -32,12 +32,13 @@ const addMessagesToReduxState = (oldState: MatchesState,
   action.messages.forEach((message) => {
     if (!newMessageIDs.contains(message._id)) {
       newMessageIDs = newMessageIDs.add(message._id)
-      newMessages = newMessages.unshift({
+      const chatMessage: ChatMessage = {
         ...message,
         createdAt: moment(message.createdAt).valueOf(),
         failedToSend: false,
         sending,
-      })
+      }
+      newMessages = newMessages.unshift(chatMessage)
     }
   })
 

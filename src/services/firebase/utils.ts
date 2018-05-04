@@ -1,7 +1,6 @@
 import firebase from 'react-native-firebase'
 import { Store } from 'react-redux'
-import { IChatMessage } from 'react-native-gifted-chat'
-import { createMatch, receiveMessages } from '../matches'
+import { ChatMessage, createMatch, receiveMessages } from '../matches'
 import { RootState } from '../../redux'
 
 const chatroomsBeingListenedTo = new Set<string>()
@@ -83,10 +82,7 @@ ChatService.listenForNewChats = (conversationId: string) => {
       if (firebaseMessage === null) {
         return
       }
-      const message: IChatMessage = {
-        ...firebaseMessage.val(),
-      }
-
+      const message: ChatMessage = firebaseMessage.val()
       const conversation = ChatService.store!.getState().matches.chats.get(conversationId)
       if (conversation && !conversation.messageIDs.has(message._id)) {
         ChatService.store!.dispatch(receiveMessages(conversationId, [message]))

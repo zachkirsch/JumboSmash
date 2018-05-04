@@ -10,8 +10,7 @@ import {
   InAppNotificationBanner,
 } from './components'
 import { RootState } from './redux'
-import { Conversation, receiveMessages } from './services/matches'
-import { IChatMessage } from 'react-native-gifted-chat'
+import { Conversation } from './services/matches'
 import { ChatService } from './services/firebase'
 import { attemptConnectToFirebase } from './services/firebase'
 import { NavigationService } from './services/navigation'
@@ -37,7 +36,6 @@ interface StateProps {
 
 interface DispatchProps {
   attemptConnectToFirebase: (token: string) => void
-  receiveMessages: (conversationId: string, messages: IChatMessage[]) => void
   deleteInAppNotification: (id: number) => void
   dismissMatchPopup: () => void
 }
@@ -196,9 +194,6 @@ const networkRequestInProgress = (state: RootState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    receiveMessages: (conversationId: string, messages: IChatMessage[]) => {
-      dispatch(receiveMessages(conversationId, messages))
-    },
     attemptConnectToFirebase: (token: string) => dispatch(attemptConnectToFirebase(token)),
     deleteInAppNotification: (id: number) => dispatch(deleteInAppNotification(id)),
     dismissMatchPopup: () => dispatch(dismissMatchPopup()),

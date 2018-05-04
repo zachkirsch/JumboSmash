@@ -72,6 +72,7 @@
 		1C8C471AE630423080842248 /* sad.png in Resources */ = {isa = PBXBuildFile; fileRef = 7A0B84DEB5514048976771E8 /* sad.png */; };
 		85E6AC1BB3BE407CA779F84C /* exit.png in Resources */ = {isa = PBXBuildFile; fileRef = 823847545F6A41A4B3283451 /* exit.png */; };
 		A00F5E64D89A43CCB4762772 /* heart.png in Resources */ = {isa = PBXBuildFile; fileRef = 2133B6475BFA438F9C44284C /* heart.png */; };
+		A0332B71EED44976A01DB179 /* swap.png in Resources */ = {isa = PBXBuildFile; fileRef = 57B66B44C6ED488EBA53E4BB /* swap.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -512,6 +513,7 @@
 		7A0B84DEB5514048976771E8 /* sad.png */ = {isa = PBXFileReference; name = "sad.png"; path = "../src/assets/img/sad.png"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		823847545F6A41A4B3283451 /* exit.png */ = {isa = PBXFileReference; name = "exit.png"; path = "../src/assets/img/exit.png"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		2133B6475BFA438F9C44284C /* heart.png */ = {isa = PBXFileReference; name = "heart.png"; path = "../src/assets/img/heart.png"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		57B66B44C6ED488EBA53E4BB /* swap.png */ = {isa = PBXFileReference; name = "swap.png"; path = "../src/assets/img/swap.png"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -703,6 +705,7 @@
 				7A0B84DEB5514048976771E8 /* sad.png */,
 				823847545F6A41A4B3283451 /* exit.png */,
 				2133B6475BFA438F9C44284C /* heart.png */,
+				57B66B44C6ED488EBA53E4BB /* swap.png */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -1455,6 +1458,7 @@
 				1C8C471AE630423080842248 /* sad.png in Resources */,
 				85E6AC1BB3BE407CA779F84C /* exit.png in Resources */,
 				A00F5E64D89A43CCB4762772 /* heart.png in Resources */,
+				A0332B71EED44976A01DB179 /* swap.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

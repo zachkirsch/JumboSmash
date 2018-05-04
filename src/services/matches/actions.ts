@@ -39,20 +39,20 @@ export interface AttemptSendMessagesAction {
 export interface SendMessagesSuccessAction {
   type: MatchesActionType.SEND_MESSAGES_SUCCESS
   conversationId: string
-  messages: IChatMessage[]
+  messages: ChatMessage[]
 }
 
 export interface SendMessagesFailureAction {
   type: MatchesActionType.SEND_MESSAGES_FAILURE
   conversationId: string
-  messages: IChatMessage[]
+  messages: ChatMessage[]
   errorMessage: string
 }
 
 export interface ReceiveMessagesAction {
   type: MatchesActionType.RECEIVE_MESSAGES
   conversationId: string
-  messages: IChatMessage[]
+  messages: ChatMessage[]
 }
 
 export interface SetConversationAsReadAction {
@@ -150,7 +150,7 @@ export const removeChat = (conversationId: string): RemoveChatAction => {
   }
 }
 
-export const sendMessages = (conversationId: string, messages: IChatMessage[]): AttemptSendMessagesAction => {
+export const sendMessages = (conversationId: string, messages: ChatMessage[]): AttemptSendMessagesAction => {
   return {
     type: MatchesActionType.ATTEMPT_SEND_MESSAGES,
     conversationId,
@@ -158,7 +158,7 @@ export const sendMessages = (conversationId: string, messages: IChatMessage[]): 
   }
 }
 
-export const receiveMessages = (conversationId: string, messages: IChatMessage[]): ReceiveMessagesAction => {
+export const receiveMessages = (conversationId: string, messages: ChatMessage[]): ReceiveMessagesAction => {
   return {
     type: MatchesActionType.RECEIVE_MESSAGES,
     conversationId,

@@ -149,7 +149,9 @@ export const setupNotifications = () => {
           }))
           break
       }
-    } catch (e) {} /* tslint:disable-line:no-empty */
+    } catch (e) {
+      console.error(e)
+    } /* tslint:disable-line:no-empty */
   })
 
   notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
@@ -168,7 +170,9 @@ export const setupNotifications = () => {
           NavigationService.openChat(data.conversation_uuid)
           break
       }
-    } catch (e) {} /* tslint:disable-line:no-empty */
+    } catch (e) {
+      console.error(e)
+    } /* tslint:disable-line:no-empty */
   })
 }
 
@@ -202,5 +206,7 @@ const onMessage = (message: any) => {
       case 'react':
         reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
     }
-  } catch (e) {} /* tslint:disable-line:no-empty */
+  } catch (e) {
+    console.error(e)
+  } /* tslint:disable-line:no-empty */
 }
