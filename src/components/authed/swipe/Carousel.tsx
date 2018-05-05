@@ -2,15 +2,15 @@ import React, { PureComponent } from 'react'
 import {
   Dimensions,
   Animated,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
   Platform,
+  ScrollEvent,
 } from 'react-native'
 import { JSImage } from '../../common'
+import { clamp } from '../../../utils'
 
 interface Props {
   imageUris: string[]
@@ -24,8 +24,6 @@ interface Props {
 interface State {
   carouselIndex: number
 }
-
-type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>
 
 const WIDTH = Dimensions.get('window').width
 
@@ -56,7 +54,7 @@ class Carousel extends PureComponent<Props, State> {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           ref={(ref) => this.carouselScrollView = ref}
-          scrollEventThrottle={1}
+          scrollEventThrottle={16}
           onScroll={this.onScroll}
           onTouchMove={this.onScrollBeginDrag}
           onTouchEnd={this.onScrollEndDrag}
@@ -73,32 +71,38 @@ class Carousel extends PureComponent<Props, State> {
 
   private renderImages = () => {
 
-    return this.props.imageUris.map((uri, i) => (
-      <Animated.View key={i} style={this.props.imageContainerStyle}>
-        <TouchableWithoutFeedback onPress={this.onTap}>
-          <View style={StyleSheet.absoluteFill}>
-            <JSImage
-              source={{uri}}
-              style={[styles.image, this.props.imageStyle]}
-              resizeMode={'stretch'}
-              activityIndicatorSize='large'
-              containerStyle={StyleSheet.absoluteFill}
-            />
-          </View>
-        </TouchableWithoutFeedback>
-      </Animated.View>
-    ))
+    return this.props.imageUris.map((uri, i) => {
+      const image = (
+        <JSImage
+          cache={(i === 0) as any} /* tslint:disable-line:no-any */
+          source={{uri}}
+          style={[styles.image, this.props.imageStyle]}
+          resizeMode={'stretch'}
+          activityIndicatorSize='large'
+          containerStyle={StyleSheet.absoluteFill}
+        />
+      )
+      return (
+        <Animated.View key={i} style={this.props.imageContainerStyle}>
+          <TouchableWithoutFeedback onPress={this.onTap}>
+            <View style={StyleSheet.absoluteFill}>
+              {image}
+            </View>
+          </TouchableWithoutFeedback>
+        </Animated.View>
+      )
+    })
   }
 
   private renderDots = () => {
-    if (!this.props.enabled || this.props.imageUris.length <= 1) {
-      return undefined
+    if (!this.props.enabled) {
+      return null
     }
 
     return this.props.imageUris.map((_, i) => {
       const style = [styles.dot, {
-        backgroundColor: this.state.carouselIndex === i ? 'gray' : 'white',
-        borderColor:     this.state.carouselIndex === i ? 'white' : 'gray',
+        backgroundColor: this.state.carouselIndex === i ? 'white' : 'lightgray',
+        borderColor: this.state.carouselIndex === i ? 'gray' : 'white',
       }]
       return <View key={`dot-${i}`} style={style} />
     })
@@ -119,10 +123,10 @@ class Carousel extends PureComponent<Props, State> {
 
   private onScroll = (event: ScrollEvent) => {
     const { layoutMeasurement, contentOffset } = event.nativeEvent
-    let photoIndex = Math.round(contentOffset.x / layoutMeasurement.width)
-    photoIndex = Math.min(this.props.imageUris.length, Math.max(photoIndex, 0))
+    let carouselIndex = Math.round(contentOffset.x / layoutMeasurement.width)
+    carouselIndex = clamp(carouselIndex, 0, this.props.imageUris.length - 1)
     this.setState({
-      carouselIndex: photoIndex,
+      carouselIndex,
     })
   }
 }

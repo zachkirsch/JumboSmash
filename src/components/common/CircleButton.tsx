@@ -1,21 +1,33 @@
 import React, { PureComponent } from 'react'
-import { Animated, Easing, Platform, StyleSheet, TouchableWithoutFeedback } from 'react-native'
-import { moderateScale } from './scaling'
+import { ViewStyle, Image, Animated, Easing, Platform, StyleSheet, TouchableWithoutFeedback } from 'react-native'
+import { getMainColor } from '../../utils'
 
-interface Props {
+interface IconProps {
+  type: 'icon'
   IconClass: any /* tslint:disable-line:no-any */
   iconName: string
   iconColor: string
   iconSize: number
-  onPress: () => void
-  style?: any /* tslint:disable-line:no-any */
   rotate?: boolean
+  style?: any /* tslint:disable-line:no-any */
+}
+
+interface ImageProps {
+  type: 'image'
+  source: number
+  containerStyle?: any /* tslint:disable-line:no-any */
+  imageStyle?: ViewStyle
+}
+
+type Props = (IconProps | ImageProps) & {
+  onPress: () => void
   disabled?: boolean
 }
 
 interface State {
   buttonPressedIn: boolean
   angle: Animated.Value
+  scale: Animated.Value
 }
 
 class CircleButton extends PureComponent<Props, State> {
@@ -25,6 +37,7 @@ class CircleButton extends PureComponent<Props, State> {
     this.state = {
       buttonPressedIn: false,
       angle: new Animated.Value(0),
+      scale: new Animated.Value(1),
     }
   }
 
@@ -33,35 +46,43 @@ class CircleButton extends PureComponent<Props, State> {
   }
 
   render() {
+    if (this.props.type === 'icon') {
+      return this.renderIcon()
+    } else if (this.props.type === 'image') {
+      return this.renderImage()
+    }
+    return null
+  }
 
-    const clickedButtonStyle = {
-      backgroundColor: '#ACCBEE',
-      borderWidth: 0,
+  private renderIcon = () => {
+
+    if (this.props.type !== 'icon') {
+      return null
     }
 
     const iconStyle = {
-      marginTop: moderateScale(this.props.iconSize / 10),
+      marginTop: this.props.iconSize / 10,
       backgroundColor: 'transparent',
     }
 
-    const rotateStyle = this.props.rotate && {
-      transform: [
-        {
-          rotate: this.state.angle.interpolate(
-            {
-              inputRange: [0, 1],
-              outputRange: ['0deg', '360deg'],
-            }
-          ),
-        },
-      ],
+    const transforms = this.getScaleStyle()
+    if (this.props.rotate) {
+      transforms.push({
+        rotate: this.state.angle.interpolate(
+          {
+            inputRange: [0, 1],
+            outputRange: ['0deg', '360deg'],
+          }
+        ),
+      } as any) /* tslint:disable-line:no-any */
     }
 
     const containerStyle = [
       styles.button,
-      this.state.buttonPressedIn ? clickedButtonStyle : {},
       this.props.style,
-      rotateStyle,
+      {
+        transform: transforms,
+      },
     ]
 
     return (
@@ -76,12 +97,53 @@ class CircleButton extends PureComponent<Props, State> {
             style={iconStyle}
             name={this.props.iconName}
             size={this.props.iconSize}
-            color={this.state.buttonPressedIn ? 'white' : this.props.iconColor}
+            color={this.props.iconColor}
           />
-
         </Animated.View>
       </TouchableWithoutFeedback>
     )
+  }
+
+  private renderImage = () => {
+    if (this.props.type !== 'image') {
+      return null
+    }
+    const containerStyle = [
+      styles.button,
+      this.props.containerStyle,
+      {
+        transform: this.getScaleStyle(),
+      },
+    ]
+    return (
+      <TouchableWithoutFeedback
+        onPress={this.props.onPress}
+        onPressIn={this.onPressIn}
+        onPressOut={this.onPressOut}
+        disabled={this.props.disabled}
+      >
+        <Animated.View style={containerStyle}>
+          <Image resizeMode='contain' source={this.props.source} style={this.props.imageStyle} />
+        </Animated.View>
+      </TouchableWithoutFeedback>
+    )
+  }
+
+  private getScaleStyle = () => {
+    return [
+      {
+        scaleX: this.state.scale.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.9, 1],
+        }),
+      },
+      {
+        scaleY: this.state.scale.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.9, 1],
+        }),
+      },
+    ]
   }
 
   private rotate = () => {
@@ -93,8 +155,26 @@ class CircleButton extends PureComponent<Props, State> {
     }).start(this.rotate)
   }
 
-  private onPressIn = () => this.setState({buttonPressedIn: true})
-  private onPressOut = () => this.setState({buttonPressedIn: false})
+  private onPressIn = () => {
+    this.setState({buttonPressedIn: true})
+    this.changeScale(true)
+  }
+
+  private onPressOut = () => {
+    this.setState({buttonPressedIn: false})
+    this.changeScale(false)
+  }
+
+  private changeScale = (shrink: boolean) => {
+    this.state.scale.stopAnimation()
+    Animated.timing(
+      this.state.scale,
+      {
+        toValue: shrink ? 0 : 1,
+        duration: 200,
+      }
+    ).start()
+  }
 }
 
 const styles = StyleSheet.create({
@@ -108,9 +188,9 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     ...Platform.select({
       ios: {
-        shadowColor: 'rgb(0, 0, 0)',
+        shadowColor: getMainColor(),
         shadowRadius: 5,
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.25,
         shadowOffset: {
           width: 0,
           height: 0,

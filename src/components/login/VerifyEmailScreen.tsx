@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react'
 import {
   ActivityIndicator,
-  Keyboard,
   Linking,
   Platform,
   StyleSheet,
@@ -14,67 +13,56 @@ import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
 import { AuthError, getAuthErrorFromMessage } from '../../services/api'
-import { clearAuthErrorMessage, Credentials, requestVerification, verifyEmail } from '../../services/auth'
-import { JSText, scale } from '../common'
+import { AuthState, clearAuthErrorMessages, Credentials, requestVerification, verifyEmail } from '../../services/auth'
+import { JSText } from '../common'
+import { getMainColor, getLightColor } from '../../utils'
 import CheckEmailScreen from './CheckEmailScreen'
 import EmailUsFooter from './EmailUsFooter'
 
 interface OwnProps {
-  focusKeyboardOnLoginScreen: () => void
 }
 
 interface StateProps {
-  email: string
-  authError: AuthError
-  waitingForRequestVerificationResponse: boolean
-  waitingForVerificationResponse: boolean
-  isLoggedIn: boolean
-  acceptedCoC: boolean
+  authState: AuthState
+  classYear: number
 }
 
 interface DispatchProps {
   submitVerificationCode: (code: string) => void
   requestVerification: (credentials: Credentials) => void
-  clearAuthErrorMessage: () => void
+  clearAuthErrorMessages: () => void
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 interface State {
-  requestedResend: boolean
+  shouldForceShowVerifyingOverlay: boolean
 }
 
-const CODE_LENGTH = 6
-const VERIFY_EMAIL_INCOMING_URL_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([A-Z0-9]{${CODE_LENGTH}})`)
+const CODE_LENGTH = {
+  number: 6,
+  string: 'six',
+}
+const MAGIC_LINK_REGEX = new RegExp(`jumbosmash2018:\/\/verify\/([0-9]{${CODE_LENGTH.number}})`)
 
 class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private checkEmailScreen: CheckEmailScreen | null
+  private componentIsMounted = false
 
   constructor(props: Props) {
     super(props)
     this.state = {
-      requestedResend: false,
+      shouldForceShowVerifyingOverlay: false,
     }
   }
 
   public componentDidMount() {
+    this.componentIsMounted = true
     this.props.navigation.addListener(
       'willFocus',
       () => {
-        this.props.clearAuthErrorMessage()
-      }
-    )
-
-    this.props.navigation.addListener(
-      'didBlur',
-      () => {
-        this.setState({
-          requestedResend: false,
-        })
-        if (this.checkEmailScreen) {
-          this.checkEmailScreen.resetState()
-        }
+        this.props.clearAuthErrorMessages()
       }
     )
 
@@ -92,21 +80,23 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   public componentWillUnmount() {
     Linking.removeEventListener('url', this.handleOpenURLiOS)
+    this.componentIsMounted = false
   }
 
-  public componentWillReceiveProps(newProps: Props) {
-    if (newProps.isLoggedIn && !newProps.acceptedCoC) {
-      Keyboard.dismiss()
-      this.props.navigation.navigate('CodeOfConductScreen')
+  public componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.classYear !== 18 && !nextProps.authState.nearTufts && nextProps.authState.verified.value) {
+      this.props.navigation.navigate('ConfirmLocationScreen')
     }
   }
 
   public render() {
 
     let renderScreen: () => JSX.Element
-    if (this.props.waitingForRequestVerificationResponse && !this.state.requestedResend) {
+    if (this.props.authState.waitingForRequestVerificationResponse) {
       renderScreen = this.renderLoadingScreen
-    } else if (this.props.authError !== AuthError.NO_ERROR && this.props.authError !== AuthError.BAD_CODE) {
+    } else if (this.getVerificationError() !== AuthError.NO_ERROR && this.getVerificationError() !== AuthError.BAD_CODE) {
+      renderScreen = this.renderErrorScreen
+    } else if (this.props.authState.loggedIn.errorMessage) {
       renderScreen = this.renderErrorScreen
     } else {
       renderScreen = this.renderCheckEmailScreen
@@ -120,36 +110,53 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
         <View style={styles.headerContainer}>
           <TouchableOpacity
             onPress={this.goBack}
+            style={styles.goBack}
           >
-            <Ionicons name='ios-arrow-back' size={scale(30)} color='black' />
+            <Ionicons name='ios-arrow-back' size={30} color={getMainColor()} />
           </TouchableOpacity>
         </View>
+        {this.renderVerifyingOverlay()}
+      </View>
+    )
+  }
+
+  private renderVerifyingOverlay = () => {
+    if (!this.props.authState.verified.loading
+        && !this.props.authState.loggedIn.loading
+        && !this.state.shouldForceShowVerifyingOverlay) {
+      return null
+    }
+    return (
+      <View style={styles.overlay}>
+        <ActivityIndicator
+          size='large'
+          animating
+          color='white'
+        />
       </View>
     )
   }
 
   private renderLoadingScreen = () => (
     <View style={styles.loadingScreen}>
-      <ActivityIndicator size='large' color='rgba(172,203,238,0.6)' />
+      <ActivityIndicator size='large' color={getLightColor()} />
     </View>
   )
 
   private renderErrorScreen = () => {
 
-    let messageToUser: string
-    switch (this.props.authError) {
+    let messageToUser = "There's been a error.\nPlease go back and try again."
+    switch (this.getVerificationError()) {
       case AuthError.NOT_SENIOR:
-        messageToUser = 'JumboSmash is only open to Tufts seniors. According to our records, '
-        messageToUser += "you don't have senior status."
+        messageToUser = 'JumboSmash is only open to Tufts seniors.'
         break
-      case AuthError.SERVER_ERROR:
-      default:
-        messageToUser = "There's been a server error. Please go back and try again."
+      case AuthError.NOT_TUFTS:
+        messageToUser = 'JumboSmash is only open to Tufts students.'
         break
     }
 
     let bottomSection = null
-    if (this.props.authError === AuthError.NOT_SENIOR) {
+    if (this.getVerificationError() === AuthError.NOT_SENIOR) {
       bottomSection = (
         <EmailUsFooter
           emailSubject="I'm a senior... let me into JumboSmash"
@@ -162,7 +169,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
       <View>
         <View style={styles.errorContentContainer}>
           <View style={styles.errorIconContainer}>
-            <MaterialIcons name='error-outline' size={75} color='rgba(172,203,238,0.6)' />
+            <MaterialIcons name='error-outline' size={75} color={getLightColor()} />
           </View>
           <JSText style={[styles.text, styles.largeMargin]}>
             {messageToUser}
@@ -175,22 +182,43 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private renderCheckEmailScreen = () => (
     <CheckEmailScreen
-      email={this.props.email}
+      email={this.props.authState.email}
       requestResend={this.requestResend}
-      submitVerificationCode={this.props.submitVerificationCode}
-      authError={this.props.authError}
-      clearAuthErrorMessage={this.props.clearAuthErrorMessage}
+      submitVerificationCode={this.submitVerificationCode}
+      authError={this.state.shouldForceShowVerifyingOverlay ? undefined : this.getVerificationError()}
+      clearAuthErrorMessages={this.props.clearAuthErrorMessages}
       ref={ref => this.checkEmailScreen = ref}
-      waitingForVerificationResponse={this.props.waitingForVerificationResponse}
+      waitingForVerificationResponse={this.props.authState.verified.loading}
+      codeLength={CODE_LENGTH}
     />
   )
+
+  private getVerificationError = () => {
+    if (this.state.shouldForceShowVerifyingOverlay) {
+      return AuthError.NO_ERROR
+    }
+    return getAuthErrorFromMessage(this.props.authState.verified.errorMessage)
+  }
+
+  private submitVerificationCode = (code: string) => {
+    this.setState({
+      shouldForceShowVerifyingOverlay: true,
+    }, () => setTimeout(() => {
+      if (this.componentIsMounted) {
+        this.setState({
+          shouldForceShowVerifyingOverlay: false,
+        })
+      }
+    }, 1000))
+    this.props.submitVerificationCode(code)
+  }
 
   private handleOpenURLiOS = (event: {url: string}) => {
     this.handleOpenURL(event.url)
   }
 
   private handleOpenURL = (url: string) => {
-    const match = VERIFY_EMAIL_INCOMING_URL_REGEX.exec(url)
+    const match = MAGIC_LINK_REGEX.exec(url)
     if (match) {
       const code = match[1]
       this.props.submitVerificationCode(code)
@@ -199,34 +227,20 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
 
   private requestResend = () => {
     const credentials: Credentials = {
-      email: this.props.email,
+      email: this.props.authState.email,
     }
     this.props.requestVerification(credentials)
-    this.setState({
-      requestedResend: true,
-    })
   }
 
   private goBack = () => {
-    if (this.checkEmailScreen && this.checkEmailScreen.textInputIsFocused()) {
-      this.getOwnProps().focusKeyboardOnLoginScreen()
-    }
     this.props.navigation.goBack()
-  }
-
-  private getOwnProps = (): OwnProps => {
-    return this.props.navigation.state.params || {}
   }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    authError: getAuthErrorFromMessage(state.auth.errorMessage),
-    waitingForRequestVerificationResponse: state.auth.waitingForRequestVerificationResponse,
-    waitingForVerificationResponse: state.auth.waitingForVerificationResponse,
-    email: state.auth.email,
-    acceptedCoC: state.coc.codeOfConductAccepted,
-    isLoggedIn: state.auth.isLoggedIn,
+    authState: state.auth,
+    classYear: state.profile.classYear,
   }
 }
 
@@ -234,7 +248,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
     submitVerificationCode: (code: string) => dispatch(verifyEmail(code)),
-    clearAuthErrorMessage: () => dispatch(clearAuthErrorMessage()),
+    clearAuthErrorMessages: () => dispatch(clearAuthErrorMessages()),
   }
 }
 
@@ -254,8 +268,10 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
    position: 'absolute',
-   top: Platform.OS === 'ios' ? 40 : 20, // space for iOS status bar
-   left: 20,
+   top: Platform.OS === 'ios' ? 20 : 0, // space for iOS status bar
+  },
+  goBack: {
+    padding: 20,
   },
   contentContainer: {
     flex: 1,
@@ -279,6 +295,12 @@ const styles = StyleSheet.create({
     flex: 1.6,
     marginBottom: 30,
     justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
 })

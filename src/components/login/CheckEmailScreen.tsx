@@ -1,16 +1,18 @@
 import React, { PureComponent } from 'react'
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  View
+  View,
+  Keyboard,
+  Alert,
 } from 'react-native'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { AuthError } from '../../services/api'
-import { JSText, JSTextInput, scale, TextInputRef } from '../common'
+import { JSText, JSTextInput, TextInputRef } from '../common'
+import { getLightColor } from '../../utils'
 import EmailUsFooter from './EmailUsFooter'
 
 interface Props {
@@ -18,8 +20,12 @@ interface Props {
   requestResend: () => void
   submitVerificationCode: (code: string) => void
   waitingForVerificationResponse: boolean
-  authError: AuthError
-  clearAuthErrorMessage: () => void
+  authError?: AuthError
+  clearAuthErrorMessages: () => void
+  codeLength: {
+    number: number
+    string: string
+  }
 }
 
 interface State {
@@ -28,7 +34,6 @@ interface State {
 }
 
 const INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL = 9
-const CODE_LENGTH = 6
 const INITIAL_STATE: State = {
   verificationCode: '',
   secondsUntilCanResendEmail: INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL,
@@ -52,6 +57,12 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     clearInterval(this.resendCodeTimer)
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    if (!this.props.authError && nextProps.authError) {
+      this.textInputRef && this.textInputRef.focus()
+    }
+  }
+
   public resetState = () => {
     this.setState(INITIAL_STATE)
   }
@@ -63,7 +74,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   public textInputIsFocused = () => this.textInputRef && this.textInputRef.isFocused()
 
   public render() {
-    const instructions = 'Please type in the six digit code we just emailed to '
+    const instructions = `Please type in the ${this.props.codeLength.string} digit code we just emailed to `
 
     const inputStyle = [styles.input]
     let underlineColorAndroid
@@ -76,13 +87,13 @@ class CheckEmailScreen extends PureComponent<Props, State> {
       }
     }
 
-    let resendEmailTitle = 'Resend Email'
+    let resendEmailTitle = 'Resend Code'
     if (this.state.secondsUntilCanResendEmail) {
-      resendEmailTitle += ' in ' + this.state.secondsUntilCanResendEmail
+      resendEmailTitle = 'You can resend the code in ' + this.state.secondsUntilCanResendEmail
     }
 
     const resendEmailButtonDisabled = this.state.secondsUntilCanResendEmail > 0
-    const resendLinkStyle = []
+    const resendLinkStyle = [styles.resendLink]
     if (resendEmailButtonDisabled) {
       resendLinkStyle.push(styles.resendLinkDisabled)
     }
@@ -94,56 +105,49 @@ class CheckEmailScreen extends PureComponent<Props, State> {
         contentContainerStyle={styles.wrapper}
       >
         <View style={styles.header} />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.container}
-        >
+        <KeyboardAvoidingView behavior='padding' style={styles.container}>
           <View style={styles.messageContainer}>
-            <SimpleLineIcons name='envelope' size={scale(50)} color='rgba(172,203,238,0.6)' />
+            <SimpleLineIcons name='envelope' size={80} color={getLightColor()} />
             <View style={styles.contentTitleContainer}>
-              <JSText bold fontSize={18} style={[styles.text, styles.contentTitle]}>
+              <JSText bold style={[styles.text, styles.contentTitle]}>
                 CHECK YOUR EMAIL!
               </JSText>
             </View>
           </View>
-          <View style={styles.instructionsContainer}>
-            <JSText style={styles.text}>
-              {instructions}
-              <JSText bold style={[styles.text]}>
-                {this.props.email}
-              </JSText>
-            </JSText>
-          </View>
-          <ActivityIndicator
-            size='large'
-            animating={this.props.waitingForVerificationResponse}
-            color='rgba(172,203,238,0.6)'
-          />
-          <View style={styles.codeContainer}>
-            <View style={styles.inputContainer}>
-              <JSTextInput
-                style={inputStyle}
-                onChangeText={this.onChangeCode}
-                value={this.state.verificationCode}
-                placeholder='✲ ✲ ✲ ✲ ✲ ✲'
-                keyboardType={'numeric'}
-                maxLength={CODE_LENGTH}
-                underlineColorAndroid={underlineColorAndroid}
-                fontSize={30}
-                enablesReturnKeyAutomatically
-                fancy
-                textInputRef={this.setTextInputRef}
-              />
-            </View>
-            <View style={styles.resendLinkContainer} >
-              <TouchableOpacity
-                onPress={this.requestResendVerificationCode}
-                disabled={resendEmailButtonDisabled}
-              >
-                <JSText fontSize={14} style={resendLinkStyle}>
-                  {resendEmailTitle}
+          <View>
+            <View style={styles.instructionsContainer}>
+              <JSText style={styles.text}>
+                {instructions}
+                <JSText bold style={[styles.text]}>
+                  {this.props.email}
                 </JSText>
-              </TouchableOpacity>
+              </JSText>
+            </View>
+            <View style={styles.codeContainer}>
+              <View style={styles.inputContainer}>
+                <JSTextInput
+                  style={inputStyle}
+                  onChangeText={this.onChangeCode}
+                  value={this.state.verificationCode}
+                  placeholder='CODE'
+                  keyboardType={'numeric'}
+                  maxLength={this.props.codeLength.number}
+                  underlineColorAndroid={underlineColorAndroid}
+                  enablesReturnKeyAutomatically
+                  fancy
+                  textInputRef={this.setTextInputRef}
+                />
+              </View>
+              <View style={styles.resendLinkContainer} >
+                <TouchableOpacity
+                  onPress={this.requestResendVerificationCode}
+                  disabled={resendEmailButtonDisabled}
+                >
+                  <JSText style={resendLinkStyle}>
+                    {resendEmailTitle}
+                  </JSText>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -159,20 +163,23 @@ class CheckEmailScreen extends PureComponent<Props, State> {
     this.setState({
       verificationCode: code,
     })
-    if (code.length === CODE_LENGTH) {
-      this.submitVerificationCode(code)
+    if (code.length === this.props.codeLength.number) {
+      Keyboard.dismiss()
+      this.props.submitVerificationCode(code)
     } else if (this.props.authError === AuthError.BAD_CODE) {
-      this.props.clearAuthErrorMessage()
+      this.props.clearAuthErrorMessages()
     }
   }
-
-  private submitVerificationCode = (code: string) => this.props.submitVerificationCode(code)
 
   private requestResendVerificationCode = () => {
     this.props.requestResend()
     this.setState({
       secondsUntilCanResendEmail: INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL,
     }, this.startResendTimer)
+    Alert.alert(
+      'New Code Requested',
+      'You may still receive an e-mail with the previous (now invalid) code'
+    )
   }
 
   private startResendTimer = () => {
@@ -215,6 +222,7 @@ const styles = StyleSheet.create({
   },
   instructionsContainer: {
     paddingHorizontal: '15%',
+    marginBottom: 15,
   },
   codeContainer: {
     justifyContent: 'flex-start',
@@ -224,6 +232,7 @@ const styles = StyleSheet.create({
   },
   contentTitle: {
     color: 'black',
+    fontSize: 25,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -240,16 +249,7 @@ const styles = StyleSheet.create({
     color: 'black',
     borderWidth: 1,
     borderColor: 'transparent',
-  },
-  activityIndicatorContainer: {
-    position: 'absolute',
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    fontSize: 30,
   },
   badCode: {
     color: '#A82A2A',
@@ -263,6 +263,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 30,
     backgroundColor: 'transparent',
+  },
+  resendLink: {
+    fontSize: 14,
   },
   resendLinkDisabled: {
     color: 'rgba(74,74,74,0.84)',

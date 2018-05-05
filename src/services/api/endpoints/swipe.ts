@@ -1,5 +1,13 @@
-import { Match } from '../../swipe'
 import { PostEndpoint } from './Endpoint'
+import { GetUserResponse } from './getUser'
+
+export interface Match {
+  conversation_uuid: string
+  createdAt: string
+  id: number
+  unmatched: boolean
+  users: GetUserResponse[]
+}
 
 export type Direction = 'left' | 'right'
 

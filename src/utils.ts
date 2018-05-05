@@ -1,9 +1,41 @@
-import { Linking } from 'react-native'
+import { Linking, Dimensions, Platform } from 'react-native'
+import * as globals from './globals'
+import { User } from './services/swipe'
 
-const JUMBOSMASH_EMAIL = 'help@jumbosmash.com'
+/* tslint:disable-next-line:max-line-length */
+export const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
-export function emailSupport(subject: string) {
-  Linking.openURL(`mailto://${JUMBOSMASH_EMAIL}?subject=${subject}`)
+export function isIphoneX() {
+  const dimen = Dimensions.get('window')
+  return Platform.OS === 'ios' && (dimen.height === 812 || dimen.width === 812)
+}
+
+function openUrl(url: string) {
+  Linking.canOpenURL(url).then(can => can && Linking.openURL(url))
+}
+
+export function openTermsOfService() {
+  const url = 'http://jumbosmash.com/terms'
+  openUrl(url)
+}
+
+export function emailSupport(subject: string, body = '') {
+  const url = `mailto://${globals.JUMBOSMASH_EMAIL}?subject=${subject}&body=${body}`
+  openUrl(url)
+}
+
+export function reportUser(user?: User) {
+  const subject = 'Block User on JumboSmash'
+  let body = 'I would like to report the following person: '
+  if (user) {
+    body += `${user.fullName} (${user.email})`
+  }
+  body += '\nI am reporting this user because: '
+  emailSupport(subject, body)
+}
+
+export function sendFeedback() {
+  emailSupport('JumboSmash Feedback')
 }
 
 export function xor<T>(a: T, b: T): boolean {
@@ -19,25 +51,6 @@ export function shuffle<T>(array: T[]) {
     array[j] = x
   }
   return array
-}
-
-export function isAlphaNumeric(str: string) {
-  if (str === '') {
-    return true
-  }
-
-  for (let i = str.length - 1; i >= 0; i++) {
-    const code = str.charCodeAt(i)
-    if (code === undefined) {
-      return false
-    }
-    if (!(code > 47 && code < 58) &&  // numeric (0-9)
-        !(code > 64 && code < 91) &&  // upper alpha (A-Z)
-        !(code > 96 && code < 123)) { // lower alpha (a-z)
-      return false
-    }
-  }
-  return true
 }
 
 export function clamp(value: number, min: number, max: number) {
@@ -70,6 +83,42 @@ export function getFirstName(fullName: string) {
   } else {
     return 'JumboSmash User'
   }
+}
+
+export interface Coordinates {
+  latitude: number
+  longitude: number
+}
+
+/* tslint:disable:variable-name */
+const haversineInMiles = (coord1: Coordinates, coord2: Coordinates) => {
+  const toRadians = (degrees: number) => degrees * Math.PI / 180
+  const R = 6371e3 // meters
+  const φ1 = toRadians(coord1.latitude)
+  const φ2 = toRadians(coord2.latitude)
+  const Δφ = toRadians(coord2.latitude - coord1.latitude)
+  const Δλ = toRadians(coord2.longitude - coord1.longitude)
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distanceInMeters = R * c
+  return distanceInMeters / 1609.34
+}
+/* tslint:enable:variable-name */
+
+export const nearTufts = (coord: Coordinates) => {
+  return haversineInMiles(coord, globals.TUFTS_COORDINATES) < globals.RADIUS_FOR_UNDERCLASSMEN
+}
+
+export const isSenior = (classYear: number) => globals.SENIOR_CLASS_YEAR === classYear
+
+export const getMainColor = (opacity: number = 1) => {
+  return `rgba(${globals.MAIN_COLOR.r}, ${globals.MAIN_COLOR.g}, ${globals.MAIN_COLOR.b}, ${opacity})`
+}
+
+export const getLightColor = (opacity: number = 1) => {
+  return `rgba(${globals.LIGHT_COLOR.r}, ${globals.LIGHT_COLOR.g}, ${globals.LIGHT_COLOR.b}, ${opacity})`
 }
 
 /* Action Sheet */

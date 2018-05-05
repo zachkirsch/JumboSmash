@@ -6,9 +6,12 @@ import { RootState } from '../../redux'
 import { Credentials, requestVerification } from '../../services/auth'
 import { JSButton, JSText, JSTextInput, TextInputRef } from '../common'
 import EmailUsFooter from './EmailUsFooter'
+import { LoginRoute } from '../navigation'
+import { EMAIL_REGEX } from '../../utils'
 
 interface StateProps {
   email: string
+  isLoggedIn: boolean
 }
 
 interface DispatchProps {
@@ -22,6 +25,7 @@ interface State {
   credentials: Credentials,
   inputErrorMessage: string
   showTextInputPlaceholder: boolean
+  hasBeenVisitedBefore: boolean
 }
 
 enum EmailInputError {
@@ -30,9 +34,6 @@ enum EmailInputError {
   EmptyEmail,
   None,
 }
-
-/* tslint:disable-next-line:max-line-length */
-const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 /* tslint:disable-next-line:max-line-length */
 const PARTIAL_TUFTS_EMAIL_REGEX = /^([^@]*|.*@|.*@t|.*@tu|.*@tuf|.*@tuft|.*@tufts|.*@tufts\.|.*@tufts\.e|.*@tufts\.ed|.*@tufts\.edu)$/
@@ -51,7 +52,20 @@ class LoginScreen extends PureComponent<Props, State> {
       credentials: initialCredentials,
       inputErrorMessage: '',
       showTextInputPlaceholder: true,
+      hasBeenVisitedBefore: false,
     }
+  }
+
+  componentDidMount() {
+    this.props.navigation.addListener('didFocus', () => {
+      if (this.state.hasBeenVisitedBefore) {
+        this.textInputRef && this.textInputRef.focus()
+      } else {
+        this.setState({
+          hasBeenVisitedBefore: true,
+        })
+      }
+    })
   }
 
   public render() {
@@ -65,12 +79,12 @@ class LoginScreen extends PureComponent<Props, State> {
         keyboardShouldPersistTaps='handled'
         scrollEnabled={false}
       >
-        <KeyboardAvoidingView behavior='padding' style={styles.mainContainer} >
+        <KeyboardAvoidingView behavior='padding' style={styles.mainContainer}>
           <View style={styles.messageContainer}>
-            <JSText fontSize={21} bold style={styles.message}>CLASS OF 2018</JSText>
-            <JSText fontSize={21} style={styles.message}>IT'S TIME</JSText>
-            <JSText fontSize={21} style={styles.message}>FOR</JSText>
-            <JSText fontSize={21} style={styles.message}>SMASHING.</JSText>
+            <JSText bold style={styles.message}>CLASS OF 2018</JSText>
+            <JSText style={styles.message}>IT'S TIME</JSText>
+            <JSText style={styles.message}>FOR</JSText>
+            <JSText style={styles.message}>SMASHING.</JSText>
           </View>
           <View style={styles.inputContainer}>
             <View style={styles.errorMessageContainer}>
@@ -166,9 +180,7 @@ class LoginScreen extends PureComponent<Props, State> {
       this.props.onSubmitCredentials({
         email: this.state.credentials.email.toLowerCase(),
       })
-      this.props.navigation.navigate('VerifyEmailScreen', {
-        focusKeyboardOnLoginScreen: () => this.textInputRef && this.textInputRef.focus(),
-      })
+      this.props.navigation.navigate(LoginRoute.VerifyEmailScreen)
     }
   }
 
@@ -177,6 +189,7 @@ class LoginScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     email: state.auth.email,
+    isLoggedIn: state.auth.loggedIn.value,
   }
 }
 
@@ -202,6 +215,7 @@ const styles = StyleSheet.create({
     marginLeft: '10%',
   },
   message: {
+    fontSize: 21,
     lineHeight: 29,
     color: 'black',
   },

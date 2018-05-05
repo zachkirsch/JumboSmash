@@ -66,6 +66,8 @@ PODS:
     - React/Core (= 0.50.3)
   - react-native-blur (0.8.0):
     - React
+  - react-native-fetch-blob (0.10.6):
+    - React/Core
   - React/Core (0.50.3):
     - yoga (= 0.50.3.React)
   - React/fishhook (0.50.3)
@@ -107,6 +109,7 @@ DEPENDENCIES:
   - Firebase/Messaging
   - Firebase/Storage
   - react-native-blur (from `../node_modules/react-native-blur`)
+  - react-native-fetch-blob (from `../node_modules/react-native-fetch-blob`)
   - React/Core (from `../node_modules/react-native`)
   - React/RCTActionSheet (from `../node_modules/react-native`)
   - React/RCTAnimation (from `../node_modules/react-native`)
@@ -126,6 +129,8 @@ EXTERNAL SOURCES:
     :path: ../node_modules/react-native
   react-native-blur:
     :path: ../node_modules/react-native-blur
+  react-native-fetch-blob:
+    :path: ../node_modules/react-native-fetch-blob
   RNImageCropPicker:
     :path: ../node_modules/react-native-image-crop-picker
   yoga:
@@ -148,10 +153,11 @@ SPEC CHECKSUMS:
   QBImagePickerController: d54cf93db6decf26baf6ed3472f336ef35cae022
   React: 0ba6cae888dc82dc47d6d5f3090615e1b5f6f3e7
   react-native-blur: cad4d93b364f91e7b7931b3fa935455487e5c33c
+  react-native-fetch-blob: 2bef9be702de8726f4d7bf58d2345579aaaee60d
   RNImageCropPicker: 9ef50df72d7e1c02cbbca043a35456a03200f887
   RSKImageCropper: 50d5a3e4160f0309b14d75b89d5ae2f496d56e0d
   yoga: faecc6be81ca7823ccbb470b93a1b228499fa1c0
 
-PODFILE CHECKSUM: 875514c265eb05b043b8cd0abb6aefa44b382953
+PODFILE CHECKSUM: 42538059cffe73fb11402f62230f8ddeda274f84
 
 COCOAPODS: 1.3.1

@@ -1,3 +1,4 @@
+import { List } from 'immutable'
 import { LoadableValue } from '../redux'
 
 export interface Tag {
@@ -12,31 +13,53 @@ export interface TagSectionType {
   tags: Tag[]
 }
 
-interface EmojiProfileReact {
+export interface BaseEmojiProfileReact {
   type: 'emoji'
+  id: number
   emoji: string
 }
 
-interface ImageProfileReact {
+export interface BaseImageProfileReact {
   type: 'image'
-  imageName: string
+  id: number
+  imageUri: string
 }
+
+export type BaseProfileReact = BaseEmojiProfileReact | BaseImageProfileReact
+
+interface ReactableProfileReact {
+  id: number
+  count: number
+  reacted?: boolean // whether the user of this phone has reacted in this way
+}
+
+export type EmojiProfileReact = ReactableProfileReact & BaseEmojiProfileReact
+
+export type ImageProfileReact = ReactableProfileReact & BaseImageProfileReact
 
 export interface ImageUri {
   uri: string
   isLocal: boolean
 }
 
-export type ProfileReact = (EmojiProfileReact | ImageProfileReact) & { count: number }
+export type ProfileReact = ReactableProfileReact & (EmojiProfileReact | ImageProfileReact)
+
+export interface BlockedUser {
+  email: string
+  blocked: boolean
+}
 
 export interface ProfileState {
   id: number
   preferredName: LoadableValue<string>
   surname: string
   fullName: string
-  major: LoadableValue<string>
+  classYear: number
   bio: LoadableValue<string>
-  images: Array<LoadableValue<ImageUri>>
+  images: List<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
-  reacts: LoadableValue<ProfileReact[]>
+  profileReacts: LoadableValue<ProfileReact[]>
+  allReacts: (BaseEmojiProfileReact | BaseImageProfileReact)[]
+  blockedUsers: List<LoadableValue<BlockedUser>>
+  showUnderclassmen: boolean
 }

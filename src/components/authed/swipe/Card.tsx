@@ -12,37 +12,55 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ViewStyle,
+  Image,
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
-import Entypo from 'react-native-vector-icons/Entypo'
 import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
+import { ProfileReact } from '../../../services/profile'
 import { JSText } from '../../common'
-import { clamp, generateActionSheetOptions } from '../../../utils'
+import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
+import { Images } from '../../../assets'
+import ReactSection from './ReactSection'
 
-interface PreviewProps {
-  type: 'preview'
-  exit: () => void
-  profile: User
+interface BaseProps {
+  containerStyle?: ViewStyle
+  cardContainerStyle?: ViewStyle
 }
 
-interface LoadingProps {
+interface LoadingProps extends BaseProps {
   type: 'loading'
 }
 
-type Props = PreviewProps | LoadingProps | {
+interface ProfileBasedProps extends BaseProps {
+  profile: User
+  showClassYear: boolean
+  react: (reacts: ProfileReact[], onUser: User) => void
+}
+
+interface PreviewProps extends ProfileBasedProps {
+  type: 'preview'
+  exit: () => void
+  reactsEnabled: boolean
+}
+
+interface NormalProps extends ProfileBasedProps {
   type: 'normal'
   positionInStack: number
-  profile: User
   showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
   onCompleteSwipe?: (direction: Direction, onUser: User) => void
+  react: (reacts: ProfileReact[], onUser: User) => void
+  block: (email: string) => void
   onExpandCard?: () => void
   onExitExpandedView?: () => void
 }
+
+type Props = PreviewProps | LoadingProps | NormalProps
 
 export type CardProps = Props
 
@@ -51,6 +69,7 @@ interface State {
   panX: Animated.Value
   expansion: Animated.Value
   fullyExpanded: boolean
+  fullyContracted: boolean
   margin: {
     top: Animated.Value
     bottom: Animated.Value
@@ -75,9 +94,12 @@ class Card extends PureComponent<Props, State> {
   private cardPanResponder: PanResponderInstance
   private mainScrollView: any /* tslint:disable-line:no-any */
   private carousel: Carousel | null
+  private reactSection: ReactSection | null
   private isSwipingProgrammatically: boolean = false
   private isSwiping: boolean = false
+  private didSwipe: boolean = false
   private shimmerRows: ShimmerPlaceHolder[] = []
+  private componentIsMounted = false
 
   constructor(props: Props) {
     super(props)
@@ -86,6 +108,7 @@ class Card extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
+    this.componentIsMounted = true
     // run shimmers together
     if (this.props.type === 'loading') {
       const threeRowAnimated = Animated.parallel(
@@ -98,6 +121,10 @@ class Card extends PureComponent<Props, State> {
       )
       Animated.loop(threeRowAnimated).start()
     }
+  }
+
+  componentWillUnmount() {
+    this.componentIsMounted = false
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -119,7 +146,7 @@ class Card extends PureComponent<Props, State> {
             }
           ),
         ]).start(() => {
-          this.setState({
+          this.safeSetState({
             easedIn: nextProps.positionInStack === 0,
           })
         })
@@ -131,28 +158,32 @@ class Card extends PureComponent<Props, State> {
     if (this.props.type !== 'normal') {
       return
     } else if (this.state.fullyExpanded) {
-      this.contractCard(true)
+      this.exitExpandedCard()
     } else {
       this.expandCard()
     }
   }
 
   public expandCard = () => {
-
     if (this.props.type !== 'normal') {
       return
     }
-
-    this.props.onExpandCard && this.props.onExpandCard()
-
-    Animated.parallel([
-      Animated.timing(this.state.expansion, { toValue: 1, duration: 100 }),
-      Animated.timing(this.state.margin.top, { toValue: 0, duration: 100 }),
-      Animated.timing(this.state.margin.bottom, { toValue: 0, duration: 100 }),
-      Animated.timing(this.state.margin.horizontal, { toValue: 0, duration: 100 }),
-    ]).start(() => {
-      this.setState({
-        fullyExpanded: true,
+    this.safeSetState({
+      fullyContracted: false,
+    }, () => {
+      if (this.props.type !== 'normal') {
+        return
+      }
+      this.props.onExpandCard && this.props.onExpandCard()
+      Animated.parallel([
+        Animated.timing(this.state.expansion, { toValue: 1, duration: 100 }),
+        Animated.timing(this.state.margin.top, { toValue: 0, duration: 100 }),
+        Animated.timing(this.state.margin.bottom, { toValue: 0, duration: 100 }),
+        Animated.timing(this.state.margin.horizontal, { toValue: 0, duration: 100 }),
+      ]).start(() => {
+        this.safeSetState({
+          fullyExpanded: true,
+        })
       })
     })
   }
@@ -164,28 +195,31 @@ class Card extends PureComponent<Props, State> {
     }
 
     this.props.onExitExpandedView && this.props.onExitExpandedView()
-    this.setState({
+    this.safeSetState({
       fullyExpanded: false,
+    }, () => {
+      let animations = [
+        Animated.timing(this.state.expansion, { toValue: 0, duration: fast ? 100 : 175 }),
+      ]
+      if (fast) {
+        animations = animations.concat([
+          Animated.timing(this.state.margin.top,    { toValue: VERTICAL_MARGIN, duration: 100 } ),
+          Animated.timing(this.state.margin.bottom, { toValue: VERTICAL_MARGIN, duration: 100 } ),
+          Animated.timing(this.state.margin.horizontal, { toValue: HORIZONTAL_MARGIN, duration: 100 } ),
+        ])
+      } else {
+        animations = animations.concat([
+          Animated.spring(this.state.margin.top, { toValue: VERTICAL_MARGIN, friction: 4 } ),
+          Animated.spring(this.state.margin.bottom, { toValue: VERTICAL_MARGIN, friction: 4 } ),
+          Animated.spring(this.state.margin.horizontal, { toValue: HORIZONTAL_MARGIN, friction: 4 } ),
+        ])
+      }
+      this.carousel && this.carousel.reset(false)
+      Animated.parallel(animations).start()
+      this.safeSetState({
+        fullyContracted: true,
+      })
     })
-
-    let animations = [
-      Animated.timing(this.state.expansion, { toValue: 0, duration: fast ? 100 : 175 }),
-    ]
-    if (fast) {
-      animations = animations.concat([
-        Animated.timing(this.state.margin.top,    { toValue: VERTICAL_MARGIN, duration: 100 } ),
-        Animated.timing(this.state.margin.bottom, { toValue: VERTICAL_MARGIN, duration: 100 } ),
-        Animated.timing(this.state.margin.horizontal, { toValue: HORIZONTAL_MARGIN, duration: 100 } ),
-      ])
-    } else {
-      animations = animations.concat([
-        Animated.spring(this.state.margin.top, { toValue: VERTICAL_MARGIN, friction: 4 } ),
-        Animated.spring(this.state.margin.bottom, { toValue: VERTICAL_MARGIN, friction: 4 } ),
-        Animated.spring(this.state.margin.horizontal, { toValue: HORIZONTAL_MARGIN, friction: 4 } ),
-      ])
-    }
-    this.carousel && this.carousel.reset(false)
-    Animated.parallel(animations).start()
   }
 
   public swipeRight = () => {
@@ -204,7 +238,7 @@ class Card extends PureComponent<Props, State> {
     }
 
     const outerContainerStyle = {
-      zIndex: this.state.fullyExpanded ? 14 : 10 - positionInStack,
+      zIndex: this.state.fullyExpanded ? 10 - positionInStack : 10 - positionInStack,
       marginTop: this.state.margin.top,
       marginBottom: this.state.margin.bottom,
       marginHorizontal: this.state.margin.horizontal,
@@ -246,6 +280,7 @@ class Card extends PureComponent<Props, State> {
       translationStyle,
       outerContainerStyle,
       borderRadiusStyle,
+      this.props.containerStyle,
     ]
 
     return (
@@ -286,8 +321,9 @@ class Card extends PureComponent<Props, State> {
       }),
     }
 
-    if (this.props.type === 'loading') {
+    const cardContainerStyle = [styles.card, this.props.cardContainerStyle]
 
+    if (this.props.type === 'loading') {
       const tagPlaceholders = []
       for (let i = 0; i < 5; i++) {
         tagPlaceholders.push((
@@ -303,7 +339,7 @@ class Card extends PureComponent<Props, State> {
       }
 
       return (
-        <Animated.View style={styles.card}>
+        <Animated.View style={cardContainerStyle}>
           <View style={styles.imagePlaceholder} />
           <View style={styles.bottomContainer}>
             <ShimmerPlaceHolder
@@ -318,7 +354,7 @@ class Card extends PureComponent<Props, State> {
       )
     } else {
       return (
-        <Animated.View style={styles.card}>
+        <Animated.View style={cardContainerStyle}>
           <Carousel
             enabled={this.state.fullyExpanded}
             imageUris={this.props.profile.images.filter(image => image)}
@@ -338,7 +374,16 @@ class Card extends PureComponent<Props, State> {
       return null
     }
 
-    const surnameStyle = [
+    const hiddenWhenExpandedStyle = [
+      {
+        opacity: this.state.expansion.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0],
+        }),
+      },
+    ]
+
+    const hiddenWhenContractedStyle = [
       {
         opacity: this.state.expansion,
       },
@@ -357,27 +402,113 @@ class Card extends PureComponent<Props, State> {
       { paddingHorizontal },
     ]
 
+    let surnameWhenExpaned = this.props.profile.surname
+    if (this.props.showClassYear) {
+      surnameWhenExpaned += ` '${this.props.profile.classYear % 100}`
+    }
+
     return (
       <TouchableWithoutFeedback onPress={this.tap}>
         <Animated.View style={bottomContainerStyle}>
-          <View style={{flexDirection: 'row'}}>
-            <JSText fontSize={20} bold style={styles.firstName}>
+          <View style={styles.fullName}>
+            <JSText bold style={styles.name}>
               {this.props.profile.preferredName}
             </JSText>
-            <Animated.View style={surnameStyle}>
-              <JSText fontSize={20} style={styles.surname}>
-                {this.props.profile.surname}
-              </JSText>
-            </Animated.View>
+            <View style={{flex: 1}}>
+              <Animated.View style={[hiddenWhenContractedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+                <JSText style={styles.name} numberOfLines={1}>
+                  {surnameWhenExpaned}
+                </JSText>
+              </Animated.View>
+              <Animated.View style={[hiddenWhenExpandedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+                {this.renderClassYear()}
+              </Animated.View>
+            </View>
           </View>
-          <View style={styles.textContainer}>
-            <TagsSection tags={this.props.profile.tags} tagStyle={styles.tag} alignLeft />
-          </View>
-          <JSText fontSize={14} style={styles.bio}>
-            {this.props.profile.bio}
-          </JSText>
+          {this.renderTags()}
+          <Animated.View style={hiddenWhenContractedStyle}>
+            <JSText style={styles.bio}>
+              {this.props.profile.bio}
+            </JSText>
+            {this.renderReactSection()}
+          </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
+    )
+  }
+
+  private renderReactSection = () => {
+    if (this.props.type === 'loading') {
+      return null
+    }
+    return (
+      <ReactSection
+        profile={this.props.profile}
+        react={this.react}
+        enabled={this.props.type === 'normal' || this.props.reactsEnabled}
+        ref={ref => this.reactSection = ref}
+      />
+    )
+  }
+
+  private renderTags = () => {
+    if (this.props.type === 'loading') {
+      return null
+    }
+    if (this.props.profile.tags.length === 0) {
+      return null
+    }
+    return (
+      <View style={styles.tagsContainer}>
+        <View style={styles.hashContainer}>
+          <Image source={Images.hash} style={styles.hash} resizeMode='contain' />
+        </View>
+        <View style={styles.tagsSectionContainer} >
+          <TagsSection
+            tags={this.props.profile.tags}
+            tagStyle={styles.tag}
+            emojiStyle={styles.emoji}
+          />
+        </View>
+      </View>
+    )
+  }
+
+  private renderClassYear = () => {
+
+    if (this.props.type === 'loading' || !this.props.showClassYear) {
+      return null
+    }
+
+    let colors = []
+    switch (this.props.profile.classYear) {
+      case 2018:
+        colors = ['rgb(202, 183, 207)', 'rgb(211, 217, 245)']
+        break
+      case 2019:
+        colors = ['rgb(222, 201, 221)', 'rgb(235, 197, 198)']
+        break
+      case 2020:
+        colors = ['rgb(254, 224, 204)', 'rgb(252, 197, 180)']
+        break
+      case 2021:
+        colors = ['rgb(220, 214, 235)', 'rgb(241, 230, 233)']
+        break
+      default:
+        return null
+    }
+
+    return (
+      <LinearGradient
+        colors={colors}
+        start={{x: 0, y: 1}}
+        end={{x: 1, y: 0}}
+        style={styles.classYearContainer}
+      >
+        <JSText bold style={styles.classYearText}>
+          {this.props.profile.classYear}
+        </JSText>
+      </LinearGradient>
     )
   }
 
@@ -390,7 +521,7 @@ class Card extends PureComponent<Props, State> {
     return (
       <View style={styles.exitContainer}>
         <TouchableOpacity onPress={this.exitExpandedCard}>
-          <Entypo name='cross' size={40} style={styles.exitIcon} />
+          <Image style={styles.exitIcon} resizeMode='contain' source={Images.exit} />
         </TouchableOpacity>
       </View>
     )
@@ -436,18 +567,36 @@ class Card extends PureComponent<Props, State> {
 
   private openEllipsisMenu = () => {
 
-    // TODO: add onPress events
-
     const buttons = [
       {
         title: 'Block User',
+        onPress: () => {
+          if (this.props.type !== 'normal') {
+            return
+          }
+          this.swipe('left', false)
+          this.props.block(this.props.profile.email)
+        },
       },
       {
         title: 'Report User',
+        onPress: () => {
+          if (this.props.type !== 'normal') {
+            return
+          }
+          reportUser(this.props.profile)
+        },
       },
     ]
     const {options, callback} = generateActionSheetOptions(buttons)
     this.props.type === 'normal' && this.props.showActionSheetWithOptions(options, callback)
+  }
+
+  private react = (reacts: ProfileReact[]) => {
+    if (this.props.type === 'loading') {
+      return
+    }
+    this.props.react(reacts, this.props.profile)
   }
 
   private cardWidth = () => WIDTH - 2 * HORIZONTAL_MARGIN
@@ -455,9 +604,10 @@ class Card extends PureComponent<Props, State> {
   private canSwipe = () => {
     return (
       this.props.type === 'normal'
-      && !this.state.fullyExpanded
+      && this.state.fullyContracted
       && this.props.positionInStack === 0
       && !this.isSwipingProgrammatically
+      && !this.didSwipe
     )
   }
 
@@ -477,7 +627,7 @@ class Card extends PureComponent<Props, State> {
     this.state.margin.bottom.setValue(this.getMarginBottomFromScrollviewBounce(event))
   }
 
-  private onMomentumScrollCard = (isMomentumScrolling: boolean) => () => this.setState({isMomentumScrolling})
+  private onMomentumScrollCard = (isMomentumScrolling: boolean) => () => this.safeSetState({isMomentumScrolling})
 
   private onScrollCard = (event: ScrollEvent) => {
 
@@ -490,27 +640,32 @@ class Card extends PureComponent<Props, State> {
      * don't bounce on Android.
      */
 
-    if (Platform.OS !== 'ios' || this.props.type !== 'normal') {
+    if (Platform.OS !== 'ios') {
      return
     }
 
     const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent
-
-    let closerToTop: boolean
-    if (contentSize.height < HEIGHT) {
-      closerToTop = contentOffset.y <= 0
-    } else {
-      closerToTop = contentOffset.y < (contentSize.height - layoutMeasurement.height) / 2
+    if (this.props.type === 'normal') {
+      let closerToTop: boolean
+      if (contentSize.height < HEIGHT) {
+        closerToTop = contentOffset.y <= 0
+      } else {
+        closerToTop = contentOffset.y < (contentSize.height - layoutMeasurement.height) / 2
+      }
+      this.safeSetState({
+        scrollViewBackgroundColor: closerToTop ? 'transparent' : 'white',
+      })
     }
-    this.setState({
-      scrollViewBackgroundColor: closerToTop ? 'transparent' : 'white',
-    })
 
     /* if the user has pulled the card down enough, then contract the card */
     const pulledDownEnough = contentOffset.y < -90
     if (pulledDownEnough) {
-      this.setMarginFromScrollViewBounce(event)
-      this.contractCard(false)
+      if (this.props.type === 'preview') {
+        this.exitExpandedCard()
+      } else if (this.props.type === 'normal') {
+        this.setMarginFromScrollViewBounce(event)
+        this.contractCard(true)
+      }
     }
   }
 
@@ -525,21 +680,25 @@ class Card extends PureComponent<Props, State> {
     }
   }
 
-  private swipe = (direction: Direction) => {
-    if (!this.canSwipe()) {
-      return
+  private swipe = (direction: Direction, withAnimation = true) => {
+    const onComplete = () => {
+      if (this.props.type === 'normal') {
+        this.props.onExitExpandedView && this.props.onExitExpandedView()
+        this.onCompleteSwipe(direction)
+      }
     }
-    this.isSwipingProgrammatically = true
-    const xValue = this.cardWidth() * 2 * (direction === 'right' ? 1 : -1)
-    const yValue = 50
+    if (withAnimation) {
+      this.isSwipingProgrammatically = true
+      const xValue = this.cardWidth() * 2 * (direction === 'right' ? 1 : -1)
+      const yValue = 50
 
-    Animated.parallel([
-      Animated.timing(this.state.pan, { toValue: {x: xValue, y: yValue}, duration: 300 }),
-      Animated.timing(this.state.panX, { toValue: xValue, duration: 300 }),
-    ]).start(() => {
-      this.isSwipingProgrammatically = false
-      this.onCompleteSwipe(direction)
-    })
+      Animated.parallel([
+        Animated.timing(this.state.pan, { toValue: {x: xValue, y: yValue}, duration: 300 }),
+        Animated.timing(this.state.panX, { toValue: xValue, duration: 300 }),
+      ]).start(onComplete)
+    } else {
+      onComplete()
+    }
   }
 
   private onCompleteSwipe = (direction: Direction) => {
@@ -548,10 +707,17 @@ class Card extends PureComponent<Props, State> {
     }
     this.props.onCompleteSwipe && this.props.onCompleteSwipe(direction, this.props.profile)
     this.carousel && this.carousel.reset(false)
+    this.state.expansion.setValue(0)
     this.state.margin.top.setValue(this.getContractedMarginTop(-1))
     this.state.margin.horizontal.setValue(this.getContractedMarginHorizontal(-1))
-    this.state.pan.setValue({x: 0, y: 0})
-    this.state.panX.setValue(0)
+    this.safeSetState({
+      fullyExpanded: false,
+    }, () => {
+      this.state.pan.setValue({x: 0, y: 0})
+      this.state.panX.setValue(0)
+      this.didSwipe = false
+      this.isSwipingProgrammatically = false
+    })
   }
 
   private setupGestureResponders = () => {
@@ -590,6 +756,7 @@ class Card extends PureComponent<Props, State> {
         }
 
         if (isSwipe) {
+          this.didSwipe = true
           const isRight = dx > 0
           const clampedVx = clamp(vx, 1, 3)
           const clampedVy = clamp(vy, -3, 3)
@@ -612,10 +779,13 @@ class Card extends PureComponent<Props, State> {
 
   private getContractedMarginTop = (positionInStack?: number) => {
     if (positionInStack === undefined) {
-      if (this.props.type === 'normal') {
-        positionInStack = this.props.positionInStack
-      } else {
-        return VERTICAL_MARGIN
+      switch (this.props.type) {
+        case 'loading':
+          return VERTICAL_MARGIN
+        case 'preview':
+          return 0
+        case 'normal':
+          positionInStack = this.props.positionInStack
       }
     }
     if (positionInStack === 0) {
@@ -629,10 +799,13 @@ class Card extends PureComponent<Props, State> {
 
   private getContractedMarginHorizontal = (positionInStack?: number) => {
     if (positionInStack === undefined) {
-      if (this.props.type === 'normal') {
-        positionInStack = this.props.positionInStack
-      } else {
-        return HORIZONTAL_MARGIN
+      switch (this.props.type) {
+        case 'loading':
+          return HORIZONTAL_MARGIN
+        case 'preview':
+          return 0
+        case 'normal':
+          positionInStack = this.props.positionInStack
       }
     }
     if (positionInStack === 0) {
@@ -652,6 +825,7 @@ class Card extends PureComponent<Props, State> {
       panX: new Animated.Value(0),
       expansion: new Animated.Value(this.props.type === 'preview' ? 1 : 0),
       fullyExpanded: initiallyExpanded,
+      fullyContracted: !initiallyExpanded,
       margin: {
         top: new Animated.Value(this.getContractedMarginTop()),
         bottom: new Animated.Value(initiallyExpanded ? 0 : VERTICAL_MARGIN),
@@ -660,6 +834,12 @@ class Card extends PureComponent<Props, State> {
       easedIn: this.props.type !== 'normal' || this.props.positionInStack === 0,
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
+    }
+  }
+
+  private safeSetState = (newState: Partial<State>, callback?: () => void) => {
+    if (this.componentIsMounted) {
+      this.setState(newState as any, callback) /* tslint:disable-line:no-any */
     }
   }
 }
@@ -730,30 +910,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     paddingVertical: 10,
+    paddingHorizontal: BOTTOM_CONTAINER_HORIZONTAL_PADDING,
   },
-  textContainer: {
+  tagsContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
   },
-  firstName: {
+  tagsSectionContainer: {
+    flex: 1,
+  },
+  name: {
     color: 'rgb(66, 64, 64)',
+    fontSize: 20,
     marginVertical: 10,
     marginRight: 7,
   },
-  surname: {
-    color: 'gray',
-    marginVertical: 10,
-  },
-  hash: {
-    color: '#A8BAD8',
-    marginRight: 3,
-  },
   tag: {
     color: '#9B9B9B',
+    fontSize: 14,
+  },
+  emoji: {
+    fontSize: 12,
   },
   bio: {
-    marginTop: 15,
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: 0.34,
+    marginTop: 25,
     marginBottom: 40,
     color: 'rgb(66, 64, 64)',
   },
@@ -769,22 +951,13 @@ const styles = StyleSheet.create({
   exitContainer: {
     backgroundColor: 'transparent',
     position: 'absolute',
-    left: 5,
-    top: 5,
+    left: 0,
+    top: 0,
   },
   exitIcon: {
-    color: 'white',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOpacity: 1,
-        shadowRadius: 10,
-        shadowOffset: {
-          width: 0,
-          height: 0,
-        },
-      },
-    }),
+    height: 20,
+    width: 20,
+    margin: 10,
   },
   imagePlaceholder: {
     backgroundColor: 'rgb(240, 240, 240)',
@@ -806,5 +979,30 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderColor: 'gray',
     backgroundColor: 'white',
+  },
+  fullName: {
+    flexDirection: 'row',
+  },
+  hashContainer: {
+    marginRight: 2,
+    marginTop: 2,
+    height: '100%',
+  },
+  hash: {
+    width: 15,
+    height: 15,
+  },
+  classYearContainer: {
+    top: 7,
+    left: 10,
+    borderRadius: 15,
+  },
+  classYearText: {
+    fontSize: 15,
+    marginTop: 5,
+    marginBottom: 3,
+    marginHorizontal: 17,
+    color: 'white',
+    letterSpacing: 1.33,
   },
 })

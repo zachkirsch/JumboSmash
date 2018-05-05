@@ -4,33 +4,21 @@
 		"private": true,
 		"scripts": {
 				"start": "node node_modules/react-native/local-cli/cli.js start",
-				"watch": "npm run build -- -w",
+				"watch": "yarn run build -w",
 				"ios": "react-native run-ios",
 				"android": "react-native run-android",
 				"tsc": "tsc",
-				"build": "npm run clean && npm run copyassets && npm run tsc --",
+				"build": "yarn run clean && yarn run copyassets && yarn run tsc",
+				"build:ios": "react-native bundle --entry-file='build/index.js' --bundle-output='./ios/JumboSmash/main.jsbundle' --dev=false --platform='ios' --assets-dest='./ios/JumboSmash'",
 				"clean": "rimraf build",
 				"fix": "tslint --fix --project tsconfig.json --config tslint.json",
 				"lint": "tslint --project tsconfig.json --config tslint.json",
-				"test": "npm run build && npm run lint",
+				"test": "yarn run build && yarn run lint",
 				"copyassets": "mkdir -p build/assets && cp -r src/assets build"
 		},
 		"dependencies": {
 				"@expo/react-native-action-sheet": "^1.0.2",
-				"@types/immutability-helper": "^2.6.3",
-				"@types/immutable": "^3.8.7",
-				"@types/lodash": "^4.14.105",
-				"@types/moment": "^2.13.0",
-				"@types/react": "^16.0.25",
-				"@types/react-native": "^0.50.7",
-				"@types/react-native-fabric": "^0.5.0",
-				"@types/react-native-linear-gradient": "^2.3.1",
-				"@types/react-native-vector-icons": "^4.4.2",
-				"@types/react-navigation": "^1.0.22",
-				"@types/react-redux": "^5.0.13",
-				"@types/redux-logger": "^3.0.5",
 				"babel-core": "^6.26.0",
-				"immutability-helper": "^2.6.6",
 				"immutable": "^3.8.2",
 				"lodash": "^4.17.5",
 				"moment": "^2.21.0",
@@ -39,6 +27,7 @@
 				"react-native": "0.50.3",
 				"react-native-blur": "^3.2.2",
 				"react-native-button": "^2.3.0",
+				"react-native-cached-image": "1.4.3",
 				"react-native-camera": "0.12.0",
 				"react-native-cli": "^2.0.1",
 				"react-native-elements": "^0.19.0",
@@ -59,18 +48,29 @@
 				"redux-logger": "^3.0.6",
 				"redux-persist": "^4.0",
 				"redux-saga": "^0.16.0",
-				"rnpm": "^1.9.0",
-				"tslint-react": "^3.5.1"
+				"rnpm": "^1.9.0"
 		},
 		"devDependencies": {
 				"babel-preset-react-native": "4.0.0",
 				"rimraf": "^2.6.2",
 				"tslint": "^5.7.0",
-				"typescript": "^2.5.3"
+				"typescript": "^2.5.3",
+				"@types/immutable": "^3.8.7",
+				"@types/lodash": "^4.14.105",
+				"@types/moment": "^2.13.0",
+				"@types/react": "^16.0.25",
+				"@types/react-native": "^0.50.7",
+				"@types/react-native-fabric": "^0.5.0",
+				"@types/react-native-linear-gradient": "^2.3.1",
+				"@types/react-native-vector-icons": "^4.4.2",
+				"@types/react-navigation": "^1.0.22",
+				"@types/react-redux": "^5.0.13",
+				"@types/redux-logger": "^3.0.5",
+				"tslint-react": "^3.5.1"
 		},
 		"rnpm": {
 				"assets": [
-						"src/assets/fonts"
+						"src/assets"
 				]
 		}
 }

@@ -8,6 +8,7 @@ interface Tag {
   cat_text: string
   tag_id: number
   tag_text: string
+  tag_type: 'text' | 'emoji'
 }
 
 interface TagCategory {

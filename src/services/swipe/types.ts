@@ -1,27 +1,29 @@
-import { List } from 'immutable'
+import { List, Map } from 'immutable'
 import { LoadableValue } from '../redux'
-import { Tag } from '../profile'
+import { ProfileReact } from '../profile'
+
+interface Tag {
+  name: string
+  emoji: boolean
+}
 
 export interface User {
   id: number
+  firebaseUid: string
+  email: string
   preferredName: string
   surname: string
   fullName: string
+  classYear: number
   major: string
   bio: string
   images: string[]
+  profileReacts: LoadableValue<ProfileReact[]>
   tags: Tag[]
 }
 
-export interface Match {
-  conversation_uuid: string
-  createdAt: string
-  id: number
-  unmatched: boolean
-}
-
 export interface SwipeState {
-  allUsers: LoadableValue<List<User>>
+  allUsers: LoadableValue<Map<number, User>>
+  swipableUsers: LoadableValue<List<number>>
   indexOfUserOnTop: number
-  lastFetched?: number // Unix timestamp
 }

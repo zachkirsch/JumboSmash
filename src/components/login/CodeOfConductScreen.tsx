@@ -5,10 +5,8 @@ import {
   StyleSheet,
   View,
 } from 'react-native'
-import { connect, Dispatch } from 'react-redux'
-import { RootState } from '../../redux'
-import { acceptCoC } from '../../services/coc'
 import { JSText, RectangleButton } from '../common'
+import { openTermsOfService } from '../../utils'
 
 interface CoCRule {
   emojiTitle: string
@@ -30,49 +28,39 @@ const COC_RULES: CoCRule[] = [
   },
   {
     emojiTitle: '✅🙋',
-    description: 'If you see someone breaking the rules, you can report them from the Profile tab.',
-  },
-  {
-    emojiTitle: '🔐💌',
-    description: 'We value your privacy! Jumbosmash will delete all your data after graduation.',
+    description: 'If you see someone breaking the rules, please report them from the Profile tab.',
   },
 ]
 
-interface OwnProps {
-  inNavigator?: boolean // defaults to false
+interface Props {
+  reviewing?: boolean // defaults to false
   buttonLabel?: string // defaults to "Accept"
-  onPress?: () => void // defaults to acceptCoc
+  onPress?: () => void
 }
 
-interface DispatchProps {
-  acceptCoC: () => void
-}
-
-type Props = OwnProps & DispatchProps
+/*tslint:disable-next-line:max-line-length */
+const TERMS_OF_SERVICE = 'To access this app, you must agree to our terms of service, which more formally states the above rules. Violating these terms will lead to an instant termination of your account.'
 
 class CodeOfConductScreen extends PureComponent<Props, {}> {
 
   public render() {
     return (
       <View style={styles.flex}>
-        {this.props.inNavigator || <View style={styles.statusBar} />}
-        <ScrollView>
-          <View style={styles.container}>
-            {this.props.inNavigator || this.renderTitle()}
-            {this.renderDescription()}
-            {this.renderRules()}
-          </View>
-          <View style={styles.container}>
-            {this.renderSignoff()}
-          </View>
-          {this.props.inNavigator || this.renderButton()}
+        {this.props.reviewing || <View style={styles.statusBar} />}
+        <ScrollView contentContainerStyle={styles.container}>
+          {this.props.reviewing || this.renderTitle()}
+          {this.renderDescription()}
+          {this.renderRules()}
+          {this.renderTermsOfService()}
+          {this.renderSignoff()}
+          {this.props.reviewing || this.renderButtons()}
         </ScrollView>
       </View>
     )
   }
 
   private renderTitle = () => {
-    return <JSText fontSize={30} bold style={styles.title}>Code of Conduct</JSText>
+    return <JSText bold style={styles.title}>Code of Conduct</JSText>
   }
 
   private renderDescription = () => {
@@ -86,7 +74,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   private renderRules = () => {
     return COC_RULES.map((rule, index) => (
       <View style={styles.rule} key={index}>
-        {Platform.OS === 'ios' ? <JSText fontSize={20}>{rule.emojiTitle}</JSText> : undefined}
+        {Platform.OS === 'ios' && <JSText style={styles.emoji}>{rule.emojiTitle}</JSText>}
         <JSText>{rule.description}</JSText>
       </View>
     ))
@@ -100,18 +88,34 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
     }
 
     return (
-      <View>
+      <View style={styles.signoff}>
         <JSText>Happy smashing 💕</JSText>
         <JSText>{signoff}</JSText>
       </View>
     )
   }
 
-  private renderButton = () => {
+  private renderTermsOfService = () => {
+    if (Platform.OS !== 'ios') {
+      return null
+    }
+    return (
+      <View style={styles.termsOfService}>
+        <JSText bold>{TERMS_OF_SERVICE}</JSText>
+      </View>
+    )
+  }
+
+  private renderButtons = () => {
     return (
       <View style={styles.buttonContainer}>
         <RectangleButton
-          onPress={this.props.onPress || this.props.acceptCoC}
+          onPress={openTermsOfService}
+          label='Read Terms of Service'
+        />
+        <RectangleButton
+          active
+          onPress={this.props.onPress}
           label={this.props.buttonLabel || "I agree. Let's smash!"}
         />
       </View>
@@ -129,6 +133,7 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
+    fontSize: 30,
     marginBottom: 10,
   },
   description: {
@@ -143,14 +148,16 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 10,
-    marginBottom: 50,
+  },
+  emoji: {
+    fontSize: 20,
+  },
+  termsOfService: {
+    marginTop: 30,
+  },
+  signoff: {
+    marginTop: 30,
   },
 })
 
-const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
-  return {
-    acceptCoC: () => dispatch(acceptCoC()),
-  }
-}
-
-export default connect(undefined, mapDispatchToProps)(CodeOfConductScreen)
+export default CodeOfConductScreen

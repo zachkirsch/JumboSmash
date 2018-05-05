@@ -1,20 +1,22 @@
 import React, { PureComponent } from 'react'
-import {
-  View,
-  ViewStyle,
-  StyleSheet,
-} from 'react-native'
-import { MessageProps, Avatar, utils } from 'react-native-gifted-chat'
+import { View, StyleSheet } from 'react-native'
+import { MessageProps, utils } from 'react-native-gifted-chat'
 import Bubble from './Bubble'
 import LinearGradient from 'react-native-linear-gradient'
 import JSText from '../../common/JSText'
 import moment from 'moment'
+import { User } from '../../../services/swipe'
+import { JSImage } from '../../common'
+
+interface Props extends MessageProps {
+  fromUser?: User
+}
 
 const { isSameUser } = utils
 
 const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
 
-export default class Message extends PureComponent<MessageProps, {}> {
+export default class Message extends PureComponent<Props, {}> {
 
   renderDay() {
 
@@ -33,7 +35,7 @@ export default class Message extends PureComponent<MessageProps, {}> {
     })
 
     return (
-      <JSText style={styles.date} fontSize={10}>
+      <JSText style={styles.date}>
         {formattedDate}
       </JSText>
     )
@@ -52,32 +54,37 @@ export default class Message extends PureComponent<MessageProps, {}> {
   }
 
   renderAvatar() {
-    if (!this.props.previousMessage || !this.props.currentMessage || !this.props.nextMessage) {
-      return null
-    }
 
-    if (!this.props.user || this.props.currentMessage.system) {
+    if (!this.props.currentMessage || !this.props.user) {
       return null
     }
 
     // only show avatar for other users
-    if (this.props.currentMessage.user._id === this.props.user._id) {
+    if (this.props.currentMessage.system || this.props.currentMessage.user._id === this.props.user._id) {
       return null
     }
 
-    let extraStyle: ViewStyle = {}
-    if (isSameUser(this.props.currentMessage, this.props.previousMessage) && !this.shouldShowDate()) {
-      // Set the invisible avatar height to 0, but keep the width, padding, etc.
-      extraStyle = { height: 0 }
+    if (!this.props.fromUser) {
+      return <View style={[styles.avatar, styles.transparent]} />
     }
 
     return (
-      <Avatar
-        currentMessage={this.props.currentMessage}
-        previousMessage={this.props.previousMessage}
-        nextMessage={this.props.nextMessage}
-        imageStyle={{ left: [styles.avatar, extraStyle] }}
+      <JSImage
+        cache
+        source={{ uri: this.props.fromUser.images[0] }}
+        style={styles.avatar}
       />
+    )
+  }
+
+  renderFailedToSend() {
+    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.failedToSend) {
+      return null
+    }
+    return (
+      <View style={styles.failedToSendMessage}>
+        <JSText style={styles.failedToSendText}>Failed to send</JSText>
+      </View>
     )
   }
 
@@ -98,9 +105,9 @@ export default class Message extends PureComponent<MessageProps, {}> {
     const containerStyle = this.props.position && styles[this.props.position]
 
     return (
-      <View>
+      <View style={{ marginBottom }}>
         {this.renderDay()}
-        <View style={[styles.container, { marginBottom }, containerStyle]}>
+        <View style={[styles.container, containerStyle]}>
           {this.renderAvatar()}
           <LinearGradient
             colors={colors}
@@ -112,6 +119,7 @@ export default class Message extends PureComponent<MessageProps, {}> {
             {this.renderBubble()}
           </LinearGradient>
         </View>
+        {this.renderFailedToSend()}
       </View>
     )
   }
@@ -151,13 +159,28 @@ const styles = StyleSheet.create({
   },
   avatar: {
     // The bottom should roughly line up with the first line of message text.
-    height: 40,
-    width: 40,
-    borderRadius: 20,
+    height: 30,
+    width: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 5,
+    marginBottom: 5,
+  },
+  transparent: {
+    backgroundColor: 'transparent',
   },
   date: {
+    fontSize: 10,
     marginVertical: 15,
     textAlign: 'center',
     color: 'gray',
+  },
+  failedToSendMessage: {
+    alignItems: 'flex-end',
+    marginRight: 8,
+  },
+  failedToSendText: {
+    color: 'rgb(214, 145, 145)',
   },
 })

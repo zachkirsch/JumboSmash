@@ -1,105 +1,154 @@
-import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { StatusBar, StyleSheet, View } from 'react-native'
+import { View, StyleSheet, ActivityIndicator } from 'react-native'
 import { connect, Dispatch } from 'react-redux'
-import { AuthedRouter, LoginRouter, CodeOfConductScreen, CountdownScreen } from './components'
+import { getServerTime } from './services/time'
 import { RootState } from './redux'
-import { Conversation, receiveMessages } from './services/matches'
-import { IChatMessage } from 'react-native-gifted-chat'
-import { ChatService } from './services/firebase'
-import { attemptConnectToFirebase } from './services/firebase'
-import firebase from 'react-native-firebase'
+import RehydratedApp from './RehydratedApp'
+import { JSText, JSButton, JSImage } from './components/common'
+import { LoadableValue } from './services/redux'
+import { Images } from './assets'
+
+enum FetchResult {
+  loading,
+  success,
+  error,
+}
 
 interface StateProps {
-  isLoggedIn: boolean
-  codeOfConductAccepted: boolean
   rehydrated: boolean
-  networkRequestInProgress: boolean
-  chats: Map<string, Conversation>
-  firebaseToken: string
+  isLoggedIn: boolean
+  serverTime: LoadableValue<number | undefined>
 }
 
 interface DispatchProps {
-  attemptConnectToFirebase: (token: string) => void
-  receiveMessages: (conversationId: string, messages: IChatMessage[]) => void
+  getServerTime: () => void
 }
 
 type Props = StateProps & DispatchProps
 
-const SHOULD_SHOW_COUNTDOWN = false
+interface State {
+  forceShowLoadingScreen: boolean
+  serverTimeFetched: boolean
+}
 
-class App extends PureComponent<Props, {}> {
+class App extends PureComponent<Props, State> {
 
-  private onUserChanged: () => void
+  private loadingScreenTimers: number[] = []
+  private showedRehydratedApp = false
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      forceShowLoadingScreen: true,
+      serverTimeFetched: false,
+    }
+  }
 
   componentDidMount() {
-    this.props.chats.keySeq().forEach(ChatService.listenForNewChats)
-    this.onUserChanged = firebase.auth().onUserChanged(() => {
-      if (!firebase.auth().currentUser && this.props.isLoggedIn) {
-        this.props.attemptConnectToFirebase(this.props.firebaseToken)
-      }
-    })
+    if (this.props.rehydrated) {
+      this.getServerTime()
+    }
   }
 
   componentWillUnmount() {
-    ChatService.stopListeningForNewChats()
-    this.onUserChanged()
+    this.loadingScreenTimers.forEach(timer => clearTimeout(timer))
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.rehydrated && !this.props.rehydrated) {
+      this.getServerTime()
+    }
+    if (this.getServerTimeStatus(nextProps) === FetchResult.success) {
+      this.setState({
+        serverTimeFetched: true,
+      })
+    }
   }
 
   public render() {
+    if (this.shouldShowRehydratedApp() && !this.state.forceShowLoadingScreen) {
+      this.showedRehydratedApp = true
+      return <RehydratedApp />
+    } else if (this.state.forceShowLoadingScreen || this.getServerTimeStatus() !== FetchResult.error) {
+      return this.renderLoadingScreen()
+    } else {
+      return this.renderErrorScreen()
+    }
+  }
+
+  private renderLoadingScreen = () => {
     return (
       <View style={styles.container}>
-        <StatusBar networkActivityIndicatorVisible={this.props.networkRequestInProgress} />
-        {this.renderScreen()}
+        <ActivityIndicator style={styles.activityIndicator}/>
+        <JSText>
+          Connecting to server...
+        </JSText>
       </View>
     )
   }
 
-  private renderScreen() {
-    if (!this.props.rehydrated) {
-      // TODO: replace with splash screen
-      return null
-    } else if (SHOULD_SHOW_COUNTDOWN) {
-      return <CountdownScreen />
-    } else if (!this.props.isLoggedIn) {
-      return <LoginRouter />
-    } else if (!this.props.codeOfConductAccepted) {
-      return <CodeOfConductScreen />
-    } else {
-      return <AuthedRouter />
+  private renderErrorScreen = () => {
+    return (
+      <View style={styles.container}>
+        <JSImage cache={false} source={Images.sad} style={styles.sadImage} />
+        <JSText style={styles.errorMessage}>
+          Couldn't connect to the server
+        </JSText>
+        <JSButton label='Retry' onPress={this.getServerTime}/>
+      </View>
+    )
+  }
+
+  private shouldShowRehydratedApp = () => {
+    if (this.showedRehydratedApp) {
+      return true
     }
+
+    if (this.state.forceShowLoadingScreen) {
+      return false
+    }
+
+    return this.props.rehydrated && this.state.serverTimeFetched
+  }
+
+  private getServerTime = () => {
+    this.setState({
+      forceShowLoadingScreen: true,
+    }, () => {
+      this.props.getServerTime()
+      this.loadingScreenTimers.push(setTimeout(() => {
+        this.setState({
+          forceShowLoadingScreen: false,
+        })
+      }, 1000))
+    })
+  }
+
+  private getServerTimeStatus = (props?: Props): FetchResult => {
+    if (!props) {
+      props = this.props
+    }
+    if (props.serverTime.errorMessage) {
+      return FetchResult.error
+    }
+    if (props.serverTime.value !== undefined && !props.serverTime.loading) {
+      return FetchResult.success
+    }
+    return FetchResult.loading
   }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    isLoggedIn: state.auth.isLoggedIn,
-    codeOfConductAccepted: state.coc.codeOfConductAccepted,
+    isLoggedIn: state.auth.loggedIn.value,
     rehydrated: state.redux.rehydrated,
-    networkRequestInProgress: networkRequestInProgress(state),
-    chats: state.matches.chats,
-    firebaseToken: state.firebase.token.value,
+    serverTime: state.time.serverTime,
   }
-}
-
-// TODO: update with other ways of network requests
-const networkRequestInProgress = (state: RootState) => {
-  return state.auth.waitingForRequestVerificationResponse
-  || state.auth.waitingForVerificationResponse
-  || state.firebase.token.loading
-  || state.profile.preferredName.loading
-  || state.profile.major.loading
-  || state.profile.bio.loading
-  || state.profile.images.find((image) => image.loading) !== undefined
-  || state.profile.tags.loading
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    receiveMessages: (conversationId: string, messages: IChatMessage[]) => {
-      dispatch(receiveMessages(conversationId, messages))
-    },
-    attemptConnectToFirebase: (token: string) => dispatch(attemptConnectToFirebase(token)),
+    getServerTime: () => dispatch(getServerTime()),
   }
 }
 
@@ -108,5 +157,19 @@ export default connect(mapStateToProps, mapDispatchToProps)(App)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activityIndicator: {
+    marginBottom: 10,
+  },
+  errorMessage: {
+    marginTop: 15,
+    marginBottom: 30,
+    fontSize: 15,
+  },
+  sadImage: {
+    width: 75,
+    height: 75,
   },
 })

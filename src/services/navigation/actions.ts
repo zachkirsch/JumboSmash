@@ -1,8 +1,13 @@
+import { RouteName } from './types'
+import { ReceiveMessagesAction } from '../matches'
+
 /* Actions */
 
 export enum NavigationActionType {
   SET_TAB_BAR_OVERLAY = 'SET_TAB_BAR_OVERLAY',
   CLEAR_TAB_BAR_OVERLAY = 'CLEAR_TAB_BAR_OVERLAY',
+  SWITCH_TAB = 'SWITCH_TAB',
+  CLEAR_NAVIGATION_STATE = 'CLEAR_NAVIGATION_STATE',
   OTHER_ACTION = '__any_other_action_type__',
 }
 
@@ -13,6 +18,15 @@ export interface SetTabBarOverlayAction {
 
 export interface ClearTabBarOverlayAction {
   type: NavigationActionType.CLEAR_TAB_BAR_OVERLAY
+}
+
+export interface SwitchTabAction {
+  type: NavigationActionType.SWITCH_TAB
+  tab: RouteName
+}
+
+export interface ClearNavigationStateAction {
+  type: NavigationActionType.CLEAR_NAVIGATION_STATE
 }
 
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
@@ -29,9 +43,18 @@ export interface OtherAction {
 export type NavigationAction =
   SetTabBarOverlayAction
 | ClearTabBarOverlayAction
+| SwitchTabAction
+| ReceiveMessagesAction
+| ClearNavigationStateAction
 | OtherAction
 
 /* Action Creators */
+
+export const clearNavigationState = (): ClearNavigationStateAction => {
+  return {
+    type: NavigationActionType.CLEAR_NAVIGATION_STATE,
+  }
+}
 
 export const setTabBarOverlay = (component: () => JSX.Element): SetTabBarOverlayAction => {
   return {
@@ -43,5 +66,12 @@ export const setTabBarOverlay = (component: () => JSX.Element): SetTabBarOverlay
 export const clearTabBarOverlay = (): ClearTabBarOverlayAction => {
   return {
     type: NavigationActionType.CLEAR_TAB_BAR_OVERLAY,
+  }
+}
+
+export const switchTab = (tab: RouteName): SwitchTabAction => {
+  return {
+    type: NavigationActionType.SWITCH_TAB,
+    tab,
   }
 }

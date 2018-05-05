@@ -5,22 +5,26 @@ import {
   MatchesActionType,
   SendMessagesFailureAction,
   SendMessagesSuccessAction,
+  RehydrateMatchesFromServerAction,
+  UnmatchAction,
+  RemoveChatAction,
 } from './actions'
-import { IChatMessage } from 'react-native-gifted-chat'
+import { ChatService } from '../firebase'
+import { ChatMessage, Conversation } from './types'
 import { api } from '../api'
+// import { ChatService } from '../firebase'
 import { RootState } from '../../redux'
 
-const getOtherUsersInChat = (conversationId: string) => {
-  return (state: RootState) => state.matches.chats.get(conversationId).otherUsers.map(u => u!.id).toJS()
+const getConversation = (conversationId: string) => {
+  return (state: RootState) => state.matches.chats.get(conversationId)
 }
 
 function* attemptSendMessages(action: AttemptSendMessagesAction) {
-  function pushMessagetoFirebase(message: IChatMessage) {
+  function pushMessagetoFirebase(message: ChatMessage) {
     return new Promise((resolve, reject) => {
       const dbRef = getRefToChatMessages(action.conversationId)
       dbRef.push({
         ...message,
-        createdAt: message.createdAt.getTime(), // convert Date to number for firebase
       }, error => error ? reject(error) : resolve())
     })
   }
@@ -38,8 +42,8 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
       yield put(failureAction)
     } else {
       try {
-        const otherUsers: number[] = yield select(getOtherUsersInChat(action.conversationId))
-        yield call(api.sendChat, otherUsers, message.text)
+        const conversation: Conversation = yield select(getConversation(action.conversationId))
+        yield call(api.sendChat, conversation.otherUsers, message.text, conversation.matchId)
       } catch (e) {} /* tslint:disable-line:no-empty */
       const successAction: SendMessagesSuccessAction = {
         type: MatchesActionType.SEND_MESSAGES_SUCCESS,
@@ -51,6 +55,24 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
   }
 }
 
+function rehydrateMatchesFromServer(payload: RehydrateMatchesFromServerAction) {
+  payload.matches.forEach(match => ChatService.listenForNewChats(match.conversationId))
+}
+
+function removeChat(payload: RemoveChatAction) {
+  ChatService.stopListeningToChat(payload.conversationId)
+}
+
+function* unmatch(payload: UnmatchAction) {
+  try {
+    ChatService.stopListeningToChat(payload.conversationId)
+    yield call(api.unmatch, payload.matchId)
+  } catch (e) {} /* tslint:disable-line:no-empty */
+}
+
 export function* matchesSaga() {
   yield takeEvery(MatchesActionType.ATTEMPT_SEND_MESSAGES, attemptSendMessages)
+  yield takeEvery(MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER, rehydrateMatchesFromServer)
+  yield takeEvery(MatchesActionType.REMOVE_CHAT, removeChat)
+  yield takeEvery(MatchesActionType.UNMATCH, unmatch)
 }

@@ -1,59 +1,50 @@
 import React, { PureComponent } from 'react'
-import { View, ViewStyle, ActivityIndicator, StyleSheet, Animated, ImageProperties } from 'react-native'
+import { View, ViewStyle, ImageProperties } from 'react-native'
+import { CachedImage } from 'react-native-cached-image'
+import { ImageCacheService } from '../../services/image-caching'
 
-interface Props extends ImageProperties {
+interface CacheProps {
+  cache: true
+  source: {
+    uri: string
+  }
+}
+
+interface NormalProps {
+  cache: false
+}
+
+type Props = ImageProperties & (CacheProps | NormalProps) & {
   activityIndicatorSize?: 'small' | 'large'
   containerStyle?: ViewStyle
 }
 
-interface State {
-  loaded: boolean
-}
-
 export type JSImageProps = Props
 
-class JSImage extends PureComponent<Props, State> {
+class JSImage extends PureComponent<Props, {}> {
 
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      loaded: false,
+  componentWillReceiveProps(props: Props) {
+    if (props.cache) {
+      ImageCacheService.cacheImage(props.source.uri)
     }
   }
 
   public render() {
-
     return (
       <View style={this.props.containerStyle}>
-        <Animated.Image
-          {...this.props}
-          onLoadEnd={this.onLoad}
-        />
-        {this.renderIndicator()}
+        {this.renderImage()}
       </View>
     )
   }
 
-  private renderIndicator = () => {
-    if (this.state.loaded) {
-      return null
-    } else {
-      return (
-        <View style={[StyleSheet.absoluteFill, styles.loadingImage]}>
-          <ActivityIndicator size={this.props.activityIndicatorSize} />
-        </View>
-      )
-    }
+  private renderImage = () => {
+    return (
+      <CachedImage
+        {...this.props}
+        activityIndicatorProps={{size: this.props.activityIndicatorSize}}
+      />
+    )
   }
-
-  private onLoad = () => this.setState({ loaded: true })
 }
 
 export default JSImage
-
-const styles = StyleSheet.create({
-  loadingImage: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-})

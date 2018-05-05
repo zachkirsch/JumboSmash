@@ -11,11 +11,12 @@ type Props = ActionSheetProps<BubbleProps>
 class Bubble extends PureComponent<Props, {}> {
 
   render() {
-    if (!this.props.currentMessage) {
+    if (!this.props.currentMessage || this.props.currentMessage.system) {
       return null
     }
+    const opacity = this.props.currentMessage.failedToSend ? 0.3 : 1
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { opacity }]}>
         <TouchableOpacity onPress={this.onPress}>
           <View style={styles.wrapper}>
             <View>
@@ -28,22 +29,25 @@ class Bubble extends PureComponent<Props, {}> {
   }
 
   private onPress = () => {
-    if (this.props.currentMessage && this.props.currentMessage.text) {
-      const text = this.props.currentMessage.text
-      const { options, callback } = generateActionSheetOptions([
-        {
-          title: 'Copy Message',
-          onPress: () => Clipboard.setString(text),
-        },
-      ])
-      this.props.showActionSheetWithOptions!(options, callback)
+    if (!this.props.currentMessage || !this.props.currentMessage.text || this.props.currentMessage.system) {
+      return
     }
+    const text = this.props.currentMessage.text
+
+    const actionSheetOptions = [
+      {
+        title: 'Copy Message',
+        onPress: () => Clipboard.setString(text),
+      },
+    ]
+    const { options, callback } = generateActionSheetOptions(actionSheetOptions)
+    this.props.showActionSheetWithOptions!(options, callback)
   }
 
   private renderMessageText = () => {
     if (this.props.currentMessage) {
       return (
-        <JSText style={styles.slackMessageText} fontSize={15}>
+        <JSText style={styles.messageText}>
           {this.props.currentMessage.text}
         </JSText>
       )
@@ -56,12 +60,10 @@ class Bubble extends PureComponent<Props, {}> {
 export default Bubble
 
 const styles = StyleSheet.create({
-  slackMessageText: {
+  messageText: {
     marginLeft: 14,
-    marginRight: 0,
-    marginTop: 5,
-    marginBottom: 5,
     color: '#2F2E2E',
+    fontSize: 16,
   },
   container: {
     flex: 1,

@@ -8,15 +8,17 @@ import { Conversation } from '../../../services/matches'
 import MatchesListItem from './MatchesListItem'
 import { JSTextInput } from '../../common'
 import Ionicons from 'react-native-vector-icons/Ionicons'
+import { User } from '../../../services/swipe'
 
 interface State {
-  searchBarText: string,
+  searchBarText: string
 }
 
 interface OwnProps { }
 
 interface StateProps {
-  chats: Map<string, Conversation>,
+  chats: Map<string, Conversation>
+  allUsers: Map<number, User>
 }
 
 type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps>
@@ -49,7 +51,7 @@ class MatchesList extends PureComponent<Props, State> {
       <View style={styles.searchBarContainer}>
         <Ionicons
           name='ios-search'
-          style={{marginLeft: 10, marginVertical: 3}}
+          style={{position: 'absolute', left: 10}}
           color='gray'
           size={20}
         />
@@ -68,9 +70,23 @@ class MatchesList extends PureComponent<Props, State> {
   }
 
   private getMatches = () => {
-    return this.props.chats.toArray().filter(chat => {
-      return chat.otherUsers.find(user => !!user && user.preferredName.includes(this.state.searchBarText))
+
+    let chats = this.props.chats.toArray()
+    if (this.state.searchBarText) {
+      chats = this.props.chats.toArray().filter(chat => {
+        return chat.otherUsers.find(userId => {
+          const otherUser = this.props.allUsers.get(userId)
+          return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
+        })
+      })
+    }
+
+    const sortedChats = chats.sort((a, b) => {
+      const aTime = a.messages.size > 0 ? a.messages.first().createdAt : a.createdAt
+      const bTime = b.messages.size > 0 ? b.messages.first().createdAt : b.createdAt
+      return bTime - aTime
     })
+    return sortedChats
   }
 
   private extractConversationId = (item: Conversation) => item.conversationId
@@ -82,14 +98,15 @@ class MatchesList extends PureComponent<Props, State> {
   }
 
   private renderItem = ({item}: {item: Conversation}) => {
+    const otherUser = this.props.allUsers.get(item.otherUsers[0])
     return (
       <MatchesListItem
-        name={item.otherUsers.first().preferredName}
+        name={otherUser && otherUser.preferredName}
         onPress={this.openChatScreen(item.conversationId)}
         lastMessage={item.mostRecentMessage}
-        messageRead={!item.messagesUnread}
-        avatar={item.otherUsers.first().images[0]}
-        newMatch={true}
+        messagesUnread={item.messagesUnread}
+        avatar={otherUser && otherUser.images[0]}
+        newMatch={item.messages.size === 0}
       />
     )
   }
@@ -98,6 +115,7 @@ class MatchesList extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     chats: state.matches.chats,
+    allUsers: state.swipe.allUsers.value,
   }
 }
 
@@ -127,5 +145,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginLeft: 3,
     marginRight: 7,
+    paddingVertical: 5,
+    paddingHorizontal: 25,
+    fontSize: 20,
   },
 })

@@ -1,5 +1,6 @@
 import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
+import { List } from 'immutable'
 import { RootState } from '../../redux'
 import * as api from '../api'
 import firebase from 'react-native-firebase'
@@ -10,6 +11,7 @@ import { rehydrateMatchesFromServer } from '../matches'
 import { ImageUri } from './types'
 
 const getImages = (state: RootState) => state.profile.images
+const getSignedInStatus = (state: RootState) => state.auth.loggedIn.value
 
 /* Preferred Name */
 
@@ -42,40 +44,6 @@ function* attemptUpdatePreferredName(payload: ProfileActions.AttemptUpdatePrefer
     yield handleUpdatePreferredNameSuccess()
   } catch (error) {
     yield handleUpdatePreferredNameFailure(error)
-  }
-}
-
-/* Major */
-
-function* onChangeMajorTextInput(action: ProfileActions.OnChangeMajorTextInputAction) {
-  const updateLocallyAction: ProfileActions.UpdateMajorLocallyAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_LOCALLY,
-    major: action.major,
-  }
-  yield put(updateLocallyAction)
-}
-
-function* handleUpdateMajorSuccess() {
-  const successAction: ProfileActions.UpdateMajorSuccessAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_SUCCESS,
-  }
-  yield put(successAction)
-}
-
-function* handleUpdateMajorFailure(error: Error) {
-  const failureAction: ProfileActions.UpdateMajorFailureAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_MAJOR_FAILURE,
-    errorMessage: error.message,
-  }
-  yield put(failureAction)
-}
-
-function* attemptUpdateMajor(_: ProfileActions.AttemptUpdateMajorAction) {
-  try {
-    // yield call(api.api.updateMajor, payload.major) TODO: update major via API
-    yield handleUpdateMajorSuccess()
-  } catch (error) {
-    yield handleUpdateMajorFailure(error)
   }
 }
 
@@ -135,7 +103,7 @@ function* handleUpdateImagesFailure(error: Error, index: number, localUri: strin
   yield put(failureAction)
 }
 
-function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) {
+function* attemptUpdateImage(payload: ProfileActions.AttemptUpdateImageAction) {
   function uploadImageToFirebase() {
     if (payload.imageUri === '') {
       return payload.imageUri
@@ -155,18 +123,19 @@ function* attemptUpdateImages(payload: ProfileActions.AttemptUpdateImageAction) 
     if (payload.imageUri.startsWith('http')) { // already a remote url
       firebaseUrl = payload.imageUri
     } else {
+
       firebaseUrl = yield call(uploadImageToFirebase)
 
-      const images: Array<LoadableValue<ImageUri>> = yield select(getImages)
-      const newImages = images.map((image, index) => {
+      const images: List<LoadableValue<ImageUri>> = yield select(getImages)
+      const newImages: string[] = images.map((image, index) => {
         if (index === payload.index) {
           return firebaseUrl
-        } else if (image.value.isLocal) {
+        } else if (!image || image.value.isLocal) {
           return ''
         } else {
           return image.value.uri
         }
-      })
+      }).toJS()
 
       // send images to server
       yield call(api.api.updateImages, newImages)
@@ -207,33 +176,85 @@ function* attemptUpdateTags(payload: ProfileActions.AttemptUpdateTagsAction) {
   }
 }
 
+function* attemptBlockUser(payload: ProfileActions.AttemptBlockUserAction) {
+  try {
+    api.api.block(payload.email)
+    const successAction: ProfileActions.BlockUserSuccessAction = {
+      type: ProfileActions.ProfileActionType.BLOCK_USER_SUCCESS,
+      email: payload.email,
+    }
+    yield put(successAction)
+  } catch (error) {
+    const failureAction: ProfileActions.BlockUserFailureAction = {
+      type: ProfileActions.ProfileActionType.BLOCK_USER_FAILURE,
+      email: payload.email,
+      errorMessage: error.message,
+    }
+    yield put(failureAction)
+  }
+}
+
+function* attemptUnblockUser(payload: ProfileActions.AttemptUnblockUserAction) {
+  try {
+    api.api.unblock(payload.email)
+    const successAction: ProfileActions.UnblockUserSuccessAction = {
+      type: ProfileActions.ProfileActionType.UNBLOCK_USER_SUCCESS,
+      email: payload.email,
+    }
+    yield put(successAction)
+  } catch (error) {
+    const failureAction: ProfileActions.UnblockUserFailureAction = {
+      type: ProfileActions.ProfileActionType.UNBLOCK_USER_FAILURE,
+      email: payload.email,
+      errorMessage: error.message,
+    }
+    yield put(failureAction)
+  }
+}
+
 function* rehydrateProfileFromServer(_: RehydrateAction) {
+
+  const loggedIn: boolean = yield select(getSignedInStatus)
+  if (!loggedIn) {
+    return
+  }
+
   try {
     const allTags: api.GetTagsResponse = yield call(api.api.getTags)
+    const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
     const meInfo: api.MeResponse = yield call(api.api.me)
-    yield put(ProfileActions.initializeProfile(allTags, meInfo))
-    yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => match.conversation_uuid)))
-  } catch (e) {} /* tslint:disable-line:no-empty */
+    yield put(ProfileActions.initializeProfile(allTags, allReacts, meInfo))
+    yield put(rehydrateMatchesFromServer(meInfo.active_matches
+      .filter(match => !match.unmatched)
+      .map(match => ({
+        id: match.id,
+        createdAt: match.createdAt,
+        otherUsers: match.users.reduce((acc, user) => {
+          if (user.id !== meInfo.id) {
+            acc.push(user.id)
+          }
+          return acc
+        }, [] as number[]),
+        conversationId: match.conversation_uuid,
+      }))
+    ))
+  } catch (e) {} /* tslint:disable-line:no-empty */ // TODO: something?
 }
 
 /* main saga */
 
 export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME, attemptUpdatePreferredName)
-  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_MAJOR, attemptUpdateMajor)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
-  yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImages)
+  yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImage)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_BLOCK_USER, attemptBlockUser)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UNBLOCK_USER, attemptUnblockUser)
   yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
   yield throttle(
     500,
     ProfileActions.ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
     onChangePreferredNameTextInput
-  )
-  yield throttle(
-    500,
-    ProfileActions.ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
-    onChangeMajorTextInput
   )
   yield throttle(
     500,

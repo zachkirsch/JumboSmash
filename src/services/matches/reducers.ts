@@ -1,4 +1,5 @@
 import { List, Map, Set } from 'immutable'
+import moment from 'moment'
 import {
   AttemptSendMessagesAction,
   MatchesAction,
@@ -8,43 +9,13 @@ import {
   SendMessagesSuccessAction,
 } from './actions'
 import { ReduxActionType } from '../redux'
-import { Conversation, MatchesState } from './types'
+import { Conversation, MatchesState, MatchPopupSettings, ChatMessage } from './types'
 
 const initialState: MatchesState = {
-  chats: Map<string, Conversation>({
-    2: {
-      conversationId: '2',
-      otherUsers: List([{
-        id: 1,
-        preferredName: 'Zach Kirsch',
-        bio: 'Gotta catch em all',
-        images: ['https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
-        '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366'],
-        tags: ['tag1', 'tag2'],
-      }]),
-      messages: List([
-        {
-          _id: 0,
-          text: 'This is Zach',
-          createdAt: new Date(),
-          user: {
-            _id: 1,
-            name: 'Zach Kirsch',
-            avatar: 'https://scontent.fzty2-1.fna.fbcdn.net/v/t31.0-8/17039378_10212402239837389_66' +
-                    '23819361607561120_o.jpg?oh=da5905077fe2f7ab636d9e7ac930133c&oe=5B113366',
-          },
-          sending: false,
-          failedToSend: false,
-          sent: true,
-          received: true,
-          read: false,
-        },
-      ]),
-      messageIDs: Set([0]),
-      mostRecentMessage: 'This is Zach',
-      messagesUnread: true,
-    },
-  }),
+  chats: Map<string, Conversation>(),
+  matchPopup: {
+    shouldShow: false,
+  },
 }
 
 const addMessagesToReduxState = (oldState: MatchesState,
@@ -61,17 +32,18 @@ const addMessagesToReduxState = (oldState: MatchesState,
   action.messages.forEach((message) => {
     if (!newMessageIDs.contains(message._id)) {
       newMessageIDs = newMessageIDs.add(message._id)
-      newMessages = newMessages.unshift({
+      const chatMessage: ChatMessage = {
         ...message,
+        createdAt: moment(message.createdAt).valueOf(),
         failedToSend: false,
         sending,
-      })
+      }
+      newMessages = newMessages.unshift(chatMessage)
     }
   })
 
   const newConversation: Conversation = {
-    conversationId: originalConversation.conversationId,
-    otherUsers: originalConversation.otherUsers.asImmutable(),
+    ...originalConversation,
     messages: newMessages,
     messageIDs: newMessageIDs,
     mostRecentMessage: newMessages.first().text,
@@ -79,6 +51,7 @@ const addMessagesToReduxState = (oldState: MatchesState,
   }
 
   return {
+    ...oldState,
     chats: oldState.chats.set(action.conversationId, newConversation),
   }
 }
@@ -107,23 +80,19 @@ const updateSentStatus = (oldState: MatchesState,
   })
 
   const newConversation: Conversation = {
-    conversationId: originalConversation.conversationId,
-    otherUsers: originalConversation.otherUsers.asImmutable(),
+    ...originalConversation,
     messages: newMessages,
-    messageIDs: originalConversation.messageIDs.asImmutable(),
-    mostRecentMessage: originalConversation.mostRecentMessage,
     messagesUnread: false,
   }
 
   return {
+    ...oldState,
     chats: oldState.chats.set(action.conversationId, newConversation),
   }
 }
 
 export function matchesReducer(state = initialState, action: MatchesAction): MatchesState {
-
   switch (action.type) {
-
     case MatchesActionType.RECEIVE_MESSAGES:
       return addMessagesToReduxState(state, action, false)
 
@@ -139,26 +108,44 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
     case MatchesActionType.SET_CONVERSATION_AS_READ:
       let newConversation = state.chats.get(action.conversationId)
       return {
+        ...state,
         chats: state.chats.set(action.conversationId, {
           ...newConversation,
           messagesUnread: false,
         }),
       }
 
-    case MatchesActionType.CREATE_MATCH:
+    case MatchesActionType.DISMISS_MATCH_POPUP:
       return {
+        ...state,
+        matchPopup: {
+          shouldShow: false,
+        },
+      }
+
+    case MatchesActionType.CREATE_MATCH:
+      if (state.chats.has(action.conversationId)) {
+        return state
+      }
+      let matchPopup: MatchPopupSettings = {
+        shouldShow: false,
+      }
+      if (action.shouldShowMatchPopup) {
+        matchPopup = {
+          shouldShow: true,
+          match: {
+            conversationId: action.conversationId,
+            otherUsers: action.otherUsers,
+          },
+        }
+      }
+      return {
+        matchPopup,
         chats: state.chats.set(action.conversationId, {
+          matchId: action.id,
           conversationId: action.conversationId,
-          otherUsers: List(action.withUsers.map(user => ({
-            id: user.id,
-            preferredName: user.preferredName,
-            surname: user.surname,
-            fullName: user.fullName,
-            major: user.major,
-            bio: user.bio,
-            images: user.images,
-            tags: user.tags,
-          }))),
+          createdAt: moment(action.createdAt).valueOf(),
+          otherUsers: action.otherUsers,
           messages: List(),
           messageIDs: Set(),
           mostRecentMessage: '',
@@ -166,21 +153,53 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
         }),
       }
 
-    // this is a separate case because redux-persist stores immutables as plain JS
+    case MatchesActionType.REHYDRATE_MATCHES_FROM_SERVER:
+      let chats = state.chats
+      action.matches.forEach(match => {
+        if (!chats.has(match.conversationId)) {
+          chats = chats.set(match.conversationId, {
+            matchId: match.id,
+            conversationId: match.conversationId,
+            otherUsers: match.otherUsers,
+            messages: List(),
+            messageIDs: Set(),
+            mostRecentMessage: '',
+            createdAt: moment(match.createdAt).valueOf(),
+            messagesUnread: false,
+          })
+        }
+      })
+      chats.keySeq().forEach(conversationId => {
+        if (conversationId && !action.matches.find(match => match.conversationId === conversationId)) {
+          chats = chats.remove(conversationId)
+        }
+      })
+      return {
+        ...state,
+        chats,
+      }
+
+    case MatchesActionType.REMOVE_CHAT:
+    case MatchesActionType.UNMATCH:
+      return {
+        ...state,
+        chats: state.chats.remove(action.conversationId),
+      }
+
     case ReduxActionType.REHYDRATE:
 
-      // for unit tests when root state is empty
+      // for when root state is empty
       if (!action.payload.matches) {
         return state
       }
 
-      let chats = Map<string, Conversation>()
+      chats = Map<string, Conversation>()
       Object.keys(action.payload.matches.chats).forEach((conversationId) => {
         /* tslint:disable-next-line:no-any */
         const originalConversation: Conversation = (action.payload.matches.chats as any)[conversationId]
         const conversation: Conversation = {
           conversationId,
-          otherUsers: List(originalConversation.otherUsers),
+          ...originalConversation,
           messages: List(originalConversation.messages.map((message) => {
             return {
               ...message,
@@ -189,8 +208,6 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
             }
           })),
           messageIDs: Set(originalConversation.messageIDs),
-          mostRecentMessage: originalConversation.mostRecentMessage,
-          messagesUnread: originalConversation.messagesUnread,
         }
         chats = chats.set(conversationId, conversation)
       })

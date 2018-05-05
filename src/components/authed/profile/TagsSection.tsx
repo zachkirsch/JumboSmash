@@ -1,17 +1,21 @@
 import React, { PureComponent } from 'react'
 import { StyleSheet, TextStyle, View, ViewStyle } from 'react-native'
-import { Tag } from '../../../services/profile'
 import { JSText } from '../../common'
+
+interface Tag {
+  name: string
+  emoji?: boolean
+  selected?: boolean
+}
 
 interface Props {
   tags: Tag[]
   onPress?: (tagIndex: number) => void
-  fontSize?: number
   tagStyle?: TextStyle
+  emojiStyle?: TextStyle
   selectedTagStyle?: TextStyle
   unselectedTagStyle?: TextStyle
   containerStyle?: ViewStyle
-  alignLeft?: boolean
 }
 
 class TagsSection extends PureComponent<Props, {}> {
@@ -19,18 +23,19 @@ class TagsSection extends PureComponent<Props, {}> {
   render() {
     const toRender = this.props.tags.map((tag, tagIndex) => {
       const textStyle: any = [styles.tag] /* tslint:disable-line:no-any */
+      textStyle.push(this.props.tagStyle)
       if (!tag.emoji) {
         textStyle.push(styles.underline)
+      } else {
+        textStyle.push(this.props.emojiStyle)
       }
-      textStyle.push(this.props.tagStyle)
       textStyle.push(tag.selected ? this.props.selectedTagStyle : this.props.unselectedTagStyle)
 
       return (
         <JSText
-          style={textStyle}
-          fontSize={this.props.fontSize}
-          onPress={this.props.onPress && (() => this.props.onPress && this.props.onPress(tagIndex))}
           key={tag.name}
+          onPress={this.props.onPress && (() => this.props.onPress && this.props.onPress(tagIndex))}
+          style={textStyle}
         >
           {tag.name}
         </JSText>
@@ -39,7 +44,6 @@ class TagsSection extends PureComponent<Props, {}> {
 
     const containerStyle = [
       styles.container,
-      this.props.alignLeft ? styles.flexStart : styles.spaceBetween,
       this.props.containerStyle,
     ]
 
@@ -59,19 +63,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-  },
-  flexStart: {
     justifyContent: 'flex-start',
-  },
-  spaceBetween: {
-    justifyContent: 'space-between',
   },
   lastLine: {
     flexGrow: 1,
   },
   tag: {
     color: '#29292C',
-    marginRight: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 1.5,
   },
   underline: {
     textDecorationLine: 'underline',

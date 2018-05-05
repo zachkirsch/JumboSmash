@@ -2,31 +2,49 @@ import React, { PureComponent } from 'react'
 import { Animated, Platform, StyleSheet, View, ViewStyle } from 'react-native'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
-import Entypo from 'react-native-vector-icons/Entypo'
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Direction } from '../../../services/api'
-import { fetchAllUsers, swipe, User, SwipeState } from '../../../services/swipe'
+import { fetchSwipableUsers, swipe, react, User, SwipeState } from '../../../services/swipe'
+import { ProfileReact, blockUser } from '../../../services/profile'
 import { CircleButton, CircleButtonProps } from '../../common'
-import { mod } from '../../../utils'
+import { mod, isSenior } from '../../../utils'
+import { Images } from '../../../assets'
 import Card from './Card'
 import NoMoreCards from './NoMoreCards'
 
+interface PreviewProps {
+  onExit: () => void
+}
+
+interface SelfPreviewProps extends PreviewProps {
+  type: 'self'
+  profile: User
+}
+
+interface OtherPreviewProps extends PreviewProps {
+  type: 'other'
+  userId: number
+}
+
 interface OwnProps {
-  preview?: {
-    user: User
-    onExit: () => void
-  }
+  preview?: SelfPreviewProps | OtherPreviewProps
 }
 
 export type SwipeScreenProps = OwnProps
 
-type StateProps = SwipeState
+type StateProps = SwipeState & {
+  meId: number
+  postRelease2: boolean
+  classYear: number
+  showUnderclassmen: boolean
+}
 
 interface DispatchProps {
   swipe: (direction: Direction, onUser: User) => void
-  fetchAllUsers: () => void
+  react: (reacts: ProfileReact[], onUser: User) => void
+  fetchSwipableUsers: () => void
+  blockUser: (email: string) => void
 }
 
 type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
@@ -34,33 +52,58 @@ type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
 interface State {
   mustShowLoadingScreen: boolean
   expansion: Animated.Value
-  profiles: (User | undefined)[]
+  fullyExpanded: boolean
+  profiles: (number | undefined)[] // user ID's
+  topCardLoaded: boolean
 }
 
-const NUM_RENDERED_CARDS = 5
+const NUM_RENDERED_CARDS = 4
 
 @connectActionSheet
 class SwipeScreen extends PureComponent<Props, State> {
 
   private topCard: Card
   private cardIndexOfTopCard = 0
+  private loadingScreenTimer: number
+  private componentIsMounted = false
 
   constructor(props: Props) {
     super(props)
     this.state = {
       expansion: new Animated.Value(props.preview ? 1 : 0),
+      fullyExpanded: !!this.props.preview,
       profiles: [],
-      mustShowLoadingScreen: false,
+      mustShowLoadingScreen: true,
+      topCardLoaded: false,
     }
+  }
+
+  componentDidMount() {
+    this.componentIsMounted = true
+    if (!this.props.preview) {
+      if (!this.props.swipableUsers.loading && this.props.swipableUsers.value.size === 0) {
+        this.fetchUsers()
+      }
+      this.loadingScreenTimer = setTimeout(() => {
+        this.safeSetState({
+          mustShowLoadingScreen: false,
+        })
+      }, 2000)
+    }
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.loadingScreenTimer)
+    this.componentIsMounted = false
   }
 
   public render() {
     if (!this.props.preview) {
-      if (this.props.allUsers.value.size === 0) {
-        if (this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
+      if (this.props.swipableUsers.value.size === 0 || this.props.allUsers.value.size === 0) {
+        if (this.props.swipableUsers.loading || this.props.allUsers.loading || this.state.mustShowLoadingScreen) {
           return <Card type='loading' />
         } else {
-          return <NoMoreCards requestMoreCards={this.requestMoreUsers}/>
+          return <NoMoreCards requestMoreCards={this.requestMoreUsers} issue='outOfCards' />
         }
       }
     }
@@ -68,20 +111,27 @@ class SwipeScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.fill}>
         {this.renderCards()}
-        {this.renderGradient()}
-        {this.renderCrossButton()}
-        {this.renderHeartButton()}
+        {!this.props.preview && this.renderGradient()}
+        {!this.props.preview && this.renderCrossButton()}
+        {!this.props.preview && this.renderHeartButton()}
       </View>
     )
   }
 
   private renderCards = () => {
     if (this.props.preview) {
+      let profile = this.getProfileForPreview()
+      if (!profile) {
+        return null
+      }
       return (
         <Card
           type='preview'
-          profile={this.props.preview.user}
+          profile={profile}
           exit={this.props.preview.onExit}
+          react={this.props.react}
+          reactsEnabled={this.props.meId !== profile.id}
+          showClassYear={this.shouldShowClassYear(profile)}
         />
       )
     }
@@ -93,29 +143,54 @@ class SwipeScreen extends PureComponent<Props, State> {
     return cards
   }
 
-  private renderCard = (cardIndex: number) => {
-
-    if (this.props.preview && cardIndex !== 0) {
-      return null
+  private getProfileForPreview = (): User | undefined => {
+    if (!this.props.preview) {
+      return
     }
+    switch (this.props.preview.type) {
+      case 'self':
+        return this.props.preview.profile
+      case 'other':
+        return this.props.allUsers.value.get(this.props.preview.userId)
+    }
+  }
+
+  private renderCard = (cardIndex: number) => {
 
     const card = this.getCard(cardIndex)
     if (card === undefined) {
       return null
     }
+
+    // ensure that top card loads first
+    if (cardIndex > 0 && !this.state.topCardLoaded) {
+      return null
+    }
+
+    let containerStyle
     const positionInStack = this.calculatePositionInStack(cardIndex)
+    if (positionInStack >= this.props.swipableUsers.value.size) {
+      containerStyle = styles.hidden
+    }
+
+    const profile = this.props.allUsers.value.get(card)
 
     return (
       <Card
         type='normal'
         positionInStack={positionInStack}
-        profile={card}
+        profile={profile}
+        showClassYear={this.shouldShowClassYear(profile)}
         onExpandCard={this.onExpandCard}
         onExitExpandedView={this.onExitExpandedView}
         onCompleteSwipe={this.onCompleteSwipe}
+        react={this.props.react}
         key={cardIndex}
         ref={this.assignCardRef(positionInStack)}
         showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
+        containerStyle={containerStyle}
+        cardContainerStyle={styles.extraRoomForButtons}
+        block={this.props.blockUser}
       />
     )
   }
@@ -125,11 +200,11 @@ class SwipeScreen extends PureComponent<Props, State> {
     const gradientStyle = {
       height: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: ['20%', '0%'],
+        outputRange: ['20%', '20%'],
       }),
       opacity: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0],
+        outputRange: [1, 1],
       }),
     }
 
@@ -141,7 +216,7 @@ class SwipeScreen extends PureComponent<Props, State> {
           end={{x: 0, y: 0.75}}
           style={styles.fill}
         >
-            <View style={styles.fill}/>
+          <View style={styles.fill}/>
         </LinearGradient>
       </Animated.View>
     )
@@ -152,25 +227,24 @@ class SwipeScreen extends PureComponent<Props, State> {
     const containerStyle = {
       opacity: this.state.expansion.interpolate({
         inputRange: [0, 1],
-        outputRange: [1, 0],
+        outputRange: [1, 1],
       }),
     }
 
     return (
       <CircleButton
         {...props}
-        style={[styles.circleButton, containerStyle, style]}
+        containerStyle={[styles.circleButton, containerStyle, style]}
+        imageStyle={styles.buttonImage}
       />
     )
   }
 
   private renderCrossButton = () => {
     return this.renderCircleButton({
-        IconClass: Entypo,
-        iconName: 'cross',
-        iconSize: 50,
-        iconColor: 'rgba(172,203,238,0.6)',
-        onPress: () => this.topCard && this.topCard.swipeLeft(),
+      type: 'image',
+      onPress: () => this.topCard && this.topCard.swipeLeft(),
+      source: Images.cross,
       }, {
         left: '15%',
       }
@@ -179,10 +253,8 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   private renderHeartButton = () => {
     return this.renderCircleButton({
-        IconClass: MaterialCommunityIcons,
-        iconName: 'heart',
-        iconSize: 40,
-        iconColor: '#ACCBEE',
+        type: 'image',
+        source: Images.heart,
         onPress: () => this.topCard && this.topCard.swipeRight(),
       }, {
         right: '15%',
@@ -190,18 +262,24 @@ class SwipeScreen extends PureComponent<Props, State> {
     )
   }
 
+  private shouldShowClassYear = (user: User) => {
+    return this.props.postRelease2
+      && isSenior(this.props.classYear)
+      && (this.props.showUnderclassmen || !isSenior(user.classYear))
+  }
+
   private requestMoreUsers = () => {
-    this.setState({
+    this.safeSetState({
       profiles: [],
     }, this.fetchUsers)
   }
 
   private fetchUsers = () => {
-    this.props.fetchAllUsers()
-    this.setState({
+    this.props.fetchSwipableUsers()
+    this.safeSetState({
       mustShowLoadingScreen: true,
     }, () => setTimeout(() => {
-      this.setState({
+      this.safeSetState({
         mustShowLoadingScreen: false,
       })
     }, 2000))
@@ -210,6 +288,11 @@ class SwipeScreen extends PureComponent<Props, State> {
   private assignCardRef = (positionInStack: number) => (ref: Card) => {
     if (positionInStack === 0) {
       this.topCard = ref
+      setTimeout(() => {
+        this.safeSetState({
+          topCardLoaded: true,
+        })
+      }, 500)
     }
   }
 
@@ -218,9 +301,13 @@ class SwipeScreen extends PureComponent<Props, State> {
       this.state.expansion,
       {
         toValue: 1,
-        duration: 100,
+        duration: 300,
       }
-    ).start()
+    ).start(() => {
+      this.safeSetState({
+        fullyExpanded: true,
+      })
+    })
   }
 
   private onExitExpandedView = () => {
@@ -228,41 +315,49 @@ class SwipeScreen extends PureComponent<Props, State> {
       this.props.preview.onExit()
       return
     }
+    this.safeSetState({
+      fullyExpanded: false,
+    })
     Animated.timing(
       this.state.expansion,
       {
         toValue: 0,
-        duration: 100,
+        duration: 300,
       }
     ).start()
   }
 
   private onCompleteSwipe = (direction: Direction, onUser: User) => {
-
-    if (!this.props.allUsers.loading) {
-      const numUserUntilEnd = this.props.allUsers.value.size - this.props.indexOfUserOnTop
-      const beenLongEnough = this.props.lastFetched === undefined || (Date.now() - this.props.lastFetched) / 1000 >= 10
-      if (numUserUntilEnd <= 10 && beenLongEnough) {
-        this.fetchUsers()
-      }
-    }
-
     let newProfiles = []
     for (let positionInStack = 0; positionInStack < NUM_RENDERED_CARDS; positionInStack++) {
       const cardIndex = (this.getCardIndexOfTopCard() + positionInStack) % NUM_RENDERED_CARDS
       let nextCard = this.getNextCard(cardIndex)
-      if (direction === 'right' && nextCard && nextCard.id === onUser.id) {
+      if (direction === 'right' && nextCard && nextCard === onUser.id) {
         continue
       }
       newProfiles[cardIndex] = nextCard
     }
     this.cardIndexOfTopCard += 1
     this.cardIndexOfTopCard %= NUM_RENDERED_CARDS
-    this.setState({
+    this.safeSetState({
       profiles: newProfiles,
     })
 
     this.props.swipe(direction, onUser)
+
+    if (!this.props.swipableUsers.loading) {
+      const numUserUntilEnd = this.props.swipableUsers.value.size - this.props.indexOfUserOnTop
+      const beenLongEnough = (
+        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 10
+      )
+      const beenTooLong = (
+        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 / 60 >= 10
+      )
+      if (beenTooLong || numUserUntilEnd <= 10 && beenLongEnough) {
+        this.fetchUsers()
+      }
+    }
+
   }
 
   private calculatePositionInStack = (cardIndex: number) => {
@@ -279,11 +374,11 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private getInitialCardForIndex = (cardIndex: number) => {
-    const indexOfUser = this.calculatePositionInStack(cardIndex) % this.props.allUsers.value.size
-    return this.props.allUsers.value.get(indexOfUser)
+    const indexOfUser = this.calculatePositionInStack(cardIndex) % this.props.swipableUsers.value.size
+    return this.props.swipableUsers.value.get(indexOfUser)
   }
 
-  private getCard = (cardIndex: number): User => {
+  private getCard = (cardIndex: number) => {
     const userInState = this.state.profiles[cardIndex]
     if (userInState) {
       return userInState
@@ -296,22 +391,36 @@ class SwipeScreen extends PureComponent<Props, State> {
     const currentCard = this.getCard(cardIndex)
     switch (this.calculatePositionInStack(cardIndex)) {
       case 0:
-        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.allUsers.value.size
-        return this.props.allUsers.value.get(indexOfUser)
+        const indexOfUser = (this.props.indexOfUserOnTop + NUM_RENDERED_CARDS) % this.props.swipableUsers.value.size
+        return this.props.swipableUsers.value.get(indexOfUser)
       default:
         return currentCard
+    }
+  }
+
+  private safeSetState = (newState: Partial<State>, callback?: () => void) => {
+    if (this.componentIsMounted) {
+      this.setState(newState as any, callback) /* tslint:disable-line:no-any */
     }
   }
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
-  return state.swipe
+  return {
+    ...state.swipe,
+    meId: state.profile.id,
+    postRelease2: state.time.postRelease2,
+    classYear: state.profile.classYear,
+    showUnderclassmen: state.profile.showUnderclassmen,
+  }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    fetchAllUsers: () => dispatch(fetchAllUsers()),
+    fetchSwipableUsers: () => dispatch(fetchSwipableUsers()),
     swipe: (direction: Direction, onUser: User) => dispatch(swipe(direction, onUser)),
+    react: (reacts: ProfileReact[], onUser: User) => dispatch(react(reacts, onUser)),
+    blockUser: (email: string) => dispatch(blockUser(email)),
   }
 }
 
@@ -343,5 +452,15 @@ const styles = StyleSheet.create({
         elevation: 12,
       },
     }),
+  },
+  buttonImage: {
+    width: 30,
+    height: 30,
+  },
+  hidden: {
+    opacity: 0,
+  },
+  extraRoomForButtons: {
+    paddingBottom: 100,
   },
 })

@@ -1,6 +1,7 @@
 import { Direction } from '../api'
 import { User } from './types'
 import { RehydrateAction } from '../redux'
+import { ProfileReact } from '../profile'
 
 /* Actions */
 
@@ -9,9 +10,17 @@ export enum SwipeActionType {
   FETCH_ALL_USERS_SUCCESS = 'FETCH_ALL_USERS_SUCCESS',
   FETCH_ALL_USERS_FAILURE = 'FETCH_ALL_USERS_FAILURE',
 
+  ATTEMPT_FETCH_SWIPABLE_USERS = 'ATTEMPT_FETCH_SWIPABLE_USERS',
+  FETCH_SWIPABLE_USERS_SUCCESS = 'FETCH_SWIPABLE_USERS_SUCCESS',
+  FETCH_SWIPABLE_USERS_FAILURE = 'FETCH_SWIPABLE_USERS_FAILURE',
+
   ATTEMPT_SWIPE = 'ATTEMPT_SWIPE',
   SWIPE_SUCCESS = 'SWIPE_SUCCESS',
   SWIPE_FAILURE = 'SWIPE_FAILURE',
+
+  ATTEMPT_REACT = 'ATTEMPT_REACT',
+  REACT_SUCCESS = 'REACT_SUCCESS',
+  REACT_FAILURE = 'REACT_FAILURE',
 
   CLEAR_SWIPE_STATE = 'CLEAR_SWIPE_STATE',
 
@@ -29,6 +38,21 @@ export interface FetchAllUsersSuccessAction {
 
 export interface FetchAllUsersFailureAction {
   type: SwipeActionType.FETCH_ALL_USERS_FAILURE
+  errorMessage: string
+}
+
+export interface AttemptFetchSwipableUsersAction {
+  type: SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS
+}
+
+export interface FetchSwipableUsersSuccessAction {
+  type: SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS
+  allUsers: User[]
+  swipableUsers: number[]
+}
+
+export interface FetchSwipableUsersFailureAction {
+  type: SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE
   errorMessage: string
 }
 
@@ -51,6 +75,23 @@ export interface SwipeFailureAction {
   errorMessage: string
 }
 
+export interface AttemptReactAction {
+  type: SwipeActionType.ATTEMPT_REACT
+  reacts: ProfileReact[]
+  onUser: User
+}
+
+export interface ReactSuccessAction {
+  type: SwipeActionType.REACT_SUCCESS
+  onUser: User
+}
+
+export interface ReactFailureAction {
+  type: SwipeActionType.REACT_FAILURE
+  onUser: User
+  errorMessage: string
+}
+
 export interface ClearSwipeStateAction {
   type: SwipeActionType.CLEAR_SWIPE_STATE
 }
@@ -69,9 +110,15 @@ export interface OtherAction {
 export type SwipeAction = AttemptFetchAllUsersAction
 | FetchAllUsersSuccessAction
 | FetchAllUsersFailureAction
+| AttemptFetchSwipableUsersAction
+| FetchSwipableUsersSuccessAction
+| FetchSwipableUsersFailureAction
 | AttemptSwipeAction
 | SwipeSuccessAction
 | SwipeFailureAction
+| AttemptReactAction
+| ReactSuccessAction
+| ReactFailureAction
 | ClearSwipeStateAction
 | RehydrateAction
 | OtherAction
@@ -84,11 +131,25 @@ export const fetchAllUsers = (): AttemptFetchAllUsersAction => {
   }
 }
 
+export const fetchSwipableUsers = (): AttemptFetchSwipableUsersAction => {
+  return {
+    type: SwipeActionType.ATTEMPT_FETCH_SWIPABLE_USERS,
+  }
+}
+
 export const swipe = (direction: Direction, onUser: User): AttemptSwipeAction => {
   return {
     type: SwipeActionType.ATTEMPT_SWIPE,
     direction,
     onUser,
+  }
+}
+
+export const react = (reacts: ProfileReact[], onUser: User): AttemptReactAction => {
+  return {
+    type: SwipeActionType.ATTEMPT_REACT,
+    onUser,
+    reacts,
   }
 }
 

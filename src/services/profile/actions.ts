@@ -1,8 +1,9 @@
 import { TagSectionType } from './types'
 import { RehydrateAction } from '../redux'
-import { GetTagsResponse, MeResponse } from '../api'
-/* Actions */
+import { GetTagsResponse, GetReactsResponse, MeResponse, ProfileReact } from '../api'
+import { VerifyEmailSuccessAction } from '../auth'
 
+/* Actions */
 export enum ProfileActionType {
 
   INITIALIZE_PROFILE = 'INITIALIZE_PROFILE',
@@ -12,12 +13,6 @@ export enum ProfileActionType {
   ATTEMPT_UPDATE_PREFERRED_NAME = 'ATTEMPT_UPDATE_PREFERRED_NAME',
   UPDATE_PREFERRED_NAME_SUCCESS = 'UPDATE_PREFERRED_NAME_SUCCESS',
   UPDATE_PREFERRED_NAME_FAILURE = 'UPDATE_PREFERRED_NAME_FAILURE',
-
-  ON_CHANGE_MAJOR_TEXTINPUT = 'ON_CHANGE_MAJOR_TEXTINPUT',
-  UPDATE_MAJOR_LOCALLY = 'UPDATE_MAJOR_LOCALLY',
-  ATTEMPT_UPDATE_MAJOR = 'ATTEMPT_UPDATE_MAJOR',
-  UPDATE_MAJOR_SUCCESS = 'UPDATE_MAJOR_SUCCESS',
-  UPDATE_MAJOR_FAILURE = 'UPDATE_MAJOR_FAILURE',
 
   ON_CHANGE_BIO_TEXTINPUT = 'ON_CHANGE_BIO_TEXTINPUT',
   UPDATE_BIO_LOCALLY = 'UPDATE_BIO_LOCALLY',
@@ -30,9 +25,22 @@ export enum ProfileActionType {
   UPDATE_IMAGE_FAILURE = 'UPDATE_IMAGE_FAILURE',
   SWAP_IMAGES = 'SWAP_IMAGES',
 
+  UPDATE_TAGS_LOCALLY = 'UPDATE_TAGS_LOCALLY',
   ATTEMPT_UPDATE_TAGS = 'ATTEMPT_UPDATE_TAGS',
   UPDATE_TAGS_SUCCESS = 'UPDATE_TAGS_SUCCESS',
   UPDATE_TAGS_FAILURE = 'UPDATE_TAGS_FAILURE',
+
+  ATTEMPT_BLOCK_USER = 'ATTEMPT_BLOCK_USER',
+  BLOCK_USER_SUCCESS = 'BLOCK_USER_SUCCESS',
+  BLOCK_USER_FAILURE = 'BLOCK_USER_FAILURE',
+
+  ATTEMPT_UNBLOCK_USER = 'ATTEMPT_UNBLOCK_USER',
+  UNBLOCK_USER_SUCCESS = 'UNBLOCK_USER_SUCCESS',
+  UNBLOCK_USER_FAILURE = 'UNBLOCK_USER_FAILURE',
+
+  UPDATE_PROFILE_REACTS = 'UPDATE_PROFILE_REACTS',
+
+  TOGGLE_UNDERCLASSMEN = 'TOGGLE_UNDERCLASSMEN',
 
   CLEAR_PROFILE_STATE = 'CLEAR_PROFILE_STATE',
 
@@ -42,6 +50,7 @@ export enum ProfileActionType {
 export interface InitializeProfileAction {
   type: ProfileActionType.INITIALIZE_PROFILE
   allTags: GetTagsResponse
+  allReacts: GetReactsResponse
   payload: MeResponse
 }
 
@@ -66,30 +75,6 @@ export interface UpdatePreferredNameSuccessAction {
 
 export interface UpdatePreferredNameFailureAction {
   type: ProfileActionType.UPDATE_PREFERRED_NAME_FAILURE
-  errorMessage: string
-}
-
-export interface OnChangeMajorTextInputAction {
-  type: ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
-  major: string,
-}
-
-export interface UpdateMajorLocallyAction {
-  type: ProfileActionType.UPDATE_MAJOR_LOCALLY
-  major: string
-}
-
-export interface AttemptUpdateMajorAction {
-  type: ProfileActionType.ATTEMPT_UPDATE_MAJOR
-  major: string
-}
-
-export interface UpdateMajorSuccessAction {
-  type: ProfileActionType.UPDATE_MAJOR_SUCCESS
-}
-
-export interface UpdateMajorFailureAction {
-  type: ProfileActionType.UPDATE_MAJOR_FAILURE
   errorMessage: string
 }
 
@@ -144,6 +129,11 @@ export interface SwapImagesAction {
   index2: number
 }
 
+export interface UpdateTagsLocallyAction {
+  type: ProfileActionType.UPDATE_TAGS_LOCALLY
+  tags: TagSectionType[] | undefined
+}
+
 export interface AttemptUpdateTagsAction {
   type: ProfileActionType.ATTEMPT_UPDATE_TAGS
   tags: TagSectionType[]
@@ -156,6 +146,48 @@ export interface UpdateTagsSuccessAction {
 export interface UpdateTagsFailureAction {
   type: ProfileActionType.UPDATE_TAGS_FAILURE
   errorMessage: string
+}
+
+export interface AttemptBlockUserAction {
+  type: ProfileActionType.ATTEMPT_BLOCK_USER
+  email: string
+}
+
+export interface BlockUserSuccessAction {
+  type: ProfileActionType.BLOCK_USER_SUCCESS
+  email: string
+}
+
+export interface BlockUserFailureAction {
+  type: ProfileActionType.BLOCK_USER_FAILURE
+  email: string
+  errorMessage: string
+}
+
+export interface AttemptUnblockUserAction {
+  type: ProfileActionType.ATTEMPT_UNBLOCK_USER
+  email: string
+}
+
+export interface UnblockUserSuccessAction {
+  type: ProfileActionType.UNBLOCK_USER_SUCCESS
+  email: string
+}
+
+export interface UnblockUserFailureAction {
+  type: ProfileActionType.UNBLOCK_USER_FAILURE
+  email: string
+  errorMessage: string
+}
+
+export interface UpdateProfileReactsAction {
+  type: ProfileActionType.UPDATE_PROFILE_REACTS
+  profileReacts: ProfileReact[]
+}
+
+export interface ToggleUnderclassmenAction {
+  type: ProfileActionType.TOGGLE_UNDERCLASSMEN
+  showUnderclassmen: boolean
 }
 
 export interface ClearProfileStateAction {
@@ -179,11 +211,6 @@ export type ProfileAction = InitializeProfileAction
 | AttemptUpdatePreferredNameAction
 | UpdatePreferredNameSuccessAction
 | UpdatePreferredNameFailureAction
-| OnChangeMajorTextInputAction
-| UpdateMajorLocallyAction
-| AttemptUpdateMajorAction
-| UpdateMajorSuccessAction
-| UpdateMajorFailureAction
 | OnChangeBioTextInputAction
 | UpdateBioLocallyAction
 | AttemptUpdateBioAction
@@ -193,19 +220,30 @@ export type ProfileAction = InitializeProfileAction
 | UpdateImageSuccessAction
 | UpdateImageFailureAction
 | SwapImagesAction
+| UpdateTagsLocallyAction
 | AttemptUpdateTagsAction
 | UpdateTagsSuccessAction
 | UpdateTagsFailureAction
+| AttemptBlockUserAction
+| BlockUserSuccessAction
+| BlockUserFailureAction
+| AttemptUnblockUserAction
+| UnblockUserSuccessAction
+| UnblockUserFailureAction
+| UpdateProfileReactsAction
+| ToggleUnderclassmenAction
 | ClearProfileStateAction
+| VerifyEmailSuccessAction
 | RehydrateAction
 | OtherAction
 
 /* Action Creators */
 
-export const initializeProfile = (allTags: GetTagsResponse, payload: MeResponse): InitializeProfileAction => {
+export const initializeProfile = (allTags: GetTagsResponse, allReacts: GetReactsResponse, payload: MeResponse): InitializeProfileAction => {
   return {
     type: ProfileActionType.INITIALIZE_PROFILE,
     allTags,
+    allReacts,
     payload,
   }
 }
@@ -221,20 +259,6 @@ export const updatePreferredName = (preferredName: string): AttemptUpdatePreferr
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME,
     preferredName,
-  }
-}
-
-export const onChangeMajorTextInput = (major: string): OnChangeMajorTextInputAction => {
-  return {
-    type: ProfileActionType.ON_CHANGE_MAJOR_TEXTINPUT,
-    major,
-  }
-}
-
-export const updateMajor = (major: string): AttemptUpdateMajorAction => {
-  return {
-    type: ProfileActionType.ATTEMPT_UPDATE_MAJOR,
-    major,
   }
 }
 
@@ -269,10 +293,45 @@ export const swapImages = (index1: number, index2: number): SwapImagesAction => 
   }
 }
 
+export const updateTagsLocally = (tags: TagSectionType[] | undefined): UpdateTagsLocallyAction => {
+  return {
+    type: ProfileActionType.UPDATE_TAGS_LOCALLY,
+    tags,
+  }
+}
+
 export const updateTags = (tags: TagSectionType[]): AttemptUpdateTagsAction => {
   return {
     type: ProfileActionType.ATTEMPT_UPDATE_TAGS,
     tags,
+  }
+}
+
+export const blockUser = (email: string): AttemptBlockUserAction => {
+  return {
+    type: ProfileActionType.ATTEMPT_BLOCK_USER,
+    email,
+  }
+}
+
+export const unblockUser = (email: string): AttemptUnblockUserAction => {
+  return {
+    type: ProfileActionType.ATTEMPT_UNBLOCK_USER,
+    email,
+  }
+}
+
+export const updateProfileReacts = (profileReacts: ProfileReact[]): UpdateProfileReactsAction => {
+  return {
+    type: ProfileActionType.UPDATE_PROFILE_REACTS,
+    profileReacts,
+  }
+}
+
+export const toggleUnderclassmen = (showUnderclassmen: boolean): ToggleUnderclassmenAction => {
+  return {
+    type: ProfileActionType.TOGGLE_UNDERCLASSMEN,
+    showUnderclassmen,
   }
 }
 

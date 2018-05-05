@@ -18,8 +18,8 @@ class ReviewCoCScreen extends PureComponent<Props, State> {
   render() {
     return (
       <View style={{flex: 1}}>
-        <HeaderBar title='Code of Conduct' goBack={this.props.navigation.goBack}/>
-        <CodeOfConductScreen inNavigator />
+        <HeaderBar title='Code of Conduct' onPressLeft={this.props.navigation.goBack}/>
+        <CodeOfConductScreen reviewing />
       </View>
     )
   }

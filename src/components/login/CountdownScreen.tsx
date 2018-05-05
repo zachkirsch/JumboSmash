@@ -1,36 +1,83 @@
 import moment from 'moment'
 import React, { PureComponent } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { Animated, Image, Easing, TouchableOpacity, StyleSheet, View, ActivityIndicator, Dimensions } from 'react-native'
+import { NavigationScreenPropsWithRedux } from 'react-navigation'
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../redux'
+import { getServerTime } from '../../services/time'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
-import { JSText, JSImage } from '../common'
+import { JSText } from '../common'
+import { LoadableValue } from '../../services/redux'
+import { LoginRoute } from '../navigation'
 
-interface State {
-  seconds: number,
-  minutes: number,
-  hours: number,
-  days: number,
+interface StateProps {
+  releaseDate: number
+  postRelease: boolean
+  serverTime: LoadableValue<number | undefined>
 }
 
-class CountdownScreen extends PureComponent<{}, State> {
+interface DispatchProps {
+  getServerTime: () => void
+}
 
-  private launchDay = moment([2018, 4, 12]) // Month is 0-based
-  private timer: number
+interface State {
+  seconds: number
+  minutes: number
+  hours: number
+  days: number
+  totalSecondsRemaining: number
+  rocket: {
+    animating: boolean
+    alreadyAnimated: boolean
+    rotation: Animated.Value
+    translateY: Animated.Value
+  }
+}
 
-  constructor(props: {}) {
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
+
+const HEIGHT = Dimensions.get('window').height
+
+class CountdownScreen extends PureComponent<Props, State> {
+
+  private timer?: number // for counting seconds down
+  private navigateTimer: number
+  private screenIsMounted: boolean
+
+  constructor(props: Props) {
     super(props)
-    this.state = this.getTimeLeft()
+    this.state = this.getInitialState()
   }
 
   public componentDidMount() {
-    this.timer = setInterval(() => {
-      this.setState(this.getTimeLeft())
-    }, 1000)
+    this.screenIsMounted = true
+    this.timer = setInterval(this.updateCountdown, 1000)
   }
 
   public componentWillUnmount() {
-    clearInterval(this.timer)
+    this.screenIsMounted = false
+    this.timer && clearInterval(this.timer)
+    clearTimeout(this.navigateTimer)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.postRelease) {
+      this.timer && clearInterval(this.timer)
+      this.navigateWhenReady()
+    } else if (nextProps.serverTime.value && nextProps.serverTime.value > 0) {
+      if (this.props.serverTime.value && this.props.serverTime.value <= 0) {
+        // they tried to cheat
+        if (this.state.rocket.animating || this.state.rocket.alreadyAnimated) {
+          this.state.rocket.rotation.stopAnimation()
+          this.setState(this.getInitialState())
+        }
+        if (!this.timer) {
+          this.timer = setInterval(this.updateCountdown, 1000)
+        }
+      }
+    }
   }
 
   public render() {
@@ -42,72 +89,236 @@ class CountdownScreen extends PureComponent<{}, State> {
           end={{x: 0, y: 0.5}}
           style={StyleSheet.absoluteFill}
         />
-        <View style={styles.logoContainer}>
-          <JSImage
-            source={Images.jumbo2018}
-            style={styles.logo}
-            resizeMode={'contain'}
-          />
-        </View>
+        {this.renderLogo()}
         <View style={styles.bottomContainer}>
           {this.renderCountdown()}
           <View style={styles.titleTextContainer}>
-            <SimpleLineIcons
-              name='rocket'
-              size={60}
-              color='rgb(162, 191, 227)'
-              style={styles.rocket}
-            />
-            <JSText semibold fontSize={15} style={styles.titleText}>COMING SOON</JSText>
+            {this.renderRocket()}
+            {this.renderBottomText()}
           </View>
         </View>
+        <View style={styles.overlay}>
+          {this.renderOverlayContents()}
+        </View>
       </View>
+    )
+  }
+
+  private renderLogo = () => {
+    return (
+      <View style={styles.logoContainer}>
+        <Image
+          source={Images.jumbo2018}
+          style={styles.logo}
+          resizeMode={'contain'}
+        />
+      </View>
+    )
+  }
+
+  private renderBottomText = () => {
+    let text = ''
+    if (this.state.totalSecondsRemaining <= 0 || this.props.postRelease) {
+      text = 'PREPARING FOR LAUNCH'
+    } else if (!this.props.serverTime.errorMessage) {
+      text = 'COMING SOON'
+    }
+    return (
+      <View>
+        <JSText semibold style={styles.titleText}>{text}</JSText>
+      </View>
+    )
+  }
+
+  private renderRocket = () => {
+
+    /* tslint:disable-next-line:no-any */
+    const style: any[] = [styles.rocket]
+    if (this.state.totalSecondsRemaining <= 0) {
+      style.push({
+        transform: [
+          {
+            rotate: this.state.rocket.rotation.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0deg', '-45deg'],
+            }),
+          },
+          {
+            translateY: this.state.rocket.translateY.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, -HEIGHT * 2 / 3],
+            }),
+          },
+          {
+            translateX: this.state.rocket.translateY.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, HEIGHT * 2 / 3],
+            }),
+          },
+        ],
+      })
+    }
+
+    return (
+      <Animated.View style={style}>
+        <SimpleLineIcons
+          name='rocket'
+          size={60}
+          color='rgb(162, 191, 227)'
+        />
+      </Animated.View>
     )
   }
 
   private renderCountdown = () => {
+    if (this.state.totalSecondsRemaining === 0) {
+      return null
+    }
+    const style = [
+      styles.countdown,
+      {
+        opacity: this.state.rocket.rotation.interpolate({
+          inputRange: [0, 0.05],
+          outputRange: [1, 0],
+        }),
+      },
+    ]
+
     return (
-      <View style={styles.countdown}>
-        {this.renderUnit('Days', this.state.days)}
+      <Animated.View style={style}>
+        {this.renderUnit('DAYS', this.state.days)}
         {this.renderColon()}
-        {this.renderUnit('Hours', this.state.hours)}
+        {this.renderUnit('HOURS', this.state.hours)}
         {this.renderColon()}
-        {this.renderUnit('Minutes', this.state.minutes)}
+        {this.renderUnit('MINUTES', this.state.minutes)}
         {this.renderColon()}
-        {this.renderUnit('Seconds', this.state.seconds)}
-      </View>
+        {this.renderUnit('SECONDS', this.state.seconds)}
+      </Animated.View>
     )
   }
 
   private renderUnit = (label: string, value: number) => {
-
     const valueStr = value >= 10 ? value.toString() : '0' + value.toString()
-
     return (
       <View style={[styles.center, styles.countdownUnit]}>
-        <JSText fontSize={30} style={styles.countdownUnitText}>{valueStr}</JSText>
-        <JSText fontSize={10} style={styles.countdownUnitLabel}>{label}</JSText>
+        <JSText style={[styles.chalkText, styles.countdownUnitText]}>
+          {valueStr}
+        </JSText>
+        <JSText style={styles.countdownUnitLabel}>{label}</JSText>
       </View>
     )
   }
 
   private renderColon = () => (
-    <JSText fontSize={30} style={styles.colon}>:</JSText>
+    <JSText style={[styles.chalkText, styles.colon]}>:</JSText>
   )
 
-  private getTimeLeft = (): State => {
-    const now = moment()
-    const diff = moment.duration(this.launchDay.diff(now))
+  private renderOverlayContents = () => {
+    if (this.state.rocket.alreadyAnimated && this.props.serverTime.loading && this.state.totalSecondsRemaining <= 0) {
+      return <ActivityIndicator />
+    }
+    if (this.props.serverTime.errorMessage) {
+      return (
+        <TouchableOpacity onPress={this.props.getServerTime} >
+          <JSText bold style={styles.retry}>Couldn't connect to the server.</JSText>
+          <JSText bold style={styles.retry}>Tap to retry.</JSText>
+        </TouchableOpacity>
+      )
+    }
+    return null
+  }
+
+  private getTimeLeft = () => {
+    const now = moment((this.props.serverTime.value || 0) + Date.now() - (this.props.serverTime.lastFetched || 0))
+    const diff = moment.duration(moment(this.props.releaseDate).diff(now))
     return {
       seconds: Math.max(0, diff.seconds()),
       minutes: Math.max(0, diff.minutes()),
       hours: Math.max(0, diff.hours()),
-      days: Math.max(0, this.launchDay.diff(now, 'days')),
+      days: Math.max(0, moment(this.props.releaseDate).diff(now, 'days')),
+      totalSecondsRemaining: diff.asSeconds(),
     }
+  }
+
+  private updateCountdown = () => {
+    const timeLeft = this.getTimeLeft()
+    if (timeLeft.totalSecondsRemaining <= 0) {
+      this.timer && clearInterval(this.timer)
+      this.timer = undefined
+      if (!this.props.serverTime.loading) {
+        this.props.getServerTime()
+      }
+      if (!this.state.rocket.animating && !this.state.rocket.alreadyAnimated) {
+        this.setState({
+          rocket: {
+            ...this.state.rocket,
+            animating: true,
+          },
+        }, () => {
+          const rotation = Animated.timing(
+            this.state.rocket.rotation,
+            {
+              toValue: 1,
+              duration: 5000,
+            }
+          )
+          const translation = Animated.timing(
+            this.state.rocket.translateY,
+            {
+              toValue: 1,
+              duration: 1000,
+              easing: Easing.exp,
+            }
+          )
+          Animated.sequence([rotation, translation]).start(() => {
+            this.setState({
+              rocket: {
+                ...this.state.rocket,
+                alreadyAnimated: true,
+                animating: false,
+              },
+            })
+          })
+        })
+      }
+    }
+    this.screenIsMounted && this.setState(timeLeft)
+  }
+
+  private navigateWhenReady = () => {
+    if (this.state.rocket.animating) {
+      this.navigateTimer = setTimeout(this.navigateWhenReady, 1000)
+    } else {
+      this.props.navigation.navigate(LoginRoute.LoginScreen)
+    }
+  }
+
+  private getInitialState = (): State => ({
+    ...this.getTimeLeft(),
+    rocket: {
+      animating: false,
+      alreadyAnimated: false,
+      rotation: new Animated.Value(0),
+      translateY: new Animated.Value(0),
+    },
+  })
+}
+
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    postRelease: state.time.postRelease,
+    releaseDate: state.time.releaseDate,
+    serverTime: state.time.serverTime,
   }
 }
 
-export default CountdownScreen
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    getServerTime: () => dispatch(getServerTime()),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CountdownScreen)
 
 const styles = StyleSheet.create({
   container: {
@@ -125,9 +336,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: '5%',
   },
-  colon: {
+  chalkText: {
     fontFamily: 'Chalkduster',
+    fontSize: 28,
     color: '#738CB0',
+  },
+  colon: {
     flex: 0,
     flexGrow: 0,
   },
@@ -136,12 +350,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   countdownUnitText: {
-    fontFamily: 'Chalkduster',
-    color: '#738CB0',
     letterSpacing: 5,
   },
   countdownUnitLabel: {
-    letterSpacing: 3.1,
+    fontSize: 9,
+    letterSpacing: 2.5,
   },
   logoContainer: {
     marginTop: 30,
@@ -162,8 +375,28 @@ const styles = StyleSheet.create({
   titleText: {
     color: '#738CB0',
     letterSpacing: 3.2,
+    fontSize: 15,
+  },
+  serverTimeText: {
+    color: '#738CB0',
+    letterSpacing: 1,
+    fontSize: 12,
+    marginBottom: 15,
+    marginTop: 8,
+    textAlign: 'center',
   },
   rocket: {
     marginBottom: 15,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  retry: {
+    textAlign: 'center',
+    color: '#A82A2A',
+    fontSize: 16,
   },
 })

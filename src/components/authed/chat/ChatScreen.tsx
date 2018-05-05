@@ -1,23 +1,25 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { GiftedChat, InputToolbarProps, MessageProps, IChatMessage } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
+import moment from 'moment'
 import { RootState } from '../../../redux'
 import {
   Conversation,
   sendMessages,
   setConversationAsRead,
+  ChatMessage,
 } from '../../../services/matches'
-import {JSText } from '../../common'
-import { HeaderBar } from '../../common'
+import { JSImage, JSText, HeaderBar } from '../../common'
 import { User } from '../../../services/swipe'
 import Message from './Message'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
 import { generateActionSheetOptions } from '../../../utils'
 import InputToolbar from './InputToolbar'
+import { unmatch } from '../../../services/matches'
 
 interface OwnProps {
   conversationId: string,
@@ -29,11 +31,13 @@ interface StateProps {
     name: string
   },
   chats: Map<string, Conversation>,
+  allUsers: Map<number, User>,
 }
 
 interface DispatchProps {
-  sendMessages: (conversationId: string, messages: IChatMessage[]) => void
+  sendMessages: (conversationId: string, messages: ChatMessage[]) => void
   setConversationAsRead: () => void
+  unmatch: (matchId: number, conversationId: string) => void
 }
 
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
@@ -42,12 +46,18 @@ type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProp
 class ChatScreen extends PureComponent<Props, {}> {
 
   componentDidMount() {
-    this.props.setConversationAsRead()
+    this.props.navigation.addListener(
+      'didFocus',
+      () => {
+        this.props.setConversationAsRead()
+      }
+    )
   }
 
-  componentWillReceiveProps(_: Props, newProps: Props) {
+  componentWillReceiveProps(newProps: Props) {
     if (newProps.chats) {
-      if (this.getConversation(newProps).messagesUnread) {
+      const conversation = this.getConversation(newProps)
+      if (conversation && conversation.messagesUnread) {
         this.props.setConversationAsRead()
       }
     }
@@ -55,60 +65,74 @@ class ChatScreen extends PureComponent<Props, {}> {
 
   public render() {
     const conversation = this.getConversation()
+    if (!conversation) {
+      return null
+    }
     const messages = conversation.messages.toArray()
-    const user = conversation.otherUsers.first()
+
+    const user = this.props.allUsers.get(conversation.otherUsers[0])
 
     return (
       <View style={styles.container}>
         <HeaderBar
           renderTitle={this.renderHeaderBarTitle(user)}
-          goBack={this.props.navigation.goBack}
-          renderRightIcon={this.renderRightIcon}
+          onPressLeft={this.goBack}
+          renderRight={this.renderRightIcon}
+          onPressRight={this.onPressEllipsis}
+          containerStyle={styles.headerBar}
         />
         <View style={styles.chat}>
           <GiftedChat
             messages={messages}
             renderMessage={this.renderMessage}
+            renderInputToolbar={this.renderInputToolbar}
             onSend={this.onSend}
             user={this.props.me}
-            renderInputToolbar={this.renderInputToolbar}
           />
         </View>
       </View>
     )
   }
 
-  private renderMessage = (props: MessageProps) => <Message {...props} />
-
-  private renderInputToolbar = (props: InputToolbarProps) => {
+  private renderMessage = (props: MessageProps) => {
+    if (!props.currentMessage || props.currentMessage.system) {
+      return <Message {...props} />
+    }
+    const fromUserId = props.currentMessage.user._id
     return (
-      <View style={styles.inputToolbarContainer}>
-        <InputToolbar {...props} />
+      <Message
+        {...props}
+        fromUser={this.props.allUsers.get(fromUserId)}
+      />
+    )
+  }
+
+  private renderInputToolbar = (props: InputToolbarProps) => <InputToolbar {...props} />
+
+  private renderHeaderBarTitle = (user: User) => () => {
+    return (
+      <View style={styles.bannerProfile}>
+        <TouchableOpacity onPress={this.previewProfile(user)} style={{alignItems: 'center'}}>
+          <JSImage cache source={{uri: user.images[0]}} style={styles.avatarPhoto} />
+          <JSText style={styles.headerName}>{user.preferredName}</JSText>
+        </TouchableOpacity>
       </View>
     )
   }
 
-  private renderHeaderBarTitle = (user: User) => () => (
-    <View style={styles.bannerProfile}>
-      <TouchableOpacity onPress={this.previewProfile(user)} style={{alignItems: 'center'}}>
-        <Image source={{uri: user.images[0]}} style={styles.avatarPhoto} />
-        <JSText fontSize={11} style={styles.headerName}>{user.preferredName}</JSText>
-      </TouchableOpacity>
-    </View>
+  private renderRightIcon = () => (
+    <FontAwesome
+      name='ellipsis-v'
+      size={30}
+      color='rgb(172,203,238)'
+      style={styles.rightIcon}
+    />
   )
 
-  private renderRightIcon = () => (
-    <TouchableOpacity onPress={this.onPressEllipsis}>
-      <FontAwesome
-        name='ellipsis-v'
-        size={30}
-        color='rgb(172,203,238)'
-      />
-    </TouchableOpacity>
-  )
+  private goBack = () => this.props.navigation.goBack()
 
   private previewProfile = (user: User) => () => {
-    this.props.navigation.navigate('ViewProfileScreen', { preview: user })
+    this.props.navigation.navigate('ViewProfileScreen', { type: 'other', userId: user.id })
   }
 
   private onPressEllipsis = () => {
@@ -119,18 +143,29 @@ class ChatScreen extends PureComponent<Props, {}> {
       {
         title: 'Report User',
       },
+      {
+        title: 'Unmatch',
+        onPress: () => {
+          this.goBack()
+          const conversation = this.getConversation()
+          if (conversation) {
+            this.props.unmatch(conversation.matchId, this.getConversationId())
+          }
+        },
+      },
     ]
     const {options, callback} = generateActionSheetOptions(buttons)
     this.props.showActionSheetWithOptions!(options, callback)
   }
 
   private onSend = (messages: IChatMessage[] = []) => {
-    this.props.sendMessages(this.getConversationId(), messages)
+    this.props.sendMessages(this.getConversationId(), messages.map(message => ({
+      ...message,
+      createdAt: moment(message.createdAt).valueOf(),
+    })))
   }
 
-  private getConversationId = () => {
-    return this.props.navigation.state.params.conversationId
-  }
+  private getConversationId = () => this.props.navigation.state.params.conversationId
 
   private getConversation = (props?: Props) => {
     return (props || this.props).chats.get(this.getConversationId())
@@ -144,15 +179,17 @@ const mapStateToProps = (state: RootState): StateProps => {
       name: state.profile.preferredName.value,
     },
     chats: state.matches.chats,
+    allUsers: state.swipe.allUsers.value,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>, ownProps: Props): DispatchProps => {
   return {
-    sendMessages: (conversationId: string, messages: IChatMessage[]) => {
+    sendMessages: (conversationId: string, messages: ChatMessage[]) => {
       dispatch(sendMessages(conversationId, messages))
     },
     setConversationAsRead: () => dispatch(setConversationAsRead(ownProps.navigation.state.params.conversationId)),
+    unmatch: (matchId: number, conversationId: string) => dispatch(unmatch(matchId, conversationId)),
   }
 }
 
@@ -166,7 +203,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 5,
   },
   bannerProfile: {
     marginVertical: 5,
@@ -181,10 +219,17 @@ const styles = StyleSheet.create({
   headerName: {
     color: 'gray',
     textAlign: 'center',
+    fontSize: 12,
   },
   inputToolbarContainer: {
     flex: 1,
     marginLeft: 12,
     marginBottom: 7,
+  },
+  headerBar: {
+    height: 73,
+  },
+  rightIcon: {
+    paddingRight: 10,
   },
 })

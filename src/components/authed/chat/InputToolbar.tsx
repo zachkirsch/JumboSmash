@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { StyleSheet, TouchableOpacity, Platform } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import {
   Composer,
   ComposerProps,
@@ -8,7 +8,8 @@ import {
   SendProps,
 } from 'react-native-gifted-chat'
 import LinearGradient from 'react-native-linear-gradient'
-import { JSText } from '../../common'
+import { JSText, JSFontStyle } from '../../common'
+import { getMainColor } from '../../../utils'
 
 type OnSend = ({ text }: { text: string }, shouldResetInputToolbar: boolean) => void
 
@@ -30,8 +31,7 @@ export default class extends PureComponent<InputToolbarProps, {}> {
     const gradientStyle = [
       styles.gradient,
       {
-        // add the amount of padding in styles.gradient
-        height: props.composerHeight! + 4,
+        height: props.composerHeight! + 10,
       },
     ]
 
@@ -43,9 +43,9 @@ export default class extends PureComponent<InputToolbarProps, {}> {
         locations={[0, 1]}
         style={gradientStyle}
       >
-        <Composer // TODO: use our font for this text input
+        <Composer
           {...props}
-          textInputStyle={styles.composer}
+          textInputStyle={[styles.composer, JSFontStyle]}
           placeholder='Text to impress...'
         />
       </LinearGradient>
@@ -76,30 +76,32 @@ export default class extends PureComponent<InputToolbarProps, {}> {
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
-    borderRadius: 30,
-    paddingHorizontal: 15,
-    paddingVertical: 2,
   },
   send: {
+    paddingHorizontal: 12,
+    bottom: 0,
+    right: 0,
+    height: '90%',
+    position: 'absolute',
     justifyContent: 'center',
-    marginHorizontal: 10,
-    marginBottom: Platform.select({
-      ios: 5,
-      android: 12,
-    }),
+    alignItems: 'center',
   },
   sendText: {
-    color: 'blue',
+    color: getMainColor(),
     fontWeight: '600',
-    fontSize: 17,
+    fontSize: 16,
     backgroundColor: 'transparent',
   },
   disabled: {
     color: 'gray',
   },
   composer: {
-    marginTop: 0,
+    marginLeft: 13,
+    marginRight: 50,
     marginBottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 7,
   },
   inputToolbarContainer: {
     borderTopWidth: 0,

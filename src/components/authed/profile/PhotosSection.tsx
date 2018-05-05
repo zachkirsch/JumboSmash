@@ -1,15 +1,15 @@
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import React, { PureComponent } from 'react'
-import { Alert, Dimensions, Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native'
+import { Alert, Dimensions, Platform, StyleSheet, TouchableWithoutFeedback, View, Image } from 'react-native'
 import ImagePicker, { Image as ImagePickerImage } from 'react-native-image-crop-picker'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Feather from 'react-native-vector-icons/Feather'
-import Foundation from 'react-native-vector-icons/Foundation'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { ImageUri } from '../../../services/profile'
 import { LoadableValue } from '../../../services/redux'
-import { CircleButton, JSImage } from '../../common'
-import { ActionSheetOption, generateActionSheetOptions } from '../../../utils'
+import { CircleButton, JSImage, JSImageProps } from '../../common'
+import { ActionSheetOption, generateActionSheetOptions, getMainColor, getLightColor } from '../../../utils'
+import { Images } from '../../../assets'
 
 interface Props {
   images: Array<LoadableValue<ImageUri>>
@@ -65,16 +65,15 @@ class PhotosSection extends PureComponent<Props, State> {
 
   save = () => {
     this.collapseImages(() => {
-      for (let i = 0; i < this.state.images.length; i++) {
-        const image = this.state.images[i] || EMPTY_LOCAL_IMAGE
-        this.props.updateImage(i, image.uri, image.mime)
-      }
+      this.state.images.forEach((image, i) => this.props.updateImage(i, image.uri, image.mime))
     })
   }
 
   revert = () => {
     this.setState(this.getInitialState())
   }
+
+  images = () => this.state.images.map(image => image.uri)
 
   getImageCount = () => this.state.images.filter(image => image.uri).length
 
@@ -103,21 +102,21 @@ class PhotosSection extends PureComponent<Props, State> {
     const image = allImages[index] || EMPTY_IMAGE_WITH_STATUS
 
     let touchableDisabled = false
-    let overlayIcon
+    let plusIcon
+    let swapImage
 
     if (this.state.swapping) {
-      if (index === this.state.swappingIndex) {
-        touchableDisabled = true
-      } else {
-        touchableDisabled = false
-        overlayIcon = (
-          <Foundation
-            style={styles.overlayIcon}
-            name={'target-two'}
-            size={40}
-            color='rgba(172,203,238,0.6)'
-          />
-        )
+      if (index !== this.state.swappingIndex) {
+        if (image.uri) {
+          swapImage = (
+            <Image
+              source={Images.swap}
+              style={styles.swapImage}
+            />
+          )
+        } else {
+          touchableDisabled = true
+        }
       }
     } else if (!image.uri) {
       let indexOfFirstEmpty = allImages.findIndex((imageWithStatus) => !imageWithStatus.uri)
@@ -125,12 +124,12 @@ class PhotosSection extends PureComponent<Props, State> {
         indexOfFirstEmpty = allImages.length
       }
       if (indexOfFirstEmpty === index) {
-        overlayIcon = (
+        plusIcon = (
           <Feather
-            style={styles.overlayIcon}
+            style={styles.plusIcon}
             name={'plus'}
             size={50}
-            color='rgba(172,203,238,0.6)'
+            color={getLightColor()}
           />
         )
       } else {
@@ -148,14 +147,20 @@ class PhotosSection extends PureComponent<Props, State> {
       if (this.state.swapping && this.state.swappingIndex === index) {
         imageStyles.push(styles.semiTransparent)
       }
-      imageToRender = (
-        <JSImage
-          source={{uri: image.uri}}
-          resizeMode='cover'
-          style={imageStyles}
-          activityIndicatorSize={index === 0 ? 'large' : 'small'}
-        />
-      )
+      const imageProps: JSImageProps = {
+        cache: true,
+        source: {
+          uri: image.uri,
+        },
+        resizeMode: 'cover',
+        style: imageStyles,
+        activityIndicatorSize: index === 0 ? 'large' : 'small',
+      }
+      if (image.uri.startsWith('http')) {
+        imageToRender = <JSImage {...imageProps} cache />
+      } else {
+        imageToRender = <Image {...imageProps} />
+      }
     } else {
       const imageStyles = [
         styles.photo,
@@ -170,6 +175,7 @@ class PhotosSection extends PureComponent<Props, State> {
         if (image.uploading) {
           cornerButton = (
             <CircleButton
+              type='icon'
               IconClass={Ionicons}
               iconName={'md-sync'}
               iconSize={13}
@@ -182,6 +188,7 @@ class PhotosSection extends PureComponent<Props, State> {
         } else if (this.canDeleteImage(index, allImages)) {
           cornerButton = (
             <CircleButton
+              type='icon'
               IconClass={Entypo}
               iconName={'cross'}
               iconSize={15}
@@ -198,9 +205,10 @@ class PhotosSection extends PureComponent<Props, State> {
         {imageToRender}
         <TouchableWithoutFeedback disabled={touchableDisabled} onPress={this.onPressImage(index)}>
           <View style={styles.photoOverlay}>
-            {overlayIcon}
+            {plusIcon}
           </View>
         </TouchableWithoutFeedback>
+        {swapImage}
         {cornerButton}
       </View>
     )
@@ -271,26 +279,29 @@ class PhotosSection extends PureComponent<Props, State> {
   }
 
   private canSwapImage = (index: number) => {
-    return this.state.images[index] && this.state.images[index].uri
+    return this.state.images[index]
+      && this.state.images[index].uri
+      && this.getImages().filter(image => image.uri).length > 1
   }
 
   private onPressImage = (index: number) => () => {
 
     if (this.state.swapping) {
-      // this.props.swapImages(index, this.state.swappingIndex)
-      this.props.saveRequired()
-
-      const newImages = []
-      for (let i = 0; i < Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1); i++) {
-        let toPush = this.state.images[i]
-        if (i === index) {
-          toPush = this.state.images[this.state.swappingIndex]
-        } else if (i === this.state.swappingIndex) {
-          toPush = this.state.images[index]
+      let newImages = this.state.images
+      if (this.state.swappingIndex !== index) {
+        this.props.saveRequired()
+        newImages = []
+        const imageListSize = Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1)
+        for (let i = 0; i < imageListSize; i++) {
+          let toPush = this.state.images[i]
+          if (i === index) {
+            toPush = this.state.images[this.state.swappingIndex]
+          } else if (i === this.state.swappingIndex) {
+            toPush = this.state.images[index]
+          }
+          newImages.push(toPush || EMPTY_LOCAL_IMAGE)
         }
-        newImages.push(toPush || EMPTY_LOCAL_IMAGE)
       }
-
       this.setState({
         swapping: false,
         images: newImages,
@@ -303,8 +314,8 @@ class PhotosSection extends PureComponent<Props, State> {
     buttons.push({
       title: this.state.images[index] && this.state.images[index].uri ? 'Change Photo' : 'Choose Photo',
       onPress: () => ImagePicker.openPicker({
-          width: 2000,
-          height: 2000,
+          width: 500,
+          height: 500,
           cropping: true,
           mediaType: 'photo',
           cropperToolbarTitle: 'Move and Scale to Crop',
@@ -391,7 +402,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     ...Platform.select({
       ios: {
-        shadowColor: 'rgb(172, 203, 238)',
+        shadowColor: getLightColor(),
         shadowOpacity: 0.75,
         shadowRadius: .02 * WIDTH,
       },
@@ -429,7 +440,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     zIndex: 5,
   },
-  overlayIcon: {
+  plusIcon: {
     backgroundColor: 'transparent',
   },
   cornerButton: {
@@ -441,10 +452,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 0,
     marginBottom: 3,
-    borderColor: 'gray',
-    borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: '#0F52BA',
+    backgroundColor: getMainColor(),
     zIndex: 600,
     elevation: 600,
+  },
+  swapImage: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    height: 50,
+    width: 50,
   },
 })
