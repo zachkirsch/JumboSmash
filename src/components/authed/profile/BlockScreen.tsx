@@ -18,7 +18,7 @@ import { HeaderBar, JSText, JSButton, JSTextInput } from '../../common'
 import { goToNextRoute } from '../../navigation'
 import { blockUser, unblockUser } from '../../../services/profile'
 import { RootState } from './../../../redux'
-import { EMAIL_REGEX } from '../../../utils'
+import { EMAIL_REGEX, getMainColor } from '../../../utils'
 
 interface StateProps {
   blockedUsers: string[]
@@ -153,7 +153,7 @@ class BlockScreen extends PureComponent<Props, State> {
         icon = <Entypo name='cross' size={25} color={'red'} style={styles.crossIcon} />
         break
       case 'just_unblocked':
-        icon = <FontAwesome name='undo' size={15} color={'blue'} />
+        icon = <FontAwesome name='undo' size={15} color={getMainColor()} />
         textStyles.push(styles.strikethrough)
         break
     }
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginTop: Platform.select({
-      ios: 28,
+      ios: 35,
       android: 10,
     }),
   },

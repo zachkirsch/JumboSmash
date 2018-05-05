@@ -227,7 +227,8 @@ const styles = StyleSheet.create({
   },
   topContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingTop: 15,
+    paddingBottom: 10,
     backgroundColor: 'rgb(250, 250, 250)',
     ...Platform.select({
       ios: {

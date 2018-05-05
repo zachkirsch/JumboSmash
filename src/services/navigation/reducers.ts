@@ -1,6 +1,7 @@
 import { NavigationAction, NavigationActionType } from './actions'
 import { NavigationState } from './types'
-import { MatchesActionType } from '../matches'
+import { NotificationsActionType } from '../notifications/actions'
+import { ReduxActionType } from '../redux'
 
 const initialState: NavigationState = {}
 
@@ -26,17 +27,23 @@ export function navigationReducer(state = initialState, action: NavigationAction
         shouldShowChatIndicator: action.tab !== 'Matches' && state.shouldShowChatIndicator,
       }
 
-    case MatchesActionType.RECEIVE_MESSAGES:
+    case NotificationsActionType.ADD_IN_APP_NOTIFICATION:
       if (state.selectedTab === 'Matches') {
+        return state
+      }
+      if (action.notification.type !== 'chat') {
         return state
       }
       return {
         ...state,
-        shouldShowChatIndicator: true,
+        shouldShowChatIndicator: false, // TODO: make this true when necessary
       }
 
     case NavigationActionType.CLEAR_NAVIGATION_STATE:
-      return initialState
+    case ReduxActionType.REHYDRATE:
+      return {
+        ...initialState,
+      }
 
     default:
       return state

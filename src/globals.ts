@@ -25,10 +25,27 @@ export const LIGHT_COLOR = {
 
 const LOCAL_SERVER = false
 const STAGING = false
-const LOCAL_SERVER_URL = 'http://130.64.142.18:5000'
+const LOCAL_SERVER_URL = 'http://10.0.0.10:5000'
 const STAGING_SERVER_URL = 'https://jumbosmash2018-staging.herokuapp.com/'
 const PROD_SERVER_URL = 'https://jumbosmash2018-prod.herokuapp.com/'
 
 export const SERVER_URL = LOCAL_SERVER
   ? LOCAL_SERVER_URL
   : STAGING ? STAGING_SERVER_URL : PROD_SERVER_URL
+
+export const CREATORS = {
+  developers: [
+    'Chris Gregory',
+    'Max Bernstein',
+    'Nika Roxanne',
+    'Winnona Desombre',
+    'Yuki Zaninovich',
+    'Zach Kirsch',
+  ],
+  design: [
+    'Shanshan Duan',
+  ],
+  logo_icons: [
+    'Emily Lin',
+  ],
+}

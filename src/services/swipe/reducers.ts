@@ -28,11 +28,11 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
 
       // if this is a right swipe, remove any duplicates so the user won't see this person again
       let finalUsers = newSwipableUsers
-      if (action.direction === 'right') {
+      if (action.direction === 'right' || action.wasBlock) {
         finalUsers = List()
         for (let i = 0; i < newSwipableUsers.size; i++) {
           const userId = newSwipableUsers.get(i)
-          if (userId !== action.onUser.id) {
+          if (userId !== action.onUser) {
             finalUsers = finalUsers.push(userId)
           } else if (i < nextIndexOfUserOnTop) {
             nextIndexOfUserOnTop -= 1
@@ -51,82 +51,105 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
         indexOfUserOnTop: nextIndexOfUserOnTop,
       }
 
-      case SwipeActionType.ATTEMPT_REACT:
+    case SwipeActionType.REMOVE_USER:
+      nextIndexOfUserOnTop = state.indexOfUserOnTop
 
-        let existingUser = state.allUsers.value.get(action.onUser.id)
-        if (!existingUser) {
-          return state
+      // if this is a right swipe, remove any duplicates so the user won't see this person again
+      finalUsers = List()
+      for (let i = 0; i < newSwipableUsers.size; i++) {
+        const userId = newSwipableUsers.get(i)
+        if (userId !== action.user) {
+          finalUsers = finalUsers.push(userId)
+        } else if (i < nextIndexOfUserOnTop) {
+          nextIndexOfUserOnTop -= 1
         }
+      }
 
-        let newUser: User = {
-          ...existingUser,
-          profileReacts: {
-            prevValue: existingUser.profileReacts.value,
-            value: existingUser.profileReacts.value.map(react => ({
-              ...react,
-              reacted: !!action.reacts.find(r => r.id === react.id),
-              count: react.count + (
-                action.reacts.find(r => r.id === react.id) && !react.reacted
-                ? 1 : !action.reacts.find(r => r.id === react.id) && react.reacted ? -1 : 0
-              ),
-            })),
-            loading: true,
-          },
-        }
+      return {
+        ...state,
+        swipableUsers: {
+          ...state.swipableUsers,
+          value: finalUsers,
+        },
+        indexOfUserOnTop: nextIndexOfUserOnTop,
+      }
 
-        return {
-          ...state,
-          allUsers: {
-            value: state.allUsers.value.set(existingUser.id, newUser),
-            loading: state.allUsers.loading,
-          },
-        }
+    case SwipeActionType.ATTEMPT_REACT:
 
-      case SwipeActionType.REACT_SUCCESS:
+      let existingUser = state.allUsers.value.get(action.onUser)
+      if (!existingUser) {
+        return state
+      }
 
-        existingUser = state.allUsers.value.get(action.onUser.id)
-        if (!existingUser) {
-          return state
-        }
+      let newUser: User = {
+        ...existingUser,
+        profileReacts: {
+          prevValue: existingUser.profileReacts.value,
+          value: existingUser.profileReacts.value.map(react => ({
+            ...react,
+            reacted: !!action.reacts.find(r => r.id === react.id),
+            count: react.count + (
+              action.reacts.find(r => r.id === react.id) && !react.reacted
+              ? 1 : !action.reacts.find(r => r.id === react.id) && react.reacted ? -1 : 0
+            ),
+          })),
+          loading: true,
+        },
+      }
 
-        newUser = {
-          ...existingUser,
-          profileReacts: {
-            ...existingUser.profileReacts,
-            loading: false,
-            lastFetched: Date.now(),
-          },
-        }
+      return {
+        ...state,
+        allUsers: {
+          value: state.allUsers.value.set(existingUser.id, newUser),
+          loading: state.allUsers.loading,
+        },
+      }
 
-        return {
-          ...state,
-          allUsers: {
-            value: state.allUsers.value.set(existingUser.id, newUser),
-            loading: state.allUsers.loading,
-          },
-        }
+    case SwipeActionType.REACT_SUCCESS:
 
-      case SwipeActionType.REACT_FAILURE:
-        existingUser = state.allUsers.value.get(action.onUser.id)
-        if (!existingUser) {
-          return state
-        }
+      existingUser = state.allUsers.value.get(action.onUser)
+      if (!existingUser) {
+        return state
+      }
 
-        newUser = {
-          ...existingUser,
-          profileReacts: {
-            value: existingUser.profileReacts.prevValue || [],
-            loading: false,
-          },
-        }
+      newUser = {
+        ...existingUser,
+        profileReacts: {
+          ...existingUser.profileReacts,
+          loading: false,
+          lastFetched: Date.now(),
+        },
+      }
 
-        return {
-          ...state,
-          allUsers: {
-            value: state.allUsers.value.set(existingUser.id, newUser),
-            loading: state.allUsers.loading,
-          },
-        }
+      return {
+        ...state,
+        allUsers: {
+          value: state.allUsers.value.set(existingUser.id, newUser),
+          loading: state.allUsers.loading,
+        },
+      }
+
+    case SwipeActionType.REACT_FAILURE:
+      existingUser = state.allUsers.value.get(action.onUser)
+      if (!existingUser) {
+        return state
+      }
+
+      newUser = {
+        ...existingUser,
+        profileReacts: {
+          value: existingUser.profileReacts.prevValue || [],
+          loading: false,
+        },
+      }
+
+      return {
+        ...state,
+        allUsers: {
+          value: state.allUsers.value.set(existingUser.id, newUser),
+          loading: state.allUsers.loading,
+        },
+      }
 
     case SwipeActionType.ATTEMPT_FETCH_ALL_USERS:
 

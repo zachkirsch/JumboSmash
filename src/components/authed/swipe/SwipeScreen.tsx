@@ -41,10 +41,10 @@ type StateProps = SwipeState & {
 }
 
 interface DispatchProps {
-  swipe: (direction: Direction, onUser: User) => void
-  react: (reacts: ProfileReact[], onUser: User) => void
+  swipe: (direction: Direction, onUser: number, wasBlock: boolean) => void
+  react: (reacts: ProfileReact[], onUser: number) => void
   fetchSwipableUsers: () => void
-  blockUser: (email: string) => void
+  blockUser: (userId: number, email: string) => void
 }
 
 type Props = ActionSheetProps<OwnProps & StateProps & DispatchProps>
@@ -327,12 +327,12 @@ class SwipeScreen extends PureComponent<Props, State> {
     ).start()
   }
 
-  private onCompleteSwipe = (direction: Direction, onUser: User) => {
+  private onCompleteSwipe = (direction: Direction, onUser: number, wasBlock: boolean) => {
     let newProfiles = []
     for (let positionInStack = 0; positionInStack < NUM_RENDERED_CARDS; positionInStack++) {
       const cardIndex = (this.getCardIndexOfTopCard() + positionInStack) % NUM_RENDERED_CARDS
       let nextCard = this.getNextCard(cardIndex)
-      if (direction === 'right' && nextCard && nextCard === onUser.id) {
+      if (direction === 'right' && nextCard && nextCard === onUser) {
         continue
       }
       newProfiles[cardIndex] = nextCard
@@ -343,7 +343,7 @@ class SwipeScreen extends PureComponent<Props, State> {
       profiles: newProfiles,
     })
 
-    this.props.swipe(direction, onUser)
+    this.props.swipe(direction, onUser, wasBlock)
 
     if (!this.props.swipableUsers.loading) {
       const numUserUntilEnd = this.props.swipableUsers.value.size - this.props.indexOfUserOnTop
@@ -418,9 +418,9 @@ const mapStateToProps = (state: RootState): StateProps => {
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     fetchSwipableUsers: () => dispatch(fetchSwipableUsers()),
-    swipe: (direction: Direction, onUser: User) => dispatch(swipe(direction, onUser)),
-    react: (reacts: ProfileReact[], onUser: User) => dispatch(react(reacts, onUser)),
-    blockUser: (email: string) => dispatch(blockUser(email)),
+    swipe: (direction: Direction, onUser: number, wasBlock: boolean) => dispatch(swipe(direction, onUser, wasBlock)),
+    react: (reacts: ProfileReact[], onUser: number) => dispatch(react(reacts, onUser)),
+    blockUser: (userId: number, email: string) => dispatch(blockUser(email, userId)),
   }
 }
 

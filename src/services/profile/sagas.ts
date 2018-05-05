@@ -7,11 +7,31 @@ import firebase from 'react-native-firebase'
 import { flatten } from 'lodash'
 import { LoadableValue, RehydrateAction, ReduxActionType } from '../redux'
 import * as ProfileActions from './actions'
-import { rehydrateMatchesFromServer } from '../matches'
+import { rehydrateMatchesFromServer, unmatch, Conversation } from '../matches'
+import { User } from '../swipe'
 import { ImageUri } from './types'
 
 const getImages = (state: RootState) => state.profile.images
 const getSignedInStatus = (state: RootState) => state.auth.loggedIn.value
+const getChats = (state: RootState) => state.matches.chats.valueSeq().toArray()
+const getAllUsers = (state: RootState) => state.swipe.allUsers.value.toObject()
+
+function* isMatched(email: string) {
+  const chats: Conversation[] = yield select(getChats)
+  const allUsers: { [userId: string]: User } = yield select(getAllUsers)
+  return chats.find(convo => {
+    if (!convo) {
+      return false
+    }
+    return !!convo.otherUsers.find(userId => {
+      if (!userId) {
+        return false
+      }
+      const user = allUsers[userId]
+      return user && user.email === email
+    })
+  })
+}
 
 /* Preferred Name */
 
@@ -179,6 +199,13 @@ function* attemptUpdateTags(payload: ProfileActions.AttemptUpdateTagsAction) {
 function* attemptBlockUser(payload: ProfileActions.AttemptBlockUserAction) {
   try {
     api.api.block(payload.email)
+
+    // if they're current matched, then unmatch
+    const conversation: Conversation | undefined = yield call(isMatched, payload.email)
+    if (conversation) {
+      yield put(unmatch(conversation.matchId, conversation.conversationId))
+    }
+
     const successAction: ProfileActions.BlockUserSuccessAction = {
       type: ProfileActions.ProfileActionType.BLOCK_USER_SUCCESS,
       email: payload.email,
