@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>5</string>
 	<key>Fabric</key>
 	<dict>
 		<key>APIKey</key>
@@ -50,30 +50,30 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<true/>
+		<false/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<true/>
+		<false/>
 		<key>NSAllowsLocalNetworking</key>
-		<true/>
+		<false/>
 		<key>NSExceptionAllowsInsecureHTTPLoads</key>
-		<true/>
+		<false/>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>We will never ask for this permission</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>We will never ask for this permission</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>We will never ask for this permission</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We will never ask for this permission</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access your location to ensure you are at Tufts</string>
+	<key>NSMotionUsageDescription</key>
+	<string>We will never ask for this permission</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to your photo gallery so you can select photos for your profile</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-  <string>We will never ask for this permission</string>
-  <key>NSCalendarsUsageDescription</key>
-  <string>We will never ask for this permission</string>
-  <key>NSCameraUsageDescription</key>
-  <string>We will never ask for this permission</string>
-  <key>NSAppleMusicUsageDescription</key>
-  <string>We will never ask for this permission</string>
-  <key>NSMotionUsageDescription</key>
-  <string>We will never ask for this permission</string>
-  <key>NSSpeechRecognitionUsageDescription</key>
-  <string>We will never ask for this permission</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We will never ask for this permission</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>
