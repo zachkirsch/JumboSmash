@@ -42,7 +42,7 @@ export interface ImageUri {
   isLocal: boolean
 }
 
-export type ProfileReact = ReactableProfileReact & (EmojiProfileReact | ImageProfileReact)
+export type ProfileReact = EmojiProfileReact | ImageProfileReact
 
 export interface BlockedUser {
   email: string

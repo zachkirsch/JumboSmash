@@ -57,7 +57,7 @@ class JSButton extends PureComponent<Props, State> {
         backgroundColor: this.props.colors[0],
       })
       return (
-        <Animated.View style={containerStyle}>
+        <Animated.View style={[containerStyle, styles.button, this.props.style]}>
           {this.renderTouchable()}
         </Animated.View>
       )
@@ -70,6 +70,7 @@ class JSButton extends PureComponent<Props, State> {
           start={{x: 0, y: 1}}
           end={{x: 1, y: 1}}
           locations={[0, 1]}
+          style={[styles.button, this.props.style]}
         >
           {this.renderTouchable()}
         </LinearGradient>
@@ -93,11 +94,9 @@ class JSButton extends PureComponent<Props, State> {
         disabled={this.props.disabled}
         {...otherProps}
       >
-        <Animated.View style={[styles.button, style]}>
-          <JSText bold={bold} style={[styles.text, textStyle]}>
-            {label}
-          </JSText>
-        </Animated.View>
+        <JSText bold={bold} style={[styles.text, textStyle]}>
+          {label}
+        </JSText>
       </TouchableWithoutFeedback>
     )
   }

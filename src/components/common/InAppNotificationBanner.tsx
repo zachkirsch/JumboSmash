@@ -20,7 +20,7 @@ interface State {
 const HEIGHT = 80
 const TOP_BUFFER = isIphoneX() ? 20 : 0
 const INITIAL_TRANSLATE_Y = -HEIGHT - TOP_BUFFER - 40
-const TIME_FOR_NOTIFICATION = 3000 // in milliseconds
+const TIME_FOR_NOTIFICATION = 4000 // in milliseconds
 
 class InAppNotificationBanner extends PureComponent<Props, State> {
 
@@ -43,7 +43,7 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
         )
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy === 0) {
+        if (gestureState.dy < 5) {
           this.props.engageNotification()
         }
         this.startDismissTimer(0, this.props.deleteNotification)
