@@ -38,7 +38,7 @@ export const CREATORS = {
     'Chris Gregory',
     'Max Bernstein',
     'Nika Roxanne',
-    'Winnona Desombre',
+    'Winnona DeSombre',
     'Yuki Zaninovich',
     'Zach Kirsch',
   ],

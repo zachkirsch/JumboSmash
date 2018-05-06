@@ -10,6 +10,7 @@ import {
   Platform,
   findNodeHandle,
 } from 'react-native'
+import { getMainColor, getLightColor } from '../../../utils'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
@@ -36,6 +37,10 @@ import SettingsSection from './SettingsSection'
 import CreditsSection from './CreditsSection'
 import TagsSection from './TagsSection'
 import SaveOrRevert from './SaveOrRevert'
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+interface BucketList {title: string, items: string[], checked: boolean[]}
 
 interface State {
   previewingCard: boolean
@@ -43,6 +48,7 @@ interface State {
   preferredName: string
   bio: string
   photosSectionRequiresSave: boolean
+  SeniorBucketList: BucketList[]
 }
 
 interface OwnProps {}
@@ -94,6 +100,9 @@ class ProfileScreen extends PureComponent<Props, State> {
       preferredName: getInitialValue(props.profile.preferredName),
       bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
+      SeniorBucketList: [{title: "More Wholesome", items: ["Decorate your graduation cap 🎓", "Facebook message Tony Monaco 💬", "Paint the Cannon 🎨", "Go on a bar crawl with your (21+) friends 🥂", "Drink with a professor 🍻", "Smooch a date on the Memorial Steps 💕"], checked: [false, false, false, false, false, false]},
+                         {title: "Less Wholesome", items: ["Relive the Naked / Underwear Quad Run 🍆", "Make eye contact with a freshman year hookup 👀", "Sneak onto the roof of an academic building 🏫", "Smuggle 20 chicken tendies out of Carm using only your wits and your pockets 🍗", "Take a shot at every senior event you attend 🥃","Hook up in an academic building 😜","Pretend to not be hungover in front of your parents 😬"], checked: [false, false, false, false, false, false, false]}]
+
     }
   }
 
@@ -131,6 +140,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           {this.renderPersonalInfo()}
           {this.renderTags()}
           {this.renderReacts()}
+          {this.renderBucketList()}
           {this.renderSecondRelease()}
           <SettingsSection
             block={this.navigateTo('BlockScreen')}
@@ -189,6 +199,39 @@ class ProfileScreen extends PureComponent<Props, State> {
       </View>
     )
   }
+  private renderBucketList = () => {
+    return (
+      <View style={styles.personalInfo}>
+        <TouchableOpacity onPress={this.navigateTo('BucketListScreen', {SeniorBucketList: this.state.SeniorBucketList, newList: (list: BucketList[]) => {this.setState({SeniorBucketList: list}), console.log(list)}})}>
+          <JSText bold style={[styles.title, styles.tagsTitle]}>BUCKET LIST</JSText>
+          <View style={styles.fill}>
+          {this.renderOptions()}
+          {this.renderBucketItems(0)}
+          {this.renderBucketItems(1)}
+          </View>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+  private renderOptions = () => {
+    if (this.state.SeniorBucketList[0].checked.every(this.isFalse) && this.state.SeniorBucketList[1].checked.every(this.isFalse)){
+
+      return (<JSText> Click here to view! </JSText>)
+    } return null
+  }
+  private isFalse = (b: boolean) => { return (b == false) }
+  private renderBucketItems = (i: number) => {
+     return this.state.SeniorBucketList[i].checked.map((section, sectionIndex) => {
+    if (section == true){
+      return (
+          <View key={sectionIndex} style={{flexDirection: 'row'}}>
+            <Ionicons name='md-checkmark' style={{flex: 1, paddingLeft: 10}} size={30} color={getMainColor()} />
+            <JSText style={{flex: 7, paddingTop: 10}}>{this.state.SeniorBucketList[i].items[sectionIndex]}</JSText>
+            </View>
+      )
+    } return null
+
+  })}
 
   private renderReact = (react: ProfileReact | undefined) => {
 
@@ -237,10 +280,13 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText>
+       <TouchableOpacity onPress={this.navigateTo('MyReactScreen', {profileReacts: this.props.profile})}>
+        <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText></TouchableOpacity>
+         <TouchableOpacity onPress={this.navigateTo('MyReactScreen', {profile: this.props.profile})} style={styles.reactColumns}>
         <View style={styles.reactColumns}>
           {reactColumns}
         </View>
+        </TouchableOpacity>
       </View>
     )
   }
@@ -523,6 +569,13 @@ const styles = StyleSheet.create({
   tagsTitle: {
     marginBottom: 10,
   },
+  fill: {
+    flex: 1,
+    padding: 10
+  },
+  reactsTitle: {
+    alignSelf: "flex-start",
+  },
   bigInput: {
     fontSize: 20,
   },
@@ -559,10 +612,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  reactsTitle: {
-    marginTop: 20,
-    marginBottom: 10,
   },
   reactNum: {
     marginLeft: 4,

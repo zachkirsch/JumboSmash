@@ -22,11 +22,12 @@ import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { ProfileReact } from '../../../services/profile'
 import { JSText } from '../../common'
-import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
+import { clamp, generateActionSheetOptions, reportUser, getMainColor } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import { Images } from '../../../assets'
 import ReactSection from './ReactSection'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface BaseProps {
   containerStyle?: ViewStyle
@@ -835,6 +836,7 @@ class Card extends PureComponent<Props, State> {
       easedIn: this.props.type !== 'normal' || this.props.positionInStack === 0,
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
+
     }
   }
 
@@ -1004,5 +1006,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 17,
     color: 'white',
     letterSpacing: 1.33,
+  },
+  separator: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#8E8E8E',
   },
 })
