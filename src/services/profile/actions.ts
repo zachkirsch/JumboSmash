@@ -151,6 +151,7 @@ export interface UpdateTagsFailureAction {
 export interface AttemptBlockUserAction {
   type: ProfileActionType.ATTEMPT_BLOCK_USER
   email: string
+  userId?: number
 }
 
 export interface BlockUserSuccessAction {
@@ -307,10 +308,11 @@ export const updateTags = (tags: TagSectionType[]): AttemptUpdateTagsAction => {
   }
 }
 
-export const blockUser = (email: string): AttemptBlockUserAction => {
+export const blockUser = (email: string, userId?: number): AttemptBlockUserAction => {
   return {
     type: ProfileActionType.ATTEMPT_BLOCK_USER,
     email,
+    userId,
   }
 }
 

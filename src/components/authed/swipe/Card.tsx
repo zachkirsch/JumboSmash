@@ -40,7 +40,7 @@ interface LoadingProps extends BaseProps {
 interface ProfileBasedProps extends BaseProps {
   profile: User
   showClassYear: boolean
-  react: (reacts: ProfileReact[], onUser: User) => void
+  react: (reacts: ProfileReact[], onUser: number) => void
 }
 
 interface PreviewProps extends ProfileBasedProps {
@@ -53,9 +53,8 @@ interface NormalProps extends ProfileBasedProps {
   type: 'normal'
   positionInStack: number
   showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
-  onCompleteSwipe?: (direction: Direction, onUser: User) => void
-  react: (reacts: ProfileReact[], onUser: User) => void
-  block: (email: string) => void
+  onCompleteSwipe?: (direction: Direction, onUser: number, wasBlock: boolean) => void
+  block: (userId: number, email: string) => void
   onExpandCard?: () => void
   onExitExpandedView?: () => void
 }
@@ -514,16 +513,18 @@ class Card extends PureComponent<Props, State> {
 
   private renderExitButton = () => {
 
-    if (!this.state.fullyExpanded) {
-      return null
-    }
+    const containerStyle = [
+      {
+        opacity: this.state.expansion,
+      },
+    ]
 
     return (
-      <View style={styles.exitContainer}>
+      <Animated.View style={[styles.exitContainer, containerStyle]}>
         <TouchableOpacity onPress={this.exitExpandedCard}>
           <Image style={styles.exitIcon} resizeMode='contain' source={Images.exit} />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
     )
   }
 
@@ -574,8 +575,8 @@ class Card extends PureComponent<Props, State> {
           if (this.props.type !== 'normal') {
             return
           }
-          this.swipe('left', false)
-          this.props.block(this.props.profile.email)
+          this.swipe('left', true)
+          this.props.block(this.props.profile.id, this.props.profile.email)
         },
       },
       {
@@ -596,7 +597,7 @@ class Card extends PureComponent<Props, State> {
     if (this.props.type === 'loading') {
       return
     }
-    this.props.react(reacts, this.props.profile)
+    this.props.react(reacts, this.props.profile.id)
   }
 
   private cardWidth = () => WIDTH - 2 * HORIZONTAL_MARGIN
@@ -680,14 +681,14 @@ class Card extends PureComponent<Props, State> {
     }
   }
 
-  private swipe = (direction: Direction, withAnimation = true) => {
+  private swipe = (direction: Direction, wasBlock = false) => {
     const onComplete = () => {
       if (this.props.type === 'normal') {
         this.props.onExitExpandedView && this.props.onExitExpandedView()
-        this.onCompleteSwipe(direction)
+        this.onCompleteSwipe(direction, wasBlock)
       }
     }
-    if (withAnimation) {
+    if (!wasBlock) {
       this.isSwipingProgrammatically = true
       const xValue = this.cardWidth() * 2 * (direction === 'right' ? 1 : -1)
       const yValue = 50
@@ -701,11 +702,11 @@ class Card extends PureComponent<Props, State> {
     }
   }
 
-  private onCompleteSwipe = (direction: Direction) => {
+  private onCompleteSwipe = (direction: Direction, wasBlock = false) => {
     if (this.props.type !== 'normal') {
       return
     }
-    this.props.onCompleteSwipe && this.props.onCompleteSwipe(direction, this.props.profile)
+    this.props.onCompleteSwipe && this.props.onCompleteSwipe(direction, this.props.profile.id, wasBlock)
     this.carousel && this.carousel.reset(false)
     this.state.expansion.setValue(0)
     this.state.margin.top.setValue(this.getContractedMarginTop(-1))
@@ -951,13 +952,12 @@ const styles = StyleSheet.create({
   exitContainer: {
     backgroundColor: 'transparent',
     position: 'absolute',
-    left: 0,
-    top: 0,
+    left: 15,
+    top: 20,
   },
   exitIcon: {
     height: 20,
     width: 20,
-    margin: 10,
   },
   imagePlaceholder: {
     backgroundColor: 'rgb(240, 240, 240)',

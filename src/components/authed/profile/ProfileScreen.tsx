@@ -33,6 +33,7 @@ import { JSText, JSTextInput, JSImage  } from '../../common'
 import { isSenior } from '../../../utils'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
+import CreditsSection from './CreditsSection'
 import TagsSection from './TagsSection'
 import SaveOrRevert from './SaveOrRevert'
 
@@ -98,9 +99,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   componentDidMount() {
     this.updateSaveOverlay()
-    this.props.navigation.addListener('didBlur', () => {
-      Keyboard.dismiss()
-    })
+    this.props.navigation.addListener('didBlur', Keyboard.dismiss)
   }
 
   render() {
@@ -137,8 +136,9 @@ class ProfileScreen extends PureComponent<Props, State> {
             block={this.navigateTo('BlockScreen')}
             viewCoC={this.navigateTo('ReviewCoCScreen')}
             previewProfile={this.previewProfile()}
-            startSmashing={this.setupMode() && this.save}
+            startSmashing={this.setupMode() ? this.save : undefined}
           />
+          {this.setupMode() || <CreditsSection />}
         </ScrollView>
       </View>
     )
@@ -463,7 +463,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
   }
 
-  private setupMode = () => this.props.screenProps && this.props.screenProps.setupMode
+  private setupMode = (): boolean => this.props.screenProps && this.props.screenProps.setupMode
 }
 
 const mapStateToProps = (state: RootState): StateProps => {

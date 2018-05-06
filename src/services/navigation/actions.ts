@@ -1,5 +1,6 @@
 import { RouteName } from './types'
-import { ReceiveMessagesAction } from '../matches'
+import { AddInAppNotificationAction } from '../notifications/actions'
+import { RehydrateAction } from '../redux'
 
 /* Actions */
 
@@ -44,8 +45,9 @@ export type NavigationAction =
   SetTabBarOverlayAction
 | ClearTabBarOverlayAction
 | SwitchTabAction
-| ReceiveMessagesAction
+| AddInAppNotificationAction
 | ClearNavigationStateAction
+| RehydrateAction
 | OtherAction
 
 /* Action Creators */

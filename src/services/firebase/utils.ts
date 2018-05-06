@@ -48,28 +48,26 @@ ChatService.createChat = (matchId: number,
   // PERMISSIONS
   const dbRef = getRefToChatSection(conversationId)
   dbRef.child('members').once('value', snapshot => {
-    if (snapshot.val()) {
-      return
+    if (!snapshot.val()) {
+      // other users
+      const firebaseUids: (string | undefined)[] = otherUsers.map(id => {
+        const user = store.getState().swipe.allUsers.value.get(id)
+        return user && user.firebaseUid
+      })
+
+      // this user
+      const currentUser = firebase.auth().currentUser
+      firebaseUids.push(currentUser ? currentUser.uid : undefined)
+
+      const permissionsObject: { [uid: string]: string} = {}
+      firebaseUids.forEach(uid => uid && (permissionsObject[uid] = 'member'))
+      dbRef.child('members').set(permissionsObject)
     }
 
-    // other users
-    const firebaseUids: (string | undefined)[] = otherUsers.map(id => {
-      const user = store.getState().swipe.allUsers.value.get(id)
-      return user && user.firebaseUid
-    })
-
-    // this user
-    const currentUser = firebase.auth().currentUser
-    firebaseUids.push(currentUser ? currentUser.uid : undefined)
-
-    const permissionsObject: { [uid: string]: string} = {}
-    firebaseUids.forEach(uid => uid && (permissionsObject[uid] = 'member'))
-    dbRef.child('members').set(permissionsObject)
+    ChatService.listenForNewChats(conversationId)
+    store.dispatch(createMatch(matchId, conversationId, createdAt,
+                               otherUsers, shouldOpenMatchPopup))
   })
-
-  ChatService.listenForNewChats(conversationId)
-  store.dispatch(createMatch(matchId, conversationId, createdAt,
-                             otherUsers, shouldOpenMatchPopup))
 }
 
 ChatService.listenForNewChats = (conversationId: string) => {

@@ -5,6 +5,7 @@ import { ChatService } from '../firebase'
 import { unmatch, removeChat } from '../matches'
 import { updateProfileReacts } from '../profile'
 import { addInAppNotification } from './actions'
+import { removeUser } from '../swipe'
 import { ProfileReact, GetUserResponse } from '../api'
 import { NavigationService } from '../navigation'
 
@@ -43,6 +44,11 @@ interface DeactivateMessage {
   user_id: number
 }
 
+interface BlockedMessage {
+  msg_type: 'blocked'
+  by_user: number
+}
+
 interface ReactivateMessage {
   msg_type: 'reactivate'
   match_id: number
@@ -57,7 +63,12 @@ interface GeneralNotification {
   subtitle?: string
 }
 
-type DataMessage = UnmatchMessage | NewMatchMessage | ReactMessage | DeactivateMessage | ReactivateMessage
+type DataMessage = UnmatchMessage
+| NewMatchMessage
+| ReactMessage
+| DeactivateMessage
+| ReactivateMessage
+| BlockedMessage
 
 type Notification = NewMatchMessage | NewChatMessage | GeneralNotification
 
@@ -205,6 +216,10 @@ const onMessage = (message: any) => {
         break
       case 'react':
         reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
+        break
+      case 'blocked':
+        reduxStore.dispatch(removeUser(data.by_user))
+        break
     }
   } catch (e) {
     console.error(e)

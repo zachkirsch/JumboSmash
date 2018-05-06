@@ -50,13 +50,13 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<false/>
+		<true/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<false/>
+		<true/>
 		<key>NSAllowsLocalNetworking</key>
-		<false/>
+		<true/>
 		<key>NSExceptionAllowsInsecureHTTPLoads</key>
-		<false/>
+		<true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>We will never ask for this permission</string>

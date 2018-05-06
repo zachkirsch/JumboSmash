@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { GiftedChat, InputToolbarProps, MessageProps, IChatMessage } from 'react-native-gifted-chat'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
@@ -13,11 +13,12 @@ import {
   ChatMessage,
 } from '../../../services/matches'
 import { JSImage, JSText, HeaderBar } from '../../common'
+import { blockUser } from '../../../services/profile'
 import { User } from '../../../services/swipe'
 import Message from './Message'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
-import { generateActionSheetOptions } from '../../../utils'
+import { generateActionSheetOptions, reportUser } from '../../../utils'
 import InputToolbar from './InputToolbar'
 import { unmatch } from '../../../services/matches'
 
@@ -35,9 +36,10 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  sendMessages: (conversationId: string, messages: ChatMessage[]) => void
+  sendMessages: (messages: ChatMessage[]) => void
   setConversationAsRead: () => void
-  unmatch: (matchId: number, conversationId: string) => void
+  unmatch: (matchId: number) => void
+  blockUser: (email: string) => void
 }
 
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
@@ -70,12 +72,10 @@ class ChatScreen extends PureComponent<Props, {}> {
     }
     const messages = conversation.messages.toArray()
 
-    const user = this.props.allUsers.get(conversation.otherUsers[0])
-
     return (
       <View style={styles.container}>
         <HeaderBar
-          renderTitle={this.renderHeaderBarTitle(user)}
+          renderTitle={this.renderHeaderBarTitle(this.getUser())}
           onPressLeft={this.goBack}
           renderRight={this.renderRightIcon}
           onPressRight={this.onPressEllipsis}
@@ -139,27 +139,43 @@ class ChatScreen extends PureComponent<Props, {}> {
     const buttons = [
       {
         title: 'Block User',
+        onPress: this.confirm('block', () => {
+          this.goBack()
+          this.props.blockUser(this.getUser().email)
+        }),
       },
       {
         title: 'Report User',
+        onPress: () => reportUser(this.getUser()),
       },
       {
         title: 'Unmatch',
-        onPress: () => {
+        onPress: this.confirm('unmatch', () => {
           this.goBack()
           const conversation = this.getConversation()
           if (conversation) {
-            this.props.unmatch(conversation.matchId, this.getConversationId())
+            this.props.unmatch(conversation.matchId)
           }
-        },
+        }),
       },
     ]
     const {options, callback} = generateActionSheetOptions(buttons)
     this.props.showActionSheetWithOptions!(options, callback)
   }
 
+  private confirm = (action: 'block' | 'unmatch', onConfirm: () => void) => () => {
+    Alert.alert(
+      '',
+      `Are you sure you want to ${action} ${this.getUser().preferredName}?`,
+      [
+        {text: 'No', style: 'cancel'},
+        {text: 'Yes', style: 'destructive', onPress: onConfirm},
+      ]
+    )
+  }
+
   private onSend = (messages: IChatMessage[] = []) => {
-    this.props.sendMessages(this.getConversationId(), messages.map(message => ({
+    this.props.sendMessages(messages.map(message => ({
       ...message,
       createdAt: moment(message.createdAt).valueOf(),
     })))
@@ -170,6 +186,8 @@ class ChatScreen extends PureComponent<Props, {}> {
   private getConversation = (props?: Props) => {
     return (props || this.props).chats.get(this.getConversationId())
   }
+
+  private getUser = () => this.props.allUsers.get(this.getConversation().otherUsers[0])
 }
 
 const mapStateToProps = (state: RootState): StateProps => {
@@ -185,11 +203,15 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>, ownProps: Props): DispatchProps => {
   return {
-    sendMessages: (conversationId: string, messages: ChatMessage[]) => {
-      dispatch(sendMessages(conversationId, messages))
+    sendMessages: (messages: ChatMessage[]) => {
+      dispatch(sendMessages( ownProps.navigation.state.params.conversationId, messages))
     },
     setConversationAsRead: () => dispatch(setConversationAsRead(ownProps.navigation.state.params.conversationId)),
-    unmatch: (matchId: number, conversationId: string) => dispatch(unmatch(matchId, conversationId)),
+    unmatch: (matchId: number) => dispatch(unmatch(
+      matchId,
+      ownProps.navigation.state.params.conversationId
+    )),
+    blockUser: (email: string) => dispatch(blockUser(email)),
   }
 }
 

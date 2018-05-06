@@ -25,6 +25,7 @@ import { addInAppNotification, setNotificationsToken } from '../notifications/ac
 const getAllReacts = (state: RootState) => state.profile.profileReacts.value
 const getId = (state: RootState) => state.profile.id
 const getSignedInStatus = (state: RootState) => state.auth.loggedIn.value
+const getAllUsers = (state: RootState) => state.swipe.allUsers.value.toObject()
 
 const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserResponse): User => {
   return {
@@ -122,7 +123,7 @@ function* attemptFetchAllUsers() {
 
 function* attemptSwipe(action: AttemptSwipeAction) {
   try {
-    const response: SwipeResponse = yield call(api.swipe, action.direction, action.onUser.id)
+    const response: SwipeResponse = yield call(api.swipe, action.direction, action.onUser)
 
     const myID = yield select(getId)
 
@@ -155,9 +156,12 @@ function* attemptSwipe(action: AttemptSwipeAction) {
 }
 
 function* swipeFailure(action: SwipeFailureAction) {
+  const allUsers: {[userId: number]: User} = yield select(getAllUsers)
+  const user = allUsers[action.onUser]
+  const message = user ? `Your swipe on ${user.fullName} failed` : 'Your swipe failed'
   yield put(addInAppNotification({
     type: 'actionless',
-    title: `Your swipe on ${action.onUser.fullName} failed`,
+    title: message,
     subtitle: 'Check your network connection',
   }))
 
@@ -165,7 +169,7 @@ function* swipeFailure(action: SwipeFailureAction) {
 
 function* attemptReact(action: AttemptReactAction) {
   try {
-    yield call(api.react, action.onUser.id, action.reacts.map(r => r.id))
+    yield call(api.react, action.onUser, action.reacts.map(r => r.id))
     const successAction: ReactSuccessAction = {
       type: SwipeActionType.REACT_SUCCESS,
       onUser: action.onUser,

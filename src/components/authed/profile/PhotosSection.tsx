@@ -327,7 +327,10 @@ class PhotosSection extends PureComponent<Props, State> {
           this.setState({
             images: newImages,
           })
-        }),
+        }).catch(_ => Alert.alert(
+          '',
+          "Please enable photo access for JumboSmash in your phone's settings"
+        )),
     })
 
     if (this.canSwapImage(index)) {

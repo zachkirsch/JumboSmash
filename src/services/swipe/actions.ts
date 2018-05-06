@@ -22,6 +22,8 @@ export enum SwipeActionType {
   REACT_SUCCESS = 'REACT_SUCCESS',
   REACT_FAILURE = 'REACT_FAILURE',
 
+  REMOVE_USER = 'REMOVE_USER', // remove them from the stack
+
   CLEAR_SWIPE_STATE = 'CLEAR_SWIPE_STATE',
 
   OTHER_ACTION = '__any_other_action_type__',
@@ -59,37 +61,43 @@ export interface FetchSwipableUsersFailureAction {
 export interface AttemptSwipeAction {
   type: SwipeActionType.ATTEMPT_SWIPE
   direction: Direction
-  onUser: User
+  onUser: number
+  wasBlock?: boolean
 }
 
 export interface SwipeSuccessAction {
   type: SwipeActionType.SWIPE_SUCCESS
   direction: Direction
-  onUser: User
+  onUser: number
 }
 
 export interface SwipeFailureAction {
   type: SwipeActionType.SWIPE_FAILURE
   direction: Direction
-  onUser: User
+  onUser: number
   errorMessage: string
 }
 
 export interface AttemptReactAction {
   type: SwipeActionType.ATTEMPT_REACT
   reacts: ProfileReact[]
-  onUser: User
+  onUser: number
 }
 
 export interface ReactSuccessAction {
   type: SwipeActionType.REACT_SUCCESS
-  onUser: User
+  onUser: number
 }
 
 export interface ReactFailureAction {
   type: SwipeActionType.REACT_FAILURE
-  onUser: User
+  onUser: number
   errorMessage: string
+}
+
+export interface RemoveUserAction {
+  type: SwipeActionType.REMOVE_USER
+  user: number
 }
 
 export interface ClearSwipeStateAction {
@@ -119,6 +127,7 @@ export type SwipeAction = AttemptFetchAllUsersAction
 | AttemptReactAction
 | ReactSuccessAction
 | ReactFailureAction
+| RemoveUserAction
 | ClearSwipeStateAction
 | RehydrateAction
 | OtherAction
@@ -137,19 +146,27 @@ export const fetchSwipableUsers = (): AttemptFetchSwipableUsersAction => {
   }
 }
 
-export const swipe = (direction: Direction, onUser: User): AttemptSwipeAction => {
+export const swipe = (direction: Direction, onUser: number, wasBlock?: boolean): AttemptSwipeAction => {
   return {
     type: SwipeActionType.ATTEMPT_SWIPE,
     direction,
     onUser,
+    wasBlock,
   }
 }
 
-export const react = (reacts: ProfileReact[], onUser: User): AttemptReactAction => {
+export const react = (reacts: ProfileReact[], onUser: number): AttemptReactAction => {
   return {
     type: SwipeActionType.ATTEMPT_REACT,
     onUser,
     reacts,
+  }
+}
+
+export const removeUser = (user: number): RemoveUserAction => {
+  return {
+    type: SwipeActionType.REMOVE_USER,
+    user,
   }
 }
 

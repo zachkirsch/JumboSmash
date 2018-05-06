@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { FlatList, StyleSheet, View } from 'react-native'
+import { FlatList, Keyboard, StyleSheet, View } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect } from 'react-redux'
 import { RootState } from '../../../redux'
@@ -32,6 +32,10 @@ class MatchesList extends PureComponent<Props, State> {
     }
   }
 
+  componentDidMount() {
+    this.props.navigation.addListener('didBlur', Keyboard.dismiss)
+  }
+
   public render() {
     return (
       <View style={styles.container}>
@@ -60,6 +64,7 @@ class MatchesList extends PureComponent<Props, State> {
           style={styles.searchBar}
           placeholder={'Search'}
           underline={false}
+          autoCorrect={false}
         />
       </View>
     )
@@ -76,7 +81,10 @@ class MatchesList extends PureComponent<Props, State> {
       chats = this.props.chats.toArray().filter(chat => {
         return chat.otherUsers.find(userId => {
           const otherUser = this.props.allUsers.get(userId)
-          return otherUser && otherUser.fullName.includes(this.state.searchBarText.trim())
+          if (!otherUser) {
+            return false
+          }
+          return otherUser.fullName.toLowerCase().includes(this.state.searchBarText.toLowerCase().trim())
         })
       })
     }

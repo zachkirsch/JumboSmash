@@ -12,7 +12,6 @@ import {
 import { ChatService } from '../firebase'
 import { ChatMessage, Conversation } from './types'
 import { api } from '../api'
-// import { ChatService } from '../firebase'
 import { RootState } from '../../redux'
 
 const getConversation = (conversationId: string) => {
@@ -31,27 +30,27 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
 
   for (let i = 0; i < action.messages.length; i++) {
     const message = action.messages[i]
-    const error: Error = yield call(pushMessagetoFirebase, message)
-    if (error) {
-      const failureAction: SendMessagesFailureAction = {
-        type: MatchesActionType.SEND_MESSAGES_FAILURE,
-        conversationId: action.conversationId,
-        messages: [message],
-        errorMessage: error.message,
-      }
-      yield put(failureAction)
-    } else {
-      try {
-        const conversation: Conversation = yield select(getConversation(action.conversationId))
-        yield call(api.sendChat, conversation.otherUsers, message.text, conversation.matchId)
-      } catch (e) {} /* tslint:disable-line:no-empty */
+    try {
+      yield call(pushMessagetoFirebase, message)
       const successAction: SendMessagesSuccessAction = {
         type: MatchesActionType.SEND_MESSAGES_SUCCESS,
         conversationId: action.conversationId,
         messages: [message],
       }
       yield put(successAction)
+    } catch (e) {
+      const failureAction: SendMessagesFailureAction = {
+        type: MatchesActionType.SEND_MESSAGES_FAILURE,
+        conversationId: action.conversationId,
+        messages: [message],
+        errorMessage: e.message,
+      }
+      yield put(failureAction)
     }
+    try {
+      const conversation: Conversation = yield select(getConversation(action.conversationId))
+      yield call(api.sendChat, conversation.otherUsers, message.text, conversation.matchId)
+    } catch (e) {} /* tslint:disable-line:no-empty */
   }
 }
 
