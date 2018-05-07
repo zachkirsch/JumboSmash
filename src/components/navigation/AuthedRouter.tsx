@@ -70,6 +70,12 @@ export default StackNavigator({
   BucketListScreen: {
     screen: Profile.BucketListScreen,
   },
+  SeniorEventScreen: {
+    screen: Profile.SeniorEventScreen,
+  },
+  MyEventsScreen: {
+    screen: Profile.MyEventsScreen,
+  },
   ReviewCoCScreen: {
     screen: Profile.ReviewCoCScreen,
   },

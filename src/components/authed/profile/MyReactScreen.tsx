@@ -5,17 +5,11 @@ import {
   View,
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { connect, Dispatch } from 'react-redux'
-import { List } from 'immutable'
-import { RootState } from '../../../redux'
-import { Tag, TagSectionType, updateTagsLocally, ProfileState, ProfileReact } from '../../../services/profile'
-import { HeaderBar, RectangleButton, JSButton } from '../../common'
+import { ProfileState, ProfileReact } from '../../../services/profile'
+import { HeaderBar } from '../../common'
 import { JSText } from '../../common/index'
-import TagsSection from './TagsSection'
-import ReactSection from '../swipe/ReactSection';
-import { User } from '../../../services/swipe';
-import { FlatList } from 'react-native';
-import { ListView } from 'react-native';
+import ReactSection from '../swipe/ReactSection'
+import { User } from '../../../services/swipe'
 
 interface UserList {id: number, names: string[]}
 
@@ -46,24 +40,24 @@ class MyReactScreen extends PureComponent<Props, State> {
       ProfileUser: {
         id: PRO.id,
         preferredName: PRO.preferredName.value,
-        surname: "",
-        fullName: "",
-        major: "",
-        email: "",
+        surname: '',
+        fullName: '',
+        major: '',
+        email: '',
         classYear: 18,
         profileReacts: PRO.profileReacts,
-        bio: "",
+        bio: '',
         images: [],
         tags: [],
-        firebaseUid: "1"
+        firebaseUid: '1',
       },
       renderByID: 0,
-      renderedUsers: [{id: 1, names: ["Beyonce", "JAY Z", "Kanye West", "Yuki Zaninovich", "Beyonce", "JAY Z", "Kanye West", "Yuki Zaninovich", "Beyonce", "JAY Z", "Kanye West", "Beyonce", "JAY Z", "Kanye West"]}, {id: 2, names: ["Lord Vader"]}
-        , {id: 3, names: ["Max Bernstein"]}, {id: 4, names: ["HAHA"]},{id: 5, names: [":()"]},{id: 6, names: [":)"]}]
+      renderedUsers: [{id: 1, names: ['Beyonce', 'JAY Z', 'Kanye West', 'Yuki Zaninovich', 'Kanye West']},
+       {id: 2, names: ['Lord Vader']}, {id: 3, names: ['Max Bernstein']},
+       {id: 4, names: ['HAHA']}, {id: 5, names: [':()']}, {id: 6, names: [':)']}],
     }
   }
   render() {
-    console.log(this.state.ProfileUser)
     return (
       <View style={styles.fill}>
         <HeaderBar title='My Reacts' onPressLeft={this.props.navigation.goBack}/>
@@ -85,7 +79,6 @@ class MyReactScreen extends PureComponent<Props, State> {
   }
 
   private renderRows = (dataList: string[]) => {
-        console.log(dataList)
     return dataList.map((section, sectionIndex) => {
       return (
       <View key={sectionIndex}>
@@ -98,9 +91,7 @@ class MyReactScreen extends PureComponent<Props, State> {
   private renderNamesByReact = () => {
 
     let id = this.state.renderByID - 1
-    if (this.state.renderByID !== 0){
-      console.log("HELLO, uid = ")
-      console.log(id)
+    if (this.state.renderByID !== 0) {
       return (
         <View>
         {this.renderRows(this.state.renderedUsers[id].names)}
@@ -149,7 +140,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 0.1,
-    marginHorizontal: 0
+    marginHorizontal: 0,
   },
   container: {
     flex: 1,

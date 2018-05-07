@@ -6,10 +6,7 @@ import {
 } from 'react-native'
 import {CheckBox } from 'react-native-elements'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { connect, Dispatch } from 'react-redux'
-import { List } from 'immutable'
-import { RootState } from '../../../redux'
-import { HeaderBar, RectangleButton, JSButton } from '../../common'
+import { HeaderBar } from '../../common'
 import { JSText } from '../../common/index'
 
 interface BucketList {title: string, items: string[], checked: boolean[]}
@@ -36,7 +33,7 @@ class BucketListScreen extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      checkedList: this.props.navigation.state.params.SeniorBucketList
+      checkedList: this.props.navigation.state.params.SeniorBucketList,
     }
   }
 
@@ -53,7 +50,8 @@ class BucketListScreen extends PureComponent<Props, State> {
               <View style={styles.separator}/>
               {this.renderList(SENIORBUCKET)}
             <View style={[styles.topContainer]}>
-              <JSText> Please be safe and responsible! 💕 JumboSmash does not condone illegal activity and is not responsible for repercussions for the above actions. </JSText>
+              <JSText> Please be safe and responsible! 💕 JumboSmash does not condone illegal activity
+               and is not responsible for repercussions for the above actions. </JSText>
             </View>
             </ScrollView>
             </View>
@@ -75,16 +73,20 @@ class BucketListScreen extends PureComponent<Props, State> {
     return dataList.map((section, sectionIndex) => {
       return (
       <View key={sectionIndex}>
-      <View style={styles.container}><CheckBox title={section} containerStyle={styles.bucketListContainer} onPress={() => this.toggleListItem(index, sectionIndex)} checked={this.state.checkedList[index].checked[sectionIndex]}/></View>
+      <View style={styles.container}>
+      <CheckBox title={section}
+      containerStyle={styles.bucketListContainer}
+      onPress={() => this.toggleListItem(index, sectionIndex)}
+      checked={this.state.checkedList[index].checked[sectionIndex]}/>
+      </View>
       </View>)
     })
   }
 
-  private toggleListItem = (index:number, sectionIndex:number)  => {
+  private toggleListItem = (index: number, sectionIndex: number)  => {
     let newBucketList = this.props.navigation.state.params.SeniorBucketList
     newBucketList[index].checked[sectionIndex] = !newBucketList[index].checked[sectionIndex]
-    this.setState({checkedList: newBucketList})
-    console.log(newBucketList) //This works, uncertain as to why the frontend doesn't show up as checked...
+    this.setState({checkedList: newBucketList})  // This works, uncertain as to why the frontend doesn't show up as checked...
     return this.props.navigation.state.params.newList(newBucketList)
 
   }
@@ -101,18 +103,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'rgb(250, 250, 250)',
   },
-  tag: {
-    color: 'black',
-    marginBottom: 5,
-    fontSize: 16,
-    opacity: 0.6,
-  },
-  chosenTag: {
-    opacity: 1,
-  },
-  tagSection: {
-    marginBottom: 20,
-  },
   title: {
     textAlign: 'center',
   },
@@ -122,31 +112,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     color: 'rgb(172,203,238)',
-    padding: 10
+    padding: 10,
   },
   container: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 20,
-    backgroundColor: 'white'
+    backgroundColor: 'white',
   },
   bucketListContainer: {
     backgroundColor: 'white',
     borderColor: 'white',
-    paddingBottom: 1
+    paddingBottom: 1,
   },
   text: {
     marginLeft: 12,
     fontSize: 16,
   },
-  photo: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-  },
   paddingBottom: {
-    marginBottom: 10
+    marginBottom: 10,
   },
   separator: {
     flex: 1,

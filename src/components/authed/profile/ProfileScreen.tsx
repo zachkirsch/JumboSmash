@@ -10,7 +10,7 @@ import {
   Platform,
   findNodeHandle,
 } from 'react-native'
-import { getMainColor, getLightColor } from '../../../utils'
+import { getMainColor } from '../../../utils'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
@@ -37,10 +37,10 @@ import SettingsSection from './SettingsSection'
 import CreditsSection from './CreditsSection'
 import TagsSection from './TagsSection'
 import SaveOrRevert from './SaveOrRevert'
-import LinearGradient from 'react-native-linear-gradient';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 interface BucketList {title: string, items: string[], checked: boolean[]}
+interface SeniorEvent {date: string, event: string, attending: boolean, attendees: string[]}
 
 interface State {
   previewingCard: boolean
@@ -49,6 +49,7 @@ interface State {
   bio: string
   photosSectionRequiresSave: boolean
   SeniorBucketList: BucketList[]
+  SeniorEventList: SeniorEvent[]
 }
 
 interface OwnProps {}
@@ -100,9 +101,33 @@ class ProfileScreen extends PureComponent<Props, State> {
       preferredName: getInitialValue(props.profile.preferredName),
       bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
-      SeniorBucketList: [{title: "More Wholesome", items: ["Decorate your graduation cap 🎓", "Facebook message Tony Monaco 💬", "Paint the Cannon 🎨", "Go on a bar crawl with your (21+) friends 🥂", "Drink with a professor 🍻", "Smooch a date on the Memorial Steps 💕"], checked: [false, false, false, false, false, false]},
-                         {title: "Less Wholesome", items: ["Relive the Naked / Underwear Quad Run 🍆", "Make eye contact with a freshman year hookup 👀", "Sneak onto the roof of an academic building 🏫", "Smuggle 20 chicken tendies out of Carm using only your wits and your pockets 🍗", "Take a shot at every senior event you attend 🥃","Hook up in an academic building 😜","Pretend to not be hungover in front of your parents 😬"], checked: [false, false, false, false, false, false, false]}]
+      SeniorBucketList: [{title: 'More Wholesome', items: ['Decorate your graduation cap 🎓',
+                          'Facebook message Tony Monaco 💬', 'Paint the Cannon 🎨',
+                          'Go on a bar crawl with your (21+) friends 🥂', 'Drink with a professor 🍻',
+                          'Smooch a date on the Memorial Steps 💕'],
+                          checked: [false, false, false, false, false, false]},
+                         {title: 'Less Wholesome', items: ['Relive the Naked / Underwear Quad Run 🍆',
+                          'Make eye contact with a freshman year hookup 👀',
+                          'Sneak onto the roof of an academic building 🏫',
+                          'Smuggle 20 chicken tendies out of Carm using only your wits and your pockets 🍗',
+                          'Take a shot at every senior event you attend 🥃',
+                          'Hook up in an academic building 😜',
+                          'Pretend to not be hungover in front of your parents 😬'],
+                          checked: [false, false, false, false, false, false, false]}],
 
+      SeniorEventList: [{date: 'May 11', event: 'Around the World - SoGo', attending: false, attendees: ['Beyonce Knowles', 'Max Bernstein']},
+                        {date: 'May 14', event: 'Senior Brunch - Gifford House', attending: false, attendees: ['Lord Vader']},
+                        {date: 'May 14', event: 'Senior Gala - House of Blues', attending: false, attendees: ['Winnona DeSombre']},
+                        {date: 'May 15', event: "Senior Takeover - Dave and Buster's", attending: false, attendees: ['Yuki Zaninovich']},
+                        {date: 'May 15', event: 'Last Night in the Campus Center', attending: false, attendees: ['Zach Kirsch', 'Megan Monroe']},
+                        {date: 'May 16', event: 'Booze Cruise - Boston Harbor', attending: false, attendees: ['Chris Gregg', 'Shanshan Duan']},
+                        {date: 'May 16', event: 'Senior Night - Lucky Strike', attending: false, attendees: ["Moe's (RIP)"]},
+                        {date: 'May 17', event: 'Senior BBQ - SEC', attending: false, attendees: ["Moe's (RIP)", 'Shanshan Duan']},
+                        {date: 'May 17', event: 'Last Night on the Lawn - Prez Lawn', attending: false, attendees: ['Winnona DeSombre', 'Emily Lin']},
+                        {date: 'May 18', event: 'Tufts Night at the Pops - Boston Symphony Hall', attending: false, attendees: ['Chris Gregory']},
+                        {date: 'May 19', event: 'Baccalaureate Service - Gantcher', attending: false, attendees: ['SOMEONE OutOfIdeas']},
+                        {date: 'May 19', event: 'Candlelight Ceremony - Goddard', attending: false, attendees: ["Help it's been 9 hours"]},
+                        {date: 'May 20', event: 'Graduation 🎓', attending: false, attendees: ['ugh']}],
     }
   }
 
@@ -141,6 +166,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           {this.renderTags()}
           {this.renderReacts()}
           {this.renderBucketList()}
+          {this.renderSeniorEvents()}
           {this.renderSecondRelease()}
           <SettingsSection
             block={this.navigateTo('BlockScreen')}
@@ -202,7 +228,9 @@ class ProfileScreen extends PureComponent<Props, State> {
   private renderBucketList = () => {
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity onPress={this.navigateTo('BucketListScreen', {SeniorBucketList: this.state.SeniorBucketList, newList: (list: BucketList[]) => {this.setState({SeniorBucketList: list}), console.log(list)}})}>
+        <TouchableOpacity onPress={this.navigateTo('BucketListScreen',
+          {SeniorBucketList: this.state.SeniorBucketList,
+            newList: (list: BucketList[]) => {this.setState({SeniorBucketList: list})}})}>
           <JSText bold style={[styles.title, styles.tagsTitle]}>BUCKET LIST</JSText>
           <View style={styles.fill}>
           {this.renderOptions()}
@@ -213,16 +241,53 @@ class ProfileScreen extends PureComponent<Props, State> {
       </View>
     )
   }
+
+  private renderSeniorEvents = () => {
+    return (
+      <View style={styles.personalInfo}>
+        <TouchableOpacity onPress={this.navigateTo('SeniorEventScreen', {SeniorEventList: this.state.SeniorEventList, newList: (list: SeniorEvent[]) => {this.setState({SeniorEventList: list}), console.log(list)}})}>
+          <JSText bold style={[styles.title, styles.tagsTitle]}>SENIOR EVENTS</JSText>
+          <View style={styles.bigfill}>
+          {this.renderChosenEvents()}
+          </View>
+        </TouchableOpacity>
+      </View>)
+  }
+
+  private renderChosenEvents = () => {
+    let chosenEvents: SeniorEvent[]
+    chosenEvents = []
+    this.state.SeniorEventList.map((section) => {
+      if (section.attending) {
+        chosenEvents.push(section)
+      }
+    })
+    if (chosenEvents.length === 0) {
+      return (<JSText> Click here to view! </JSText>)
+    }
+      return this.renderChosenRows(chosenEvents)
+  }
+
+  private renderChosenRows = (events: SeniorEvent[]) => {
+    return events.map((section, sectionIndex) => {
+        return (<View key={sectionIndex} style={styles.EventRow}>
+        <JSText style={styles.eventDate}>{section.date}</JSText>
+        <JSText style={styles.eventString}>{section.event}</JSText>
+      </View>)
+    })
+  }
+
   private renderOptions = () => {
-    if (this.state.SeniorBucketList[0].checked.every(this.isFalse) && this.state.SeniorBucketList[1].checked.every(this.isFalse)){
+    if (this.state.SeniorBucketList[0].checked.every(this.isFalse) && this.state.SeniorBucketList[1].checked.every(this.isFalse)) {
 
       return (<JSText> Click here to view! </JSText>)
     } return null
   }
-  private isFalse = (b: boolean) => { return (b == false) }
+  private isFalse = (b: boolean) => { return (b === false) }
+
   private renderBucketItems = (i: number) => {
      return this.state.SeniorBucketList[i].checked.map((section, sectionIndex) => {
-    if (section == true){
+    if (section === true) {
       return (
           <View key={sectionIndex} style={{flexDirection: 'row'}}>
             <Ionicons name='md-checkmark' style={{flex: 1, paddingLeft: 10}} size={30} color={getMainColor()} />
@@ -569,12 +634,33 @@ const styles = StyleSheet.create({
   tagsTitle: {
     marginBottom: 10,
   },
+  EventRow: {
+    flex: 1,
+    flexDirection: 'row',
+    paddingLeft: 10,
+    padding: 5,
+  },
+  eventDate: {
+    flex: 1,
+    fontSize: 13,
+    paddingTop: 1,
+    color: 'grey',
+  },
+  eventString: {
+    flex: 6,
+    fontSize: 15,
+  },
   fill: {
     flex: 1,
-    padding: 10
+    padding: 10,
+  },
+  bigfill: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: 'rgb(249, 250, 253)',
   },
   reactsTitle: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   bigInput: {
     fontSize: 20,

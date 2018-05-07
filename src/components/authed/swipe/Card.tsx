@@ -22,12 +22,11 @@ import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { ProfileReact } from '../../../services/profile'
 import { JSText } from '../../common'
-import { clamp, generateActionSheetOptions, reportUser, getMainColor } from '../../../utils'
+import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import { Images } from '../../../assets'
 import ReactSection from './ReactSection'
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface BaseProps {
   containerStyle?: ViewStyle
