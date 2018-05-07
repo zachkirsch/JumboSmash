@@ -35,15 +35,16 @@ class MyReactScreen extends PureComponent<Props, State> {
   }
 
   render() {
-    const textChange = (text: string) => () => this.newSearch(text)
+    const textChange = (text: string) => this.newSearch(text)
     return (
       <View style={styles.fill}>
         <HeaderBar title='Senior Event RSVPs' onPressLeft={this.props.navigation.goBack}/>
         <ScrollView>
-        <View style={styles.search}>
+        <View style={styles.searchBarContainer}>
           <JSTextInput
-            placeholder='Search...'
-            onChangeText={textChange}
+              style={styles.searchBar}
+              placeholder='Search...'
+              onChangeText={textChange}
           />
         </View>
           <View style={[styles.topContainer]}>
@@ -116,6 +117,27 @@ const styles = StyleSheet.create({
   },
   topContainerWithRoomForStatusBar: {
      paddingTop: 28,
+   },
+   searchBarContainer: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     overflow: 'hidden',
+     marginHorizontal: 10,
+     marginTop: 10,
+     marginBottom: 5,
+     backgroundColor: 'rgb(250, 250, 250)',
+     borderRadius: 40,
+     borderWidth: StyleSheet.hairlineWidth,
+     borderColor: 'lightgray',
+   },
+   searchBar: {
+     flex: 1,
+     textAlign: 'center',
+     marginLeft: 3,
+     marginRight: 7,
+     paddingVertical: 5,
+     paddingHorizontal: 25,
+     fontSize: 20,
    },
 
 })

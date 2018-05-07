@@ -87,7 +87,7 @@ class BucketListScreen extends PureComponent<Props, State> {
   }
 
   private toggleListItem = (index: number, sectionIndex: number)  => {
-    let newBucketList = this.props.navigation.state.params.SeniorBucketList
+    let newBucketList = this.state.checkedList.slice()
     newBucketList[index].checked[sectionIndex] = !newBucketList[index].checked[sectionIndex]
     this.setState({checkedList: newBucketList})  // This works, uncertain as to why the frontend doesn't show up as checked...
     return this.props.navigation.state.params.newList(newBucketList)

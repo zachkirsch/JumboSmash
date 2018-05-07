@@ -8,18 +8,20 @@ import {CheckBox } from 'react-native-elements'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { HeaderBar } from '../../common'
 import { JSText } from '../../common/index'
-import { getLightColor } from '../../../utils'
+import { getLightColor, getMainColor } from '../../../utils'
 import { TouchableOpacity } from 'react-native'
+import Ionicons from 'react-native-vector-icons/Entypo'
 
 interface SeniorEvent {date: string, event: string, attending: boolean, attendees: string[]}
+interface SeniorDateEvent {date: string, events: SeniorEvent[]}
 
 interface State {
-  checkedList: SeniorEvent[]
+  checkedList: SeniorDateEvent[]
 }
 
 interface OwnProps {
-  SeniorEventList: SeniorEvent[]
-  newList: (list: SeniorEvent[]) => void
+  SeniorEventList: SeniorDateEvent[]
+  newList: (list: SeniorDateEvent[]) => void
 }
 
 interface StateProps {
@@ -49,13 +51,26 @@ class SeniorEventScreen extends PureComponent<Props, State> {
               Click below to RSVP, or to see who else is going!
             </JSText></View>
             <ScrollView>
-              {this.renderList(SENIOREVENT)}
+              {this.renderDates(SENIOREVENT)}
             </ScrollView>
             </View>
     )
   }
-  private renderList = (dataList: SeniorEvent[]) => {
-    const pressList = (sectionIndex: number) => () => {this.toggleListItem(sectionIndex)}
+  private renderDates = (dataList: SeniorDateEvent[]) => {
+      return dataList.map((section, sectionIndex) => {
+        return (
+          <View key={sectionIndex}>
+          <View style={styles.separator}/>
+          <JSText style={styles.text}>{section.date}</JSText>
+          <View style={styles.Titleseparator}/>
+          {this.renderList(section.events, sectionIndex)}
+          </View>
+        )
+      })
+  }
+
+  private renderList = (dataList: SeniorEvent[], index: number) => {
+    const pressList = (ind: number, sectionIndex: number) => () => {this.toggleListItem(ind, sectionIndex)}
     return dataList.map((section, sectionIndex) => {
       return (
         <View  key={sectionIndex}>
@@ -63,24 +78,27 @@ class SeniorEventScreen extends PureComponent<Props, State> {
       <CheckBox
         title={section.event}
         containerStyle={styles.bucketListContainer}
-        onPress={pressList(sectionIndex)}
-        checked={this.state.checkedList[sectionIndex].attending}
+        onPress={pressList(index, sectionIndex)}
+        checked={this.state.checkedList[index].events[sectionIndex].attending}
       />
         <View style={styles.subView}>
-        <JSText style={styles.date}>{section.date}</JSText>
          <TouchableOpacity onPress={this.navigateTo('MyEventsScreen', {event: section.event, attendees: section.attendees})}>
-        <JSText style={styles.date}>Who else is going?</JSText>
+         <Ionicons style={styles.title} name='chevron-right' size={30} color={getMainColor()} />
         </TouchableOpacity>
         </View>
         </View>
-        <View style={styles.separator}/>
+
       </View>)
     })
   }
 
-  private toggleListItem = (index: number)  => {
-    let newEventList = this.props.navigation.state.params.SeniorEventList
-    newEventList[index].attending = !newEventList[index].attending
+  private toggleListItem = (index: number, sectionIndex: number)  => {
+    let newDay = {
+      ...this.state.checkedList[index],
+    }
+    newDay.events[sectionIndex].attending = !newDay.events[sectionIndex].attending
+    let newEventList = this.state.checkedList.slice()
+    newEventList[index] = newDay
     this.setState({checkedList: newEventList}) // This works, uncertain as to why the frontend doesn't show up as checked...
     return this.props.navigation.state.params.newList(newEventList)
 
@@ -136,17 +154,23 @@ const styles = StyleSheet.create({
     flex: 4,
   },
   text: {
-    marginLeft: 12,
     fontSize: 16,
+    padding: 10,
   },
   paddingBottom: {
     marginBottom: 10,
   },
   separator: {
     flex: 1,
+    height: 1,
+    backgroundColor: 'black',
     marginTop: 20,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgb(172,203,238)',
+  },
+  Titleseparator: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'black',
+    marginBottom: 5,
   },
    topContainerWithRoomForStatusBar: {
       paddingTop: 28,

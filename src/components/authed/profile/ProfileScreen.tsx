@@ -41,6 +41,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 
 interface BucketList {title: string, items: string[], checked: boolean[]}
 interface SeniorEvent {date: string, event: string, attending: boolean, attendees: string[]}
+interface SeniorDateEvent {date: string, events: SeniorEvent[]}
 
 interface State {
   previewingCard: boolean
@@ -49,7 +50,9 @@ interface State {
   bio: string
   photosSectionRequiresSave: boolean
   SeniorBucketList: BucketList[]
-  SeniorEventList: SeniorEvent[]
+  SeniorEventList: SeniorDateEvent[]
+  hasRSVPd: boolean
+  hasBucketListItems: boolean
 }
 
 interface OwnProps {}
@@ -115,19 +118,35 @@ class ProfileScreen extends PureComponent<Props, State> {
                           'Pretend to not be hungover in front of your parents 😬'],
                           checked: [false, false, false, false, false, false, false]}],
 
-      SeniorEventList: [{date: 'May 11', event: 'Around the World - SoGo', attending: false, attendees: ['Beyonce Knowles', 'Max Bernstein']},
-                        {date: 'May 14', event: 'Senior Brunch - Gifford House', attending: false, attendees: ['Lord Vader']},
-                        {date: 'May 14', event: 'Senior Gala - House of Blues', attending: false, attendees: ['Winnona DeSombre']},
-                        {date: 'May 15', event: "Senior Takeover - Dave and Buster's", attending: false, attendees: ['Yuki Zaninovich']},
-                        {date: 'May 15', event: 'Last Night in the Campus Center', attending: false, attendees: ['Zach Kirsch', 'Megan Monroe']},
-                        {date: 'May 16', event: 'Booze Cruise - Boston Harbor', attending: false, attendees: ['Chris Gregg', 'Shanshan Duan']},
-                        {date: 'May 16', event: 'Senior Night - Lucky Strike', attending: false, attendees: ["Moe's (RIP)"]},
-                        {date: 'May 17', event: 'Senior BBQ - SEC', attending: false, attendees: ["Moe's (RIP)", 'Shanshan Duan']},
-                        {date: 'May 17', event: 'Last Night on the Lawn - Prez Lawn', attending: false, attendees: ['Winnona DeSombre', 'Emily Lin']},
-                        {date: 'May 18', event: 'Tufts Night at the Pops - Boston Symphony Hall', attending: false, attendees: ['Chris Gregory']},
-                        {date: 'May 19', event: 'Baccalaureate Service - Gantcher', attending: false, attendees: ['SOMEONE OutOfIdeas']},
-                        {date: 'May 19', event: 'Candlelight Ceremony - Goddard', attending: false, attendees: ["Help it's been 9 hours"]},
-                        {date: 'May 20', event: 'Graduation 🎓', attending: false, attendees: ['ugh']}],
+      SeniorEventList: [{date: 'Friday, May 11', events: [{date: 'May 11', event: 'Around the World - SoGo',
+                                                          attending: false, attendees: ['Beyonce Knowles', 'Max Bernstein']}]},
+                        {date: 'Monday, May 14', events: [{date: 'May 14', event: 'Senior Brunch - Gifford House',
+                                                          attending: false, attendees: ['Lord Vader']},
+                                                          {date: 'May 14', event: 'Senior Gala - House of Blues',
+                                                            attending: false, attendees: ['Winnona DeSombre']}]},
+                        {date: 'Tuesday, May 15', events: [{date: 'May 15', event: "Senior Takeover - Dave and Buster's",
+                                                            attending: false, attendees: ['Yuki Zaninovich']},
+                                                            {date: 'May 15', event: 'Last Night in the Campus Center',
+                                                            attending: false, attendees: ['Zach Kirsch', 'Megan Monroe']}]},
+                        {date: 'Wednesday, May 16', events: [{date: 'May 16', event: 'Booze Cruise - Boston Harbor',
+                                                              attending: false, attendees: ['Chris Gregg', 'Shanshan Duan']},
+                                                            {date: 'May 16', event: 'Senior Night - Lucky Strike',
+                                                            attending: false, attendees: ["Moe's (RIP)"]}, ]},
+                        {date: 'Thursday, May 17', events: [{date: 'May 17', event: 'Senior BBQ - SEC',
+                                                            attending: false, attendees: ["Moe's (RIP)", 'Shanshan Duan']},
+                                                            {date: 'May 17', event: 'Last Night on the Lawn - Prez Lawn',
+                                                            attending: false, attendees: ['Winnona DeSombre', 'Emily Lin']}]},
+                        {date: 'Friday, May 18', events: [{date: 'May 18', event: 'Tufts Night at the Pops - Boston Symphony Hall',
+                                                          attending: false, attendees: ['Chris Gregory']}]},
+                        {date: 'Saturday, May 19', events: [{date: 'May 19', event: 'Baccalaureate Service - Gantcher',
+                                                            attending: false, attendees: ['SOMEONE OutOfIdeas']},
+                                                            {date: 'May 19', event: 'Candlelight Ceremony - Goddard',
+                                                            attending: false, attendees: ["Help it's been 9 hours"]}]},
+                        {date: 'Sunday, May 20', events: [{date: 'May 20', event: 'Graduation 🎓',
+                                                            attending: false, attendees: ['ugh']}]}],
+        hasRSVPd: false,
+        hasBucketListItems: false,
+
     }
   }
 
@@ -243,8 +262,14 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
-  private makeBucketList = (list: BucketList[]) => {this.setState({SeniorBucketList: list})}
-  private makeList = (list: SeniorEvent[]) => {this.setState({SeniorEventList: list})}
+  private makeBucketList = (list: BucketList[]) => {
+          this.setState({SeniorBucketList: list})
+          this.setState({hasBucketListItems: true})
+  }
+  private makeList = (list: SeniorDateEvent[]) => {
+    this.setState({SeniorEventList: list})
+    this.setState({hasRSVPd: true})
+  }
   private renderSeniorEvents = () => {
     return (
       <View style={styles.personalInfo}>
@@ -253,22 +278,32 @@ class ProfileScreen extends PureComponent<Props, State> {
         >
           <JSText bold style={[styles.title, styles.tagsTitle]}>SENIOR EVENTS</JSText>
           <View style={styles.bigfill}>
-          {this.renderChosenEvents()}
+          {!this.state.hasRSVPd && this.renderOptions()}
+          {this.renderAllDays()}
           </View>
         </TouchableOpacity>
       </View>)
   }
 
-  private renderChosenEvents = () => {
+  private renderAllDays = () => {
+    return this.state.SeniorEventList.map((section, sectionIndex) => {
+      return (
+        <View key={sectionIndex}>
+        {this.renderChosenEvents(section.events)}
+        </View>
+      )
+    })
+  }
+  private renderChosenEvents = (events: SeniorEvent[]) => {
     let chosenEvents: SeniorEvent[]
     chosenEvents = []
-    this.state.SeniorEventList.map((section) => {
+    events.map((section) => {
       if (section.attending) {
         chosenEvents.push(section)
       }
     })
     if (chosenEvents.length === 0) {
-      return (<JSText> Click here to view! </JSText>)
+      return null
     }
       return this.renderChosenRows(chosenEvents)
   }
@@ -285,12 +320,8 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private renderOptions = () => {
-    if (this.state.SeniorBucketList[0].checked.every(this.isFalse) && this.state.SeniorBucketList[1].checked.every(this.isFalse)) {
-
       return (<JSText> Click here to view! </JSText>)
-    } return null
   }
-  private isFalse = (b: boolean) => { return (b === false) }
 
   private renderBucketItems = (i: number) => {
      return this.state.SeniorBucketList[i].checked.map((section, sectionIndex) => {
