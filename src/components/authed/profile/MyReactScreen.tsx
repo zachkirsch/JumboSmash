@@ -58,7 +58,7 @@ class MyReactScreen extends PureComponent<Props, State> {
     }
   }
   render() {
-    const pressReact = (reacts: ProfileReact[]) => () => {this.setState({renderByID: reacts[0].id})}
+    const pressReact = (reacts: ProfileReact[]) => {this.setState({renderByID: reacts[0].id})}
     return (
       <View style={styles.fill}>
         <HeaderBar title='My Reacts' onPressLeft={this.props.navigation.goBack}/>
