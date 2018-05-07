@@ -226,11 +226,12 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
   private renderBucketList = () => {
+
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity onPress={this.navigateTo('BucketListScreen',
-          {SeniorBucketList: this.state.SeniorBucketList,
-            newList: (list: BucketList[]) => {this.setState({SeniorBucketList: list})}})}>
+        <TouchableOpacity
+          onPress={this.navigateTo('BucketListScreen', {SeniorBucketList: this.state.SeniorBucketList, newList: this.makeBucketList})}
+        >
           <JSText bold style={[styles.title, styles.tagsTitle]}>BUCKET LIST</JSText>
           <View style={styles.fill}>
           {this.renderOptions()}
@@ -242,10 +243,14 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
+  private makeBucketList = (list: BucketList[]) => {this.setState({SeniorBucketList: list})}
+  private makeList = (list: SeniorEvent[]) => {this.setState({SeniorEventList: list})}
   private renderSeniorEvents = () => {
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity onPress={this.navigateTo('SeniorEventScreen', {SeniorEventList: this.state.SeniorEventList, newList: (list: SeniorEvent[]) => {this.setState({SeniorEventList: list}), console.log(list)}})}>
+        <TouchableOpacity
+            onPress={this.navigateTo('SeniorEventScreen', {SeniorEventList: this.state.SeniorEventList, newList: this.makeList})}
+        >
           <JSText bold style={[styles.title, styles.tagsTitle]}>SENIOR EVENTS</JSText>
           <View style={styles.bigfill}>
           {this.renderChosenEvents()}
@@ -270,10 +275,12 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private renderChosenRows = (events: SeniorEvent[]) => {
     return events.map((section, sectionIndex) => {
-        return (<View key={sectionIndex} style={styles.EventRow}>
-        <JSText style={styles.eventDate}>{section.date}</JSText>
-        <JSText style={styles.eventString}>{section.event}</JSText>
-      </View>)
+        return (
+          <View key={sectionIndex} style={styles.EventRow}>
+            <JSText style={styles.eventDate}>{section.date}</JSText>
+            <JSText style={styles.eventString}>{section.event}</JSText>
+          </View>
+      )
     })
   }
 

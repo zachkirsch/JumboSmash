@@ -70,14 +70,17 @@ class BucketListScreen extends PureComponent<Props, State> {
   }
 
   private renderRows = (dataList: string[], index: number) => {
+    const onPressCheck = (ind: number, sectionIndex: number) => () => this.toggleListItem(ind, sectionIndex)
     return dataList.map((section, sectionIndex) => {
       return (
       <View key={sectionIndex}>
       <View style={styles.container}>
-      <CheckBox title={section}
-      containerStyle={styles.bucketListContainer}
-      onPress={() => this.toggleListItem(index, sectionIndex)}
-      checked={this.state.checkedList[index].checked[sectionIndex]}/>
+      <CheckBox
+        title={section}
+        containerStyle={styles.bucketListContainer}
+        onPress={onPressCheck(index, sectionIndex)}
+        checked={this.state.checkedList[index].checked[sectionIndex]}
+      />
       </View>
       </View>)
     })

@@ -35,6 +35,7 @@ class MyReactScreen extends PureComponent<Props, State> {
   }
 
   render() {
+    const textChange = (text: string) => () => this.newSearch(text)
     return (
       <View style={styles.fill}>
         <HeaderBar title='Senior Event RSVPs' onPressLeft={this.props.navigation.goBack}/>
@@ -42,7 +43,7 @@ class MyReactScreen extends PureComponent<Props, State> {
         <View style={styles.search}>
           <JSTextInput
             placeholder='Search...'
-            onChangeText={(text) => this.newSearch(text)}
+            onChangeText={textChange}
           />
         </View>
           <View style={[styles.topContainer]}>

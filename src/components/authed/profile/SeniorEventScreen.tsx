@@ -37,7 +37,6 @@ class SeniorEventScreen extends PureComponent<Props, State> {
     this.state = {
       checkedList: this.props.navigation.state.params.SeniorEventList,
     }
-    console.log(this.state.checkedList)
   }
 
   render() {
@@ -56,11 +55,17 @@ class SeniorEventScreen extends PureComponent<Props, State> {
     )
   }
   private renderList = (dataList: SeniorEvent[]) => {
+    const pressList = (sectionIndex: number) => () => {this.toggleListItem(sectionIndex)}
     return dataList.map((section, sectionIndex) => {
       return (
         <View  key={sectionIndex}>
       <View style={styles.container}>
-      <CheckBox title={section.event} containerStyle={styles.bucketListContainer} onPress={() => this.toggleListItem(sectionIndex)} checked={this.state.checkedList[sectionIndex].attending}/>
+      <CheckBox
+        title={section.event}
+        containerStyle={styles.bucketListContainer}
+        onPress={pressList(sectionIndex)}
+        checked={this.state.checkedList[sectionIndex].attending}
+      />
         <View style={styles.subView}>
         <JSText style={styles.date}>{section.date}</JSText>
          <TouchableOpacity onPress={this.navigateTo('MyEventsScreen', {event: section.event, attendees: section.attendees})}>
@@ -76,8 +81,7 @@ class SeniorEventScreen extends PureComponent<Props, State> {
   private toggleListItem = (index: number)  => {
     let newEventList = this.props.navigation.state.params.SeniorEventList
     newEventList[index].attending = !newEventList[index].attending
-    this.setState({checkedList: newEventList})
-    console.log(newEventList) // This works, uncertain as to why the frontend doesn't show up as checked...
+    this.setState({checkedList: newEventList}) // This works, uncertain as to why the frontend doesn't show up as checked...
     return this.props.navigation.state.params.newList(newEventList)
 
   }
