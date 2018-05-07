@@ -689,7 +689,7 @@ class Card extends PureComponent<Props, State> {
       Animated.parallel([
         Animated.timing(this.state.pan, { toValue: {x: xValue, y: yValue}, duration: 300 }),
         Animated.timing(this.state.panX, { toValue: xValue, duration: 300 }),
-      ]).start(() => onComplete)
+      ]).start(onComplete)
     } else {
       onComplete()
     }
