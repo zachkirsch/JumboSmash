@@ -62,7 +62,7 @@ class MyReactScreen extends PureComponent<Props, State> {
     let newList: string[]
     newList = []
     let masterList = this.props.navigation.state.params.attendees
-    masterList.map((section, sectionIndex) => {
+    masterList.map((section) => {
       if (section.indexOf(substring) >= 0) {
         newList.push(section)
       }
