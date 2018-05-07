@@ -100,16 +100,8 @@ const styles = StyleSheet.create({
   tagSection: {
     marginBottom: 20,
   },
-  namesContainer: {
-    paddingLeft: 10,
-  },
   title: {
     textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: 'rgb(172,203,238)',
-    paddingTop: 10,
   },
   container: {
     flex: 1,
@@ -125,52 +117,5 @@ const styles = StyleSheet.create({
   topContainerWithRoomForStatusBar: {
      paddingTop: 28,
    },
-   imageReact: {
-     width: 25,
-     height: 25,
-     justifyContent: 'center',
-   },
-   emoji: {
-     fontSize: 23,
-   },
-   reactColumn: {
-     height: 120,
-     flex: 1,
-     justifyContent: 'space-around',
-     padding: 5,
-   },
-   date: {
-     fontSize: 15,
-     paddingTop: 10,
-     color: 'rgb(172,203,238)',
-     flex: 1,
-     alignSelf: 'center',
-   },
-   reacts: {
-     flex: 1,
-     flexDirection: 'row',
-     justifyContent: 'center',
-     alignItems: 'center',
-     flexWrap: 'wrap',
-     marginBottom: 15,
-   },
-   react: {
-     height: 40,
-     flexDirection: 'row',
-     alignItems: 'center',
-     justifyContent: 'center',
-     margin: 5,
-     borderRadius: 6,
-     borderWidth: 1,
-     borderColor: 'rgb(240, 240, 240)',
-   },
-   selectedReact: {
-     backgroundColor: 'rgb(172,203,238)',
-     borderColor: 'rgb(172,203,238)',
-   },
-   reactNum: {
-     marginLeft: 4,
-     fontSize: 12,
-     color: 'rgba(41,41,44,0.76)',
-   },
+
 })
