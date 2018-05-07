@@ -82,7 +82,7 @@ const MAX_BIO_LENGTH = 1000
 @connectActionSheet
 class ProfileScreen extends PureComponent<Props, State> {
 
-  seniorGoalTextInput: JSTextInput | null;
+  seniorGoalTextInput: JSTextInput | null
   private mainScrollView: any /* tslint:disable-line:no-any */
   private photosSection: PhotosSection | null
   private preferredNameTextInput: JSTextInput | null
@@ -106,7 +106,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       preferredName: getInitialValue(props.profile.preferredName),
       bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
-      seniorGoal: "",
+      seniorGoal: '',
       SeniorBucketList: [{title: 'More Wholesome', items: ['Decorate your graduation cap 🎓',
                           'Facebook message Tony Monaco 💬', 'Paint the Cannon 🎨',
                           'Go on a bar crawl with your (21+) friends 🥂', 'Drink with a professor 🍻',
@@ -420,7 +420,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       </View>
     </View>
   )
-  private renderSeniorGoal= () => {
+  private renderSeniorGoal = () => {
     return (
       <View style={styles.personalInfo}>
         <JSText bold style={[styles.title, styles.preferredNameTitle]}>BEFORE GRADUATION, I'M GOING TO...</JSText>
@@ -535,7 +535,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private updateSeniorGoal = (seniorGoal: string) => {
     this.setState({ seniorGoal }, this.updateSaveOverlay)
-    //this.props.onChangePreferredNameTextInput(seniorGoal) TODO: doesn't exist yet
+    // this.props.onChangePreferredNameTextInput(seniorGoal) TODO: doesn't exist yet
   }
 
   private updateBio = (bio: string) => {
