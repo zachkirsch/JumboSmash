@@ -108,6 +108,18 @@ const getNextPostLoginRoute = (currentRoute?: string) => {
       ReviewCoCScreen: {
         screen: Profile.ReviewCoCScreen,
       },
+      MyReactScreen: {
+        screen: Profile.MyReactScreen,
+      },
+      BucketListScreen: {
+        screen: Profile.BucketListScreen,
+      },
+      SeniorEventScreen: {
+        screen: Profile.SeniorEventScreen,
+      },
+      MyEventsScreen: {
+        screen: Profile.MyEventsScreen,
+      },
     }, {
       headerMode: 'none',
       cardStyle: styles.stackCard,

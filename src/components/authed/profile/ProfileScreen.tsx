@@ -53,6 +53,7 @@ interface State {
   SeniorEventList: SeniorDateEvent[]
   hasRSVPd: boolean
   hasBucketListItems: boolean
+  seniorGoal: string
 }
 
 interface OwnProps {}
@@ -81,6 +82,7 @@ const MAX_BIO_LENGTH = 1000
 @connectActionSheet
 class ProfileScreen extends PureComponent<Props, State> {
 
+  seniorGoalTextInput: JSTextInput | null;
   private mainScrollView: any /* tslint:disable-line:no-any */
   private photosSection: PhotosSection | null
   private preferredNameTextInput: JSTextInput | null
@@ -104,6 +106,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       preferredName: getInitialValue(props.profile.preferredName),
       bio: getInitialValue(props.profile.bio),
       photosSectionRequiresSave: false,
+      seniorGoal: "",
       SeniorBucketList: [{title: 'More Wholesome', items: ['Decorate your graduation cap 🎓',
                           'Facebook message Tony Monaco 💬', 'Paint the Cannon 🎨',
                           'Go on a bar crawl with your (21+) friends 🥂', 'Drink with a professor 🍻',
@@ -182,6 +185,7 @@ class ProfileScreen extends PureComponent<Props, State> {
             ref={ref => this.photosSection = ref}
           />
           {this.renderPersonalInfo()}
+          {this.renderSeniorGoal()}
           {this.renderTags()}
           {this.renderReacts()}
           {this.renderBucketList()}
@@ -253,7 +257,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         >
           <JSText bold style={[styles.title, styles.tagsTitle]}>BUCKET LIST</JSText>
           <View style={styles.fill}>
-          {this.renderOptions()}
+          {!this.state.hasBucketListItems && this.renderOptions()}
           {this.renderBucketItems(0)}
           {this.renderBucketItems(1)}
           </View>
@@ -416,7 +420,27 @@ class ProfileScreen extends PureComponent<Props, State> {
       </View>
     </View>
   )
-
+  private renderSeniorGoal= () => {
+    return (
+      <View style={styles.personalInfo}>
+        <JSText bold style={[styles.title, styles.preferredNameTitle]}>BEFORE GRADUATION, I'M GOING TO...</JSText>
+        <View style={styles.preferredNameContainer}>
+          <JSTextInput
+            maxLength={50}
+            style={[styles.bigInput, styles.preferredName]}
+            value={this.state.seniorGoal}
+            onChangeText={this.updateSeniorGoal}
+            autoCorrect={false}
+            selectTextOnFocus
+            onFocus={this.onFocus('seniorGoal')}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType='done'
+            ref={ref => this.preferredNameTextInput = ref}
+          />
+        </View>
+        </View>
+    )
+  }
   private renderBio = () => (
     <View>
       <JSTextInput
@@ -472,7 +496,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     this.props.toggleUnderclassmen(!showOnlySeniors)
   }
 
-  private onFocus = (inputName: 'preferredName' | 'bio') => () => {
+  private onFocus = (inputName: 'preferredName' | 'bio' | 'seniorGoal') => () => {
     let ref: JSTextInput | null = null
     switch (inputName) {
       case 'preferredName':
@@ -481,6 +505,8 @@ class ProfileScreen extends PureComponent<Props, State> {
       case 'bio':
         ref = this.bioTextInput
         break
+      case 'seniorGoal':
+        ref = this.seniorGoalTextInput
     }
 
     if (!ref || !this.mainScrollView) {
@@ -505,6 +531,11 @@ class ProfileScreen extends PureComponent<Props, State> {
   private updatePreferredName = (preferredName: string) => {
     this.setState({ preferredName }, this.updateSaveOverlay)
     this.props.onChangePreferredNameTextInput(preferredName)
+  }
+
+  private updateSeniorGoal = (seniorGoal: string) => {
+    this.setState({ seniorGoal }, this.updateSaveOverlay)
+    //this.props.onChangePreferredNameTextInput(seniorGoal) TODO: doesn't exist yet
   }
 
   private updateBio = (bio: string) => {
