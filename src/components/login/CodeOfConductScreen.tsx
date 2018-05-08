@@ -96,9 +96,6 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
   }
 
   private renderTermsOfService = () => {
-    if (Platform.OS !== 'ios') {
-      return null
-    }
     return (
       <View style={styles.termsOfService}>
         <JSText bold>{TERMS_OF_SERVICE}</JSText>

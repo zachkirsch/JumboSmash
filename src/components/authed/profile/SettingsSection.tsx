@@ -90,7 +90,7 @@ class SettingsSection extends PureComponent<Props, {}> {
       destructive: true,
       onPress: () => {
         Alert.alert(
-          'Deactivate My Account',
+          'Deactivate Account',
           'This will prevent others from seeing your profile until you log back in again.',
           [
             {text: 'Deactivate', onPress: this.props.deactivate },

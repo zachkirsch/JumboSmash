@@ -18,7 +18,9 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     return this.constructUri ? this.constructUri(this.endpoint, pathExtensionComponents) : this.endpoint
   }
 
-  protected makeRequest(endpoint: string, method: HttpMethod, body?: Request): Promise<SuccessResponse> {
+  // TODO: retry failed requests
+  // TODO: logout if banned
+  protected makeRequest(endpoint: string, method: HttpMethod, body: Request | undefined, retry = true): Promise<SuccessResponse> {
     return fetch(SERVER_URL.replace(/\/$/, '') + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
       throw Error('Could not connect to the server')
@@ -41,12 +43,13 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     })
   }
 
-  private buildRequest(method: HttpMethod, body?: Request): RequestInit {
+  private buildRequest(method: HttpMethod, body: Request | undefined): RequestInit {
 
     const request: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
     }
 
@@ -69,7 +72,7 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
 
   public hit(params: Request, pathExtensionComponents: PathExtensionComponents) {
     const uri = this.constructUriWithParams(params, pathExtensionComponents)
-    return this.makeRequest(uri, 'GET')
+    return this.makeRequest(uri, 'GET', undefined)
   }
 
   private constructUriWithParams = (params: Request, pathExtensionComponents: PathExtensionComponents) => {

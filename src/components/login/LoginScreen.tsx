@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   inputContainer: {
+    marginTop: 50,
     justifyContent: 'center',
     flex: 1,
   },

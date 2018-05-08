@@ -42,7 +42,6 @@ interface State {
   viewingCoC: boolean
   preferredName: string
   bio: string
-  photosSectionRequiresSave: boolean
 }
 
 interface OwnProps {}
@@ -67,6 +66,7 @@ interface DispatchProps {
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
 
 const MAX_BIO_LENGTH = 1000
+const MAX_PREFERRED_NAME_LENGTH = 30
 
 @connectActionSheet
 class ProfileScreen extends PureComponent<Props, State> {
@@ -75,16 +75,16 @@ class ProfileScreen extends PureComponent<Props, State> {
   private photosSection: PhotosSection | null
   private preferredNameTextInput: JSTextInput | null
   private bioTextInput: JSTextInput | null
-  private tagsRequiredSave = false
+  private saveRequired = false
 
   constructor(props: Props) {
     super(props)
 
     function getInitialValue<T>(item: LoadableValue<T>) {
-      if (item.localValue === undefined) {
-        return item.value
-      } else {
+      if (item.localValue !== undefined) {
         return item.localValue
+      } else {
+        return item.value
       }
     }
 
@@ -93,12 +93,10 @@ class ProfileScreen extends PureComponent<Props, State> {
       viewingCoC: false,
       preferredName: getInitialValue(props.profile.preferredName),
       bio: getInitialValue(props.profile.bio),
-      photosSectionRequiresSave: false,
     }
   }
 
   componentDidMount() {
-    this.updateSaveOverlay()
     this.props.navigation.addListener('didBlur', Keyboard.dismiss)
   }
 
@@ -125,7 +123,7 @@ class ProfileScreen extends PureComponent<Props, State> {
             swapImages={this.props.swapImages}
             updateImage={this.updateImage}
             showActionSheetWithOptions={this.props.showActionSheetWithOptions!}
-            saveRequired={this.markPhotosSectionAsRequiringSave}
+            onChange={this.markPhotosSectionAsRequiringSave}
             ref={ref => this.photosSection = ref}
           />
           {this.renderPersonalInfo()}
@@ -250,7 +248,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       <JSText bold style={[styles.title, styles.preferredNameTitle]}>NAME</JSText>
       <View style={styles.preferredNameContainer}>
         <JSTextInput
-          maxLength={30}
+          maxLength={MAX_PREFERRED_NAME_LENGTH}
           style={[styles.bigInput, styles.preferredName]}
           value={this.state.preferredName}
           onChangeText={this.updatePreferredName}
@@ -269,28 +267,25 @@ class ProfileScreen extends PureComponent<Props, State> {
   )
 
   private renderBio = () => (
-    <View>
+    <View style={styles.bioContainer}>
       <JSTextInput
+        fancy
         multiline
         maxLength={MAX_BIO_LENGTH}
+        keyboardType='default'
         value={this.state.bio}
         onChangeText={this.updateBio}
-        fancy
         autoCorrect={false}
         style={styles.bio}
         onFocus={this.onFocus('bio')}
-        onSubmitEditing={Keyboard.dismiss}
-        returnKeyType='done'
         ref={ref => this.bioTextInput = ref}
+        placeholder='What does #YOLO mean to you?'
       />
-      <JSText style={styles.bioCharacterCount}>
-        {MAX_BIO_LENGTH - this.state.bio.length}
-      </JSText>
     </View>
   )
 
   private renderPersonalInfo = () => {
-    // bio is *first* because flexDirection is reverse (so that shadow doesn't cover the bio)
+    // bio is first because flexDirection is reverse (so that shadow doesn't cover the bio)
     return (
       <View style={styles.personalInfoContainer}>
         {this.renderBio()}
@@ -324,6 +319,9 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private onFocus = (inputName: 'preferredName' | 'bio') => () => {
+    if (Platform.OS !== 'ios') {
+      return
+    }
     let ref: JSTextInput | null = null
     switch (inputName) {
       case 'preferredName':
@@ -354,49 +352,42 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private updatePreferredName = (preferredName: string) => {
-    this.setState({ preferredName }, this.updateSaveOverlay)
-    this.props.onChangePreferredNameTextInput(preferredName)
+    if (this.state.preferredName !== preferredName) {
+      this.addSaveOverlay()
+      this.setState({ preferredName })
+      this.props.onChangePreferredNameTextInput(preferredName)
+    }
   }
 
   private updateBio = (bio: string) => {
-    this.setState({ bio }, this.updateSaveOverlay)
+    if (this.state.bio !== bio && !this.saveRequired) {
+      this.addSaveOverlay()
+    }
+    this.setState({ bio })
     this.props.onChangeBioTextInput(bio)
   }
 
-  private updateSaveOverlay = () => {
+  private addSaveOverlay = () => {
     if (this.setupMode()) {
       return
     }
-    if (this.saveRequired()) {
-      const saveOverlay = (
-        <SaveOrRevert
-          save={this.save}
-          revert={this.revert}
-          containerStyle={styles.saveOverlay}
-          buttonContainerStyle={styles.saveButtonContainer}
-          buttonStyle={styles.saveButton}
-        />
-      )
-      this.props.setTabBarOverlay(() => saveOverlay)
-    } else {
-      this.props.clearTabBarOverlay()
+    if (this.saveRequired) {
+      return
     }
+    const saveOverlay = (
+      <SaveOrRevert
+        save={this.save}
+        revert={this.revert}
+        containerStyle={styles.saveOverlay}
+        buttonContainerStyle={styles.saveButtonContainer}
+        buttonStyle={styles.saveButton}
+      />
+    )
+    this.props.setTabBarOverlay(() => saveOverlay)
   }
 
   private markPhotosSectionAsRequiringSave = () => {
-    this.setState({
-      photosSectionRequiresSave: true,
-    }, this.updateSaveOverlay)
-  }
-
-  // ignores tags
-  private saveRequired = () => {
-    if (this.state.photosSectionRequiresSave
-        || this.props.profile.bio.value !== this.state.bio
-        || this.props.profile.preferredName.value !== this.state.preferredName) {
-      return true
-    }
-    return this.tagsRequiredSave
+    this.addSaveOverlay()
   }
 
   private revert = () => {
@@ -404,10 +395,10 @@ class ProfileScreen extends PureComponent<Props, State> {
       this.setState({
         bio: this.props.profile.bio.value,
         preferredName: this.props.profile.preferredName.value,
-        photosSectionRequiresSave: false,
       })
       this.props.clearTabBarOverlay()
       this.photosSection && this.photosSection.revert()
+      this.saveRequired = false
     }
 
     Keyboard.dismiss()
@@ -438,10 +429,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         this.photosSection && this.photosSection.save()
         this.props.clearTabBarOverlay()
         if (!this.setupMode()) {
-          this.setState({
-            photosSectionRequiresSave: false,
-          })
-          this.tagsRequiredSave = false
+          this.saveRequired = false
         }
       })
     }, 50)
@@ -492,21 +480,14 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen)
 
 const styles = StyleSheet.create({
-  bio: {
-    marginHorizontal: 0,
-    textAlign: 'left',
-    paddingTop: 15,
-    paddingLeft: 20,
-    paddingBottom: 20,
-    paddingRight: 25,
-    height: 175,
-    fontSize: 17,
+  bioContainer: {
+    maxHeight: 175,
   },
-  bioCharacterCount: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    color: 'gray',
+  bio: {
+    paddingTop: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    fontSize: 17,
   },
   personalInfoContainer: {
     flex: 1,

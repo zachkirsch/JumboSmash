@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 40,
+    height: 43,
     zIndex: 20,
     ...Platform.select({
       ios: {

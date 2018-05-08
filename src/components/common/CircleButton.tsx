@@ -171,7 +171,7 @@ class CircleButton extends PureComponent<Props, State> {
       this.state.scale,
       {
         toValue: shrink ? 0 : 1,
-        duration: 200,
+        duration: 100,
       }
     ).start()
   }

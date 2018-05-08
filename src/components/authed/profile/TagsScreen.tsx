@@ -66,7 +66,7 @@ class TagsScreen extends PureComponent<Props, State> {
       <HeaderBar
         title='Choose Tags'
         onPressLeft={this.revert}
-        renderLeft={this.saveRequired() ? this.renderHeaderLeft : undefined}
+        renderLeft={this.renderHeaderLeft}
         onPressRight={this.saveAndGoBack}
         renderRight={this.renderHeaderRight}
       />
@@ -75,7 +75,7 @@ class TagsScreen extends PureComponent<Props, State> {
 
   private renderHeaderLeft = () => {
     return (
-      <JSText style={styles.headerBarSideText}>Revert</JSText>
+      <JSText style={styles.headerBarSideText}>Cancel</JSText>
     )
   }
 

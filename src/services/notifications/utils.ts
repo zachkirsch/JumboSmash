@@ -11,14 +11,6 @@ import { NavigationService } from '../navigation'
 
 /* tslint:disable:no-console */
 
-interface NewMatchMessage {
-  msg_type: 'new_match'
-  match_id: number
-  conversation_uuid: string
-  createdAt: string
-  users: number[]
-}
-
 interface NewChatMessage {
   msg_type: 'new_chat'
   message: string
@@ -37,20 +29,14 @@ interface UnmatchMessage {
   match_id: number
 }
 
-interface DeactivateMessage {
-  msg_type: 'deactivate'
+interface RemoveMatchMessage {
+  msg_type: 'remove_match'
   conversation_uuid: string
-  match_id: number
-  user_id: number
+  user_to_remove: number | null
 }
 
-interface BlockedMessage {
-  msg_type: 'blocked'
-  by_user: number
-}
-
-interface ReactivateMessage {
-  msg_type: 'reactivate'
+interface AddMatchMessage {
+  msg_type: 'add_match' | 'new_match'
   match_id: number
   conversation_uuid: string
   createdAt: string
@@ -64,13 +50,11 @@ interface GeneralNotification {
 }
 
 type DataMessage = UnmatchMessage
-| NewMatchMessage
 | ReactMessage
-| DeactivateMessage
-| ReactivateMessage
-| BlockedMessage
+| RemoveMatchMessage
+| AddMatchMessage
 
-type Notification = NewMatchMessage | NewChatMessage | GeneralNotification
+type Notification = AddMatchMessage | NewChatMessage | GeneralNotification
 
 const dummy = () => {} /* tslint:disable-line:no-empty */
 
@@ -198,13 +182,16 @@ const onMessage = (message: any) => {
         NavigationService.popChatIfOpen(data.conversation_uuid)
         reduxStore.dispatch(unmatch(data.match_id, data.conversation_uuid))
         break
-      case 'deactivate':
+      case 'remove_match':
         NavigationService.popChatIfOpen(data.conversation_uuid)
         ChatService.stopListeningToChat(data.conversation_uuid)
         reduxStore.dispatch(removeChat(data.conversation_uuid))
+        if (data.user_to_remove) {
+          reduxStore.dispatch(removeUser(data.user_to_remove))
+        }
         break
+      case 'add_match':
       case 'new_match':
-      case 'reactivate':
         const otherUsers = data.users.filter(id => id !== reduxStore.getState().profile.id)
         ChatService.createChat(
           data.match_id,
@@ -216,9 +203,6 @@ const onMessage = (message: any) => {
         break
       case 'react':
         reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
-        break
-      case 'blocked':
-        reduxStore.dispatch(removeUser(data.by_user))
         break
     }
   } catch (e) {

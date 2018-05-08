@@ -92,13 +92,13 @@ class CountdownScreen extends PureComponent<Props, State> {
         {this.renderLogo()}
         <View style={styles.bottomContainer}>
           {this.renderCountdown()}
-          <View style={styles.titleTextContainer}>
-            {this.renderRocket()}
-            {this.renderBottomText()}
-          </View>
         </View>
         <View style={styles.overlay}>
           {this.renderOverlayContents()}
+        </View>
+        <View style={styles.rocketContainer}>
+          {this.renderRocket()}
+          {this.renderBottomText()}
         </View>
       </View>
     )
@@ -331,6 +331,7 @@ const styles = StyleSheet.create({
   bottomContainer: {
     flex: 1,
     justifyContent: 'space-around',
+    marginBottom: 60,
   },
   countdown: {
     flexDirection: 'row',
@@ -365,12 +366,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  titleTextContainer: {
-    justifyContent: 'center',
+  rocketContainer: {
+    ...StyleSheet.absoluteFillObject,
+    bottom: 40,
+    justifyContent: 'flex-end',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    marginTop: 20,
-    marginBottom: 40,
   },
   titleText: {
     color: '#738CB0',

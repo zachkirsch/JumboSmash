@@ -27,6 +27,9 @@ export const api = {
   updateBio: (bio: string) => Endpoints.updateBio.hit({bio}, {}),
   updateName: (preferredName: string) => Endpoints.updateName.hit({preferred_name: preferredName}, {}),
   updateImages: (images: string[]) => Endpoints.updateImages.hit({images}, {}),
+  updateSeeUnderclassmen: (seeUnderclassmen: boolean) => Endpoints.updateSeeUnderclassmen.hit({
+    see_underclassmen: seeUnderclassmen,
+  }, {}),
   getTags: () => Endpoints.getTags.hit({}, {}),
   updateTags: (tagIds: number[]) => Endpoints.updateTags.hit({tag_ids: tagIds}, {}),
   getReacts: () => Endpoints.getReacts.hit({}, {}),

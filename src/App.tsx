@@ -157,6 +157,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(App)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
   },

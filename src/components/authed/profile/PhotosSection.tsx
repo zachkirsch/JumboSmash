@@ -15,7 +15,7 @@ interface Props {
   images: Array<LoadableValue<ImageUri>>
   swapImages: (index1: number, index2: number) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
-  saveRequired: () => void
+  onChange: () => void
   showActionSheetWithOptions: (options: ActionSheetOptions, onPress: (buttonIndex: number) => void) => void,
 }
 
@@ -79,19 +79,42 @@ class PhotosSection extends PureComponent<Props, State> {
 
   render() {
     return (
+      <View style={styles.container}>
+        {this.renderPhotoSection(index => this.renderEmptyPhoto(index === 0))}
+        {this.renderPhotoSection(this.renderPhoto)}
+      </View>
+    )
+  }
+
+  private renderPhotoSection = (renderPhoto: (index: number) => JSX.Element) => {
+    return (
       <View style={styles.photosContainer}>
         <View style={styles.photosTopRowContainer}>
-          {this.renderPhoto(0)}
+          {renderPhoto(0)}
           <View style={styles.smallPhotosTopRowContainer}>
-            {this.renderPhoto(1)}
-            {this.renderPhoto(2)}
+            {renderPhoto(1)}
+            {renderPhoto(2)}
           </View>
         </View>
         <View style={styles.photosBottomRowContainer}>
-          {this.renderPhoto(3)}
-          {this.renderPhoto(4)}
-          {this.renderPhoto(5)}
+          {renderPhoto(3)}
+          {renderPhoto(4)}
+          {renderPhoto(5)}
         </View>
+      </View>
+    )
+  }
+
+  private renderEmptyPhoto = (big: boolean) => {
+    const imageStyles = [
+      styles.photo,
+      big ? styles.bigPhoto : styles.smallPhoto,
+      styles.emptyPhoto,
+    ]
+
+    return (
+      <View style={[styles.imageContainer, styles.emptyImageContainer]}>
+        <View style={imageStyles} />
       </View>
     )
   }
@@ -247,8 +270,7 @@ class PhotosSection extends PureComponent<Props, State> {
   private deletePhoto = (index: number, withConfirmation?: {title?: string, message?: string}) => () => {
 
     const deleteIt = () => {
-      // this.props.updateImage(index, '', '')
-      this.props.saveRequired()
+      this.props.onChange()
       const newImages = Array.from(this.state.images)
       newImages[index] = EMPTY_LOCAL_IMAGE
       this.setState({
@@ -289,7 +311,7 @@ class PhotosSection extends PureComponent<Props, State> {
     if (this.state.swapping) {
       let newImages = this.state.images
       if (this.state.swappingIndex !== index) {
-        this.props.saveRequired()
+        this.props.onChange()
         newImages = []
         const imageListSize = Math.max(this.state.images.length, index + 1, this.state.swappingIndex + 1)
         for (let i = 0; i < imageListSize; i++) {
@@ -320,8 +342,7 @@ class PhotosSection extends PureComponent<Props, State> {
           mediaType: 'photo',
           cropperToolbarTitle: 'Move and Scale to Crop',
         }).then((image: ImagePickerImage) => {
-          // this.props.updateImage(index, image.path, image.mime)
-          this.props.saveRequired()
+          this.props.onChange()
           const newImages = Array.from(this.state.images)
           newImages[index] = { uri: image.path, mime: image.mime }
           this.setState({
@@ -375,9 +396,13 @@ class PhotosSection extends PureComponent<Props, State> {
 export default PhotosSection
 
 const styles = StyleSheet.create({
-  photosContainer: {
+  container: {
     flex: 1,
     height: WIDTH,
+    width: WIDTH,
+  },
+  photosContainer: {
+    ...StyleSheet.absoluteFillObject,
     padding: .05 * WIDTH,
     justifyContent: 'space-between',
     backgroundColor: 'transparent',
@@ -399,15 +424,12 @@ const styles = StyleSheet.create({
   photo: {
     borderRadius: 5,
   },
-  imageContainer: {
-    borderRadius: 5,
-    backgroundColor: 'white',
-    overflow: 'visible',
+  emptyImageContainer: {
     ...Platform.select({
       ios: {
-        shadowColor: getLightColor(),
-        shadowOpacity: 0.75,
-        shadowRadius: .02 * WIDTH,
+        shadowColor: getLightColor(0.5),
+        shadowOpacity: 1,
+        shadowRadius: .075 * WIDTH,
       },
     }),
     ...Platform.select({
@@ -415,6 +437,10 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
+  },
+  imageContainer: {
+    borderRadius: 5,
+    backgroundColor: 'white',
   },
   bigPhoto: {
     height: WIDTH * 7 / 12,

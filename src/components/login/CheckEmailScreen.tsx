@@ -105,7 +105,7 @@ class CheckEmailScreen extends PureComponent<Props, State> {
         contentContainerStyle={styles.wrapper}
       >
         <View style={styles.header} />
-        <KeyboardAvoidingView behavior='padding' style={styles.container}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
           <View style={styles.messageContainer}>
             <SimpleLineIcons name='envelope' size={80} color={getLightColor()} />
             <View style={styles.contentTitleContainer}>

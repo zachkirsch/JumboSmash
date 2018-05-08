@@ -44,6 +44,12 @@ class JSTextInput extends PureComponent<Props, State> {
       },
     }))
 
+    if (this.shouldCenterText()) {
+      textInputStyles.push({
+        textAlign: 'center',
+      })
+    }
+
     return (
       <TextInput
         {...otherProps}
@@ -60,7 +66,7 @@ class JSTextInput extends PureComponent<Props, State> {
 
   private onFocus = () => {
     this.setState({
-      showPlaceholder: Platform.OS === 'android',
+      showPlaceholder: Platform.OS !== 'ios' || !this.shouldCenterText(),
     })
     this.props.onFocus && this.props.onFocus()
   }
@@ -71,6 +77,8 @@ class JSTextInput extends PureComponent<Props, State> {
     })
     this.props.onBlur && this.props.onBlur()
   }
+
+  private shouldCenterText = () => this.props.fancy && !this.props.multiline
 }
 
 export default JSTextInput
@@ -84,7 +92,7 @@ const styles = StyleSheet.create({
   fancy: {
     ...Platform.select({
       ios: {
-        shadowColor: getMainColor(0.75),
+        shadowColor: getMainColor(0.25),
         shadowOpacity: 1,
         shadowRadius: 50,
       },
@@ -96,7 +104,6 @@ const styles = StyleSheet.create({
     }),
     marginVertical: 5,
     paddingVertical: 15,
-    textAlign: 'center',
     backgroundColor: 'white',
   },
   underline: {
