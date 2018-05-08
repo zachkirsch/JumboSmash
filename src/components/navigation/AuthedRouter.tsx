@@ -61,6 +61,18 @@ export default StackNavigator({
   BlockScreen: {
     screen: Profile.BlockScreen,
   },
+  MyReactScreen: {
+    screen: Profile.MyReactScreen,
+  },
+  BucketListScreen: {
+    screen: Profile.BucketListScreen,
+  },
+  SeniorEventScreen: {
+    screen: Profile.SeniorEventScreen,
+  },
+  MyEventsScreen: {
+    screen: Profile.MyEventsScreen,
+  },
   ReviewCoCScreen: {
     screen: Profile.ReviewCoCScreen,
   },

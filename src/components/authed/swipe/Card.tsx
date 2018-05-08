@@ -835,6 +835,7 @@ class Card extends PureComponent<Props, State> {
       easedIn: this.props.type !== 'normal' || this.props.positionInStack === 0,
       scrollViewBackgroundColor: 'transparent',
       isMomentumScrolling: false,
+
     }
   }
 
@@ -1004,5 +1005,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 17,
     color: 'white',
     letterSpacing: 1.33,
+  },
+  separator: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#8E8E8E',
   },
 })
