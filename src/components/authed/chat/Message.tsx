@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet } from 'react-native'
+import {Image, View, StyleSheet, Dimensions} from 'react-native'
 import { MessageProps, utils } from 'react-native-gifted-chat'
 import Bubble from './Bubble'
 import LinearGradient from 'react-native-linear-gradient'
@@ -7,6 +7,7 @@ import JSText from '../../common/JSText'
 import moment from 'moment'
 import { User } from '../../../services/swipe'
 import { JSImage } from '../../common'
+import {Images} from "../../../assets";
 
 interface Props extends MessageProps {
   fromUser?: User
@@ -15,6 +16,8 @@ interface Props extends MessageProps {
 const { isSameUser } = utils
 
 const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
+const WIDTH = Dimensions.get('window').width
+
 
 export default class Message extends PureComponent<Props, {}> {
 
@@ -49,6 +52,21 @@ export default class Message extends PureComponent<Props, {}> {
       <Bubble
         currentMessage={this.props.currentMessage}
         user={this.props.user}
+      />
+    )
+  }
+
+  renderImage() {
+    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.image) {
+      return null
+    }
+    return (
+      <JSImage
+        cache
+        source={{ uri: this.props.currentMessage.image }}
+        style={styles.gif}
+        resizeMode={'cover'}
+        borderRadius={15}
       />
     )
   }
@@ -93,6 +111,12 @@ export default class Message extends PureComponent<Props, {}> {
       return null
     }
 
+    // if (this.props.currentMessage.image) {
+    //   console.log("instead of rendering a bubble, render this image: ", this.props.currentMessage.image)
+    // } else {
+    //
+    // }
+
     const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
 
     const colors = [
@@ -118,6 +142,9 @@ export default class Message extends PureComponent<Props, {}> {
           >
             {this.renderBubble()}
           </LinearGradient>
+        </View>
+        <View style={[styles.container, containerStyle]}>
+          {this.renderImage()}
         </View>
         {this.renderFailedToSend()}
       </View>
@@ -183,4 +210,10 @@ const styles = StyleSheet.create({
   failedToSendText: {
     color: 'rgb(214, 145, 145)',
   },
+  gif: {
+    width: WIDTH * 2 / 3,
+    height: 150,
+    alignItems: 'flex-end',
+    overlayColor: '#FFFFFF'
+  }
 })

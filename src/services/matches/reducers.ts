@@ -70,8 +70,8 @@ const updateSentStatus = (oldState: MatchesState,
     if (originalConversation.messageIDs.contains(message._id)) {
       newMessages = newMessages.update(
         newMessages.findIndex((messageInList) => !!messageInList && messageInList._id === message._id),
-        (messageInList) => ({
-          ...messageInList,
+        (_) => ({
+          ...message,
           sending: false,
           failedToSend: !success,
         })

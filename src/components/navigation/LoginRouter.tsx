@@ -150,14 +150,14 @@ const getPostLoginScreens = () => {
 export const generateLoginRouter = () => {
   const screens: { [key: string]: NavigationRouteConfig } = {}
   const state = reduxStore.getState()
-  if (!state.time.postRelease) {
-    screens[LoginRoute.CountdownScreen] = {
-      screen: CountdownScreen,
-      navigationOptions: {
-        tabBarVisible: false,
-      },
-    }
-  }
+  // if (!state.time.postRelease) {
+  //   screens[LoginRoute.CountdownScreen] = {
+  //     screen: CountdownScreen,
+  //     navigationOptions: {
+  //       tabBarVisible: false,
+  //     },
+  //   }
+  // }
   screens[LoginRoute.LoginScreen] = StackNavigator({
     Login: {
       screen: LoginScreen,
