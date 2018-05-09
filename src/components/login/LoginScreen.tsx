@@ -73,41 +73,6 @@ class LoginScreen extends PureComponent<Props, State> {
     // default is ' ' so that it's never empty (and so it always takes up space)
     const errorMsg = this.state.inputErrorMessage || ' '
 
-
-    const apiKey = 'avovzjZaC19qaKeXMr6DzSgNm1YQvepz'
-    const apiUrl = 'http://api.giphy.com/v1/gifs/search'
-
-    const regex = /\/gif\s\(([^.?]*)\)|\/gif\s\w+/g
-    let textToAnalyze = '/gif hello'
-
-    const matches = textToAnalyze.match(regex) || []
-    console.log(matches)
-    const rets = []
-
-    matches.forEach((match) => {
-      const queryParams = {
-        api_key: apiKey,
-        limit: 1,
-        rating: 'g',
-        q: match.split('/gif')[1]
-      }
-
-      let url = 'http://api.giphy.com/v1/gifs/search?q=ryan+gosling&api_key=avovzjZaC19qaKeXMr6DzSgNm1YQvepz&limit=1'
-
-      const a = fetch(url)
-        .then((r) => {
-          console.log(r)
-          // const body = JSON.parse(r.body || r);
-          // return r.data[0].images.fixed_height.url;
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-
-      // console.log(a);
-    });
-
-
     return (
       <ScrollView
         contentContainerStyle={styles.container}
