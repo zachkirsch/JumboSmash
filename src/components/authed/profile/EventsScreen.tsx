@@ -1,32 +1,36 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet, Platform } from 'react-native'
+import { StyleSheet, View, Platform } from 'react-native'
+import moment from 'moment'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { HeaderBar, JSText } from '../../common'
-import { updateBucketList, BucketListItem, BucketListCategory } from '../../../services/profile'
-import Checklist from './Checklist'
+import { Event, updateEvents } from '../../../services/profile'
+import Checklist, { Section } from './Checklist'
 
 interface State {
-  currentItems: BucketListCategory[]
+  currentRSVPs: Event[]
+}
+
+interface OwnProps {
 }
 
 interface StateProps {
-  bucketList: BucketListCategory[]
+  events: Event[]
 }
 
 interface DispatchProps {
-  updateBucketList: (items: BucketListCategory[]) => void
+  updateEvents: (events: Event[]) => void
 }
 
-type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class EventsScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
     this.state = {
-      currentItems: this.props.bucketList,
+      currentRSVPs: this.props.events,
     }
   }
 
@@ -42,11 +46,13 @@ class EventsScreen extends PureComponent<Props, State> {
         {this.renderHeaderBar()}
         {this.renderTopContainer()}
         <Checklist
-          sections={this.getBucketListItems()}
-          keyExtractor={this.extractIdFromItem}
-          labelExtractor={this.extractNameFromItem}
-          isChecked={this.itemCompleted}
-          onPressCheckbox={this.toggleItem}
+          sections={this.getEvents()}
+          keyExtractor={this.extractIdFromEvent}
+          labelExtractor={this.extractNameFromEvent}
+          isChecked={this.goingToEvent}
+          onPressCheckbox={this.toggleEvent}
+          onPressRightChevron={this.openEventScreen}
+          stickySectionHeadersEnabled={false}
         />
       </View>
     )
@@ -72,49 +78,50 @@ class EventsScreen extends PureComponent<Props, State> {
     )
   }
 
-  private getBucketListItems = () => {
-    return this.state.currentItems.map(category => ({
-      title: category.name,
-      data: category.items,
-    }))
+  private getEvents = () => {
+    const eventsByDay: Section<Event>[] = []
+    this.state.currentRSVPs.forEach(event => {
+      const dayStr = moment(event.time).format('dddd, MMMM D')
+      let eventDay = eventsByDay.find(day => day.title === dayStr)
+      if (eventDay === undefined) {
+        eventDay = {
+          title: dayStr,
+          data: [],
+        }
+        eventsByDay.push(eventDay)
+      }
+      eventDay.data.push(event)
+    })
+    return eventsByDay
   }
 
-  private extractIdFromItem = (item: BucketListItem) => item.id.toString(10)
-  private extractNameFromItem = (item: BucketListItem) => item.text
-  private itemCompleted = (item: BucketListItem) => item.completed
+  private extractIdFromEvent = (event: Event) => event.id.toString(10)
+  private extractNameFromEvent = (event: Event) => event.name
+  private goingToEvent = (event: Event) => event.going
+
+  private openEventScreen = (event: Event) => {
+    this.props.navigation.navigate('EventScreen', { event })
+  }
 
   private saveChanges = () => {
     if (this.saveRequired()) {
-      this.props.updateBucketList(this.state.currentItems)
+      this.props.updateEvents(this.state.currentRSVPs)
     }
   }
 
   private saveRequired = () => {
-    return !!this.props.bucketList.find((category, categoryIndex) => {
-      return !!category.items.find((item, itemIndex) => {
-        const completedInState = this.state.currentItems[categoryIndex].items[itemIndex].completed
-        return completedInState !== item.completed
-      })
-    })
+    return !!this.props.events.find((event, index) => event.going !== this.state.currentRSVPs[index].going)
   }
 
-  private toggleItem = (item: BucketListItem) => {
+  private toggleEvent = (event: Event) => {
     this.setState({
-      currentItems: this.state.currentItems.map(category => {
-        if (category.name !== item.category) {
-          return category
+      currentRSVPs: this.state.currentRSVPs.map((other) => {
+        if (other.id !== event.id) {
+          return other
         }
         return {
-          ...category,
-          items: category.items.map(other => {
-            if (item.id !== other.id) {
-              return other
-            }
-            return {
-              ...other,
-              completed: !other.completed,
-            }
-          }),
+          ...other,
+          going: !other.going,
         }
       }),
     })
@@ -123,13 +130,13 @@ class EventsScreen extends PureComponent<Props, State> {
 
 const mapStateToProps = (state: RootState): StateProps => {
   return {
-    bucketList: state.profile.bucketList.value,
+    events: state.profile.events.value,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    updateBucketList: (items: BucketListCategory[]) => dispatch(updateBucketList(items)),
+    updateEvents: (events: Event[]) => dispatch(updateEvents(events)),
   }
 }
 

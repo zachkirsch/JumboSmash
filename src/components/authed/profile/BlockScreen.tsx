@@ -7,8 +7,6 @@ import {
   View,
   Platform,
   Alert,
-  Keyboard,
-  EmitterSubscription,
   KeyboardAvoidingView,
 } from 'react-native'
 import { Dispatch, connect } from 'react-redux'
@@ -63,10 +61,6 @@ class BlockScreen extends PureComponent<Props, State> {
      }
    }
 
-  componentDidMount() {
-    this.props.navigation.addListener('willBlur', this.saveChanges)
-  }
-
   render() {
     return (
       <KeyboardAvoidingView
@@ -99,12 +93,12 @@ class BlockScreen extends PureComponent<Props, State> {
                   value={this.state.textInput}
                   style={styles.input}
                   onChangeText={this.onChangeText}
-                  onSubmitEditing={this.blockUser}
+                  onSubmitEditing={this.onSubmitText}
                   blurOnSubmit={false}
                 />
                 <TouchableOpacity
                   style={styles.addIconContainer}
-                  onPress={this.blockUser}
+                  onPress={this.onSubmitText}
                   disabled={!this.state.textInput}
                 >
                   <Ionicons
@@ -132,12 +126,30 @@ class BlockScreen extends PureComponent<Props, State> {
     if (this.props.setupMode) {
       return (
         <View style={styles.header}>
-          <JSText bold style={styles.headerText}>Block Users</JSText>
+          <JSText bold style={styles.headerText}>BLOCK USERS</JSText>
         </View>
       )
     }
     return (
-      <HeaderBar title='Block Users' onPressLeft={this.props.navigation.goBack} />
+      <HeaderBar
+        title='Block Users'
+        onPressLeft={this.props.navigation.goBack}
+        renderLeft={this.renderHeaderLeft}
+        onPressRight={this.saveAndGoBack}
+        renderRight={this.renderHeaderRight}
+      />
+    )
+  }
+
+  private renderHeaderLeft = () => {
+    return (
+      <JSText style={styles.headerBarSideText}>Cancel</JSText>
+    )
+  }
+
+  private renderHeaderRight = () => {
+    return (
+      <JSText style={styles.headerBarSideText}>Save</JSText>
     )
   }
 
@@ -225,13 +237,17 @@ class BlockScreen extends PureComponent<Props, State> {
     )
   }
 
-  private goToNextRoute = () => goToNextRoute(this.props.navigation)
+  private goToNextRoute = () => {
+    this.saveChanges(() => goToNextRoute(this.props.navigation))
+  }
 
   private openWhitePages = () => Linking.openURL('https://whitepages.tufts.edu/')
 
-  private onChangeText = (value: string) => {this.setState({textInput: value})}
+  private onChangeText = (value: string) => this.setState({textInput: value})
 
-  private blockUser = () => {
+  private onSubmitText = () => this.blockUser()
+
+  private blockUser = (onComplete?: (success: boolean) => void) => {
     const email = this.state.textInput
     if (!email) {
       return
@@ -246,16 +262,16 @@ class BlockScreen extends PureComponent<Props, State> {
 
     if (errorMessage) {
       Alert.alert('Oops', errorMessage)
-      return
+      onComplete && onComplete(false)
+    } else {
+      this.setState({
+        blockedUsers: [{
+          email,
+          status: 'just_blocked',
+        }, ...this.state.blockedUsers],
+        textInput: '',
+      }, onComplete && (() => onComplete(true)))
     }
-
-    this.setState({
-      blockedUsers: [{
-        email,
-        status: 'just_blocked',
-      }, ...this.state.blockedUsers],
-      textInput: '',
-    })
   }
 
   private toggleUser = (index: number) => () => {
@@ -279,14 +295,42 @@ class BlockScreen extends PureComponent<Props, State> {
     this.setState({blockedUsers})
   }
 
-  private saveChanges = () => {
-    this.state.blockedUsers.forEach(user => {
-      if (user.status === 'just_blocked') {
-        this.props.blockUser(user.email)
-      } else if (user.status === 'just_unblocked') {
-        this.props.unblockUser(user.email)
-      }
-    })
+  private saveChanges = (onSave?: () => void) => {
+
+    const save = () => {
+      this.state.blockedUsers.forEach(user => {
+        if (user.status === 'just_blocked') {
+          this.props.blockUser(user.email)
+        } else if (user.status === 'just_unblocked') {
+          this.props.unblockUser(user.email)
+        }
+      })
+      onSave && onSave()
+    }
+
+    if (this.state.textInput) {
+      Alert.alert(
+        '',
+        `Do you want to block ${this.state.textInput}?`,
+        [
+          {
+            text: 'No',
+            style: 'cancel',
+            onPress: save,
+          },
+          {
+            text: 'Yes',
+            onPress: () => this.blockUser(success => success && save()),
+          },
+        ]
+      )
+    } else {
+      save()
+    }
+  }
+
+  private saveAndGoBack = () => {
+    this.saveChanges(this.props.navigation.goBack)
   }
 }
 
@@ -409,5 +453,9 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerBarSideText: {
+    color: getMainColor(),
+    fontSize: 15,
   },
 })

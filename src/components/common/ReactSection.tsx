@@ -1,13 +1,13 @@
 import React, { PureComponent } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
-import { JSText, JSImage } from '../../common'
-import { ProfileReact } from '../../../services/profile'
-import { User } from '../../../services/swipe'
+import JSText from './JSText'
+import JSImage from './JSImage'
+import { ProfileReact } from '../../services/profile'
 
 interface Props {
-  profile: User
-  react: (reacts: ProfileReact[]) => void
-  enabled: boolean
+  reacts: ProfileReact[]
+  onPressReact: (react: ProfileReact) => void
+  enabled?: boolean
 }
 
 class ReactSection extends PureComponent<Props, {}> {
@@ -15,18 +15,20 @@ class ReactSection extends PureComponent<Props, {}> {
   public render() {
 
     const reactColumns = []
-    for (let i = 0; i < this.props.profile.profileReacts.value.length; i += 2) {
+    for (let i = 0; i < this.props.reacts.length; i += 2) {
       reactColumns.push(
         <View style={styles.reactColumn} key={i}>
-          {this.renderReact(this.props.profile.profileReacts.value[i])}
-          {this.renderReact(this.props.profile.profileReacts.value[i + 1])}
+          {this.renderReact(this.props.reacts[i])}
+          {this.renderReact(this.props.reacts[i + 1])}
         </View>
       )
     }
 
     return (
-      <View style={styles.reacts}>
-        {reactColumns}
+      <View style={styles.container}>
+        <View style={styles.reacts}>
+          {reactColumns}
+        </View>
       </View>
     )
   }
@@ -55,8 +57,8 @@ class ReactSection extends PureComponent<Props, {}> {
     return (
       <TouchableOpacity
         style={[styles.react, react.reacted && styles.selectedReact]}
-        onPress={this.toggleReact(react)}
-        disabled={!this.props.enabled}
+        onPress={this.onPressReact(react)}
+        disabled={this.props.enabled === false}
       >
         {toRender}
         <JSText bold={react.reacted} style={styles.reactNum}>{react.count}</JSText>
@@ -64,21 +66,15 @@ class ReactSection extends PureComponent<Props, {}> {
     )
   }
 
-  private toggleReact = (react: ProfileReact) => () => {
-    this.props.react(this.props.profile.profileReacts.value.reduce((reacts, r) => {
-      if (react.id !== r.id && r.reacted) {
-        reacts.push(r)
-      } else if (react.id === r.id && !r.reacted) {
-        reacts.push(r)
-      }
-      return reacts
-    }, [] as ProfileReact[]))
-  }
+  private onPressReact = (react: ProfileReact) => () => this.props.onPressReact(react)
 }
 
 export default ReactSection
 
 const styles = StyleSheet.create({
+  container: {
+    height: 120,
+  },
   imageReact: {
     width: 25,
     height: 25,
@@ -88,7 +84,6 @@ const styles = StyleSheet.create({
     fontSize: 23,
   },
   reactColumn: {
-    height: 120,
     flex: 1,
     justifyContent: 'space-around',
     padding: 5,
@@ -112,8 +107,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(240, 240, 240)',
   },
   selectedReact: {
-    backgroundColor: 'rgb(172,203,238)',
-    borderColor: 'rgb(172,203,238)',
+    backgroundColor: 'rgb(172, 203, 238)',
+    borderColor: 'rgb(172, 203, 238)',
   },
   reactNum: {
     marginLeft: 4,

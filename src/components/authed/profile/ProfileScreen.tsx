@@ -10,10 +10,12 @@ import {
   Platform,
   findNodeHandle,
 } from 'react-native'
-import { getMainColor } from '../../../utils'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
+import moment from 'moment'
+import { Map } from 'immutable'
 import { ActionSheetProps, connectActionSheet } from '@expo/react-native-action-sheet'
+import { isSenior } from '../../../utils'
 import { flatten } from 'lodash'
 import { RootState } from '../../../redux'
 import {
@@ -22,50 +24,38 @@ import {
   updateBio,
   updateImage,
   updatePreferredName,
-  onChangePreferredNameTextInput,
-  onChangeBioTextInput,
   toggleUnderclassmen,
   Tag,
   ProfileState,
+  Event,
 } from '../../../services/profile'
-import { LoadableValue } from '../../../services/redux'
 import { setTabBarOverlay, clearTabBarOverlay } from '../../../services/navigation'
 import { JSText, JSTextInput, JSImage  } from '../../common'
-import { isSenior } from '../../../utils'
+import { User } from '../../../services/swipe'
 import PhotosSection from './PhotosSection'
 import SettingsSection from './SettingsSection'
 import CreditsSection from './CreditsSection'
 import TagsSection from './TagsSection'
 import SaveOrRevert from './SaveOrRevert'
-import Ionicons from 'react-native-vector-icons/Ionicons'
-
-interface BucketList {title: string, items: string[], checked: boolean[]}
-interface SeniorEvent {date: string, event: string, attending: boolean, attendees: string[]}
-interface SeniorDateEvent {date: string, events: SeniorEvent[]}
 
 interface State {
   previewingCard: boolean
   viewingCoC: boolean
   preferredName: string
   bio: string
-  photosSectionRequiresSave: boolean
-  SeniorBucketList: BucketList[]
-  SeniorEventList: SeniorDateEvent[]
-  hasRSVPd: boolean
-  hasBucketListItems: boolean
   seniorGoal: string
+  photosSectionRequiresSave: boolean
 }
 
 interface OwnProps {}
 
 interface StateProps {
   profile: ProfileState
+  allUsers: Map<number, User>
   postRelease2: boolean
 }
 
 interface DispatchProps {
-  onChangePreferredNameTextInput: (preferredName: string) => void
-  onChangeBioTextInput: (bio: string) => void
   updatePreferredName: (preferredName: string) => void
   updateBio: (bio: string) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
@@ -77,80 +67,29 @@ interface DispatchProps {
 
 type Props = ActionSheetProps<NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>>
 
+const MAX_SENIOR_GOAL_LENGTH = 200
 const MAX_BIO_LENGTH = 1000
 const MAX_PREFERRED_NAME_LENGTH = 30
 
 @connectActionSheet
 class ProfileScreen extends PureComponent<Props, State> {
 
-  seniorGoalTextInput: JSTextInput | null
   private mainScrollView: any /* tslint:disable-line:no-any */
   private photosSection: PhotosSection | null
   private preferredNameTextInput: JSTextInput | null
   private bioTextInput: JSTextInput | null
+  private seniorGoalTextInput: JSTextInput | null
   private saveRequired = false
 
   constructor(props: Props) {
     super(props)
-
-    function getInitialValue<T>(item: LoadableValue<T>) {
-      if (item.localValue !== undefined) {
-        return item.localValue
-      } else {
-        return item.value
-      }
-    }
-
     this.state = {
       previewingCard: false,
       viewingCoC: false,
-      preferredName: getInitialValue(props.profile.preferredName),
-      bio: getInitialValue(props.profile.bio),
+      preferredName: props.profile.preferredName.value,
+      bio: props.profile.bio.value,
+      seniorGoal: props.profile.seniorGoal.value,
       photosSectionRequiresSave: false,
-      seniorGoal: '',
-      SeniorBucketList: [{title: 'More Wholesome', items: ['Decorate your graduation cap 🎓',
-                          'Facebook message Tony Monaco 💬', 'Paint the Cannon 🎨',
-                          'Go on a bar crawl with your (21+) friends 🥂', 'Drink with a professor 🍻',
-                          'Smooch a date on the Memorial Steps 💕'],
-                          checked: [false, false, false, false, false, false]},
-                         {title: 'Less Wholesome', items: ['Relive the Naked / Underwear Quad Run 🍆',
-                          'Make eye contact with a freshman year hookup 👀',
-                          'Sneak onto the roof of an academic building 🏫',
-                          'Smuggle 20 chicken tendies out of Carm using only your wits and your pockets 🍗',
-                          'Take a shot at every senior event you attend 🥃',
-                          'Hook up in an academic building 😜',
-                          'Pretend to not be hungover in front of your parents 😬'],
-                          checked: [false, false, false, false, false, false, false]}],
-
-      SeniorEventList: [{date: 'Friday, May 11', events: [{date: 'May 11', event: 'Around the World - SoGo',
-                                                          attending: false, attendees: ['Beyonce Knowles', 'Max Bernstein']}]},
-                        {date: 'Monday, May 14', events: [{date: 'May 14', event: 'Senior Brunch - Gifford House',
-                                                          attending: false, attendees: ['Lord Vader']},
-                                                          {date: 'May 14', event: 'Senior Gala - House of Blues',
-                                                            attending: false, attendees: ['Winnona DeSombre']}]},
-                        {date: 'Tuesday, May 15', events: [{date: 'May 15', event: "Senior Takeover - Dave and Buster's",
-                                                            attending: false, attendees: ['Yuki Zaninovich']},
-                                                            {date: 'May 15', event: 'Last Night in the Campus Center',
-                                                            attending: false, attendees: ['Zach Kirsch', 'Megan Monroe']}]},
-                        {date: 'Wednesday, May 16', events: [{date: 'May 16', event: 'Booze Cruise - Boston Harbor',
-                                                              attending: false, attendees: ['Chris Gregg', 'Shanshan Duan']},
-                                                            {date: 'May 16', event: 'Senior Night - Lucky Strike',
-                                                            attending: false, attendees: ["Moe's (RIP)"]}, ]},
-                        {date: 'Thursday, May 17', events: [{date: 'May 17', event: 'Senior BBQ - SEC',
-                                                            attending: false, attendees: ["Moe's (RIP)", 'Shanshan Duan']},
-                                                            {date: 'May 17', event: 'Last Night on the Lawn - Prez Lawn',
-                                                            attending: false, attendees: ['Winnona DeSombre', 'Emily Lin']}]},
-                        {date: 'Friday, May 18', events: [{date: 'May 18', event: 'Tufts Night at the Pops - Boston Symphony Hall',
-                                                          attending: false, attendees: ['Chris Gregory']}]},
-                        {date: 'Saturday, May 19', events: [{date: 'May 19', event: 'Baccalaureate Service - Gantcher',
-                                                            attending: false, attendees: ['SOMEONE OutOfIdeas']},
-                                                            {date: 'May 19', event: 'Candlelight Ceremony - Goddard',
-                                                            attending: false, attendees: ["Help it's been 9 hours"]}]},
-                        {date: 'Sunday, May 20', events: [{date: 'May 20', event: 'Graduation 🎓',
-                                                            attending: false, attendees: ['ugh']}]}],
-        hasRSVPd: false,
-        hasBucketListItems: false,
-
     }
   }
 
@@ -185,7 +124,6 @@ class ProfileScreen extends PureComponent<Props, State> {
             ref={ref => this.photosSection = ref}
           />
           {this.renderPersonalInfo()}
-          {this.renderSeniorGoal()}
           {this.renderTags()}
           {this.renderReacts()}
           {this.renderBucketList()}
@@ -215,6 +153,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           ...this.props.profile,
           preferredName: this.state.preferredName,
           bio: this.state.bio,
+          seniorGoal: this.state.seniorGoal,
           images: this.photosSection!.images().filter(image => !!image),
           tags: this.getSelectedTags(),
         },
@@ -225,7 +164,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
   private getSelectedTags = (): Tag[] => {
     return flatten(
-      (this.props.profile.tags.localValue || this.props.profile.tags.value)
+      this.props.profile.tags.value
         .map(section => section.tags.filter(tag => tag.selected))
     )
   }
@@ -241,7 +180,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
+        <TouchableOpacity delayPressIn={100} onPress={this.navigateTo('TagsScreen')}>
           <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText>
           {toRender}
         </TouchableOpacity>
@@ -249,96 +188,52 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
   private renderBucketList = () => {
-
+    let numComplete = 0
+    let numToGo = 0
+    this.props.profile.bucketList.value.forEach(category => {
+      category.items.forEach(item => {
+        if (item.completed) {
+          numComplete++
+        } else {
+          numToGo++
+        }
+      })
+    })
+    const text = `${numComplete} down, ${numToGo} to go`
     return (
       <View style={styles.personalInfo}>
         <TouchableOpacity
-          onPress={this.navigateTo('BucketListScreen', {SeniorBucketList: this.state.SeniorBucketList, newList: this.makeBucketList})}
+          delayPressIn={100}
+          onPress={this.navigateTo('BucketListScreen')}
         >
           <JSText bold style={[styles.title, styles.tagsTitle]}>BUCKET LIST</JSText>
-          <View style={styles.fill}>
-          {!this.state.hasBucketListItems && this.renderOptions()}
-          {this.renderBucketItems(0)}
-          {this.renderBucketItems(1)}
-          </View>
+          <JSText style={styles.underline}>{text}</JSText>
         </TouchableOpacity>
       </View>
     )
   }
 
-  private makeBucketList = (list: BucketList[]) => {
-          this.setState({SeniorBucketList: list})
-          this.setState({hasBucketListItems: true})
-  }
-  private makeList = (list: SeniorDateEvent[]) => {
-    this.setState({SeniorEventList: list})
-    this.setState({hasRSVPd: true})
-  }
   private renderSeniorEvents = () => {
+    const events = this.props.profile.events.value.filter(e => e.going)
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity
-            onPress={this.navigateTo('SeniorEventScreen', {SeniorEventList: this.state.SeniorEventList, newList: this.makeList})}
-        >
+        <TouchableOpacity delayPressIn={100} onPress={this.navigateTo('EventsScreen')}>
           <JSText bold style={[styles.title, styles.tagsTitle]}>SENIOR EVENTS</JSText>
           <View style={styles.bigfill}>
-          {!this.state.hasRSVPd && this.renderOptions()}
-          {this.renderAllDays()}
+            {events.length === 0 ? <JSText>Tap here to RSVP!</JSText> : events.map(this.renderEvent)}
           </View>
         </TouchableOpacity>
       </View>)
   }
 
-  private renderAllDays = () => {
-    return this.state.SeniorEventList.map((section, sectionIndex) => {
-      return (
-        <View key={sectionIndex}>
-        {this.renderChosenEvents(section.events)}
-        </View>
-      )
-    })
+  private renderEvent = (event: Event, index: number) => {
+    return (
+      <View key={index} style={styles.eventRow}>
+        <JSText style={styles.eventDate}>{moment(event.time).format('MMM D')}</JSText>
+        <JSText style={styles.eventString}>{event.name}</JSText>
+      </View>
+    )
   }
-  private renderChosenEvents = (events: SeniorEvent[]) => {
-    let chosenEvents: SeniorEvent[]
-    chosenEvents = []
-    events.map((section) => {
-      if (section.attending) {
-        chosenEvents.push(section)
-      }
-    })
-    if (chosenEvents.length === 0) {
-      return null
-    }
-      return this.renderChosenRows(chosenEvents)
-  }
-
-  private renderChosenRows = (events: SeniorEvent[]) => {
-    return events.map((section, sectionIndex) => {
-        return (
-          <View key={sectionIndex} style={styles.EventRow}>
-            <JSText style={styles.eventDate}>{section.date}</JSText>
-            <JSText style={styles.eventString}>{section.event}</JSText>
-          </View>
-      )
-    })
-  }
-
-  private renderOptions = () => {
-      return (<JSText> Click here to view! </JSText>)
-  }
-
-  private renderBucketItems = (i: number) => {
-     return this.state.SeniorBucketList[i].checked.map((section, sectionIndex) => {
-    if (section === true) {
-      return (
-          <View key={sectionIndex} style={{flexDirection: 'row'}}>
-            <Ionicons name='md-checkmark' style={{flex: 1, paddingLeft: 10}} size={30} color={getMainColor()} />
-            <JSText style={{flex: 7, paddingTop: 10}}>{this.state.SeniorBucketList[i].items[sectionIndex]}</JSText>
-            </View>
-      )
-    } return null
-
-  })}
 
   private renderReact = (react: ProfileReact | undefined) => {
 
@@ -386,15 +281,16 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
 
     return (
-      <View style={styles.personalInfo}>
-       <TouchableOpacity onPress={this.navigateTo('MyReactScreen', {profileReacts: this.props.profile})}>
-        <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText></TouchableOpacity>
-         <TouchableOpacity onPress={this.navigateTo('MyReactScreen', {profile: this.props.profile})} style={styles.reactColumns}>
+      <TouchableOpacity
+        style={styles.personalInfo}
+        delayPressIn={100}
+        onPress={this.navigateToMyReactsScreen}
+      >
+        <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText>
         <View style={styles.reactColumns}>
           {reactColumns}
         </View>
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
     )
   }
 
@@ -412,6 +308,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           onFocus={this.onFocus('preferredName')}
           onSubmitEditing={Keyboard.dismiss}
           returnKeyType='done'
+          placeholder='First Name'
           ref={ref => this.preferredNameTextInput = ref}
         />
         <JSText style={[styles.bigInput, styles.lastName]}>
@@ -420,27 +317,29 @@ class ProfileScreen extends PureComponent<Props, State> {
       </View>
     </View>
   )
+
   private renderSeniorGoal = () => {
     return (
-      <View style={styles.personalInfo}>
-        <JSText bold style={[styles.title, styles.preferredNameTitle]}>BEFORE GRADUATION, I'M GOING TO...</JSText>
-        <View style={styles.preferredNameContainer}>
-          <JSTextInput
-            maxLength={50}
-            style={[styles.bigInput, styles.preferredName]}
-            value={this.state.seniorGoal}
-            onChangeText={this.updateSeniorGoal}
-            autoCorrect={false}
-            selectTextOnFocus
-            onFocus={this.onFocus('seniorGoal')}
-            onSubmitEditing={Keyboard.dismiss}
-            returnKeyType='done'
-            ref={ref => this.preferredNameTextInput = ref}
-          />
-        </View>
-        </View>
+      <View style={styles.seniorGoalContainer}>
+        <JSText bold style={[styles.title, styles.seniorGoalTitle]}>
+          BEFORE I GRADUATE, I'M GOING TO...
+        </JSText>
+        <JSTextInput
+          fancy
+          multiline
+          maxLength={MAX_SENIOR_GOAL_LENGTH}
+          keyboardType='default'
+          value={this.state.seniorGoal}
+          onChangeText={this.updateSeniorGoal}
+          style={styles.bio}
+          onFocus={this.onFocus('seniorGoal')}
+          ref={ref => this.seniorGoalTextInput = ref}
+          placeholder='??'
+        />
+      </View>
     )
   }
+
   private renderBio = () => (
     <View style={styles.bioContainer}>
       <JSTextInput
@@ -450,7 +349,6 @@ class ProfileScreen extends PureComponent<Props, State> {
         keyboardType='default'
         value={this.state.bio}
         onChangeText={this.updateBio}
-        autoCorrect={false}
         style={styles.bio}
         onFocus={this.onFocus('bio')}
         ref={ref => this.bioTextInput = ref}
@@ -463,6 +361,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     // bio is first because flexDirection is reverse (so that shadow doesn't cover the bio)
     return (
       <View style={styles.personalInfoContainer}>
+        {this.renderSeniorGoal()}
         {this.renderBio()}
         <View style={styles.personalInfo}>
           {this.renderPreferredName()}
@@ -489,11 +388,19 @@ class ProfileScreen extends PureComponent<Props, State> {
     )
   }
 
+  private navigateToMyReactsScreen = () => {
+    this.navigateTo('MyReactScreen', {
+      allUsers: this.props.allUsers,
+      profileReacts: this.props.profile.profileReacts.value,
+      whoReacted: this.props.profile.whoReacted,
+    })()
+  }
+
   private onToggleUnderclassmenVisibility = (showOnlySeniors: boolean) => {
     this.props.toggleUnderclassmen(!showOnlySeniors)
   }
 
-  private onFocus = (inputName: 'preferredName' | 'bio') => () => {
+  private onFocus = (inputName: 'preferredName' | 'bio' | 'seniorGoal') => () => {
     if (Platform.OS !== 'ios') {
       return
     }
@@ -529,19 +436,17 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private updatePreferredName = (preferredName: string) => {
-    if (this.state.preferredName !== preferredName) {
+    if (this.state.preferredName !== preferredName && !this.saveRequired) {
       this.addSaveOverlay()
-      this.setState({ preferredName })
-      this.props.onChangePreferredNameTextInput(preferredName)
     }
+    this.setState({ preferredName })
   }
 
   private updateSeniorGoal = (seniorGoal: string) => {
-    if (this.state.seniorGoal !== seniorGoal) {
+    if (this.state.seniorGoal !== seniorGoal && !this.saveRequired) {
       this.addSaveOverlay()
-      this.setState({ seniorGoal })
-      this.props.onChangeSeniorGoalTextInput(seniorGoal)
     }
+    this.setState({ seniorGoal })
   }
 
   private updateBio = (bio: string) => {
@@ -549,7 +454,6 @@ class ProfileScreen extends PureComponent<Props, State> {
       this.addSaveOverlay()
     }
     this.setState({ bio })
-    this.props.onChangeBioTextInput(bio)
   }
 
   private addSaveOverlay = () => {
@@ -642,14 +546,13 @@ class ProfileScreen extends PureComponent<Props, State> {
 const mapStateToProps = (state: RootState): StateProps => {
   return {
     profile: state.profile,
+    allUsers: state.swipe.allUsers.value,
     postRelease2: state.time.postRelease2,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    onChangePreferredNameTextInput: (preferredName: string) => dispatch(onChangePreferredNameTextInput(preferredName)),
-    onChangeBioTextInput: (bio: string) => dispatch(onChangeBioTextInput(bio)),
     updatePreferredName: (preferredName: string) => dispatch(updatePreferredName(preferredName)),
     updateBio: (bio: string) => dispatch(updateBio(bio)),
     updateImage: (index: number, imageUri: string, mime: string) => {
@@ -665,6 +568,9 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen)
 
 const styles = StyleSheet.create({
+  seniorGoalContainer: {
+    maxHeight: 175,
+  },
   bioContainer: {
     maxHeight: 175,
   },
@@ -689,20 +595,19 @@ const styles = StyleSheet.create({
   tagsTitle: {
     marginBottom: 10,
   },
-  EventRow: {
+  eventRow: {
     flex: 1,
     flexDirection: 'row',
-    paddingLeft: 10,
+    alignItems: 'center',
     padding: 5,
+    paddingLeft: 10,
   },
   eventDate: {
-    flex: 1,
     fontSize: 13,
-    paddingTop: 1,
+    paddingRight: 5,
     color: 'grey',
   },
   eventString: {
-    flex: 6,
     fontSize: 15,
   },
   fill: {
@@ -738,6 +643,13 @@ const styles = StyleSheet.create({
   lastName: {
     color: 'gray',
   },
+  seniorGoalTitle: {
+    margin: 20,
+    marginBottom: 5,
+  },
+  seniorGoal: {
+    marginRight: 20,
+  },
   reactColumn: {
     flex: 1,
     height: 80,
@@ -760,10 +672,10 @@ const styles = StyleSheet.create({
     color: 'rgba(41,41,44,0.76)',
   },
   imageReact: {
-      paddingVertical: 15,
-      width: 25,
-      height: 25,
-      justifyContent: 'center',
+    paddingVertical: 15,
+    width: 25,
+    height: 25,
+    justifyContent: 'center',
   },
   underline: {
     textDecorationLine: 'underline',

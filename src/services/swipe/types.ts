@@ -15,11 +15,12 @@ export interface User {
   surname: string
   fullName: string
   classYear: number
-  major: string
+  seniorGoal: string
   bio: string
   images: string[]
   profileReacts: LoadableValue<ProfileReact[]>
   tags: Tag[]
+  events: number[]
 }
 
 export interface SwipeState {

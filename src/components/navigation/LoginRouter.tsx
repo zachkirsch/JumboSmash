@@ -114,11 +114,11 @@ const getNextPostLoginRoute = (currentRoute?: string) => {
       BucketListScreen: {
         screen: Profile.BucketListScreen,
       },
-      SeniorEventScreen: {
-        screen: Profile.SeniorEventScreen,
+      EventsScreen: {
+        screen: Profile.EventsScreen,
       },
-      MyEventsScreen: {
-        screen: Profile.MyEventsScreen,
+      EventScreen: {
+        screen: Profile.EventScreen,
       },
     }, {
       headerMode: 'none',

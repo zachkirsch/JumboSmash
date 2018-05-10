@@ -6,7 +6,7 @@ import { unmatch, removeChat } from '../matches'
 import { updateProfileReacts } from '../profile'
 import { addInAppNotification } from './actions'
 import { removeUser } from '../swipe'
-import { ProfileReact, GetUserResponse } from '../api'
+import { IndividualProfileReact, ProfileReact, GetUserResponse } from '../api'
 import { NavigationService } from '../navigation'
 
 /* tslint:disable:no-console */
@@ -19,8 +19,9 @@ interface NewChatMessage {
 }
 
 interface ReactMessage {
-  msg_type: 'react',
+  msg_type: 'react'
   profile_reacts: ProfileReact[]
+  who_reacted: IndividualProfileReact[]
 }
 
 interface UnmatchMessage {
@@ -202,7 +203,7 @@ const onMessage = (message: any) => {
         )
         break
       case 'react':
-        reduxStore.dispatch(updateProfileReacts(data.profile_reacts))
+        reduxStore.dispatch(updateProfileReacts(data.profile_reacts, data.who_reacted))
         break
     }
   } catch (e) {

@@ -4,7 +4,7 @@ import { GetUserResponse } from './getUser'
 interface Request extends HttpGetRequest {
 }
 
-interface MyProfileReact {
+export interface IndividualProfileReact {
   id: number
   react_id: number
   user_from_id: number
@@ -12,7 +12,7 @@ interface MyProfileReact {
 }
 
 export interface GetAllUsersUser extends GetUserResponse {
-  my_reacts: MyProfileReact[]
+  my_reacts: IndividualProfileReact[]
 }
 
 interface Response {

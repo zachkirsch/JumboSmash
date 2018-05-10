@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingTop: 15,
     paddingBottom: 10,
     backgroundColor: 'rgb(250, 250, 250)',

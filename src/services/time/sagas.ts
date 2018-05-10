@@ -10,7 +10,6 @@ import {
 function* attemptGetServerTime() {
   try {
     const response: GetServerTimeResponse = yield call(api.getServerTime)
-    console.log(response)
     const succesAction: GetServerTimeSuccessAction = {
       type: TimeActionType.GET_SERVER_TIME_SUCCESS,
       serverTime: moment(response.time).valueOf(),

@@ -12,8 +12,6 @@ const initialState: TimeState = {
   postRelease2: false,
 }
 
-let error = true
-
 export function timeReducer(state = initialState, action: TimeAction): TimeState {
   switch (action.type) {
 
@@ -27,7 +25,6 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
       }
 
     case TimeActionType.GET_SERVER_TIME_SUCCESS:
-      error = !error
       return {
         serverTime: {
           value: action.serverTime,

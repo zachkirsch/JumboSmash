@@ -44,22 +44,51 @@ export interface ImageUri {
 
 export type ProfileReact = EmojiProfileReact | ImageProfileReact
 
+export interface IndividualProfileReact {
+  reactId: number
+  byUser: number
+}
+
 export interface BlockedUser {
   email: string
   blocked: boolean
 }
 
+export interface Event {
+  id: number
+  time: number
+  name: string
+  location: string
+  going: boolean
+}
+
+export interface BucketListItem {
+  id: number
+  text: string
+  category: string
+  completed: boolean
+}
+
+export interface BucketListCategory {
+  name: string
+  items: BucketListItem[]
+}
+
 export interface ProfileState {
+  rehydratingProfileFromServer: boolean
   id: number
   preferredName: LoadableValue<string>
   surname: string
   fullName: string
   classYear: number
   bio: LoadableValue<string>
+  seniorGoal: LoadableValue<string>
   images: List<LoadableValue<ImageUri>>
   tags: LoadableValue<TagSectionType[]>
   profileReacts: LoadableValue<ProfileReact[]>
-  allReacts: (BaseEmojiProfileReact | BaseImageProfileReact)[]
+  events: LoadableValue<Event[]>
   blockedUsers: List<LoadableValue<BlockedUser>>
-  showUnderclassmen: boolean
+  showUnderclassmen: LoadableValue<boolean>
+  whoReacted: IndividualProfileReact[]
+  bucketList: LoadableValue<BucketListCategory[]>
 }

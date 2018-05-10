@@ -35,12 +35,12 @@ export const SERVER_URL = LOCAL_SERVER
 
 export const CREATORS = {
   developers: [
-    'Chris Gregory',
     'Max Bernstein',
-    'Nika Roxanne',
     'Winnona DeSombre',
-    'Yuki Zaninovich',
+    'Chris Gregory',
     'Zach Kirsch',
+    'Nika Roxanne',
+    'Yuki Zaninovich',
   ],
   design: [
     'Shanshan Duan',

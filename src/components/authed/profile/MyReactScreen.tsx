@@ -1,106 +1,97 @@
 import React, { PureComponent } from 'react'
 import {
-  ScrollView,
   StyleSheet,
   View,
+  FlatList,
 } from 'react-native'
-import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { ProfileState, ProfileReact } from '../../../services/profile'
-import { HeaderBar } from '../../common'
-import { JSText } from '../../common/index'
-import ReactSection from '../swipe/ReactSection'
+import { Map } from 'immutable'
+import { NavigationScreenPropsWithOwnProps } from 'react-navigation'
+import { ProfileReact, IndividualProfileReact } from '../../../services/profile'
+import { HeaderBar, JSImage, JSText, ReactSection } from '../../common'
 import { User } from '../../../services/swipe'
 
-interface UserList {id: number, names: string[]}
-
 interface State {
-  ProfileUser: User
-  renderByID: number
-  renderedUsers: UserList[]
+  selectedReactId: number
 }
 
 interface OwnProps {
-  profile: ProfileState
+  allUsers: Map<number, User>
+  profileReacts: ProfileReact[]
+  whoReacted: IndividualProfileReact[]
 }
 
-interface StateProps {
-
-}
-interface DispatchProps {
-}
-
-type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
+type Props = NavigationScreenPropsWithOwnProps<OwnProps>
 
 class MyReactScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    const PRO = this.props.navigation.state.params.profile
+    let toChooseFrom = this.getOwnProps().profileReacts.filter(r => r.count)
+    if (toChooseFrom.length === 0) {
+      toChooseFrom = this.getOwnProps().profileReacts
+    }
+    const startingReact = toChooseFrom[Math.floor(Math.random() * toChooseFrom.length)]
     this.state = {
-      ProfileUser: {
-        id: PRO.id,
-        preferredName: PRO.preferredName.value,
-        surname: '',
-        fullName: '',
-        major: '',
-        email: '',
-        classYear: 18,
-        profileReacts: PRO.profileReacts,
-        bio: '',
-        images: [],
-        tags: [],
-        firebaseUid: '1',
-      },
-      renderByID: 0,
-      renderedUsers: [{id: 1, names: ['Beyonce', 'JAY Z', 'Kanye West', 'Yuki Zaninovich', 'Kanye West']},
-       {id: 2, names: ['Lord Vader']}, {id: 3, names: ['Max Bernstein']},
-       {id: 4, names: ['HAHA']}, {id: 5, names: [':()']}, {id: 6, names: [':)']}],
+      selectedReactId: startingReact && startingReact.id,
     }
   }
   render() {
-    const pressReact = (reacts: ProfileReact[]) => {this.setState({renderByID: reacts[0].id})}
+    if (this.getOwnProps().profileReacts.length === 0) {
+      return null
+    }
+    const reacts = this.getOwnProps().profileReacts.map(react => ({
+      ...react,
+      reacted: react.id === this.state.selectedReactId,
+    }))
+
     return (
       <View style={styles.fill}>
         <HeaderBar title='My Reacts' onPressLeft={this.props.navigation.goBack}/>
-        <ScrollView>
-          <View style={styles.topContainer}>
-            <JSText style={styles.title}>
-              Tap the icons to see who reacted on your bio!
-            </JSText>
-            <ReactSection
-              profile={this.state.ProfileUser}
-              enabled={true}
-              react={pressReact}
-            />
-            </View>
-          {this.renderNamesByReact()}
-        </ScrollView>
+        <ReactSection
+          reacts={reacts}
+          onPressReact={this.onPressReact}
+        />
+        <FlatList
+          data={this.getUsers()}
+          renderItem={this.renderItem}
+          style={{flexGrow: 1}}
+          keyExtractor={this.extractUserId}
+        />
       </View>
     )
   }
 
-  private renderRows = (dataList: string[]) => {
-    return dataList.map((section, sectionIndex) => {
-      return (
-      <View key={sectionIndex}>
-      <View style={styles.container}><JSText>{section}</JSText></View>
-      <View style={styles.separator} />
-      </View>)
+  private renderItem = ({item}: {item: User}) => {
+    if (!item) {
+      return null
+    }
+    let avatar = item.images[0]
+    let name = item.fullName
+    return (
+      <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', padding: 8}}>
+        <JSImage cache source={{uri: avatar}} style={{width: 26, height: 26, marginRight: 10, borderRadius: 13}}/>
+        <JSText style={{fontSize: 16}}>{name}</JSText>
+      </View>
+    )
+  }
+
+  private extractUserId = (user: User) => user.id.toString(10)
+
+  private getUsers = () => {
+    return this.getOwnProps()
+      .whoReacted
+      .filter(react => react.reactId === this.state.selectedReactId)
+      .map(react => this.getOwnProps().allUsers.get(react.byUser))
+      .filter(u => !!u)
+  }
+
+  private onPressReact = (react: ProfileReact) => {
+    this.setState({
+      selectedReactId: react.id,
     })
   }
 
-  private renderNamesByReact = () => {
-
-    let id = this.state.renderByID - 1
-    if (this.state.renderByID !== 0) {
-      return (
-        <View>
-        {this.renderRows(this.state.renderedUsers[id].names)}
-        </View>
-      )
-    } return null
-
-  }
+  private getOwnProps = () => this.props.navigation.state.params
 
 }
 

@@ -21,12 +21,11 @@ import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { ProfileReact } from '../../../services/profile'
-import { JSText } from '../../common'
+import { JSText, ReactSection } from '../../common'
 import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import { Images } from '../../../assets'
-import ReactSection from './ReactSection'
 
 interface BaseProps {
   containerStyle?: ViewStyle
@@ -414,25 +413,47 @@ class Card extends PureComponent<Props, State> {
               {this.props.profile.preferredName}
             </JSText>
             <View style={{flex: 1}}>
-              <Animated.View style={[hiddenWhenContractedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+              <Animated.View style={[hiddenWhenContractedStyle, StyleSheet.absoluteFill]}>
                 <JSText style={styles.name} numberOfLines={1}>
                   {surnameWhenExpaned}
                 </JSText>
               </Animated.View>
-              <Animated.View style={[hiddenWhenExpandedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+              <Animated.View style={[hiddenWhenExpandedStyle, StyleSheet.absoluteFill]}>
                 {this.renderClassYear()}
               </Animated.View>
             </View>
           </View>
           {this.renderTags()}
           <Animated.View style={hiddenWhenContractedStyle}>
-            <JSText style={styles.bio}>
-              {this.props.profile.bio}
-            </JSText>
+            <View style={styles.profileText}>
+              <JSText style={styles.bio}>
+                {this.props.profile.bio}
+              </JSText>
+              {this.renderSeniorGoal()}
+            </View>
             {this.renderReactSection()}
           </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
+    )
+  }
+
+  private renderSeniorGoal = () => {
+    if (this.props.type === 'loading') {
+      return null
+    }
+    if (!this.props.profile.seniorGoal) {
+      return null
+    }
+    return (
+      <View style={styles.seniorGoalContainer}>
+        <JSText style={styles.seniorGoalText} semibold>
+          Before I graduate, I'm going to...
+        </JSText>
+        <JSText style={styles.seniorGoalText}>
+          {this.props.profile.seniorGoal}
+        </JSText>
+      </View>
     )
   }
 
@@ -442,8 +463,8 @@ class Card extends PureComponent<Props, State> {
     }
     return (
       <ReactSection
-        profile={this.props.profile}
-        react={this.react}
+        reacts={this.props.profile.profileReacts.value}
+        onPressReact={this.onPressReact}
         enabled={this.props.type === 'normal' || this.props.reactsEnabled}
         ref={ref => this.reactSection = ref}
       />
@@ -593,11 +614,18 @@ class Card extends PureComponent<Props, State> {
     this.props.type === 'normal' && this.props.showActionSheetWithOptions(options, callback)
   }
 
-  private react = (reacts: ProfileReact[]) => {
+  private onPressReact = (react: ProfileReact) => {
     if (this.props.type === 'loading') {
       return
     }
-    this.props.react(reacts, this.props.profile.id)
+    this.props.react(this.props.profile.profileReacts.value.reduce((reacts, r) => {
+      if (react.id !== r.id && r.reacted) {
+        reacts.push(r)
+      } else if (react.id === r.id && !r.reacted) {
+        reacts.push(r)
+      }
+      return reacts
+    }, [] as ProfileReact[]), this.props.profile.id)
   }
 
   private cardWidth = () => WIDTH - 2 * HORIZONTAL_MARGIN
@@ -938,7 +966,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.34,
     marginTop: 25,
-    marginBottom: 40,
     color: 'rgb(66, 64, 64)',
   },
   ellipsisContainer: {
@@ -1010,5 +1037,17 @@ const styles = StyleSheet.create({
     flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#8E8E8E',
+  },
+  seniorGoalContainer: {
+    marginTop: 15,
+  },
+  seniorGoalText: {
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: 0.34,
+    color: 'rgb(66, 64, 64)',
+  },
+  profileText: {
+    marginBottom: 40,
   },
 })

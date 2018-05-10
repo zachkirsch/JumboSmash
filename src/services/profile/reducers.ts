@@ -1,13 +1,11 @@
 import { List } from 'immutable'
+import moment from 'moment'
 import { LoadableValue } from '../redux'
 import { ProfileAction, ProfileActionType } from './actions'
 import { ReduxActionType } from '../redux'
 import {
   ProfileState,
   ImageUri,
-  BaseEmojiProfileReact,
-  BaseImageProfileReact,
-  BaseProfileReact,
   EmojiProfileReact,
   ImageProfileReact,
   ProfileReact,
@@ -16,6 +14,7 @@ import { AuthActionType } from '../auth'
 
 const initialState: ProfileState = {
   id: -1,
+  rehydratingProfileFromServer: false,
   preferredName: {
     value: '',
     loading: false,
@@ -24,6 +23,10 @@ const initialState: ProfileState = {
   fullName: '',
   classYear: -1,
   bio: {
+    value: '',
+    loading: false,
+  },
+  seniorGoal: {
     value: '',
     loading: false,
   },
@@ -36,9 +39,20 @@ const initialState: ProfileState = {
     value: [],
     loading: false,
   },
-  allReacts: [],
+  events: {
+    value: [],
+    loading: false,
+  },
   blockedUsers: List(),
-  showUnderclassmen: false,
+  showUnderclassmen: {
+    value: false,
+    loading: false,
+  },
+  whoReacted: [],
+  bucketList: {
+    value: [],
+    loading: false,
+  },
 }
 
 const newImage = () => ({
@@ -54,15 +68,23 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
   const newState = {...state}
   switch (action.type) {
 
+    case ProfileActionType.ATTEMPT_REHYDRATE_PROFILE_FROM_SERVER:
+      return {
+        ...state,
+        rehydratingProfileFromServer: true,
+      }
+
     case ProfileActionType.INITIALIZE_PROFILE:
       const selectedTagIds = action.payload.tags.map(tag => tag.id)
       return {
+        rehydratingProfileFromServer: false,
         id: action.payload.id,
         preferredName: { value: action.payload.preferred_name || '', loading: false },
         surname: action.payload.surname,
         fullName: action.payload.full_name,
         classYear: action.payload.class_year,
         bio: { value: action.payload.bio, loading: false },
+        seniorGoal: { value: '' /* TODO action.payload.senior_goal */, loading: false },
         images: List(action.payload.images.map(({url}) => {
           return {
             value: {
@@ -86,67 +108,74 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           }),
           loading: false,
         },
-        blockedUsers: List(action.payload.blocked_users.map(u => ({
+        blockedUsers: List(action.payload.blocked_users.map(email => ({
           value: {
-            email: u.email,
+            email,
             blocked: true,
           },
           loading: false,
         }))),
         profileReacts: {
-          value: action.allReacts.reduce((reacts, react) => {
-            if (react.type === 'emoji') {
-              const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
+          value: action.allReacts.map(r => {
+            const react = action.payload.profile_reacts.find(profileReact => profileReact.react_id === r.id)!
+            if (react.react_type === 'emoji') {
               const emojiReact: EmojiProfileReact = {
                 type: 'emoji',
-                id: react.id,
-                emoji: react.text,
-                count: profileReact ? profileReact.react_count : 0,
+                id: react.react_id,
+                emoji: react.react_text,
+                count: react.react_count,
               }
-              reacts.push(emojiReact)
-            } else if (react.type === 'image') {
-              const profileReact = action.payload.profile_reacts.find(r => r.react_id === react.id)
+              return emojiReact
+            } else if (react.react_type === 'image') {
               const imageReact: ImageProfileReact = {
                 type: 'image',
-                id: react.id,
-                imageUri: react.text,
-                count: profileReact ? profileReact.react_count : 0,
+                id: react.react_id,
+                imageUri: react.react_text,
+                count: react.react_count,
               }
-              reacts.push(imageReact)
+              return imageReact
+            } else {
+              return undefined
             }
-            return reacts
-          }, [] as ProfileReact[]),
+          }).filter(r => r) as ProfileReact[],
           loading: false,
         },
-        allReacts: action.allReacts.reduce((reacts, react) => {
-          if (react.type === 'emoji') {
-            const emojiReact: BaseEmojiProfileReact = {
-              type: 'emoji',
-              id: react.id,
-              emoji: react.text,
+        showUnderclassmen: {
+          value: false,
+          loading: false,
+        }, // TODO, with server
+        events: {
+          loading: false,
+          value: action.allEvents.map(event => {
+            return {
+              id: event.id,
+              time: moment(event.start_at).valueOf(),
+              location: event.location,
+              going: !!action.payload.events.find(e => e.event_id === event.id),
+              name: event.name,
             }
-            reacts.push(emojiReact)
-          } else if (react.type === 'image') {
-            const imageReact: BaseImageProfileReact = {
-              type: 'image',
-              id: react.id,
-              imageUri: react.text,
-            }
-            reacts.push(imageReact)
-          }
-          return reacts
-        }, [] as BaseProfileReact[]),
-        showUnderclassmen: false,
+          }).sort((a, b) => a.time - b.time),
+        },
+        whoReacted: action.payload.who_reacted.map(react => ({
+          reactId: react.react_id,
+          byUser: react.user_from_id,
+        })),
+        bucketList: {
+          loading: false,
+          value: action.allBucketListItems.map(category => ({
+            name: category.cat_text,
+            items: category.items.map(item => ({
+              id: item.item_id,
+              text: item.item_text,
+              category: item.cat_text,
+              completed: !!state.bucketList.value
+                .find(c => c.name === category.cat_text && !!c.items.find(i => i.id === item.item_id && i.completed)),
+            })),
+          })),
+        },
       }
 
     /* Preferred Name */
-
-    case ProfileActionType.UPDATE_PREFERRED_NAME_LOCALLY:
-      newState.preferredName = {
-        ...newState.preferredName,
-        localValue: action.preferredName,
-      }
-      return newState
 
     case ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME:
       newState.preferredName = {
@@ -171,13 +200,6 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     /* Bio */
 
-    case ProfileActionType.UPDATE_BIO_LOCALLY:
-      newState.bio = {
-        ...newState.bio,
-        localValue: action.bio,
-      }
-      return newState
-
     case ProfileActionType.ATTEMPT_UPDATE_BIO:
       newState.bio = {
         prevValue: state.bio.loading ? state.bio.prevValue : state.bio.value,
@@ -194,6 +216,29 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       newState.bio = {
         prevValue: undefined,
         value: state.bio.prevValue || '',
+        loading: false,
+        errorMessage: action.errorMessage,
+      }
+      return newState
+
+    /* SeniorGoal */
+
+    case ProfileActionType.ATTEMPT_UPDATE_SENIOR_GOAL:
+      newState.seniorGoal = {
+        prevValue: state.seniorGoal.loading ? state.seniorGoal.prevValue : state.seniorGoal.value,
+        value: action.seniorGoal,
+        loading: true,
+      }
+      return newState
+
+    case ProfileActionType.UPDATE_SENIOR_GOAL_SUCCESS:
+      newState.seniorGoal.loading = false
+      return newState
+
+    case ProfileActionType.UPDATE_SENIOR_GOAL_FAILURE:
+      newState.seniorGoal = {
+        prevValue: undefined,
+        value: state.seniorGoal.prevValue || '',
         loading: false,
         errorMessage: action.errorMessage,
       }
@@ -301,13 +346,6 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
 
     /* Tags */
 
-    case ProfileActionType.UPDATE_TAGS_LOCALLY:
-      newState.tags = {
-        ...newState.tags,
-        localValue: action.tags,
-      }
-      return newState
-
     case ProfileActionType.ATTEMPT_UPDATE_TAGS:
       newState.tags = {
         prevValue: state.tags.loading ? state.tags.prevValue : state.tags.value,
@@ -332,6 +370,58 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
       return newState
 
+    /* Events */
+
+    case ProfileActionType.ATTEMPT_UPDATE_EVENTS:
+      newState.events = {
+        prevValue: state.events.loading ? state.events.prevValue : state.events.value,
+        value: action.events,
+        loading: true,
+      }
+      return newState
+
+    case ProfileActionType.UPDATE_EVENTS_SUCCESS:
+      newState.events = {
+        value: newState.events.value,
+        loading: false,
+      }
+      return newState
+
+    case ProfileActionType.UPDATE_EVENTS_FAILURE:
+      newState.events = {
+        prevValue: undefined,
+        value: state.events.prevValue!,
+        loading: false,
+        errorMessage: action.errorMessage,
+      }
+      return newState
+
+    /* Bucket List */
+
+    case ProfileActionType.ATTEMPT_UPDATE_BUCKET_LIST:
+      newState.bucketList = {
+        prevValue: state.bucketList.loading ? state.bucketList.prevValue : state.bucketList.value,
+        value: action.items,
+        loading: true,
+      }
+      return newState
+
+    case ProfileActionType.UPDATE_BUCKET_LIST_SUCCESS:
+      newState.bucketList = {
+        value: newState.bucketList.value,
+        loading: false,
+      }
+      return newState
+
+    case ProfileActionType.UPDATE_BUCKET_LIST_FAILURE:
+      newState.bucketList = {
+        prevValue: undefined,
+        value: state.bucketList.prevValue!,
+        loading: false,
+        errorMessage: action.errorMessage,
+      }
+      return newState
+
     case ProfileActionType.ATTEMPT_BLOCK_USER:
       let userExists = !!state.blockedUsers.find(user => {
         if (!user) {
@@ -340,7 +430,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         return user.value.email === action.email
       })
       if (!userExists) {
-        newState.blockedUsers = state.blockedUsers.push({
+        newState.blockedUsers = state.blockedUsers.unshift({
           value: {
             email: action.email,
             blocked: true,
@@ -424,12 +514,41 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         value: newReacts,
         loading: false,
       }
+      newState.whoReacted = action.whoReacted.map(react => ({
+        reactId: react.react_id,
+        byUser: react.user_from_id,
+      }))
       return newState
 
-    case ProfileActionType.TOGGLE_UNDERCLASSMEN:
+    case ProfileActionType.ATTEMPT_TOGGLE_UNDERCLASSMEN:
       return {
         ...state,
-        showUnderclassmen: action.showUnderclassmen,
+        showUnderclassmen: {
+          prevValue: state.showUnderclassmen.loading
+            ? state.showUnderclassmen.prevValue
+            : state.showUnderclassmen.value,
+          value: action.showUnderclassmen,
+          loading: true,
+        },
+      }
+
+    case ProfileActionType.TOGGLE_UNDERCLASSMEN_SUCCESS:
+      return {
+        ...state,
+        showUnderclassmen: {
+          value: state.showUnderclassmen.value,
+          loading: false,
+        },
+      }
+
+    case ProfileActionType.TOGGLE_UNDERCLASSMEN_FAILURE:
+      return {
+        ...state,
+        showUnderclassmen: {
+          value: state.showUnderclassmen.prevValue || initialState.showUnderclassmen.value,
+          errorMessage: action.errorMessage,
+          loading: false,
+        },
       }
 
     case AuthActionType.VERIFY_EMAIL_SUCCESS:
@@ -465,22 +584,28 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
       }
 
       return {
+        rehydratingProfileFromServer: false,
         id: action.payload.profile.id,
         preferredName: getValue(action.payload.profile.preferredName, initialState.preferredName.value),
         surname: action.payload.profile.surname,
         fullName: action.payload.profile.fullName,
         classYear: action.payload.profile.classYear,
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
+        seniorGoal: getValue(action.payload.profile.seniorGoal, initialState.seniorGoal.value),
         images: List(action.payload.profile.images.map(image => getValue(image!, {uri: '', isLocal: true}))),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),
         profileReacts: getValue(action.payload.profile.profileReacts, initialState.profileReacts.value),
-        allReacts: action.payload.profile.allReacts,
+        events: getValue(action.payload.profile.events, initialState.events.value),
+        bucketList: getValue(action.payload.profile.bucketList, initialState.bucketList.value),
         blockedUsers: List(action.payload.profile.blockedUsers.map(user => getValue(user!, {email: '', blocked: false}))),
         showUnderclassmen: action.payload.profile.showUnderclassmen,
+        whoReacted: action.payload.profile.whoReacted,
       }
 
     case ProfileActionType.CLEAR_PROFILE_STATE:
-      return initialState
+      return {
+        ...initialState,
+      }
 
     default:
       return state

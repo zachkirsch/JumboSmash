@@ -2,9 +2,10 @@ import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
 import { FlatList, Keyboard, StyleSheet, View } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { connect } from 'react-redux'
+import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Conversation } from '../../../services/matches'
+import { rehydrateProfileFromServer } from '../../../services/profile'
 import MatchesListItem from './MatchesListItem'
 import { JSTextInput } from '../../common'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -12,6 +13,7 @@ import { User } from '../../../services/swipe'
 
 interface State {
   searchBarText: string
+  refreshingList: boolean
 }
 
 interface OwnProps { }
@@ -19,9 +21,14 @@ interface OwnProps { }
 interface StateProps {
   chats: Map<string, Conversation>
   allUsers: Map<number, User>
+  rehydratingProfileFromServer: boolean
 }
 
-type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps>
+interface DispatchProps {
+  rehydrateProfileFromServer: () => void
+}
+
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class MatchesList extends PureComponent<Props, State> {
 
@@ -29,11 +36,18 @@ class MatchesList extends PureComponent<Props, State> {
     super(props)
     this.state = {
       searchBarText: '',
+      refreshingList: false,
     }
   }
 
   componentDidMount() {
     this.props.navigation.addListener('didBlur', Keyboard.dismiss)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    this.setState({
+      refreshingList: nextProps.rehydratingProfileFromServer,
+    })
   }
 
   public render() {
@@ -45,6 +59,8 @@ class MatchesList extends PureComponent<Props, State> {
           data={this.getMatches()}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
+          refreshing={this.state.refreshingList}
+          onRefresh={this.rehydrateProfileFromServer}
         />
       </View>
     )
@@ -68,6 +84,12 @@ class MatchesList extends PureComponent<Props, State> {
         />
       </View>
     )
+  }
+
+  private rehydrateProfileFromServer = () => {
+    this.setState({
+      refreshingList: true,
+    }, this.props.rehydrateProfileFromServer)
   }
 
   private onChangeSearchBarText = (searchBarText: string) => {
@@ -124,10 +146,17 @@ const mapStateToProps = (state: RootState): StateProps => {
   return {
     chats: state.matches.chats,
     allUsers: state.swipe.allUsers.value,
+    rehydratingProfileFromServer: state.profile.rehydratingProfileFromServer,
   }
 }
 
-export default connect(mapStateToProps)(MatchesList)
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    rehydrateProfileFromServer: () => dispatch(rehydrateProfileFromServer()),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MatchesList)
 
 const styles = StyleSheet.create({
   container: {

@@ -411,7 +411,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     meId: state.profile.id,
     postRelease2: state.time.postRelease2,
     classYear: state.profile.classYear,
-    showUnderclassmen: state.profile.showUnderclassmen,
+    showUnderclassmen: state.profile.showUnderclassmen.value,
   }
 }
 

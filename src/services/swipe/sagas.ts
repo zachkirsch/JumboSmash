@@ -1,4 +1,4 @@
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
+import { call, all, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import firebase from 'react-native-firebase'
 import { api, GetUserResponse, GetAllUsersUser, GetAllUsersResponse, GetSwipableUsersResponse, SwipeResponse } from '../api'
 import { ChatService } from '../firebase/utils'
@@ -33,10 +33,10 @@ const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserRespons
     firebaseUid: user.firebase_uid,
     email: user.email,
     bio: user.bio,
-    major: user.major || '',
     preferredName: user.preferred_name || '',
     surname: user.surname,
     fullName: user.full_name,
+    seniorGoal: user.senior_goal || '',
     classYear: user.class_year,
     images: user.images.map(image => image.url),
     tags: user.tags.map(tag => ({
@@ -63,6 +63,7 @@ const convertServerUserToUser = (allReacts: ProfileReact[], user: GetUserRespons
       }),
       loading: false,
     },
+    events: user.events.map(event => event.event_id),
   }
 }
 
@@ -78,8 +79,12 @@ const convertServerUserToUserWithReacts = (allReacts: ProfileReact[], user: GetA
 
 function* attemptFetchSwipableUsers() {
   try {
-    const allUsers: GetAllUsersResponse = yield call(api.getAllUsers)
-    const swipableUsers: GetSwipableUsersResponse = yield call(api.getSwipableUsers)
+    const response = yield all([
+      call(api.getAllUsers),
+      call(api.getSwipableUsers),
+    ])
+    const allUsers: GetAllUsersResponse = response[0]
+    const swipableUsers: GetSwipableUsersResponse = response[1]
     const allReacts: ProfileReact[] = yield select(getAllReacts)
     const successAction: FetchSwipableUsersSuccessAction = {
       type: SwipeActionType.FETCH_SWIPABLE_USERS_SUCCESS,
