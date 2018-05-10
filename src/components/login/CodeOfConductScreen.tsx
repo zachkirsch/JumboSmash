@@ -53,7 +53,10 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
           {this.renderRules()}
           {this.renderTermsOfService()}
           {this.renderSignoff()}
-          {this.props.reviewing || this.renderButtons()}
+          <View style={styles.buttonContainer}>
+            {this.renderTOSLink()}
+            { this.props.reviewing || this.renderAgreeButton() }
+          </View>
         </ScrollView>
       </View>
     )
@@ -103,19 +106,22 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
     )
   }
 
-  private renderButtons = () => {
+  private renderTOSLink = () => {
     return (
-      <View style={styles.buttonContainer}>
-        <RectangleButton
-          onPress={openTermsOfService}
-          label='Read Terms of Service'
-        />
-        <RectangleButton
-          active
-          onPress={this.props.onPress}
-          label={this.props.buttonLabel || "I agree. Let's smash!"}
-        />
-      </View>
+      <RectangleButton
+        onPress={openTermsOfService}
+        label='Read Terms of Service'
+      />
+    )
+  }
+
+  private renderAgreeButton = () => {
+    return (
+      <RectangleButton
+        active
+        onPress={this.props.onPress}
+        label={this.props.buttonLabel || "I agree. Let's smash!"}
+      />
     )
   }
 

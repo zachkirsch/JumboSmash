@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { Image, View, StyleSheet } from 'react-native'
 import { MessageProps, utils } from 'react-native-gifted-chat'
 import Bubble from './Bubble'
 import LinearGradient from 'react-native-linear-gradient'
@@ -12,11 +12,47 @@ interface Props extends MessageProps {
   fromUser?: User
 }
 
+interface State {
+  image: {
+    width: number
+    height: number
+  }
+}
 const { isSameUser } = utils
 
 const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
 
-export default class Message extends PureComponent<Props, {}> {
+export default class Message extends PureComponent<Props, State> {
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      image: {
+        width: 0,
+        height: 0
+      }
+    }
+    this.getImageDims(props)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    this.getImageDims(nextProps)
+  }
+
+  getImageDims(nextProps: Props) {
+    if (!nextProps.currentMessage || nextProps.currentMessage.system || !nextProps.currentMessage.image) {
+      return
+    }
+    const thing = nextProps.currentMessage.image
+    Image.getSize(thing, (width, height) => {
+      this.setState({
+        image: {
+          width,
+          height
+        }
+      })
+    }, (error) => {console.log(error)})
+  }
 
   renderDay() {
 
@@ -51,6 +87,23 @@ export default class Message extends PureComponent<Props, {}> {
         user={this.props.user}
       />
     )
+  }
+
+  renderImage() {
+    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.image) {
+      return null
+    }
+    return (
+      <View style={styles.gifView}>
+        <JSImage
+          cache
+          source={{ uri: this.props.currentMessage.image }}
+          style={ [styles.gif, {width: this.state.image.width, height: this.state.image.height}] }
+          resizeMode={'contain'}
+        />
+      </View>
+    )
+
   }
 
   renderAvatar() {
@@ -119,6 +172,9 @@ export default class Message extends PureComponent<Props, {}> {
             {this.renderBubble()}
           </LinearGradient>
         </View>
+        <View style={[styles.container, containerStyle]}>
+          {this.renderImage()}
+        </View>
         {this.renderFailedToSend()}
       </View>
     )
@@ -183,4 +239,12 @@ const styles = StyleSheet.create({
   failedToSendText: {
     color: 'rgb(214, 145, 145)',
   },
+  gif: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+  gifView: {
+    borderRadius:15,
+    overflow: 'hidden',
+  }
 })
