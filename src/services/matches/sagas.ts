@@ -14,6 +14,8 @@ import { ChatMessage, Conversation } from './types'
 import { api } from '../api'
 import { RootState } from '../../redux'
 
+const gifRegex = /^\/gif\s(.*)$/
+
 const getConversation = (conversationId: string) => {
   return (state: RootState) => state.matches.chats.get(conversationId)
 }
@@ -37,25 +39,23 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
       tag: query.split('/gif')[1]
     }
 
-    let url = apiUrl + '?tag=' + queryParams.tag +
+    let queryUrl = apiUrl + '?tag=' + queryParams.tag +
       '&api_key=' + queryParams.api_key +
       '&rating=' + queryParams.rating
 
-    let a = fetch(url)
+    let gifUrl = fetch(queryUrl)
       .then(function(response) {
         return response.json();
       })
       .then(function(parsedData) {
         return parsedData.data.images.fixed_height.url;
       })
-    return a
+    return gifUrl
   }
   for (let i = 0; i < action.messages.length; i++) {
     const message = action.messages[i]
-    const gifRegex = /\/gif\s\(([^.?]*)\)|\/gif\s\w+/g
     if (message.text.match(gifRegex)) {
       message.image = yield call(retrieveGif, message.text)
-      console.log('message.image', message.image)
     }
     try {
       yield call(pushMessagetoFirebase, message)

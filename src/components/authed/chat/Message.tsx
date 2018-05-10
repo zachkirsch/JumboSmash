@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import {Image, View, StyleSheet, Dimensions} from 'react-native'
+import { Image, View, StyleSheet } from 'react-native'
 import { MessageProps, utils } from 'react-native-gifted-chat'
 import Bubble from './Bubble'
 import LinearGradient from 'react-native-linear-gradient'
@@ -7,19 +7,52 @@ import JSText from '../../common/JSText'
 import moment from 'moment'
 import { User } from '../../../services/swipe'
 import { JSImage } from '../../common'
-import {Images} from "../../../assets";
 
 interface Props extends MessageProps {
   fromUser?: User
 }
 
+interface State {
+  image: {
+    width: number
+    height: number
+  }
+}
 const { isSameUser } = utils
 
 const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
-const WIDTH = Dimensions.get('window').width
 
+export default class Message extends PureComponent<Props, State> {
 
-export default class Message extends PureComponent<Props, {}> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      image: {
+        width: 0,
+        height: 0
+      }
+    }
+    this.getImageDims(props)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    this.getImageDims(nextProps)
+  }
+
+  getImageDims(nextProps: Props) {
+    if (!nextProps.currentMessage || nextProps.currentMessage.system || !nextProps.currentMessage.image) {
+      return
+    }
+    const thing = nextProps.currentMessage.image
+    Image.getSize(thing, (width, height) => {
+      this.setState({
+        image: {
+          width,
+          height
+        }
+      })
+    }, (error) => {console.log(error)})
+  }
 
   renderDay() {
 
@@ -61,14 +94,16 @@ export default class Message extends PureComponent<Props, {}> {
       return null
     }
     return (
-      <JSImage
-        cache
-        source={{ uri: this.props.currentMessage.image }}
-        style={styles.gif}
-        resizeMode={'cover'}
-        borderRadius={15}
-      />
+      <View style={styles.gifView}>
+        <JSImage
+          cache
+          source={{ uri: this.props.currentMessage.image }}
+          style={ [styles.gif, {width: this.state.image.width, height: this.state.image.height}] }
+          resizeMode={'contain'}
+        />
+      </View>
     )
+
   }
 
   renderAvatar() {
@@ -110,12 +145,6 @@ export default class Message extends PureComponent<Props, {}> {
     if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.user) {
       return null
     }
-
-    // if (this.props.currentMessage.image) {
-    //   console.log("instead of rendering a bubble, render this image: ", this.props.currentMessage.image)
-    // } else {
-    //
-    // }
 
     const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
 
@@ -211,9 +240,11 @@ const styles = StyleSheet.create({
     color: 'rgb(214, 145, 145)',
   },
   gif: {
-    width: WIDTH * 2 / 3,
-    height: 150,
     alignItems: 'flex-end',
-    overlayColor: '#FFFFFF'
+    justifyContent: 'flex-end',
+  },
+  gifView: {
+    borderRadius:15,
+    overflow: 'hidden',
   }
 })

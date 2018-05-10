@@ -41,7 +41,6 @@ class MatchesList extends PureComponent<Props, State> {
       <View style={styles.container}>
         {this.renderSearchBar()}
         <FlatList
-          contentContainerStyle={styles.list}
           data={this.getMatches()}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
@@ -132,9 +131,6 @@ export default connect(mapStateToProps)(MatchesList)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  list: {
-    marginTop: 10,
   },
   searchBarContainer: {
     flexDirection: 'row',
