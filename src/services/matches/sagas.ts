@@ -35,7 +35,7 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
 
     const queryParams = {
       api_key: apiKey,
-      rating: 'g',
+      rating: 'r',
       tag: query.split('/gif')[1]
     }
 
@@ -48,16 +48,16 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
         return response.json();
       })
       .then(function(parsedData) {
-        return parsedData.data.images.fixed_height.url;
+        return parsedData.data.images && parsedData.data.images.fixed_height.url;
       })
     return gifUrl
   }
   for (let i = 0; i < action.messages.length; i++) {
     const message = action.messages[i]
-    if (message.text.match(gifRegex)) {
-      message.image = yield call(retrieveGif, message.text)
-    }
     try {
+      if (message.text.match(gifRegex)) {
+        message.image = yield call(retrieveGif, message.text)
+      }
       yield call(pushMessagetoFirebase, message)
       const successAction: SendMessagesSuccessAction = {
         type: MatchesActionType.SEND_MESSAGES_SUCCESS,
