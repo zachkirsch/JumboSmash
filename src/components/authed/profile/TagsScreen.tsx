@@ -251,6 +251,12 @@ const styles = StyleSheet.create({
     opacity: 1,
     shadowColor: getLightColor(),
     shadowOpacity: 1,
+    ...Platform.select({
+      android: {
+        fontWeight: 'bold',
+        fontSize: 15,
+      },
+    }),
   },
   tagSection: {
     marginBottom: 20,
