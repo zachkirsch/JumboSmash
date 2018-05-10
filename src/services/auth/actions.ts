@@ -42,6 +42,7 @@ export interface LoginFailureAction {
 export interface AttemptRequestVerificationAction {
   type: AuthActionType.ATTEMPT_REQUEST_VERIFICATION
   credentials: Credentials
+  resend: boolean
 }
 
 export interface RequestVerificationSuccessAction {
@@ -167,9 +168,10 @@ export const setCoCReadStatus = (readStatus: boolean): SetCoCReadStatusAction =>
   }
 }
 
-export const requestVerification = (credentials: Credentials): AttemptRequestVerificationAction => {
+export const requestVerification = (credentials: Credentials, resend: boolean): AttemptRequestVerificationAction => {
   return {
     type: AuthActionType.ATTEMPT_REQUEST_VERIFICATION,
+    resend,
     credentials,
   }
 }

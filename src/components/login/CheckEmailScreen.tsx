@@ -172,13 +172,18 @@ class CheckEmailScreen extends PureComponent<Props, State> {
   }
 
   private requestResendVerificationCode = () => {
-    this.props.requestResend()
-    this.setState({
-      secondsUntilCanResendEmail: INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL,
-    }, this.startResendTimer)
     Alert.alert(
-      'New Code Requested',
-      'You may still receive an e-mail with the previous (now invalid) code'
+      'Resend Code?',
+      'Sometimes the verificaiton email can take a few minutes to arrive.',
+      [
+        {text: 'No', style: 'cancel'},
+        {text: 'Yes', style: 'destructive', onPress: () => {
+          this.props.requestResend()
+          this.setState({
+            secondsUntilCanResendEmail: INITIAL_SECONDS_UNTIL_CAN_RESEND_EMAIL,
+          }, this.startResendTimer)
+        }},
+      ]
     )
   }
 

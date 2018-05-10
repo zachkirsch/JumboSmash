@@ -195,7 +195,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials)),
+    onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials, false)),
   }
 }
 

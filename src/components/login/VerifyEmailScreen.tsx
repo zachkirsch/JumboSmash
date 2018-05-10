@@ -246,7 +246,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials)),
+    requestVerification: (credentials: Credentials) => dispatch(requestVerification(credentials, true)),
     submitVerificationCode: (code: string) => dispatch(verifyEmail(code)),
     clearAuthErrorMessages: () => dispatch(clearAuthErrorMessages()),
   }

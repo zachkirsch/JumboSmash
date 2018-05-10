@@ -27,7 +27,7 @@ export function authReducer(state = initialState, action: AuthAction): AuthState
       return {
         ...initialState,
         email: action.credentials.email,
-        waitingForRequestVerificationResponse: true,
+        waitingForRequestVerificationResponse: !action.resend,
       }
 
     case AuthActionType.REQUEST_VERIFICATION_SUCCESS:

@@ -3,10 +3,10 @@ import firebase from 'react-native-firebase'
 import { reduxStore } from '../../redux'
 import { ChatService } from '../firebase'
 import { unmatch, removeChat } from '../matches'
-import { updateProfileReacts } from '../profile'
+import { rehydrateProfileFromServer } from '../profile'
 import { addInAppNotification } from './actions'
 import { removeUser } from '../swipe'
-import { IndividualProfileReact, ProfileReact, GetUserResponse } from '../api'
+import { GetUserResponse } from '../api'
 import { NavigationService } from '../navigation'
 
 /* tslint:disable:no-console */
@@ -20,8 +20,6 @@ interface NewChatMessage {
 
 interface ReactMessage {
   msg_type: 'react'
-  profile_reacts: ProfileReact[]
-  who_reacted: IndividualProfileReact[]
 }
 
 interface UnmatchMessage {
@@ -203,7 +201,7 @@ const onMessage = (message: any) => {
         )
         break
       case 'react':
-        reduxStore.dispatch(updateProfileReacts(data.profile_reacts, data.who_reacted))
+        reduxStore.dispatch(rehydrateProfileFromServer())
         break
     }
   } catch (e) {
