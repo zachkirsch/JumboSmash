@@ -57,6 +57,11 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
       }
 
     case ReduxActionType.REHYDRATE:
+
+      // for when root state is empty
+      if (!action.payload.time) {
+        return state
+      }
       return {
         ...initialState,
         hasSeenCountdown: action.payload.time.hasSeenCountdown,
