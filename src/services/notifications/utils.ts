@@ -64,9 +64,11 @@ let notificationListener = dummy
 let notificationOpenedListener = dummy
 
 /* tslint:disable-next-line:no-any */
-export const handleBackgroundMessageAndroid = (message: any) => {
-  console.log('background message android: ', message)
-  return Promise.resolve()
+export async function handleBackgroundMessageAndroid(message: any) {
+    // handle your message
+    console.log(message)
+    onMessage(message)
+    return Promise.resolve()
 }
 
 export const turnOffListeners = () => {
@@ -173,9 +175,12 @@ export const setupNotifications = () => {
 /* tslint:disable-next-line:no-any */
 const onMessage = (message: any) => {
   console.log(message, message.data, message._data)
+  const dataToParse = message.data || message._data
+  if (dataToParse === undefined) {
+    return
+  }
   try {
-    const data: DataMessage = JSON.parse(message._data.data)
-    console.log(data)
+    const data: DataMessage = JSON.parse(dataToParse.data)
     switch (data.msg_type) {
       case 'unmatch':
         NavigationService.popChatIfOpen(data.conversation_uuid)

@@ -43,5 +43,5 @@ class JumboSmash extends PureComponent {
 AppRegistry.registerComponent('JumboSmash', () => JumboSmash)
 
 if (Platform.OS === 'android') {
-  AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', handleBackgroundMessageAndroid)
+  AppRegistry.registerHeadlessTask('RNFirebaseBackgroundMessage', () => handleBackgroundMessageAndroid)
 }
