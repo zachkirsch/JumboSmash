@@ -55,7 +55,7 @@ class EventsScreen extends PureComponent<Props, State> {
   private renderHeaderBar = () => {
     return (
       <HeaderBar
-        title='Senior Events'
+        title='Bucket List'
         onPressLeft={this.props.navigation.goBack}
       />
     )
@@ -65,8 +65,7 @@ class EventsScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.topContainer}>
         <JSText style={styles.title}>
-          RSVP to the events you're going to this week, or
-          click on one see who else is going!
+          Don't worry, nobody else will see this list :)
         </JSText>
       </View>
     )

@@ -55,7 +55,7 @@ class CodeOfConductScreen extends PureComponent<Props, {}> {
           {this.renderSignoff()}
           <View style={styles.buttonContainer}>
             {this.renderTOSLink()}
-            { this.props.reviewing || this.renderAgreeButton() }
+            {this.props.reviewing || this.renderAgreeButton()}
           </View>
         </ScrollView>
       </View>

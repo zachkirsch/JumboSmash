@@ -14,7 +14,7 @@ import { rehydrateMatchesFromServer } from '../matches/actions'
 import { ImageCacheService } from '../image-caching'
 
 const getDeviceId = (state: RootState) => state.auth.deviceId
-const getFirebaseToken = (state: RootState) => state.firebase.token
+const getFirebaseToken = (state: RootState) => state.firebase.token.value
 
 function* handleRequestVerificationSuccess(isNewUser: boolean, deviceId: string) {
   const requestVerificationSuccessAction: AuthActions.RequestVerificationSuccessAction = {

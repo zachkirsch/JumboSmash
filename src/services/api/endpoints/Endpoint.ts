@@ -18,9 +18,7 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     return this.constructUri ? this.constructUri(this.endpoint, pathExtensionComponents) : this.endpoint
   }
 
-  // TODO: retry failed requests
-  // TODO: logout if banned
-  protected makeRequest(endpoint: string, method: HttpMethod, body: Request | undefined, retry = true): Promise<SuccessResponse> {
+  protected makeRequest(endpoint: string, method: HttpMethod, body: Request | undefined): Promise<SuccessResponse> {
     return fetch(SERVER_URL.replace(/\/$/, '') + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
       throw Error('Could not connect to the server')

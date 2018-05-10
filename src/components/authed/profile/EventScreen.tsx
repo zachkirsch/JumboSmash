@@ -20,7 +20,7 @@ interface StateProps {
   allUsers: User[]
   fetchingAllUsers: boolean
   myId: number
-  myAvatar: string
+  myAvatar: string | undefined
 }
 
 interface DispatchProps {
@@ -93,12 +93,12 @@ class EventScreen extends PureComponent<Props, State> {
     let avatar = item.images[0]
     let name = item.fullName
     if (item.id === this.props.myId) {
-      avatar = this.props.myAvatar
+      avatar = this.props.myAvatar || ''
       name = item.fullName + ' (You)'
     }
     return (
       <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', padding: 8}}>
-        <JSImage cache source={{uri: avatar}} style={{width: 36, height: 36, marginRight: 15, borderRadius: 18}}/>
+        <JSImage cache={false} source={{uri: avatar}} style={{width: 36, height: 36, marginRight: 15, borderRadius: 18}}/>
         <JSText style={{fontSize: 20, paddingTop: 5}}>{name}</JSText>
       </View>
     )
@@ -124,7 +124,7 @@ class EventScreen extends PureComponent<Props, State> {
       if (u.id === this.props.myId) {
         return this.props.navigation.state.params.event.going
       } else {
-        return this.props.navigation.state.params.event.id in u.events
+        return u.events.find(id => id === this.props.navigation.state.params.event.id)
       }
     })
     if (this.state.searchBarText) {
@@ -151,7 +151,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     allUsers: state.swipe.allUsers.value.valueSeq().toArray(),
     fetchingAllUsers: state.swipe.allUsers.loading,
     myId: state.profile.id,
-    myAvatar: state.profile.images.get(0).value.uri,
+    myAvatar: state.profile.images.get(0) && state.profile.images.get(0).value.uri,
   }
 }
 

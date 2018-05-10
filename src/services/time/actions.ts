@@ -6,6 +6,7 @@ export enum TimeActionType {
   ATTEMPT_GET_SERVER_TIME = 'ATTEMPT_GET_SERVER_TIME',
   GET_SERVER_TIME_SUCCESS = 'GET_SERVER_TIME_SUCCESS',
   GET_SERVER_TIME_FAILURE = 'GET_SERVER_TIME_FAILURE',
+  MARK_COUNTDOWN_AS_SEEN = 'MARK_COUNTDOWN_AS_SEEN',
   OTHER_ACTION = '__any_other_action_type__',
 }
 
@@ -26,6 +27,10 @@ export interface GetServerTimeFailureAction {
   errorMessage: string
 }
 
+export interface MarkCountdownAsSeenAction {
+  type: TimeActionType.MARK_COUNTDOWN_AS_SEEN
+}
+
 /* the point of the OtherAction action is for TypeScript to warn us if we don't
  * have a default case when processing actions. We will never dispatch
  * OtherAction, but we do need a default case for the other Actions that are
@@ -41,6 +46,7 @@ export type TimeAction =
   AttempGetServerTimeAction
 | GetServerTimeSuccessAction
 | GetServerTimeFailureAction
+| MarkCountdownAsSeenAction
 | RehydrateAction
 | OtherAction
 
@@ -49,5 +55,11 @@ export type TimeAction =
 export const getServerTime = (): AttempGetServerTimeAction => {
   return {
     type: TimeActionType.ATTEMPT_GET_SERVER_TIME,
+  }
+}
+
+export const markCountdownAsSeen = (): MarkCountdownAsSeenAction => {
+  return {
+    type: TimeActionType.MARK_COUNTDOWN_AS_SEEN,
   }
 }

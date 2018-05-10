@@ -61,7 +61,7 @@ class ReactSection extends PureComponent<Props, {}> {
         disabled={this.props.enabled === false}
       >
         {toRender}
-        <JSText bold={react.reacted} style={styles.reactNum}>{react.count}</JSText>
+        <JSText bold={react.reacted} style={styles.reactNum}>{`x ${react.count}`}</JSText>
       </TouchableOpacity>
     )
   }
@@ -111,8 +111,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgb(172, 203, 238)',
   },
   reactNum: {
-    marginLeft: 4,
-    fontSize: 12,
+    minWidth: 30,
+    marginLeft: 7,
+    marginTop: 3,
+    fontSize: 16,
     color: 'rgba(41,41,44,0.76)',
   },
 })

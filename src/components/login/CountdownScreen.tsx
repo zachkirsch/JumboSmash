@@ -4,7 +4,7 @@ import { Animated, Image, Easing, TouchableOpacity, StyleSheet, View, ActivityIn
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
-import { getServerTime } from '../../services/time'
+import { getServerTime, markCountdownAsSeen } from '../../services/time'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
@@ -20,6 +20,7 @@ interface StateProps {
 
 interface DispatchProps {
   getServerTime: () => void
+  markCountdownAsSeen: () => void
 }
 
 interface State {
@@ -286,9 +287,10 @@ class CountdownScreen extends PureComponent<Props, State> {
   }
 
   private navigateWhenReady = () => {
-    if (this.state.rocket.animating) {
+    if (!this.state.rocket.alreadyAnimated) {
       this.navigateTimer = setTimeout(this.navigateWhenReady, 1000)
     } else {
+      this.props.markCountdownAsSeen()
       this.props.navigation.navigate(LoginRoute.LoginScreen)
     }
   }
@@ -315,6 +317,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     getServerTime: () => dispatch(getServerTime()),
+    markCountdownAsSeen: () => dispatch(markCountdownAsSeen()),
   }
 }
 

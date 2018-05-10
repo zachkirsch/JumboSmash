@@ -1,6 +1,6 @@
 import { List, Map, Set } from 'immutable'
 
-export interface ChatMessage {
+export type ChatMessage = {
   _id: any /* tslint:disable-line:no-any */
   text: string
   createdAt: number
@@ -13,6 +13,11 @@ export interface ChatMessage {
   sending: boolean
   failedToSend: boolean
   system: false
+} | {
+  system: true
+  createdAt: number
+  text: string
+  _id: any /* tslint:disable-line:no-any */
 }
 
 export interface NewMatch {

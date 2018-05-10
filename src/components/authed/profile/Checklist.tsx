@@ -38,6 +38,7 @@ class Checklist<ItemT> extends PureComponent<Props<ItemT>, {}> {
         keyExtractor={this.props.keyExtractor}
         stickySectionHeadersEnabled={stickySectionHeadersEnabled}
         ItemSeparatorComponent={this.renderSeparator}
+        bounces={false}
       />
     )
   }
@@ -63,9 +64,12 @@ class Checklist<ItemT> extends PureComponent<Props<ItemT>, {}> {
   private renderRightView = (item: ItemT) => {
     if (!this.props.onPressRightChevron) {
       return (
-        <View style={styles.itemTitleContainer}>
+        <TouchableOpacity
+          style={styles.itemTitleContainer}
+          onPress={this.onPressCheckbox(item)}
+        >
           <JSText style={styles.itemTitle}>{this.props.labelExtractor(item)}</JSText>
-        </View>
+        </TouchableOpacity>
       )
     }
     return (

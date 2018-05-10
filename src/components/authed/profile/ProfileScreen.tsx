@@ -334,7 +334,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           style={styles.bio}
           onFocus={this.onFocus('seniorGoal')}
           ref={ref => this.seniorGoalTextInput = ref}
-          placeholder='??'
+          placeholder='straddle the cannon in my birthday suit'
         />
       </View>
     )
@@ -358,15 +358,12 @@ class ProfileScreen extends PureComponent<Props, State> {
   )
 
   private renderPersonalInfo = () => {
-    // bio is first because flexDirection is reverse (so that shadow doesn't cover the bio)
     return (
       <View style={styles.personalInfoContainer}>
-        {this.renderSeniorGoal()}
+        {this.renderPreferredName()}
+        <JSText bold style={[styles.title, styles.aboutMeTitle]}>ABOUT ME</JSText>
         {this.renderBio()}
-        <View style={styles.personalInfo}>
-          {this.renderPreferredName()}
-          <JSText bold style={[styles.title, styles.aboutMeTitle]}>ABOUT ME</JSText>
-        </View>
+        {this.renderSeniorGoal()}
       </View>
     )
   }
@@ -382,7 +379,7 @@ class ProfileScreen extends PureComponent<Props, State> {
         </JSText>
         <Switch
           onValueChange={this.onToggleUnderclassmenVisibility}
-          value={!this.props.profile.showUnderclassmen}
+          value={!this.props.profile.showUnderclassmen.value}
         />
       </View>
     )
@@ -578,11 +575,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
     paddingBottom: 10,
+    margin: 0,
     fontSize: 17,
   },
   personalInfoContainer: {
     flex: 1,
-    flexDirection: 'column-reverse',
   },
   personalInfo: {
     marginTop: 20,
@@ -591,6 +588,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     letterSpacing: .8,
+    marginTop: 10,
   },
   tagsTitle: {
     marginBottom: 10,
@@ -627,12 +625,15 @@ const styles = StyleSheet.create({
   },
   aboutMeTitle: {
     marginBottom: 5,
+    marginHorizontal: 20,
   },
   preferredNameContainer: {
     flexDirection: 'row',
-    marginBottom: 30,
+    marginBottom: 10,
+    marginHorizontal: 20,
   },
   preferredNameTitle: {
+    marginHorizontal: 20,
     marginBottom: 5,
   },
   preferredName: {
@@ -644,8 +645,7 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   seniorGoalTitle: {
-    margin: 20,
-    marginBottom: 5,
+    marginHorizontal: 20,
   },
   seniorGoal: {
     marginRight: 20,

@@ -29,8 +29,8 @@ export default class Message extends PureComponent<Props, State> {
     this.state = {
       image: {
         width: 0,
-        height: 0
-      }
+        height: 0,
+      },
     }
     this.getImageDims(props)
   }
@@ -39,7 +39,56 @@ export default class Message extends PureComponent<Props, State> {
     this.getImageDims(nextProps)
   }
 
-  getImageDims(nextProps: Props) {
+  render() {
+    if (!this.props.currentMessage || !this.props.user) {
+      return null
+    }
+
+    if (this.props.currentMessage.system) {
+      return this.renderSystemMessage()
+    }
+
+    const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
+
+    const colors = [
+      'rgba(232, 240, 252, 0.35)',
+      this.props.currentMessage.user._id === this.props.user._id
+        ? 'rgba(212, 214, 219, 0.35)'
+        : 'rgba(176, 201, 240, 0.35)',
+    ]
+
+    const containerStyle = this.props.position && styles[this.props.position]
+    return (
+      <View style={{ marginBottom }}>
+        {this.renderDay()}
+        <View style={[styles.container, containerStyle]}>
+          {this.renderAvatar()}
+          <LinearGradient
+            colors={colors}
+            start={{x: 0, y: 1}}
+            end={{x: 1, y: 1}}
+            locations={[0, 1]}
+            style={styles.gradient}
+          >
+            {this.renderBubble()}
+          </LinearGradient>
+        </View>
+        {this.renderImage()}
+        {this.renderFailedToSend()}
+      </View>
+    )
+  }
+
+  private renderSystemMessage = () => {
+    if (!this.props.currentMessage) {
+      return null
+    }
+    return (
+      <JSText bold style={styles.systemMessage}>{this.props.currentMessage.text}</JSText>
+    )
+  }
+
+  private getImageDims(nextProps: Props) {
     if (!nextProps.currentMessage || nextProps.currentMessage.system || !nextProps.currentMessage.image) {
       return
     }
@@ -48,13 +97,13 @@ export default class Message extends PureComponent<Props, State> {
       this.setState({
         image: {
           width,
-          height
-        }
+          height,
+        },
       })
-    }, (error) => {console.log(error)})
+    }, _ => {}) /* tslint:disable-line:no-empty */
   }
 
-  renderDay() {
+  private renderDay() {
 
     if (this.props.currentMessage === undefined || !this.shouldShowDate()) {
       return null
@@ -71,13 +120,13 @@ export default class Message extends PureComponent<Props, State> {
     })
 
     return (
-      <JSText style={styles.date}>
+      <JSText style={styles.systemMessage}>
         {formattedDate}
       </JSText>
     )
   }
 
-  renderBubble() {
+  private renderBubble() {
     if (!this.props.user) {
       return null
     }
@@ -89,24 +138,27 @@ export default class Message extends PureComponent<Props, State> {
     )
   }
 
-  renderImage() {
+  private renderImage() {
     if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.image) {
       return null
     }
+    const containerStyle = this.props.position && styles[this.props.position]
     return (
-      <View style={styles.gifView}>
-        <JSImage
-          cache
-          source={{ uri: this.props.currentMessage.image }}
-          style={ [styles.gif, {width: this.state.image.width, height: this.state.image.height}] }
-          resizeMode={'contain'}
-        />
+      <View style={[styles.container, containerStyle]}>
+        <View style={styles.gifView}>
+          <JSImage
+            cache
+            source={{ uri: this.props.currentMessage.image }}
+            style={[styles.gif, {width: this.state.image.width, height: this.state.image.height}]}
+            resizeMode={'contain'}
+          />
+        </View>
       </View>
     )
 
   }
 
-  renderAvatar() {
+  private renderAvatar() {
 
     if (!this.props.currentMessage || !this.props.user) {
       return null
@@ -130,52 +182,13 @@ export default class Message extends PureComponent<Props, State> {
     )
   }
 
-  renderFailedToSend() {
+  private renderFailedToSend() {
     if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.failedToSend) {
       return null
     }
     return (
       <View style={styles.failedToSendMessage}>
         <JSText style={styles.failedToSendText}>Failed to send</JSText>
-      </View>
-    )
-  }
-
-  render() {
-    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.user) {
-      return null
-    }
-
-    const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
-
-    const colors = [
-      'rgba(232, 240, 252, 0.35)',
-      this.props.currentMessage.user._id === this.props.user._id
-        ? 'rgba(212, 214, 219, 0.35)'
-        : 'rgba(176, 201, 240, 0.35)',
-    ]
-
-    const containerStyle = this.props.position && styles[this.props.position]
-
-    return (
-      <View style={{ marginBottom }}>
-        {this.renderDay()}
-        <View style={[styles.container, containerStyle]}>
-          {this.renderAvatar()}
-          <LinearGradient
-            colors={colors}
-            start={{x: 0, y: 1}}
-            end={{x: 1, y: 1}}
-            locations={[0, 1]}
-            style={styles.gradient}
-          >
-            {this.renderBubble()}
-          </LinearGradient>
-        </View>
-        <View style={[styles.container, containerStyle]}>
-          {this.renderImage()}
-        </View>
-        {this.renderFailedToSend()}
       </View>
     )
   }
@@ -226,12 +239,6 @@ const styles = StyleSheet.create({
   transparent: {
     backgroundColor: 'transparent',
   },
-  date: {
-    fontSize: 10,
-    marginVertical: 15,
-    textAlign: 'center',
-    color: 'gray',
-  },
   failedToSendMessage: {
     alignItems: 'flex-end',
     marginRight: 8,
@@ -244,7 +251,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   gifView: {
-    borderRadius:15,
+    borderRadius: 15,
     overflow: 'hidden',
-  }
+  },
+  systemMessage: {
+    fontSize: 14,
+    marginVertical: 15,
+    textAlign: 'center',
+    color: 'lightgray',
+  },
 })

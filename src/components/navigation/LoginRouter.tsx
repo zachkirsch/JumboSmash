@@ -150,7 +150,7 @@ const getPostLoginScreens = () => {
 export const generateLoginRouter = () => {
   const screens: { [key: string]: NavigationRouteConfig } = {}
   const state = reduxStore.getState()
-  if (!state.time.postRelease) {
+  if (!state.time.postRelease || !state.time.hasSeenCountdown) {
     screens[LoginRoute.CountdownScreen] = {
       screen: CountdownScreen,
       navigationOptions: {
