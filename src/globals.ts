@@ -23,7 +23,7 @@ export const LIGHT_COLOR = {
   b: 236,
 }
 
-const LOCAL_SERVER = true
+const LOCAL_SERVER = false
 const STAGING = false
 const LOCAL_SERVER_URL = 'http://130.64.157.174:5000'
 const STAGING_SERVER_URL = 'https://jumbosmash2018-staging.herokuapp.com/'
