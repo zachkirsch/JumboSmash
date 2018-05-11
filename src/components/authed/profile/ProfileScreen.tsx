@@ -334,7 +334,7 @@ class ProfileScreen extends PureComponent<Props, State> {
           style={styles.bio}
           onFocus={this.onFocus('seniorGoal')}
           ref={ref => this.seniorGoalTextInput = ref}
-          placeholder='straddle the cannon in my birthday suit'
+          placeholder='straddle the cannon'
         />
       </View>
     )

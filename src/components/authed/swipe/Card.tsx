@@ -710,6 +710,9 @@ class Card extends PureComponent<Props, State> {
   }
 
   private swipe = (direction: Direction, wasBlock = false) => {
+    if (!this.canSwipe()) {
+      return
+    }
     const onComplete = () => {
       if (this.props.type === 'normal') {
         this.props.onExitExpandedView && this.props.onExitExpandedView()

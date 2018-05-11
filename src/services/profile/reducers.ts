@@ -84,7 +84,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         fullName: action.payload.full_name,
         classYear: action.payload.class_year,
         bio: { value: action.payload.bio, loading: false },
-        seniorGoal: { value: '' /* TODO action.payload.senior_goal */, loading: false },
+        seniorGoal: { value: action.payload.senior_goal || '', loading: false },
         images: List(action.payload.images.map(({url}) => {
           return {
             value: {
@@ -141,9 +141,9 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
           loading: false,
         },
         showUnderclassmen: {
-          value: false,
+          value: action.payload.see_underclassmen,
           loading: false,
-        }, // TODO, with server
+        },
         events: {
           loading: false,
           value: action.allEvents.map(event => {
@@ -564,7 +564,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         return state
       }
 
-      function getValue<T>(oldStateValue: LoadableValue<T>, defaultValue: T): LoadableValue<T> {
+      function getValue<T>(oldStateValue: LoadableValue<T> | undefined, defaultValue: T): LoadableValue<T> {
         let value: T
         if (!oldStateValue) {
           value = defaultValue
@@ -592,7 +592,7 @@ export function profileReducer(state = initialState, action: ProfileAction): Pro
         classYear: action.payload.profile.classYear,
         bio: getValue(action.payload.profile.bio, initialState.bio.value),
         seniorGoal: getValue(action.payload.profile.seniorGoal, initialState.seniorGoal.value),
-        images: List(action.payload.profile.images.map(image => getValue(image!, {uri: '', isLocal: true}))),
+        images: List((action.payload.profile.images || []).map(image => getValue(image, {uri: '', isLocal: true}))),
         tags: getValue(action.payload.profile.tags, initialState.tags.value),
         profileReacts: getValue(action.payload.profile.profileReacts, initialState.profileReacts.value),
         events: getValue(action.payload.profile.events, initialState.events.value),

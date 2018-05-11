@@ -2,6 +2,7 @@ import { List, Map } from 'immutable'
 import { SwipeAction, SwipeActionType } from './actions'
 import { SwipeState, User } from './types'
 import { ReduxActionType } from '../redux'
+import { ProfileActionType } from '../profile'
 import { shuffle } from '../../utils'
 
 const initialState: SwipeState = {
@@ -41,6 +42,35 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
       nextIndexOfUserOnTop = nextIndexOfUserOnTop % finalUsers.size
+
+      return {
+        ...state,
+        swipableUsers: {
+          ...state.swipableUsers,
+          value: finalUsers,
+        },
+        indexOfUserOnTop: nextIndexOfUserOnTop,
+      }
+
+    case ProfileActionType.ATTEMPT_BLOCK_USER:
+      nextIndexOfUserOnTop = state.indexOfUserOnTop
+
+      // if this is a right swipe, remove any duplicates so the user won't see this person again
+      finalUsers = List()
+      for (let i = 0; i < newSwipableUsers.size; i++) {
+        const userId = newSwipableUsers.get(i)
+        const user = state.allUsers.value.get(userId)
+        if (!user) {
+          continue
+        }
+        if (action.email && user.email !== action.email) {
+          finalUsers = finalUsers.push(userId)
+        } else if (action.userId && user.id !== action.userId) {
+          finalUsers = finalUsers.push(userId)
+        } else if (i < nextIndexOfUserOnTop) {
+          nextIndexOfUserOnTop -= 1
+        }
+      }
 
       return {
         ...state,

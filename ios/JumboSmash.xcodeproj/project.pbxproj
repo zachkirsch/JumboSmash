@@ -46,6 +46,8 @@
 		8E69FFC32056410A8DF26D2A /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EA84D081328544AD80EEC8AE /* MaterialIcons.ttf */; };
 		9121FE9E00204ADFA088C700 /* cards-blue.png in Resources */ = {isa = PBXBuildFile; fileRef = A648E3A651D14A2F8F8042DD /* cards-blue.png */; };
 		91F985EC77FA42F9904D04FE /* logo.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = D55938E519CC4495A0E94FCA /* logo.jpeg */; };
+		9204B35620A6439F0064A249 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 9204B32320A6439F0064A249 /* assets */; };
+		9204B35B20A6468A0064A249 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 9204B35920A6468A0064A249 /* main.jsbundle */; };
 		922FCE96207EF8C000070931 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 922FCE95207EF8C000070931 /* GoogleService-Info.plist */; };
 		92F358901FD494A20082C3BF /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92F3588D1FD494950082C3BF /* Crashlytics.framework */; };
 		92F358911FD494A20082C3BF /* Fabric.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92F3588E1FD494950082C3BF /* Fabric.framework */; };
@@ -488,6 +490,8 @@
 		823847545F6A41A4B3283451 /* exit.png */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = exit.png; path = ../src/assets/img/exit.png; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		87384618D881474EA43C9CF0 /* libSMXCrashlytics.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libSMXCrashlytics.a; sourceTree = "<group>"; };
+		9204B32320A6439F0064A249 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = JumboSmash/assets; sourceTree = "<group>"; };
+		9204B35920A6468A0064A249 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = main.jsbundle; path = JumboSmash/main.jsbundle; sourceTree = "<group>"; };
 		922FCE94207EF77600070931 /* JumboSmash.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = JumboSmash.entitlements; path = JumboSmash/JumboSmash.entitlements; sourceTree = "<group>"; };
 		922FCE95207EF8C000070931 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		92F3588D1FD494950082C3BF /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
@@ -625,6 +629,8 @@
 		13B07FAE1A68108700A75B9A /* JumboSmash */ = {
 			isa = PBXGroup;
 			children = (
+				9204B32320A6439F0064A249 /* assets */,
+				9204B35920A6468A0064A249 /* main.jsbundle */,
 				922FCE94207EF77600070931 /* JumboSmash.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				922FCE95207EF8C000070931 /* GoogleService-Info.plist */,
@@ -1429,11 +1435,13 @@
 				12A59BA09FCF4579A92B9054 /* SimpleLineIcons.ttf in Resources */,
 				9FB7A89A63E04BE7A456C42D /* Zocial.ttf in Resources */,
 				922FCE96207EF8C000070931 /* GoogleService-Info.plist in Resources */,
+				9204B35B20A6468A0064A249 /* main.jsbundle in Resources */,
 				50C3519366314DFB88A7F42F /* Chalkduster.ttf in Resources */,
 				E5C335437166403686FE2691 /* ProximaNovaSoft-Bold.ttf in Resources */,
 				022C2554B5E342D9812AEAA1 /* ProximaNovaSoft-Medium.ttf in Resources */,
 				CE215472710A46EFB688E5DE /* ProximaNovaSoft-Regular.ttf in Resources */,
 				F1EC278D4B204E42AC4DB953 /* ProximaNovaSoft-Semibold.ttf in Resources */,
+				9204B35620A6439F0064A249 /* assets in Resources */,
 				CC73B03396834A06AF9FD3E8 /* cross.png in Resources */,
 				89E8C2109E604D6397FF9986 /* hash.png in Resources */,
 				77F8736792AD49C7B210C632 /* jumbo2018.png in Resources */,

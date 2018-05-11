@@ -9,7 +9,7 @@
 				"android": "react-native run-android",
 				"tsc": "tsc",
 				"build": "yarn run clean && yarn run copyassets && yarn run tsc",
-				"build:ios": "react-native bundle --entry-file='build/index.js' --bundle-output='./ios/JumboSmash/main.jsbundle' --dev=false --platform='ios' --assets-dest='./ios/JumboSmash'",
+				"build:ios": "yarn build && react-native bundle --entry-file='build/index.js' --bundle-output='./ios/JumboSmash/main.jsbundle' --dev=false --platform='ios' --assets-dest='./ios/JumboSmash'",
 				"clean": "rimraf build",
 				"fix": "tslint --fix --project tsconfig.json --config tslint.json",
 				"lint": "tslint --project tsconfig.json --config tslint.json",
@@ -44,7 +44,6 @@
 				"react-navigation": "^1.0.0-beta.19",
 				"react-redux": "^5.0.6",
 				"redux": "^3.7.2",
-				"redux-logger": "^3.0.6",
 				"redux-persist": "^4.0",
 				"redux-saga": "^0.16.0",
 				"rnpm": "^1.9.0"
@@ -62,7 +61,9 @@
 				"@types/react-redux": "^5.0.13",
 				"@types/redux-logger": "^3.0.5",
 				"babel-preset-react-native": "4.0.0",
+				"babel-plugin-transform-remove-console": "^6.9.2",
 				"rimraf": "^2.6.2",
+				"redux-logger": "^3.0.6",
 				"tslint": "^5.10.0",
 				"tslint-react": "^3.5.1",
 				"typescript": "^2.5.3"

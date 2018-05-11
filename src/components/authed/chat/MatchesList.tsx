@@ -135,7 +135,7 @@ class MatchesList extends PureComponent<Props, State> {
         lastMessage={item.mostRecentMessage}
         messagesUnread={item.messagesUnread}
         avatar={otherUser && otherUser.images[0]}
-        newMatch={item.messages.size === 0}
+        newMatch={item.messages.filter(m => !!m && !m.system).size === 0}
       />
     )
   }

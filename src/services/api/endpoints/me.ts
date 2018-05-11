@@ -11,6 +11,7 @@ interface Response extends GetUserResponse {
   blocked_users: string[]
   firebase_token: string
   full_name: string
+  see_underclassmen: boolean
   uuid: string
   verified: boolean
   who_reacted: IndividualProfileReact[]

@@ -127,6 +127,7 @@ export const setupNotifications = () => {
             }))
           break
         case 'new_chat':
+          console.log('here')
           if (!NavigationService.chatIsOpen(data.conversation_uuid)) {
             reduxStore.dispatch(addInAppNotification({
               type: 'chat',

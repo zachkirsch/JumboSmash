@@ -36,7 +36,7 @@ export function navigationReducer(state = initialState, action: NavigationAction
       }
       return {
         ...state,
-        shouldShowChatIndicator: false, // TODO: make this true when necessary
+        shouldShowChatIndicator: true,
       }
 
     case NavigationActionType.CLEAR_NAVIGATION_STATE:

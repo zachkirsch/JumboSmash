@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Keyboard,
 } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
@@ -218,6 +219,7 @@ class VerifyEmailScreen extends PureComponent<Props, State> {
   }
 
   private handleOpenURL = (url: string) => {
+    Keyboard.dismiss()
     const match = MAGIC_LINK_REGEX.exec(url)
     if (match) {
       const code = match[1]
@@ -281,7 +283,6 @@ const styles = StyleSheet.create({
   loadingScreen: {
     flex: 1,
     justifyContent: 'center',
-    marginBottom: '20%',
   },
   errorContentContainer: {
     flex: 2,
