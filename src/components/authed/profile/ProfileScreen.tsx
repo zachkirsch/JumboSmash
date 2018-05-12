@@ -24,6 +24,7 @@ import {
   updateBio,
   updateImage,
   updatePreferredName,
+  updateSeniorGoal,
   toggleUnderclassmen,
   Tag,
   ProfileState,
@@ -58,6 +59,7 @@ interface StateProps {
 interface DispatchProps {
   updatePreferredName: (preferredName: string) => void
   updateBio: (bio: string) => void
+  updateSeniorGoal: (seniorGoal: string) => void
   updateImage: (index: number, imageUri: string, mime: string) => void
   swapImages: (index1: number, index2: number) => void
   setTabBarOverlay: (component: () => JSX.Element) => void
@@ -481,6 +483,7 @@ class ProfileScreen extends PureComponent<Props, State> {
       this.setState({
         bio: this.props.profile.bio.value,
         preferredName: this.props.profile.preferredName.value,
+        seniorGoal: this.props.profile.seniorGoal.value,
       })
       this.props.clearTabBarOverlay()
       this.photosSection && this.photosSection.revert()
@@ -511,6 +514,9 @@ class ProfileScreen extends PureComponent<Props, State> {
         }
         if (this.props.profile.bio.value !== this.state.bio) {
           this.props.updateBio(this.state.bio)
+        }
+        if (this.props.profile.seniorGoal.value !== this.state.seniorGoal) {
+          this.props.updateSeniorGoal(this.state.seniorGoal)
         }
         this.photosSection && this.photosSection.save()
         this.props.clearTabBarOverlay()
@@ -552,6 +558,7 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     updatePreferredName: (preferredName: string) => dispatch(updatePreferredName(preferredName)),
     updateBio: (bio: string) => dispatch(updateBio(bio)),
+    updateSeniorGoal: (seniorGoal: string) => dispatch(updateSeniorGoal(seniorGoal)),
     updateImage: (index: number, imageUri: string, mime: string) => {
       dispatch(updateImage(index, imageUri, mime))
     },
