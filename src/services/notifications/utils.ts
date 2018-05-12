@@ -9,8 +9,6 @@ import { removeUser } from '../swipe'
 import { GetUserResponse } from '../api'
 import { NavigationService } from '../navigation'
 
-/* tslint:disable:no-console */
-
 interface NewChatMessage {
   msg_type: 'new_chat'
   message: string
@@ -66,7 +64,6 @@ let notificationOpenedListener = dummy
 /* tslint:disable-next-line:no-any */
 export async function handleBackgroundMessageAndroid(message: any) {
     // handle your message
-    console.log(message)
     onMessage(message)
     return Promise.resolve()
 }
@@ -85,35 +82,29 @@ export const setupNotifications = () => {
     if (notificationOpen) {
         // App was opened by a notification
         // Get the action triggered by the notification being opened
-        const action = notificationOpen.action
-        console.log('notification open action', action)
+        // const action = notificationOpen.action
 
         // Get information about the notification that was opened
-        const notification = notificationOpen.notification
-        console.log('notification open', notification)
+        // const notification = notificationOpen.notification
     }
   })
 
   onTokenRefreshListener = firebase.messaging().onTokenRefresh((fcmToken: string) => {
-    console.log('here!')
     reduxStore.dispatch(setNotificationsToken(fcmToken))
   })
 
   messageListener = firebase.messaging().onMessage(onMessage)
 
-  notificationDisplayedListener = firebase.notifications().onNotificationDisplayed((notification) => {
+  notificationDisplayedListener = firebase.notifications().onNotificationDisplayed((_) => {
     // Process your notification as required
     // ANDROID: Remote notifications do not contain the channel ID.
     // You will have to specify this manually if you'd like to re-display the notification.
-    console.log('displayed', notification)
   })
 
   notificationListener = firebase.notifications().onNotification((notification) => {
     // Process your notification as required
-    console.log('listened!', notification)
     try {
       const data: Notification = JSON.parse(notification._data.data)
-      console.log(data)
       switch (data.msg_type) {
         case 'new_match':
           const otherUsers = data.users.filter(id => id !== reduxStore.getState().profile.id)
@@ -127,7 +118,6 @@ export const setupNotifications = () => {
             }))
           break
         case 'new_chat':
-          console.log('here')
           if (!NavigationService.chatIsOpen(data.conversation_uuid)) {
             reduxStore.dispatch(addInAppNotification({
               type: 'chat',
@@ -147,20 +137,16 @@ export const setupNotifications = () => {
           break
       }
     } catch (e) {
-      console.error(e)
     } /* tslint:disable-line:no-empty */
   })
 
   notificationOpenedListener = firebase.notifications().onNotificationOpened((notificationOpen) => {
     // Get the action triggered by the notification being opened
-    const action = notificationOpen.action
+    // const action = notificationOpen.action
     // Get information about the notification that was opened
     const notification = notificationOpen.notification
-    console.log('opened action', action)
-    console.log('opened notification', notification)
     try {
       const data: Notification = JSON.parse(notification._data.data)
-      console.log(data)
       switch (data.msg_type) {
         case 'new_match':
         case 'new_chat':
@@ -168,14 +154,12 @@ export const setupNotifications = () => {
           break
       }
     } catch (e) {
-      console.error(e)
     } /* tslint:disable-line:no-empty */
   })
 }
 
 /* tslint:disable-next-line:no-any */
 const onMessage = (message: any) => {
-  console.log(message, message.data, message._data)
   const dataToParse = message.data || message._data
   if (dataToParse === undefined) {
     return
@@ -211,6 +195,5 @@ const onMessage = (message: any) => {
         break
     }
   } catch (e) {
-    console.error(e)
   } /* tslint:disable-line:no-empty */
 }

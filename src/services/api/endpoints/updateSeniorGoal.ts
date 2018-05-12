@@ -7,5 +7,5 @@ interface Request {
 interface Response {
 }
 
-export const updateSeniorGoal = new PostEndpoint<Request, Response>('/users/senior_goal', true)
+export const updateSeniorGoal = new PostEndpoint<Request, Response>('/users/update_senior_goal', true)
 export type UpdateSeniorGoalResponse = Response
