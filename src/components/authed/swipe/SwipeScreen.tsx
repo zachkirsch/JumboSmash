@@ -348,7 +348,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     if (!this.props.swipableUsers.loading) {
       const numUserUntilEnd = this.props.swipableUsers.value.size - this.props.indexOfUserOnTop
       const beenLongEnough = (
-        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 10
+        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 60
       )
       const beenTooLong = (
         !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 / 60 >= 10
