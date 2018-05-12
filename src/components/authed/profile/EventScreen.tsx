@@ -6,6 +6,7 @@ import {
 } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
+import moment from 'moment'
 import { JSText, JSImage, HeaderBar, JSTextInput } from '../../common'
 import { RootState } from '../../../redux'
 import { User, fetchAllUsers } from '../../../services/swipe'
@@ -54,6 +55,7 @@ class EventScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.fill}>
         <HeaderBar title={this.props.navigation.state.params.event.name} onPressLeft={this.props.navigation.goBack}/>
+        {this.renderTopContainer()}
         {this.renderSearchBar()}
         <FlatList
           data={this.getUsers()}
@@ -62,6 +64,24 @@ class EventScreen extends PureComponent<Props, State> {
           refreshing={this.state.refreshingList}
           onRefresh={this.fetchAllUsers}
         />
+      </View>
+    )
+  }
+
+  private renderTopContainer = () => {
+    const containerStyle = [styles.topContainer]
+
+    const event = this.props.navigation.state.params.event
+
+    let info = ''
+    info += moment(event.time).format('dddd, MMMM D')
+    info += ' ' + moment(event.time).format('h:mm A')
+    info += ' @ ' + event.location
+    return (
+      <View style={containerStyle}>
+        <JSText style={styles.title}>
+          {info}
+        </JSText>
       </View>
     )
   }
@@ -168,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topContainer: {
-    padding: 20,
+    padding: 10,
     backgroundColor: 'rgb(219, 230, 253)',
   },
   search: {
@@ -179,15 +199,13 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
+    fontSize: 16,
   },
   separator: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#8E8E8E',
   },
-  topContainerWithRoomForStatusBar: {
-     paddingTop: 28,
-   },
    searchBarContainer: {
      flexDirection: 'row',
      alignItems: 'center',
