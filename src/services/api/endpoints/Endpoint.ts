@@ -1,3 +1,4 @@
+import { Platform } from 'react-native'
 import { ErrorResponse } from '../api'
 import { ApiAuthService } from './utils'
 import { SERVER_URL } from '../../../globals'
@@ -41,6 +42,8 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     })
   }
 
+  protected getPlatformParam = () => ({ platform: Platform.OS })
+
   private buildRequest(method: HttpMethod, body: Request | undefined): RequestInit {
 
     const request: RequestInit = {
@@ -52,6 +55,7 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     }
 
     if (method === 'POST') {
+      body = Object.assign(body, this.getPlatformParam())
       if (this.requiresToken) {
         const bodyWithAuth = Object.assign(body, ApiAuthService.getToken())
         request.body = JSON.stringify(bodyWithAuth)
@@ -77,21 +81,13 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
 
     const endpoint = this.getEndpoint(pathExtensionComponents)
 
-    if (params === undefined && !this.requiresToken) {
-      return endpoint
-    }
-
-    let uri = endpoint + '?'
+    params = Object.assign(params, this.getPlatformParam())
 
     if (this.requiresToken) {
-      uri += this.getQueryString({...ApiAuthService.getToken()})
+      params = Object.assign(params, ApiAuthService.getToken())
     }
 
-    if (params) {
-      uri += this.getQueryString(params)
-    }
-
-    return uri
+    return endpoint + this.getQueryString(params)
   }
 
   private getQueryString(params: HttpGetRequest) {
@@ -101,7 +97,11 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
         queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
       }
     })
-    return queryParams.join('&')
+    if (queryParams.length > 0) {
+      return '?' + queryParams.join('&')
+    } else {
+      return ''
+    }
   }
 }
 

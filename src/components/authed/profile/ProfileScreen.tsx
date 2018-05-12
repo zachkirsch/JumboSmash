@@ -82,6 +82,7 @@ class ProfileScreen extends PureComponent<Props, State> {
   private bioTextInput: JSTextInput | null
   private seniorGoalTextInput: JSTextInput | null
   private saveRequired = false
+  private isShowing = true
 
   constructor(props: Props) {
     super(props)
@@ -93,6 +94,12 @@ class ProfileScreen extends PureComponent<Props, State> {
       seniorGoal: props.profile.seniorGoal.value,
       photosSectionRequiresSave: false,
     }
+  }
+
+  componentDidMount() {
+    this.props.navigation.addListener('willFocus', () => {
+      this.isShowing = true
+    })
   }
 
   render() {
@@ -140,7 +147,12 @@ class ProfileScreen extends PureComponent<Props, State> {
   }
 
   private navigateTo<T>(screen: string, props?: T) {
-    return () => this.props.navigation.navigate(screen, props)
+    return () => {
+      if (this.isShowing) {
+        this.isShowing = false
+        this.props.navigation.navigate(screen, props)
+      }
+    }
   }
 
   private previewProfile = () => () => {
@@ -178,7 +190,7 @@ class ProfileScreen extends PureComponent<Props, State> {
 
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity delayPressIn={100} onPress={this.navigateTo('TagsScreen')}>
+        <TouchableOpacity onPress={this.navigateTo('TagsScreen')}>
           <JSText bold style={[styles.title, styles.tagsTitle]}>TAGS</JSText>
           {toRender}
         </TouchableOpacity>
@@ -201,7 +213,6 @@ class ProfileScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.personalInfo}>
         <TouchableOpacity
-          delayPressIn={100}
           onPress={this.navigateTo('BucketListScreen')}
         >
           <JSText bold style={[styles.title, styles.tagsTitle]}>BUCKET LIST</JSText>
@@ -215,7 +226,7 @@ class ProfileScreen extends PureComponent<Props, State> {
     const events = this.props.profile.events.value.filter(e => e.going)
     return (
       <View style={styles.personalInfo}>
-        <TouchableOpacity delayPressIn={100} onPress={this.navigateTo('EventsScreen')}>
+        <TouchableOpacity onPress={this.navigateTo('EventsScreen')}>
           <JSText bold style={[styles.title, styles.tagsTitle]}>SENIOR EVENTS</JSText>
           <View style={styles.bigfill}>
             {events.length === 0 ? <JSText>Tap here to RSVP!</JSText> : events.map(this.renderEvent)}
@@ -281,7 +292,6 @@ class ProfileScreen extends PureComponent<Props, State> {
     return (
       <TouchableOpacity
         style={styles.personalInfo}
-        delayPressIn={100}
         onPress={this.navigateToMyReactsScreen}
       >
         <JSText bold style={[styles.title, styles.reactsTitle]}>REACTS RECEIVED</JSText>

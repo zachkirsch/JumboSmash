@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { Image, View, StyleSheet } from 'react-native'
+import { Image, View, StyleSheet, Dimensions } from 'react-native'
 import { MessageProps, utils } from 'react-native-gifted-chat'
 import Bubble from './Bubble'
 import LinearGradient from 'react-native-linear-gradient'
@@ -21,6 +21,7 @@ interface State {
 const { isSameUser } = utils
 
 const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
+const WIDTH = Dimensions.get('window').width
 
 export default class Message extends PureComponent<Props, State> {
 
@@ -93,7 +94,9 @@ export default class Message extends PureComponent<Props, State> {
       return
     }
     const thing = nextProps.currentMessage.image
-    Image.getSize(thing, (width, height) => {
+    Image.getSize(thing, (actualWidth, actualHeight) => {
+      const width = Math.min(actualWidth, WIDTH * 0.75)
+      const height = actualHeight * width / actualWidth
       this.setState({
         image: {
           width,
