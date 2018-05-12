@@ -14,6 +14,7 @@ import {
   View,
   ViewStyle,
   Image,
+  BackHandler,
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
@@ -106,6 +107,15 @@ class Card extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
+
+    BackHandler.addEventListener('hardwareBackPress', () => {
+      if (this.state.fullyExpanded) {
+        this.contractCard(true)
+        return true
+      }
+      return false
+    })
+
     this.componentIsMounted = true
     // run shimmers together
     if (this.props.type === 'loading') {
@@ -122,6 +132,7 @@ class Card extends PureComponent<Props, State> {
   }
 
   componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', () => {}) /* tslint:disable-line:no-empty */
     this.componentIsMounted = false
   }
 

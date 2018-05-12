@@ -110,15 +110,19 @@ class EventScreen extends PureComponent<Props, State> {
     if (!item) {
       return null
     }
-    let avatar = item.images[0]
     let name = item.fullName
+    let avatar = item.images[0]
     if (item.id === this.props.myId) {
       avatar = this.props.myAvatar || ''
-      name = item.fullName + ' (You)'
+      name += ' (You)'
+    }
+    let image = <View style={styles.image} />
+    if (avatar) {
+      image = <JSImage cache source={{uri: avatar}} style={styles.image} />
     }
     return (
       <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', padding: 8}}>
-        <JSImage cache={false} source={{uri: avatar}} style={{width: 36, height: 36, marginRight: 15, borderRadius: 18}}/>
+        {image}
         <JSText style={{fontSize: 20, paddingTop: 5}}>{name}</JSText>
       </View>
     )
@@ -226,5 +230,11 @@ const styles = StyleSheet.create({
      paddingVertical: 5,
      paddingHorizontal: 25,
      fontSize: 20,
+   },
+   image: {
+     width: 36,
+     height: 36,
+     marginRight: 15,
+     borderRadius: 18,
    },
 })

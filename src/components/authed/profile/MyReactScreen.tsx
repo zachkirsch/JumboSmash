@@ -65,11 +65,15 @@ class MyReactScreen extends PureComponent<Props, State> {
     if (!item) {
       return null
     }
-    let avatar = item.images[0]
     let name = item.fullName
+    let avatar = item.images[0]
+    let image = <View style={styles.image} />
+    if (avatar) {
+      image = <JSImage cache source={{uri: avatar}} style={styles.image}/>
+    }
     return (
       <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', padding: 8}}>
-        <JSImage cache source={{uri: avatar}} style={{width: 26, height: 26, marginRight: 10, borderRadius: 13}}/>
+        {image}
         <JSText style={{fontSize: 16}}>{name}</JSText>
       </View>
     )
@@ -153,5 +157,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#8E8E8E',
+  },
+  image: {
+    width: 26,
+    height: 26,
+    marginRight: 10,
+    borderRadius: 13,
   },
 })

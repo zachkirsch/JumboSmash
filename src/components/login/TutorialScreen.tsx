@@ -73,7 +73,7 @@ class TutorialScreen extends PureComponent<Props, State> {
 
   render() {
     return (
-      <View style={{flex: 1}}>
+      <View style={styles.container}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -209,6 +209,9 @@ const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
 export default connect(mapStateToProps, mapDispatchToProps)(TutorialScreen)
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   slide: {
     width,
     height,

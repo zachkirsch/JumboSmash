@@ -24,7 +24,6 @@ interface Props extends TouchableWithoutFeedbackProps {
 }
 
 interface State {
-  buttonPressedIn: boolean,
   scale: Animated.Value
 }
 
@@ -35,7 +34,6 @@ class JSButton extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      buttonPressedIn: false,
       scale: new Animated.Value(1),
     }
   }
@@ -121,13 +119,12 @@ class JSButton extends PureComponent<Props, State> {
   }
 
   private onPressIn = (e: GestureResponderEvent) => {
-    this.setState({buttonPressedIn: true})
+    this.state.scale.setValue(0.5)
     this.changeScale(true)
     this.props.onPressIn && this.props.onPressIn(e)
   }
 
   private onPressOut = (e: GestureResponderEvent) => {
-    this.setState({buttonPressedIn: false})
     this.changeScale(false)
     this.props.onPressOut && this.props.onPressOut(e)
   }

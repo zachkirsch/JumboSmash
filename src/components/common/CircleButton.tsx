@@ -25,7 +25,6 @@ type Props = (IconProps | ImageProps) & {
 }
 
 interface State {
-  buttonPressedIn: boolean
   angle: Animated.Value
   scale: Animated.Value
 }
@@ -35,7 +34,6 @@ class CircleButton extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      buttonPressedIn: false,
       angle: new Animated.Value(0),
       scale: new Animated.Value(1),
     }
@@ -156,12 +154,11 @@ class CircleButton extends PureComponent<Props, State> {
   }
 
   private onPressIn = () => {
-    this.setState({buttonPressedIn: true})
+    this.state.scale.setValue(0.5)
     this.changeScale(true)
   }
 
   private onPressOut = () => {
-    this.setState({buttonPressedIn: false})
     this.changeScale(false)
   }
 
