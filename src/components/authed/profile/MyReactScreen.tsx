@@ -67,7 +67,7 @@ class MyReactScreen extends PureComponent<Props, State> {
     }
     let name = item.fullName
     let avatar = item.images[0]
-    let image = <View style={styles.image} />
+    let image = <View style={[styles.image, styles.blankImage]} />
     if (avatar) {
       image = <JSImage cache source={{uri: avatar}} style={styles.image}/>
     }
@@ -163,5 +163,8 @@ const styles = StyleSheet.create({
     height: 26,
     marginRight: 10,
     borderRadius: 13,
+  },
+  blankImage: {
+    backgroundColor: 'rgb(240, 240, 240)',
   },
 })

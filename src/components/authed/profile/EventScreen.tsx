@@ -116,7 +116,7 @@ class EventScreen extends PureComponent<Props, State> {
       avatar = this.props.myAvatar || ''
       name += ' (You)'
     }
-    let image = <View style={styles.image} />
+    let image = <View style={[styles.image, styles.blankImage]} />
     if (avatar) {
       image = <JSImage cache source={{uri: avatar}} style={styles.image} />
     }
@@ -210,31 +210,34 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#8E8E8E',
   },
-   searchBarContainer: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     overflow: 'hidden',
-     marginHorizontal: 10,
-     marginTop: 10,
-     marginBottom: 5,
-     backgroundColor: 'rgb(250, 250, 250)',
-     borderRadius: 40,
-     borderWidth: StyleSheet.hairlineWidth,
-     borderColor: 'lightgray',
-   },
-   searchBar: {
-     flex: 1,
-     textAlign: 'center',
-     marginLeft: 3,
-     marginRight: 7,
-     paddingVertical: 5,
-     paddingHorizontal: 25,
-     fontSize: 20,
-   },
-   image: {
-     width: 36,
-     height: 36,
-     marginRight: 15,
-     borderRadius: 18,
-   },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 5,
+    backgroundColor: 'rgb(250, 250, 250)',
+    borderRadius: 40,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'lightgray',
+  },
+  searchBar: {
+    flex: 1,
+    textAlign: 'center',
+    marginLeft: 3,
+    marginRight: 7,
+    paddingVertical: 5,
+    paddingHorizontal: 25,
+    fontSize: 20,
+  },
+  image: {
+    width: 36,
+    height: 36,
+    marginRight: 15,
+    borderRadius: 18,
+  },
+  blankImage: {
+    backgroundColor: 'rgb(240, 240, 240)',
+  },
 })
