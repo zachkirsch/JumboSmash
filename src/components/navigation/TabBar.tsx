@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react'
-import { Animated, Dimensions, Easing, Platform, StyleSheet, TouchableWithoutFeedback, Image, View } from 'react-native'
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Platform,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Image,
+  View,
+  Keyboard,
+} from 'react-native'
 import SafeAreaView from 'react-native-safe-area-view'
 import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
@@ -164,7 +174,11 @@ class TabBar extends PureComponent<Props, State> {
     return this.props.navigation.state.routes.map((route, index) => {
       const selected = this.props.navigationState.index === index
       return (
-        <TouchableWithoutFeedback key={route.routeName} onPress={this.generateOnPress(route)}>
+        <TouchableWithoutFeedback
+          key={route.routeName}
+          onPress={this.generateOnPress(route)}
+          disabled={selected}
+        >
           <View style={styles.iconContainer}>
             {this.getIcon(route.routeName, selected)}
           </View>
@@ -202,6 +216,7 @@ class TabBar extends PureComponent<Props, State> {
 
   private generateOnPress = (route: NavigationRoute) => () => {
     if (!this.state.showingOverlay) {
+      Keyboard.dismiss()
       this.props.navigation.navigate(route.routeName)
       this.props.switchTab(route.routeName as RouteName)
     }

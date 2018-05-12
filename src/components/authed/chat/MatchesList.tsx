@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { FlatList, Keyboard, StyleSheet, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
@@ -38,10 +38,6 @@ class MatchesList extends PureComponent<Props, State> {
       searchBarText: '',
       refreshingList: false,
     }
-  }
-
-  componentDidMount() {
-    this.props.navigation.addListener('didBlur', Keyboard.dismiss)
   }
 
   componentWillReceiveProps(nextProps: Props) {

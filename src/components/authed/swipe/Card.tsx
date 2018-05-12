@@ -181,6 +181,7 @@ class Card extends PureComponent<Props, State> {
       ]).start(() => {
         this.safeSetState({
           fullyExpanded: true,
+          easedIn: true,
         })
       })
     })
@@ -221,11 +222,15 @@ class Card extends PureComponent<Props, State> {
   }
 
   public swipeRight = () => {
-    this.swipe('right')
+    if (this.canSwipeProgrammatically()) {
+      this.swipe('right')
+    }
   }
 
   public swipeLeft = () => {
-    this.swipe('left')
+    if (this.canSwipeProgrammatically()) {
+      this.swipe('left')
+    }
   }
 
   render() {
@@ -630,10 +635,13 @@ class Card extends PureComponent<Props, State> {
 
   private cardWidth = () => WIDTH - 2 * HORIZONTAL_MARGIN
 
-  private canSwipe = () => {
+  private canSwipeManually = () => {
+    return this.canSwipeProgrammatically() && this.state.fullyContracted
+  }
+
+  private canSwipeProgrammatically = () => {
     return (
       this.props.type === 'normal'
-      && this.state.fullyContracted
       && this.props.positionInStack === 0
       && !this.isSwipingProgrammatically
       && !this.didSwipe
@@ -710,9 +718,6 @@ class Card extends PureComponent<Props, State> {
   }
 
   private swipe = (direction: Direction, wasBlock = false) => {
-    if (!this.canSwipe()) {
-      return
-    }
     const onComplete = () => {
       if (this.props.type === 'normal') {
         this.props.onExitExpandedView && this.props.onExitExpandedView()
@@ -743,6 +748,7 @@ class Card extends PureComponent<Props, State> {
     this.state.margin.top.setValue(this.getContractedMarginTop(-1))
     this.state.margin.horizontal.setValue(this.getContractedMarginHorizontal(-1))
     this.safeSetState({
+      fullyContracted: true,
       fullyExpanded: false,
     }, () => {
       this.state.pan.setValue({x: 0, y: 0})
@@ -756,11 +762,11 @@ class Card extends PureComponent<Props, State> {
 
     this.cardPanResponder = PanResponder.create({
 
-      onStartShouldSetPanResponder: () => this.canSwipe(),
-      onStartShouldSetPanResponderCapture: () => this.canSwipe(),
+      onStartShouldSetPanResponder: () => this.canSwipeManually(),
+      onStartShouldSetPanResponderCapture: () => this.canSwipeManually(),
 
       onPanResponderMove: (event, gestureState) => {
-        if (this.canSwipe() && this.isSwipe(gestureState)) {
+        if (this.canSwipeManually() && this.isSwipe(gestureState)) {
           this.isSwiping = true
           Animated.event([null, {dx: this.state.pan.x, dy: this.state.pan.y}])(event, gestureState)
           Animated.event([null, {dx: this.state.panX}])(event, gestureState)
@@ -769,7 +775,7 @@ class Card extends PureComponent<Props, State> {
 
       onPanResponderRelease: (_, gestureState) => {
 
-        if (!this.canSwipe()) {
+        if (!this.canSwipeManually()) {
           return
         }
 

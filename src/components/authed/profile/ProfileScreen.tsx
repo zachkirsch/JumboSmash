@@ -95,10 +95,6 @@ class ProfileScreen extends PureComponent<Props, State> {
     }
   }
 
-  componentDidMount() {
-    this.props.navigation.addListener('didBlur', Keyboard.dismiss)
-  }
-
   render() {
     let containerStyle
     if (this.setupMode()) {

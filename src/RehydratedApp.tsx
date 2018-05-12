@@ -137,7 +137,7 @@ class RehydratedApp extends PureComponent<Props, {}> {
         <InAppNotificationBanner
           key={i}
           deleteNotification={this.deleteNotification(notification)}
-          engageNotification={this.openChat(notification)}
+          engageNotification={this.openNotification(notification)}
           notification={notification}
         />
       )
@@ -150,10 +150,12 @@ class RehydratedApp extends PureComponent<Props, {}> {
     this.props.deleteInAppNotification(notification.id)
   }
 
-  private openChat = (notification: InAppNotification) => () => {
+  private openNotification = (notification: InAppNotification) => {
     switch (notification.type) {
       case 'chat':
-        NavigationService.openChat(notification.conversationId)
+        return () => NavigationService.openChat(notification.conversationId)
+      case 'actionless':
+        return undefined
     }
   }
 
