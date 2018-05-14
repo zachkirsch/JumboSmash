@@ -47,11 +47,12 @@ class MatchesList extends PureComponent<Props, State> {
   }
 
   public render() {
+    const matches = this.getMatches()
     return (
       <View style={styles.container}>
-        {this.renderSearchBar()}
+        {this.renderSearchBar(matches.length)}
         <FlatList
-          data={this.getMatches()}
+          data={matches}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
           refreshing={this.state.refreshingList}
@@ -61,7 +62,11 @@ class MatchesList extends PureComponent<Props, State> {
     )
   }
 
-  private renderSearchBar = () => {
+  private renderSearchBar = (numMatches: number) => {
+    let placeholder = 'Search'
+    if (numMatches >= 5) {
+      placeholder += ` ${numMatches} Matches`
+    }
     return (
       <View style={styles.searchBarContainer}>
         <Ionicons
@@ -73,7 +78,7 @@ class MatchesList extends PureComponent<Props, State> {
         <JSTextInput
           onChangeText={this.onChangeSearchBarText}
           style={styles.searchBar}
-          placeholder={'Search'}
+          placeholder={placeholder}
           underline={false}
           autoCorrect={false}
         />

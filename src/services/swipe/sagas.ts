@@ -93,10 +93,10 @@ function* attemptFetchSwipableUsers() {
     }
     yield put(successAction)
   } catch (e) {
-  const failureAction: FetchSwipableUsersFailureAction = {
-    type: SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE,
-    errorMessage: e.message,
-  }
+    const failureAction: FetchSwipableUsersFailureAction = {
+      type: SwipeActionType.FETCH_SWIPABLE_USERS_FAILURE,
+      errorMessage: e.message,
+    }
     yield put(failureAction)
   }
 
