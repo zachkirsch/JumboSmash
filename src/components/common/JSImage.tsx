@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, ViewStyle, ImageProperties } from 'react-native'
+import { View, Image, ViewStyle, ImageProperties } from 'react-native'
 import { CachedImage } from 'react-native-cached-image'
 import { ImageCacheService } from '../../services/image-caching'
 
@@ -21,7 +21,18 @@ type Props = ImageProperties & (CacheProps | NormalProps) & {
 
 export type JSImageProps = Props
 
-class JSImage extends PureComponent<Props, {}> {
+interface State {
+  failed: boolean
+}
+
+class JSImage extends PureComponent<Props, State> {
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      failed: false,
+    }
+  }
 
   componentWillReceiveProps(props: Props) {
     if (props.cache) {
@@ -38,12 +49,27 @@ class JSImage extends PureComponent<Props, {}> {
   }
 
   private renderImage = () => {
+    const { cache, ...otherProps } = this.props
+
+    if (this.state.failed) {
+      return (
+        <Image {...otherProps} />
+      )
+    }
+
     return (
       <CachedImage
-        {...this.props}
+        {...otherProps}
         activityIndicatorProps={{size: this.props.activityIndicatorSize}}
+        onError={this.onError}
       />
     )
+  }
+
+  private onError = () => {
+    this.setState({
+      failed: true,
+    })
   }
 }
 

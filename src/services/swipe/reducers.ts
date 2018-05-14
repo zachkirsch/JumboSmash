@@ -3,7 +3,6 @@ import { SwipeAction, SwipeActionType } from './actions'
 import { SwipeState, User } from './types'
 import { ReduxActionType } from '../redux'
 import { ProfileActionType } from '../profile'
-import { shuffle } from '../../utils'
 
 const initialState: SwipeState = {
   swipableUsers: {
@@ -248,7 +247,10 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           lastFetched: Date.now(),
         },
         swipableUsers: {
-          value: List(shuffle(action.swipableUsers.filter(id => allUsersMap.has(id)))),
+          value: List(action.swipableUsers.filter(id => {
+            const user = allUsersMap.get(id)
+            return user && user.images.filter(url => url).length > 0
+          })),
           loading: false,
           lastFetched: Date.now(),
         },

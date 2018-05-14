@@ -57,7 +57,7 @@ interface State {
   topCardLoaded: boolean
 }
 
-const NUM_RENDERED_CARDS = 4
+const NUM_RENDERED_CARDS = 10
 
 @connectActionSheet
 class SwipeScreen extends PureComponent<Props, State> {
@@ -69,10 +69,14 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
+    let profiles = []
+    for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
+      profiles.push(this.getCard(i))
+    }
     this.state = {
       expansion: new Animated.Value(props.preview ? 1 : 0),
       fullyExpanded: !!this.props.preview,
-      profiles: [],
+      profiles,
       mustShowLoadingScreen: true,
       topCardLoaded: false,
     }
@@ -379,7 +383,7 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private getCard = (cardIndex: number) => {
-    const userInState = this.state.profiles[cardIndex]
+    const userInState = this.state && this.state.profiles[cardIndex]
     if (userInState) {
       return userInState
     } else {

@@ -25,7 +25,7 @@ export const LIGHT_COLOR = {
 
 const LOCAL_SERVER = false
 const STAGING = false
-const LOCAL_SERVER_URL = 'http://130.64.142.18:5000'
+const LOCAL_SERVER_URL = 'http://10.0.0.10:5000'
 const STAGING_SERVER_URL = 'https://jumbosmash2018-staging.herokuapp.com/'
 const PROD_SERVER_URL = 'https://jumbosmash2018-prod.herokuapp.com/'
 

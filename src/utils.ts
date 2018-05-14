@@ -20,12 +20,12 @@ export function openTermsOfService() {
 }
 
 export function emailSupport(subject: string, body = '') {
-  const url = `mailto://${globals.JUMBOSMASH_EMAIL}?subject=${subject}&body=${body}`
+  const url = `mailto:${globals.JUMBOSMASH_EMAIL}?subject=${subject}&body=${body}`
   openUrl(url)
 }
 
 export function reportUser(user?: User) {
-  const subject = 'Block User on JumboSmash'
+  const subject = 'Report User on JumboSmash'
   let body = 'I would like to report the following person: '
   if (user) {
     body += `${user.fullName} (${user.email})`

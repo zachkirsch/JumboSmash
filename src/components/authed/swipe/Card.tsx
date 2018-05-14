@@ -95,7 +95,7 @@ class Card extends PureComponent<Props, State> {
   private carousel: Carousel | null
   private reactSection: ReactSection | null
   private isSwipingProgrammatically: boolean = false
-  private isSwiping: boolean = false
+  private isSwipingManually: boolean = false
   private didSwipe: boolean = false
   private shimmerRows: ShimmerPlaceHolder[] = []
   private componentIsMounted = false
@@ -749,6 +749,23 @@ class Card extends PureComponent<Props, State> {
     }
   }
 
+  private reset = () => {
+    const initialState = this.getInitialState()
+    this.safeSetState({
+      fullyContracted: initialState.fullyContracted,
+      fullyExpanded: initialState.fullyExpanded,
+      scrollViewBackgroundColor: initialState.scrollViewBackgroundColor,
+      isMomentumScrolling: initialState.isMomentumScrolling,
+    }, () => {
+      this.state.pan.setValue({x: 0, y: 0})
+      this.state.panX.setValue(0)
+      this.didSwipe = false
+      this.isSwipingManually = false
+      this.isSwipingProgrammatically = false
+      this.mainScrollView && this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+    })
+  }
+
   private onCompleteSwipe = (direction: Direction, wasBlock = false) => {
     if (this.props.type !== 'normal') {
       return
@@ -758,15 +775,7 @@ class Card extends PureComponent<Props, State> {
     this.state.expansion.setValue(0)
     this.state.margin.top.setValue(this.getContractedMarginTop(-1))
     this.state.margin.horizontal.setValue(this.getContractedMarginHorizontal(-1))
-    this.safeSetState({
-      fullyContracted: true,
-      fullyExpanded: false,
-    }, () => {
-      this.state.pan.setValue({x: 0, y: 0})
-      this.state.panX.setValue(0)
-      this.didSwipe = false
-      this.isSwipingProgrammatically = false
-    })
+    this.reset()
   }
 
   private setupGestureResponders = () => {
@@ -778,7 +787,7 @@ class Card extends PureComponent<Props, State> {
 
       onPanResponderMove: (event, gestureState) => {
         if (this.canSwipeManually() && this.isSwipe(gestureState)) {
-          this.isSwiping = true
+          this.isSwipingManually = true
           Animated.event([null, {dx: this.state.pan.x, dy: this.state.pan.y}])(event, gestureState)
           Animated.event([null, {dx: this.state.panX}])(event, gestureState)
         }
@@ -790,12 +799,12 @@ class Card extends PureComponent<Props, State> {
           return
         }
 
-        if (!this.isSwiping && !this.isSwipe(gestureState)) { // just a tap
+        if (!this.isSwipingManually && !this.isSwipe(gestureState)) { // just a tap
           this.tap()
           return
         }
 
-        this.isSwiping = false
+        this.isSwipingManually = false
 
         const {dx, vx, vy} = gestureState
 

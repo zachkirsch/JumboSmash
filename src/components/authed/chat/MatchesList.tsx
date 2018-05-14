@@ -106,11 +106,13 @@ class MatchesList extends PureComponent<Props, State> {
       })
     }
 
-    const sortedChats = chats.sort((a, b) => {
-      const aTime = a.messages.size > 0 ? a.messages.first().createdAt : a.createdAt
-      const bTime = b.messages.size > 0 ? b.messages.first().createdAt : b.createdAt
-      return bTime - aTime
-    })
+    const sortedChats = chats
+      .filter(chat => !chat.otherUsers.find(id => !this.props.allUsers.get(id)))
+      .sort((a, b) => {
+        const aTime = a.messages.size > 0 ? a.messages.first().createdAt : a.createdAt
+        const bTime = b.messages.size > 0 ? b.messages.first().createdAt : b.createdAt
+        return bTime - aTime
+      })
     return sortedChats
   }
 

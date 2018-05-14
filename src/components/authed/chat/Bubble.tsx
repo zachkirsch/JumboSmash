@@ -17,7 +17,7 @@ class Bubble extends PureComponent<Props, {}> {
     const opacity = this.props.currentMessage.failedToSend ? 0.3 : 1
     return (
       <View style={[styles.container, { opacity }]}>
-        <TouchableOpacity onPress={this.onPress}>
+        <TouchableOpacity onPress={this.onPress} onLongPress={this.onPress}>
           <View style={styles.wrapper}>
             <View>
               {this.renderMessageText()}
