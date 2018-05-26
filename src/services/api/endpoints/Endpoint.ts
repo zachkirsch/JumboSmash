@@ -91,17 +91,16 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
   }
 
   private getQueryString(params: HttpGetRequest) {
+    if (params.length === 0) {
+      return ''
+    }
     const queryParams: string[] = []
     Object.keys(params).forEach((key) => {
       if (params.hasOwnProperty(key)) {
         queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
       }
     })
-    if (queryParams.length > 0) {
-      return '?' + queryParams.join('&')
-    } else {
-      return ''
-    }
+    return '?' + queryParams.join('&')
   }
 }
 
