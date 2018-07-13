@@ -34,7 +34,7 @@ const SaveOrRevert: SFC<OwnProps> = props => {
 
   const buttons: ButtonInfo[] = [
     {
-      label: 'Revert',
+      label: 'Cancel',
       onPress: props.revert,
     },
     {

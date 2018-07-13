@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
     fontSize: 15,
+    marginHorizontal: 8,
   },
   largeMargin: {
     paddingHorizontal: 10,

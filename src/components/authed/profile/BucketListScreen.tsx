@@ -1,148 +1,157 @@
 import React, { PureComponent } from 'react'
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native'
-import {CheckBox } from 'react-native-elements'
+import { View, StyleSheet, Platform } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { HeaderBar } from '../../common'
-import { JSText } from '../../common/index'
-
-interface BucketList {title: string, items: string[], checked: boolean[]}
+import { connect, Dispatch } from 'react-redux'
+import { RootState } from '../../../redux'
+import { HeaderBar, JSText } from '../../common'
+import { updateBucketList, BucketListItem, BucketListCategory } from '../../../services/profile'
+import Checklist from './Checklist'
 
 interface State {
-  checkedList: BucketList[]
-}
-
-interface OwnProps {
-  SeniorBucketList: BucketList[]
-  newList: (list: BucketList[]) => void
+  currentItems: BucketListCategory[]
 }
 
 interface StateProps {
-
+  bucketList: BucketListCategory[]
 }
+
 interface DispatchProps {
+  updateBucketList: (items: BucketListCategory[]) => void
 }
 
-type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
+type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps>
 
-class BucketListScreen extends PureComponent<Props, State> {
+class EventsScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
     this.state = {
-      checkedList: this.props.navigation.state.params.SeniorBucketList,
+      currentItems: this.props.bucketList,
     }
   }
 
+  componentDidMount() {
+    this.props.navigation.addListener('willBlur', () => {
+      this.saveChanges()
+    })
+  }
+
   render() {
-    const SENIORBUCKET = this.props.navigation.state.params.SeniorBucketList
     return (
       <View style={styles.fill}>
-        <HeaderBar title='My Bucket List' onPressLeft={this.props.navigation.goBack}/>
-          <View style={[styles.topContainer, styles.topContainerWithRoomForStatusBar]}>
-            <JSText style={styles.title}>
-              Try to complete all the items before graduation! All clicked items show up on your profile screen (but not on your card).
-            </JSText></View>
-            <ScrollView>
-              <View style={styles.separator}/>
-              {this.renderList(SENIORBUCKET)}
-            <View style={[styles.topContainer]}>
-              <JSText> Please be safe and responsible! 💕 JumboSmash does not condone illegal activity
-               and is not responsible for repercussions for the above actions. </JSText>
-            </View>
-            </ScrollView>
-            </View>
+        {this.renderHeaderBar()}
+        {this.renderTopContainer()}
+        <Checklist
+          sections={this.getBucketListItems()}
+          keyExtractor={this.extractIdFromItem}
+          labelExtractor={this.extractNameFromItem}
+          isChecked={this.itemCompleted}
+          onPressCheckbox={this.toggleItem}
+        />
+      </View>
     )
   }
-  private renderList = (dataList: BucketList[]) => {
-    return dataList.map((section, sectionIndex) => {
-      return (
-        <View key={sectionIndex} style={styles.paddingBottom}>
-        <JSText bold style={styles.sectionTitle}>{section.title}</JSText>
-          {this.renderRows(section.items, sectionIndex)}
-          <View style={styles.separator} />
-        </View>
-      )
-    })
-  }
 
-  private renderRows = (dataList: string[], index: number) => {
-    const onPressCheck = (ind: number, sectionIndex: number) => () => this.toggleListItem(ind, sectionIndex)
-    return dataList.map((section, sectionIndex) => {
-      return (
-      <View key={sectionIndex}>
-      <View style={styles.container}>
-      <CheckBox
-        title={section}
-        containerStyle={styles.bucketListContainer}
-        onPress={onPressCheck(index, sectionIndex)}
-        checked={this.state.checkedList[index].checked[sectionIndex]}
+  private renderHeaderBar = () => {
+    return (
+      <HeaderBar
+        title='Bucket List'
+        onPressLeft={this.props.navigation.goBack}
       />
+    )
+  }
+
+  private renderTopContainer = () => {
+    return (
+      <View style={styles.topContainer}>
+        <JSText style={styles.title}>
+          Don't worry, nobody else will see this list :)
+        </JSText>
       </View>
-      </View>)
+    )
+  }
+
+  private getBucketListItems = () => {
+    return this.state.currentItems.map(category => ({
+      title: category.name,
+      data: category.items,
+    }))
+  }
+
+  private extractIdFromItem = (item: BucketListItem) => item.id.toString(10)
+  private extractNameFromItem = (item: BucketListItem) => item.text
+  private itemCompleted = (item: BucketListItem) => item.completed
+
+  private saveChanges = () => {
+    if (this.saveRequired()) {
+      this.props.updateBucketList(this.state.currentItems)
+    }
+  }
+
+  private saveRequired = () => {
+    return !!this.props.bucketList.find((category, categoryIndex) => {
+      return !!category.items.find((item, itemIndex) => {
+        const completedInState = this.state.currentItems[categoryIndex].items[itemIndex].completed
+        return completedInState !== item.completed
+      })
     })
   }
 
-  private toggleListItem = (index: number, sectionIndex: number)  => {
-    let newBucketList = this.state.checkedList.slice()
-    newBucketList[index].checked[sectionIndex] = !newBucketList[index].checked[sectionIndex]
-    this.setState({checkedList: newBucketList})  // This works, uncertain as to why the frontend doesn't show up as checked...
-    return this.props.navigation.state.params.newList(newBucketList)
-
+  private toggleItem = (item: BucketListItem) => {
+    this.setState({
+      currentItems: this.state.currentItems.map(category => {
+        if (category.name !== item.category) {
+          return category
+        }
+        return {
+          ...category,
+          items: category.items.map(other => {
+            if (item.id !== other.id) {
+              return other
+            }
+            return {
+              ...other,
+              completed: !other.completed,
+            }
+          }),
+        }
+      }),
+    })
   }
-
 }
 
-export default BucketListScreen
+const mapStateToProps = (state: RootState): StateProps => {
+  return {
+    bucketList: state.profile.bucketList.value,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    updateBucketList: (items: BucketListCategory[]) => dispatch(updateBucketList(items)),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(EventsScreen)
 
 const styles = StyleSheet.create({
   fill: {
     flex: 1,
   },
   topContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 10,
     backgroundColor: 'rgb(250, 250, 250)',
+    ...Platform.select({
+      ios: {
+        shadowColor: 'lightgray',
+        shadowRadius: 5,
+        shadowOpacity: 1,
+      },
+    }),
   },
   title: {
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: 'rgb(172,203,238)',
-    padding: 10,
-  },
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 20,
-    backgroundColor: 'white',
-  },
-  bucketListContainer: {
-    backgroundColor: 'white',
-    borderColor: 'white',
-    paddingBottom: 1,
-  },
-  text: {
-    marginLeft: 12,
-    fontSize: 16,
-  },
-  paddingBottom: {
-    marginBottom: 10,
-  },
-  separator: {
-    flex: 1,
-    marginTop: 20,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgb(172,203,238)',
-  },
-   topContainerWithRoomForStatusBar: {
-      paddingTop: 28,
-    },
 })

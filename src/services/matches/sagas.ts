@@ -14,6 +14,8 @@ import { ChatMessage, Conversation } from './types'
 import { api } from '../api'
 import { RootState } from '../../redux'
 
+const GIF_REGEX = /^\/gif(.*)$/
+
 const getConversation = (conversationId: string) => {
   return (state: RootState) => state.matches.chats.get(conversationId)
 }
@@ -27,10 +29,50 @@ function* attemptSendMessages(action: AttemptSendMessagesAction) {
       }, error => error ? reject(error) : resolve())
     })
   }
+  function retrieveGif(query: string) {
+    const apiKey = 'avovzjZaC19qaKeXMr6DzSgNm1YQvepz'
+    const apiUrl = 'https://api.giphy.com/v1/gifs/random'
 
+    let tag = ''
+    let match = query.match(GIF_REGEX)
+    if (!match) {
+      return undefined
+    }
+    tag = match[1]
+    if (tag === undefined) {
+      return undefined
+    }
+
+    const queryParams = {
+      api_key: apiKey,
+      rating: 'r',
+      tag,
+    }
+
+    let queryUrl = apiUrl + '?tag=' + queryParams.tag +
+      '&api_key=' + queryParams.api_key +
+      '&rating=' + queryParams.rating
+
+    let gifUrl = fetch(queryUrl)
+      .then(function(response) {
+        return response.json()
+      })
+      .then(function(parsedData) {
+        return parsedData.data.images && parsedData.data.images.fixed_height.url
+      })
+    return gifUrl
+  }
   for (let i = 0; i < action.messages.length; i++) {
     const message = action.messages[i]
     try {
+      if (!message.system && GIF_REGEX.test(message.text)) {
+        const image = yield call(retrieveGif, message.text)
+        if (image) {
+          message.image = image
+        } else {
+          throw Error('No GIFs found')
+        }
+      }
       yield call(pushMessagetoFirebase, message)
       const successAction: SendMessagesSuccessAction = {
         type: MatchesActionType.SEND_MESSAGES_SUCCESS,

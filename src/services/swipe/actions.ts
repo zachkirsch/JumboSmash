@@ -1,7 +1,7 @@
 import { Direction } from '../api'
 import { User } from './types'
 import { RehydrateAction } from '../redux'
-import { ProfileReact } from '../profile'
+import { AttemptBlockUserAction, ProfileReact } from '../profile'
 
 /* Actions */
 
@@ -128,6 +128,7 @@ export type SwipeAction = AttemptFetchAllUsersAction
 | ReactSuccessAction
 | ReactFailureAction
 | RemoveUserAction
+| AttemptBlockUserAction
 | ClearSwipeStateAction
 | RehydrateAction
 | OtherAction

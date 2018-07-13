@@ -5,4 +5,5 @@ export interface TimeState {
   releaseDate: number
   postRelease: boolean
   postRelease2: boolean
+  hasSeenCountdown: boolean
 }

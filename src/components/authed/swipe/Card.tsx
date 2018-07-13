@@ -14,6 +14,7 @@ import {
   View,
   ViewStyle,
   Image,
+  BackHandler,
 } from 'react-native'
 import { ActionSheetOptions } from '@expo/react-native-action-sheet'
 import LinearGradient from 'react-native-linear-gradient'
@@ -21,12 +22,11 @@ import ShimmerPlaceHolder from 'react-native-shimmer-placeholder'
 import { Direction } from '../../../services/api'
 import { User } from '../../../services/swipe'
 import { ProfileReact } from '../../../services/profile'
-import { JSText } from '../../common'
+import { JSText, ReactSection } from '../../common'
 import { clamp, generateActionSheetOptions, reportUser } from '../../../utils'
 import TagsSection from '../profile/TagsSection'
 import Carousel from './Carousel'
 import { Images } from '../../../assets'
-import ReactSection from './ReactSection'
 
 interface BaseProps {
   containerStyle?: ViewStyle
@@ -95,7 +95,7 @@ class Card extends PureComponent<Props, State> {
   private carousel: Carousel | null
   private reactSection: ReactSection | null
   private isSwipingProgrammatically: boolean = false
-  private isSwiping: boolean = false
+  private isSwipingManually: boolean = false
   private didSwipe: boolean = false
   private shimmerRows: ShimmerPlaceHolder[] = []
   private componentIsMounted = false
@@ -107,6 +107,15 @@ class Card extends PureComponent<Props, State> {
   }
 
   componentDidMount() {
+
+    BackHandler.addEventListener('hardwareBackPress', () => {
+      if (this.state.fullyExpanded) {
+        this.contractCard(true)
+        return true
+      }
+      return false
+    })
+
     this.componentIsMounted = true
     // run shimmers together
     if (this.props.type === 'loading') {
@@ -123,6 +132,7 @@ class Card extends PureComponent<Props, State> {
   }
 
   componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', () => {}) /* tslint:disable-line:no-empty */
     this.componentIsMounted = false
   }
 
@@ -182,6 +192,7 @@ class Card extends PureComponent<Props, State> {
       ]).start(() => {
         this.safeSetState({
           fullyExpanded: true,
+          easedIn: true,
         })
       })
     })
@@ -222,11 +233,15 @@ class Card extends PureComponent<Props, State> {
   }
 
   public swipeRight = () => {
-    this.swipe('right')
+    if (this.canSwipeProgrammatically()) {
+      this.swipe('right')
+    }
   }
 
   public swipeLeft = () => {
-    this.swipe('left')
+    if (this.canSwipeProgrammatically()) {
+      this.swipe('left')
+    }
   }
 
   render() {
@@ -414,25 +429,47 @@ class Card extends PureComponent<Props, State> {
               {this.props.profile.preferredName}
             </JSText>
             <View style={{flex: 1}}>
-              <Animated.View style={[hiddenWhenContractedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+              <Animated.View style={[hiddenWhenContractedStyle, StyleSheet.absoluteFill]}>
                 <JSText style={styles.name} numberOfLines={1}>
                   {surnameWhenExpaned}
                 </JSText>
               </Animated.View>
-              <Animated.View style={[hiddenWhenExpandedStyle, {position: 'absolute', left: 0, bottom: 0, top: 0}]}>
+              <Animated.View style={[hiddenWhenExpandedStyle, StyleSheet.absoluteFill]}>
                 {this.renderClassYear()}
               </Animated.View>
             </View>
           </View>
           {this.renderTags()}
           <Animated.View style={hiddenWhenContractedStyle}>
-            <JSText style={styles.bio}>
-              {this.props.profile.bio}
-            </JSText>
+            <View style={styles.profileText}>
+              <JSText style={styles.bio}>
+                {this.props.profile.bio}
+              </JSText>
+              {this.renderSeniorGoal()}
+            </View>
             {this.renderReactSection()}
           </Animated.View>
         </Animated.View>
       </TouchableWithoutFeedback>
+    )
+  }
+
+  private renderSeniorGoal = () => {
+    if (this.props.type === 'loading') {
+      return null
+    }
+    if (!this.props.profile.seniorGoal) {
+      return null
+    }
+    return (
+      <View style={styles.seniorGoalContainer}>
+        <JSText style={styles.seniorGoalText} semibold>
+          Before I graduate, I'm going to...
+        </JSText>
+        <JSText style={styles.seniorGoalText}>
+          {this.props.profile.seniorGoal}
+        </JSText>
+      </View>
     )
   }
 
@@ -442,8 +479,8 @@ class Card extends PureComponent<Props, State> {
     }
     return (
       <ReactSection
-        profile={this.props.profile}
-        react={this.react}
+        reacts={this.props.profile.profileReacts.value}
+        onPressReact={this.onPressReact}
         enabled={this.props.type === 'normal' || this.props.reactsEnabled}
         ref={ref => this.reactSection = ref}
       />
@@ -593,19 +630,29 @@ class Card extends PureComponent<Props, State> {
     this.props.type === 'normal' && this.props.showActionSheetWithOptions(options, callback)
   }
 
-  private react = (reacts: ProfileReact[]) => {
+  private onPressReact = (react: ProfileReact) => {
     if (this.props.type === 'loading') {
       return
     }
-    this.props.react(reacts, this.props.profile.id)
+    this.props.react(this.props.profile.profileReacts.value.reduce((reacts, r) => {
+      if (react.id !== r.id && r.reacted) {
+        reacts.push(r)
+      } else if (react.id === r.id && !r.reacted) {
+        reacts.push(r)
+      }
+      return reacts
+    }, [] as ProfileReact[]), this.props.profile.id)
   }
 
   private cardWidth = () => WIDTH - 2 * HORIZONTAL_MARGIN
 
-  private canSwipe = () => {
+  private canSwipeManually = () => {
+    return this.canSwipeProgrammatically() && this.state.fullyContracted
+  }
+
+  private canSwipeProgrammatically = () => {
     return (
       this.props.type === 'normal'
-      && this.state.fullyContracted
       && this.props.positionInStack === 0
       && !this.isSwipingProgrammatically
       && !this.didSwipe
@@ -702,6 +749,23 @@ class Card extends PureComponent<Props, State> {
     }
   }
 
+  private reset = () => {
+    const initialState = this.getInitialState()
+    this.safeSetState({
+      fullyContracted: initialState.fullyContracted,
+      fullyExpanded: initialState.fullyExpanded,
+      scrollViewBackgroundColor: initialState.scrollViewBackgroundColor,
+      isMomentumScrolling: initialState.isMomentumScrolling,
+    }, () => {
+      this.state.pan.setValue({x: 0, y: 0})
+      this.state.panX.setValue(0)
+      this.didSwipe = false
+      this.isSwipingManually = false
+      this.isSwipingProgrammatically = false
+      this.mainScrollView && this.mainScrollView.getNode().scrollTo({x: 0, y: 0, animated: false})
+    })
+  }
+
   private onCompleteSwipe = (direction: Direction, wasBlock = false) => {
     if (this.props.type !== 'normal') {
       return
@@ -711,26 +775,19 @@ class Card extends PureComponent<Props, State> {
     this.state.expansion.setValue(0)
     this.state.margin.top.setValue(this.getContractedMarginTop(-1))
     this.state.margin.horizontal.setValue(this.getContractedMarginHorizontal(-1))
-    this.safeSetState({
-      fullyExpanded: false,
-    }, () => {
-      this.state.pan.setValue({x: 0, y: 0})
-      this.state.panX.setValue(0)
-      this.didSwipe = false
-      this.isSwipingProgrammatically = false
-    })
+    this.reset()
   }
 
   private setupGestureResponders = () => {
 
     this.cardPanResponder = PanResponder.create({
 
-      onStartShouldSetPanResponder: () => this.canSwipe(),
-      onStartShouldSetPanResponderCapture: () => this.canSwipe(),
+      onStartShouldSetPanResponder: () => this.canSwipeManually(),
+      onStartShouldSetPanResponderCapture: () => this.canSwipeManually(),
 
       onPanResponderMove: (event, gestureState) => {
-        if (this.canSwipe() && this.isSwipe(gestureState)) {
-          this.isSwiping = true
+        if (this.canSwipeManually() && this.isSwipe(gestureState)) {
+          this.isSwipingManually = true
           Animated.event([null, {dx: this.state.pan.x, dy: this.state.pan.y}])(event, gestureState)
           Animated.event([null, {dx: this.state.panX}])(event, gestureState)
         }
@@ -738,16 +795,16 @@ class Card extends PureComponent<Props, State> {
 
       onPanResponderRelease: (_, gestureState) => {
 
-        if (!this.canSwipe()) {
+        if (!this.canSwipeManually()) {
           return
         }
 
-        if (!this.isSwiping && !this.isSwipe(gestureState)) { // just a tap
+        if (!this.isSwipingManually && !this.isSwipe(gestureState)) { // just a tap
           this.tap()
           return
         }
 
-        this.isSwiping = false
+        this.isSwipingManually = false
 
         const {dx, vx, vy} = gestureState
 
@@ -938,7 +995,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     letterSpacing: 0.34,
     marginTop: 25,
-    marginBottom: 40,
     color: 'rgb(66, 64, 64)',
   },
   ellipsisContainer: {
@@ -1010,5 +1066,17 @@ const styles = StyleSheet.create({
     flex: 1,
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#8E8E8E',
+  },
+  seniorGoalContainer: {
+    marginTop: 15,
+  },
+  seniorGoalText: {
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: 0.34,
+    color: 'rgb(66, 64, 64)',
+  },
+  profileText: {
+    marginBottom: 40,
   },
 })

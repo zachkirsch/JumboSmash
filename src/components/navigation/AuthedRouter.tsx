@@ -57,9 +57,6 @@ export default StackNavigator({
   },
   TagsScreen: {
     screen: Profile.TagsScreen,
-    navigationOptions: {
-      gesturesEnabled: false,
-    },
   },
   BlockScreen: {
     screen: Profile.BlockScreen,
@@ -70,11 +67,11 @@ export default StackNavigator({
   BucketListScreen: {
     screen: Profile.BucketListScreen,
   },
-  SeniorEventScreen: {
-    screen: Profile.SeniorEventScreen,
+  EventsScreen: {
+    screen: Profile.EventsScreen,
   },
-  MyEventsScreen: {
-    screen: Profile.MyEventsScreen,
+  EventScreen: {
+    screen: Profile.EventScreen,
   },
   ReviewCoCScreen: {
     screen: Profile.ReviewCoCScreen,

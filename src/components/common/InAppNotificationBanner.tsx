@@ -8,7 +8,7 @@ import JSImage from './JSImage'
 
 interface Props {
   deleteNotification: () => void
-  engageNotification: () => void
+  engageNotification?: () => void
   notification: InAppNotification
 }
 
@@ -39,13 +39,15 @@ class InAppNotificationBanner extends PureComponent<Props, State> {
       onPanResponderGrant: () => this.stopDismissTimer(),
       onPanResponderMove: (_, gestureState) => {
         this.state.translateY.setValue(
-          this.finalTranslateY() + Math.min(0, gestureState.dy)
+          this.finalTranslateY() - Math.max(0, Math.abs(gestureState.dy))
         )
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy < 5) {
-          this.props.engageNotification()
+        const isTap = Math.abs(gestureState.dy) < 5
+        if (isTap && !this.props.engageNotification) {
+          return
         }
+        this.props.engageNotification && this.props.engageNotification()
         this.startDismissTimer(0, this.props.deleteNotification)
       },
       onPanResponderTerminate: () => this.startDismissTimer(0, this.props.deleteNotification),

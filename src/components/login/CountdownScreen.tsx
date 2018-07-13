@@ -4,7 +4,7 @@ import { Animated, Image, Easing, TouchableOpacity, StyleSheet, View, ActivityIn
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../redux'
-import { getServerTime } from '../../services/time'
+import { getServerTime, markCountdownAsSeen } from '../../services/time'
 import LinearGradient from 'react-native-linear-gradient'
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons'
 import { Images } from '../../assets'
@@ -20,6 +20,7 @@ interface StateProps {
 
 interface DispatchProps {
   getServerTime: () => void
+  markCountdownAsSeen: () => void
 }
 
 interface State {
@@ -92,13 +93,13 @@ class CountdownScreen extends PureComponent<Props, State> {
         {this.renderLogo()}
         <View style={styles.bottomContainer}>
           {this.renderCountdown()}
-          <View style={styles.titleTextContainer}>
-            {this.renderRocket()}
-            {this.renderBottomText()}
-          </View>
         </View>
         <View style={styles.overlay}>
           {this.renderOverlayContents()}
+        </View>
+        <View style={styles.rocketContainer}>
+          {this.renderRocket()}
+          {this.renderBottomText()}
         </View>
       </View>
     )
@@ -286,9 +287,10 @@ class CountdownScreen extends PureComponent<Props, State> {
   }
 
   private navigateWhenReady = () => {
-    if (this.state.rocket.animating) {
+    if (!this.state.rocket.alreadyAnimated) {
       this.navigateTimer = setTimeout(this.navigateWhenReady, 1000)
     } else {
+      this.props.markCountdownAsSeen()
       this.props.navigation.navigate(LoginRoute.LoginScreen)
     }
   }
@@ -315,6 +317,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
     getServerTime: () => dispatch(getServerTime()),
+    markCountdownAsSeen: () => dispatch(markCountdownAsSeen()),
   }
 }
 
@@ -331,6 +334,7 @@ const styles = StyleSheet.create({
   bottomContainer: {
     flex: 1,
     justifyContent: 'space-around',
+    marginBottom: 60,
   },
   countdown: {
     flexDirection: 'row',
@@ -365,12 +369,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  titleTextContainer: {
-    justifyContent: 'center',
+  rocketContainer: {
+    ...StyleSheet.absoluteFillObject,
+    bottom: 40,
+    justifyContent: 'flex-end',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    marginTop: 20,
-    marginBottom: 40,
   },
   titleText: {
     color: '#738CB0',

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { Image, View, StyleSheet, Dimensions } from 'react-native'
 import { MessageProps, utils } from 'react-native-gifted-chat'
 import Bubble from './Bubble'
 import LinearGradient from 'react-native-linear-gradient'
@@ -12,13 +12,101 @@ interface Props extends MessageProps {
   fromUser?: User
 }
 
+interface State {
+  image: {
+    width: number
+    height: number
+  }
+}
 const { isSameUser } = utils
 
 const DEFAULT_DATE_FORMAT = 'MMMM D [at] h[:]mm A'
+const WIDTH = Dimensions.get('window').width
 
-export default class Message extends PureComponent<Props, {}> {
+export default class Message extends PureComponent<Props, State> {
 
-  renderDay() {
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      image: {
+        width: 0,
+        height: 0,
+      },
+    }
+    this.getImageDims(props)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    this.getImageDims(nextProps)
+  }
+
+  render() {
+    if (!this.props.currentMessage || !this.props.user) {
+      return null
+    }
+
+    if (this.props.currentMessage.system) {
+      return this.renderSystemMessage()
+    }
+
+    const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
+
+    const colors = [
+      'rgba(232, 240, 252, 0.35)',
+      this.props.currentMessage.user._id === this.props.user._id
+        ? 'rgba(212, 214, 219, 0.35)'
+        : 'rgba(176, 201, 240, 0.35)',
+    ]
+
+    const containerStyle = this.props.position && styles[this.props.position]
+    return (
+      <View style={{ marginBottom }}>
+        {this.renderDay()}
+        <View style={[styles.container, containerStyle]}>
+          {this.renderAvatar()}
+          <LinearGradient
+            colors={colors}
+            start={{x: 0, y: 1}}
+            end={{x: 1, y: 1}}
+            locations={[0, 1]}
+            style={styles.gradient}
+          >
+            {this.renderBubble()}
+          </LinearGradient>
+        </View>
+        {this.renderImage()}
+        {this.renderFailedToSend()}
+      </View>
+    )
+  }
+
+  private renderSystemMessage = () => {
+    if (!this.props.currentMessage) {
+      return null
+    }
+    return (
+      <JSText bold style={styles.systemMessage}>{this.props.currentMessage.text}</JSText>
+    )
+  }
+
+  private getImageDims(nextProps: Props) {
+    if (!nextProps.currentMessage || nextProps.currentMessage.system || !nextProps.currentMessage.image) {
+      return
+    }
+    const thing = nextProps.currentMessage.image
+    Image.getSize(thing, (actualWidth, actualHeight) => {
+      const width = Math.min(actualWidth, WIDTH * 0.75)
+      const height = actualHeight * width / actualWidth
+      this.setState({
+        image: {
+          width,
+          height,
+        },
+      })
+    }, _ => {}) /* tslint:disable-line:no-empty */
+  }
+
+  private renderDay() {
 
     if (this.props.currentMessage === undefined || !this.shouldShowDate()) {
       return null
@@ -35,13 +123,13 @@ export default class Message extends PureComponent<Props, {}> {
     })
 
     return (
-      <JSText style={styles.date}>
+      <JSText style={styles.systemMessage}>
         {formattedDate}
       </JSText>
     )
   }
 
-  renderBubble() {
+  private renderBubble() {
     if (!this.props.user) {
       return null
     }
@@ -53,7 +141,27 @@ export default class Message extends PureComponent<Props, {}> {
     )
   }
 
-  renderAvatar() {
+  private renderImage() {
+    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.image) {
+      return null
+    }
+    const containerStyle = this.props.position && styles[this.props.position]
+    return (
+      <View style={[styles.container, containerStyle]}>
+        <View style={styles.gifView}>
+          <JSImage
+            cache
+            source={{ uri: this.props.currentMessage.image }}
+            style={[styles.gif, {width: this.state.image.width, height: this.state.image.height}]}
+            resizeMode={'contain'}
+          />
+        </View>
+      </View>
+    )
+
+  }
+
+  private renderAvatar() {
 
     if (!this.props.currentMessage || !this.props.user) {
       return null
@@ -77,49 +185,13 @@ export default class Message extends PureComponent<Props, {}> {
     )
   }
 
-  renderFailedToSend() {
+  private renderFailedToSend() {
     if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.currentMessage.failedToSend) {
       return null
     }
     return (
       <View style={styles.failedToSendMessage}>
         <JSText style={styles.failedToSendText}>Failed to send</JSText>
-      </View>
-    )
-  }
-
-  render() {
-    if (!this.props.currentMessage || this.props.currentMessage.system || !this.props.user) {
-      return null
-    }
-
-    const marginBottom = isSameUser(this.props.currentMessage, this.props.nextMessage) ? 2 : 10
-
-    const colors = [
-      'rgba(232, 240, 252, 0.35)',
-      this.props.currentMessage.user._id === this.props.user._id
-        ? 'rgba(212, 214, 219, 0.35)'
-        : 'rgba(176, 201, 240, 0.35)',
-    ]
-
-    const containerStyle = this.props.position && styles[this.props.position]
-
-    return (
-      <View style={{ marginBottom }}>
-        {this.renderDay()}
-        <View style={[styles.container, containerStyle]}>
-          {this.renderAvatar()}
-          <LinearGradient
-            colors={colors}
-            start={{x: 0, y: 1}}
-            end={{x: 1, y: 1}}
-            locations={[0, 1]}
-            style={styles.gradient}
-          >
-            {this.renderBubble()}
-          </LinearGradient>
-        </View>
-        {this.renderFailedToSend()}
       </View>
     )
   }
@@ -170,17 +242,25 @@ const styles = StyleSheet.create({
   transparent: {
     backgroundColor: 'transparent',
   },
-  date: {
-    fontSize: 10,
-    marginVertical: 15,
-    textAlign: 'center',
-    color: 'gray',
-  },
   failedToSendMessage: {
     alignItems: 'flex-end',
     marginRight: 8,
   },
   failedToSendText: {
     color: 'rgb(214, 145, 145)',
+  },
+  gif: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+  gifView: {
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  systemMessage: {
+    fontSize: 14,
+    marginVertical: 15,
+    textAlign: 'center',
+    color: 'lightgray',
   },
 })

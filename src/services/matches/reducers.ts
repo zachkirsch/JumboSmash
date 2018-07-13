@@ -32,11 +32,14 @@ const addMessagesToReduxState = (oldState: MatchesState,
   action.messages.forEach((message) => {
     if (!newMessageIDs.contains(message._id)) {
       newMessageIDs = newMessageIDs.add(message._id)
-      const chatMessage: ChatMessage = {
-        ...message,
-        createdAt: moment(message.createdAt).valueOf(),
-        failedToSend: false,
-        sending,
+      let chatMessage: ChatMessage = message
+      if (!message.system) {
+        chatMessage = {
+          ...message,
+          createdAt: moment(message.createdAt).valueOf(),
+          failedToSend: false,
+          sending,
+        }
       }
       newMessages = newMessages.unshift(chatMessage)
     }
@@ -70,8 +73,8 @@ const updateSentStatus = (oldState: MatchesState,
     if (originalConversation.messageIDs.contains(message._id)) {
       newMessages = newMessages.update(
         newMessages.findIndex((messageInList) => !!messageInList && messageInList._id === message._id),
-        (messageInList) => ({
-          ...messageInList,
+        (_) => ({
+          ...message,
           sending: false,
           failedToSend: !success,
         })
@@ -146,7 +149,12 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
           conversationId: action.conversationId,
           createdAt: moment(action.createdAt).valueOf(),
           otherUsers: action.otherUsers,
-          messages: List(),
+          messages: List([{
+            _id: 'ZACH AND YUKI WERE HERE',
+            system: true,
+            createdAt: Date.now(),
+            text: 'You matched on ' + moment().format('MMM D'),
+          } as ChatMessage]),
           messageIDs: Set(),
           mostRecentMessage: '',
           messagesUnread: false,
@@ -204,7 +212,7 @@ export function matchesReducer(state = initialState, action: MatchesAction): Mat
             return {
               ...message,
               sending: false,
-              failedToSend: !!message && (message.sending || message.failedToSend),
+              failedToSend: !!message && !message.system && (message.sending || message.failedToSend),
             }
           })),
           messageIDs: Set(originalConversation.messageIDs),

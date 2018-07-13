@@ -2,7 +2,7 @@ import { List, Map } from 'immutable'
 import { SwipeAction, SwipeActionType } from './actions'
 import { SwipeState, User } from './types'
 import { ReduxActionType } from '../redux'
-import { shuffle } from '../../utils'
+import { ProfileActionType } from '../profile'
 
 const initialState: SwipeState = {
   swipableUsers: {
@@ -41,6 +41,35 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
       }
 
       nextIndexOfUserOnTop = nextIndexOfUserOnTop % finalUsers.size
+
+      return {
+        ...state,
+        swipableUsers: {
+          ...state.swipableUsers,
+          value: finalUsers,
+        },
+        indexOfUserOnTop: nextIndexOfUserOnTop,
+      }
+
+    case ProfileActionType.ATTEMPT_BLOCK_USER:
+      nextIndexOfUserOnTop = state.indexOfUserOnTop
+
+      // if this is a right swipe, remove any duplicates so the user won't see this person again
+      finalUsers = List()
+      for (let i = 0; i < newSwipableUsers.size; i++) {
+        const userId = newSwipableUsers.get(i)
+        const user = state.allUsers.value.get(userId)
+        if (!user) {
+          continue
+        }
+        if (action.email && user.email !== action.email) {
+          finalUsers = finalUsers.push(userId)
+        } else if (action.userId && user.id !== action.userId) {
+          finalUsers = finalUsers.push(userId)
+        } else if (i < nextIndexOfUserOnTop) {
+          nextIndexOfUserOnTop -= 1
+        }
+      }
 
       return {
         ...state,
@@ -218,7 +247,10 @@ export function swipeReducer(state = initialState, action: SwipeAction): SwipeSt
           lastFetched: Date.now(),
         },
         swipableUsers: {
-          value: List(shuffle(action.swipableUsers.filter(id => allUsersMap.has(id)))),
+          value: List(action.swipableUsers.filter(id => {
+            const user = allUsersMap.get(id)
+            return user && user.images.filter(url => url).length > 0
+          })),
           loading: false,
           lastFetched: Date.now(),
         },

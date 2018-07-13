@@ -9,6 +9,7 @@ class RectangleButton extends PureComponent<JSButtonProps, {}> {
       <JSButton
         {...otherProps}
         containerStyle={[styles.buttonContainer, containerStyle]}
+        style={styles.button}
       />
     )
   }
@@ -21,5 +22,8 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     marginHorizontal: 20,
     borderRadius: 5,
+  },
+  button: {
+    paddingHorizontal: 30,
   },
 })

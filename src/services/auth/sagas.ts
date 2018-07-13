@@ -1,5 +1,5 @@
 import { Answers } from 'react-native-fabric'
-import { call, put, select, takeLatest } from 'redux-saga/effects'
+import { call, all, put, select, takeLatest } from 'redux-saga/effects'
 import { RootState } from '../../redux'
 import * as api from '../api'
 import { ChatService, setFirebaseToken, attemptConnectToFirebase, logoutFirebase } from '../firebase'
@@ -14,7 +14,7 @@ import { rehydrateMatchesFromServer } from '../matches/actions'
 import { ImageCacheService } from '../image-caching'
 
 const getDeviceId = (state: RootState) => state.auth.deviceId
-const getFirebaseToken = (state: RootState) => state.firebase.token
+const getFirebaseToken = (state: RootState) => state.firebase.token.value
 
 function* handleRequestVerificationSuccess(isNewUser: boolean, deviceId: string) {
   const requestVerificationSuccessAction: AuthActions.RequestVerificationSuccessAction = {
@@ -71,9 +71,17 @@ function* attemptLogin() {
     yield put(AuthActions.setCoCReadStatus(meInfo.accepted_coc))
 
     // rehydrate the user's profile
-    const allTags: api.GetTagsResponse = yield call(api.api.getTags)
-    const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
-    yield put(initializeProfile(allTags, allReacts, meInfo))
+    const response = yield all([
+      call(api.api.getTags),
+      call(api.api.getReacts),
+      call(api.api.getEvents),
+      call(api.api.getBucketList),
+    ])
+    const allTags: api.GetTagsResponse = response[0]
+    const allReacts: api.GetReactsResponse = response[1]
+    const allEvents: api.GetEventsResponse = response[2]
+    const allBucketListItems: api.GetBucketListResponse = response[3]
+    yield put(initializeProfile(allTags, allReacts, allEvents, allBucketListItems, meInfo))
     yield put(rehydrateMatchesFromServer(meInfo.active_matches.map(match => ({
       id: match.id,
       createdAt: match.createdAt,

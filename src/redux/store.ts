@@ -1,6 +1,6 @@
 import { Iterable } from 'immutable'
 import { AsyncStorage } from 'react-native'
-import { Store, applyMiddleware, compose, createStore } from 'redux'
+import { Store, Middleware, applyMiddleware, compose, createStore } from 'redux'
 import { createLogger } from 'redux-logger'
 import { autoRehydrate, persistStore } from 'redux-persist'
 import createSagaMiddleware from 'redux-saga'
@@ -76,11 +76,16 @@ const logger = createLogger({
   },
 })
 
+let middleware: Middleware[] = [sagaMiddleware]
+if (__DEV__) {
+  middleware = [ ...middleware, logger ]
+}
+
 export const reduxStore = createStore(
   rootReducer,
   undefined,
   compose(
-    applyMiddleware(sagaMiddleware, logger),
+    applyMiddleware(...middleware),
     autoRehydrate()
   )
 ) as Store<RootState>

@@ -4,7 +4,6 @@ export interface ReduxState {
 
 export interface LoadableValue<T> {
   prevValue?: T
-  localValue?: T
   value: T
   loading: boolean
   errorMessage?: string

@@ -10,9 +10,8 @@ const initialState: TimeState = {
   releaseDate: 1525996799999,
   postRelease: false,
   postRelease2: false,
+  hasSeenCountdown: false,
 }
-
-let error = true
 
 export function timeReducer(state = initialState, action: TimeAction): TimeState {
   switch (action.type) {
@@ -26,8 +25,13 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
         },
       }
 
+    case TimeActionType.MARK_COUNTDOWN_AS_SEEN:
+      return {
+        ...state,
+        hasSeenCountdown: true,
+      }
+
     case TimeActionType.GET_SERVER_TIME_SUCCESS:
-      error = !error
       return {
         serverTime: {
           value: action.serverTime,
@@ -37,11 +41,13 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
         releaseDate: action.releaseDate,
         postRelease:  action.postRelease,
         postRelease2: action.postRelease2,
+        hasSeenCountdown: state.hasSeenCountdown,
       }
 
     case TimeActionType.GET_SERVER_TIME_FAILURE:
       return {
         ...initialState,
+        hasSeenCountdown: state.hasSeenCountdown,
         serverTime: {
           loading: false,
           value: undefined,
@@ -51,8 +57,14 @@ export function timeReducer(state = initialState, action: TimeAction): TimeState
       }
 
     case ReduxActionType.REHYDRATE:
+
+      // for when root state is empty
+      if (!action.payload.time) {
+        return state
+      }
       return {
         ...initialState,
+        hasSeenCountdown: action.payload.time.hasSeenCountdown,
       }
 
     default:

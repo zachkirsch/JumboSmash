@@ -7,12 +7,13 @@ import {
   View,
   Platform,
   Alert,
-  ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native'
 import { Dispatch, connect } from 'react-redux'
 import LinearGradient from 'react-native-linear-gradient'
 import Entypo from 'react-native-vector-icons/Entypo'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
 import { HeaderBar, JSText, JSButton, JSTextInput } from '../../common'
 import { goToNextRoute } from '../../navigation'
@@ -21,6 +22,7 @@ import { RootState } from './../../../redux'
 import { EMAIL_REGEX, getMainColor } from '../../../utils'
 
 interface StateProps {
+  myEmail: string
   blockedUsers: string[]
 }
 
@@ -33,44 +35,43 @@ type Props = NavigationScreenPropsWithRedux<{}, StateProps & DispatchProps> & {
   setupMode?: boolean
 }
 
-interface BlockedUserMap {
-  [email: string]: 'blocked' | 'just_blocked' | 'just_unblocked'
+interface BlockedUser {
+  email: string
+  status: 'blocked' | 'just_blocked' | 'just_unblocked'
 }
 
 interface State {
-  blockedUsers: BlockedUserMap
+  blockedUsers: BlockedUser[]
   textInput: string
 }
 
-const INSTRUCTIONS_START = "You won't see the users you block anywhere on the app, and they won't see you."
-  + ' You can use the '
+const INSTRUCTIONS_START = "If there's someone you don't want to see, you can block "
+  + "them below. They won't see you either. You can use the "
 
 class BlockScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
      super(props)
-
-     const blockedUsers: BlockedUserMap = {}
-     this.props.blockedUsers.forEach(email => blockedUsers[email] = 'blocked')
-
      this.state = {
-       blockedUsers,
+       blockedUsers: this.props.blockedUsers.map(email => ({
+         email,
+         status: 'blocked',
+       })) as BlockedUser[],
        textInput: '',
      }
    }
 
-  componentDidMount() {
-    this.props.navigation.addListener('willBlur', this.saveChanges)
-  }
-
   render() {
     return (
-      <ScrollView contentContainerStyle={styles.fill} scrollEnabled={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.fill}
+      >
         <View style={styles.fill}>
           {this.renderHeaderBar()}
           <View style={styles.fill}>
             <View style={styles.upperContainer}>
-              <JSText style={[styles.instructions, { textAlign: 'center' }]}>
+              <JSText style={styles.instructions}>
                 {INSTRUCTIONS_START}
                 <JSText
                   style={styles.link}
@@ -80,18 +81,34 @@ class BlockScreen extends PureComponent<Props, State> {
                 </JSText>
                 {' to look up a student.'}
               </JSText>
-              <JSTextInput
-                fancy
-                autoCapitalize={'none'}
-                placeholder='firstname.lastname@tufts.edu'
-                returnKeyType={'done'}
-                keyboardType={'email-address'}
-                autoCorrect={false}
-                value={this.state.textInput}
-                style={styles.input}
-                onChangeText={this.onChangeText}
-                onSubmitEditing={this.blockUser(this.state.textInput)}
-              />
+              <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginVertical: 30}}>
+                <JSTextInput
+                  fancy
+                  autoCapitalize={'none'}
+                  placeholder='firstname.lastname@tufts.edu'
+                  returnKeyType={'next'}
+                  enablesReturnKeyAutomatically
+                  keyboardType={'email-address'}
+                  autoCorrect={false}
+                  value={this.state.textInput}
+                  style={styles.input}
+                  onChangeText={this.onChangeText}
+                  onSubmitEditing={this.onSubmitText}
+                  blurOnSubmit={false}
+                />
+                <TouchableOpacity
+                  style={styles.addIconContainer}
+                  onPress={this.onSubmitText}
+                  disabled={!this.state.textInput}
+                >
+                  <Ionicons
+                    name='md-add-circle'
+                    size={25}
+                    color={this.state.textInput ? getMainColor() : 'lightgray'}
+                    style={[styles.icon, styles.addIcon]}
+                  />
+                </TouchableOpacity>
+              </View>
               <JSText bold style={styles.currentlyBlocked}>
                 Currently Blocked:
               </JSText>
@@ -101,7 +118,7 @@ class BlockScreen extends PureComponent<Props, State> {
           {this.renderGradient()}
         </View>
         {this.props.setupMode && this.renderContinue()}
-      </ScrollView>
+      </KeyboardAvoidingView>
     )
   }
 
@@ -109,18 +126,36 @@ class BlockScreen extends PureComponent<Props, State> {
     if (this.props.setupMode) {
       return (
         <View style={styles.header}>
-          <JSText bold style={styles.headerText}>Block Users</JSText>
+          <JSText bold style={styles.headerText}>BLOCK USERS</JSText>
         </View>
       )
     }
     return (
-      <HeaderBar title='Block Users' onPressLeft={this.props.navigation.goBack} />
+      <HeaderBar
+        title='Block Users'
+        onPressLeft={this.props.navigation.goBack}
+        renderLeft={this.renderHeaderLeft}
+        onPressRight={this.saveAndGoBack}
+        renderRight={this.renderHeaderRight}
+      />
+    )
+  }
+
+  private renderHeaderLeft = () => {
+    return (
+      <JSText style={styles.headerBarSideText}>Cancel</JSText>
+    )
+  }
+
+  private renderHeaderRight = () => {
+    return (
+      <JSText style={styles.headerBarSideText}>Save</JSText>
     )
   }
 
   private renderBlockedUsers = () => {
 
-    if (Object.keys(this.state.blockedUsers).length === 0) {
+    if (this.state.blockedUsers.length === 0) {
       return (
         <View style={styles.noBlockedUsersContainer}>
           <JSText style={styles.noBlockedUsers}>No Blocked Users</JSText>
@@ -128,32 +163,35 @@ class BlockScreen extends PureComponent<Props, State> {
       )
     }
 
-    const blockedEmails = Object.keys(this.state.blockedUsers).sort().map(email => ({key: email, email}))
     return (
       <FlatList
-        data={blockedEmails}
+        data={this.state.blockedUsers}
+        keyExtractor={this.extractEmailFromUser}
         renderItem={this.renderBlockedUser}
         style={styles.blockedUsersList}
         contentContainerStyle={styles.blockedUsersContainer}
         ItemSeparatorComponent={this.renderSeparator}
+        keyboardShouldPersistTaps='handled'
       />
     )
   }
 
-  private renderBlockedUser = ({item}: {item: {email: string}}) => {
+  private extractEmailFromUser = (user: BlockedUser) => user.email
+
+  private renderBlockedUser = ({item, index}: {item: BlockedUser, index: number}) => {
 
     const email = item.email
 
     let icon
     const textStyles = []
 
-    switch (this.state.blockedUsers[email]) {
+    switch (item.status) {
       case 'just_blocked':
       case 'blocked':
-        icon = <Entypo name='cross' size={25} color={'red'} style={styles.crossIcon} />
+        icon = <Entypo name='cross' size={25} color={'red'} style={[styles.icon, styles.crossIcon]} />
         break
       case 'just_unblocked':
-        icon = <FontAwesome name='undo' size={15} color={getMainColor()} />
+        icon = <FontAwesome name='undo' size={15} color={getMainColor()} style={styles.icon} />
         textStyles.push(styles.strikethrough)
         break
     }
@@ -161,7 +199,7 @@ class BlockScreen extends PureComponent<Props, State> {
     return (
       <View style={styles.blockedUser} key={email}>
         <JSText style={textStyles}>{email}</JSText>
-        <TouchableOpacity style={styles.iconContainer} onPress={this.toggleUser(email)}>
+        <TouchableOpacity style={styles.iconContainer} onPress={this.toggleUser(index)}>
           {icon}
         </TouchableOpacity>
       </View>
@@ -200,65 +238,99 @@ class BlockScreen extends PureComponent<Props, State> {
   }
 
   private goToNextRoute = () => {
-    this.saveChanges()
-    goToNextRoute(this.props.navigation)
+    this.saveChanges(() => goToNextRoute(this.props.navigation))
   }
 
   private openWhitePages = () => Linking.openURL('https://whitepages.tufts.edu/')
 
-  private onChangeText = (value: string) => {this.setState({textInput: value})}
+  private onChangeText = (value: string) => this.setState({textInput: value})
 
-  private blockUser = (email: string) => () => {
+  private onSubmitText = () => this.blockUser()
+
+  private blockUser = (onComplete?: (success: boolean) => void) => {
+    const email = this.state.textInput
     if (!email) {
       return
     }
 
-    if (!EMAIL_REGEX.test(email) || !email.endsWith('@tufts.edu')) {
-      Alert.alert(
-        'Oops',
-        "That's not a Tufts e-mail"
-      )
-      return
+    let errorMessage
+    if (email === this.props.myEmail) {
+      errorMessage = "You can't block yourself"
+    } else if (!EMAIL_REGEX.test(email) || !email.endsWith('@tufts.edu')) {
+      errorMessage = "That's not a Tufts e-mail address"
     }
 
-    const additionalBlockedUsers: BlockedUserMap = {}
-    additionalBlockedUsers[email] = 'just_blocked'
-
-    this.setState({
-      blockedUsers: {
-        ...this.state.blockedUsers,
-        ...additionalBlockedUsers,
-      },
-      textInput: '',
-    })
+    if (errorMessage) {
+      Alert.alert('Oops', errorMessage)
+      onComplete && onComplete(false)
+    } else {
+      this.setState({
+        blockedUsers: [{
+          email,
+          status: 'just_blocked',
+        }, ...this.state.blockedUsers],
+        textInput: '',
+      }, onComplete && (() => onComplete(true)))
+    }
   }
 
-  private toggleUser = (email: string) => () => {
-    const blockedUsers = {...this.state.blockedUsers}
-    switch (this.state.blockedUsers[email]) {
+  private toggleUser = (index: number) => () => {
+    const blockedUsers = [...this.state.blockedUsers]
+    switch (this.state.blockedUsers[index].status) {
       case 'blocked':
-        blockedUsers[email] = 'just_unblocked'
+        blockedUsers[index] = {
+          ...blockedUsers[index],
+          status: 'just_unblocked',
+        }
         break
       case 'just_blocked':
-        delete blockedUsers[email]
+        blockedUsers.splice(index, 1)
         break
       case 'just_unblocked':
-        blockedUsers[email] = 'blocked'
+        blockedUsers[index] = {
+          ...blockedUsers[index],
+          status: 'blocked',
+        }
     }
     this.setState({blockedUsers})
   }
 
-  private saveChanges = () => {
-    Object.keys(this.state.blockedUsers).forEach((email) => {
-      if (this.state.blockedUsers.hasOwnProperty(email)) {
-        const status = this.state.blockedUsers[email]
-        if (status === 'just_blocked') {
-          this.props.blockUser(email)
-        } else if (status === 'just_unblocked') {
-          this.props.unblockUser(email)
+  private saveChanges = (onSave?: () => void) => {
+
+    const save = () => {
+      this.state.blockedUsers.forEach(user => {
+        if (user.status === 'just_blocked') {
+          this.props.blockUser(user.email)
+        } else if (user.status === 'just_unblocked') {
+          this.props.unblockUser(user.email)
         }
-      }
-    })
+      })
+      onSave && onSave()
+    }
+
+    if (this.state.textInput) {
+      Alert.alert(
+        '',
+        `Do you want to block ${this.state.textInput}?`,
+        [
+          {
+            text: 'No',
+            style: 'cancel',
+            onPress: save,
+          },
+          {
+            text: 'Yes',
+            onPress: () => this.blockUser(success => success && save()),
+          },
+        ]
+      )
+    } else {
+      save()
+    }
+  }
+
+  private saveAndGoBack = () => {
+    this.saveChanges(this.props.navigation.goBack)
   }
 }
 
@@ -268,6 +340,7 @@ const mapStateToProps = (state: RootState): StateProps => {
       .filter(u => !!u && u.value.blocked)
       .map(u => u && u.value.email)
       .toJS(),
+    myEmail: state.auth.email,
   }
 }
 
@@ -285,16 +358,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   upperContainer: {
-    paddingHorizontal: 20,
     paddingTop: 10,
   },
   link: {
     fontSize: 14,
     textDecorationLine: 'underline',
-    color: '#171767',
+    color: getMainColor(),
   },
   input: {
-    marginVertical: 30,
+    marginVertical: 0,
+    flex: 1,
   },
   blockedUsersList: {
     flex: 1,
@@ -334,6 +407,8 @@ const styles = StyleSheet.create({
   },
   instructions: {
     fontSize: 14,
+    marginHorizontal: 10,
+    textAlign: 'center',
   },
   separator: {
     height: StyleSheet.hairlineWidth,
@@ -342,12 +417,13 @@ const styles = StyleSheet.create({
   header: {
     marginTop: Platform.select({
       ios: 35,
-      android: 10,
+      android: 20,
     }),
   },
   currentlyBlocked: {
     fontSize: 15,
     textAlign: 'center',
+    marginBottom: 5,
   },
   headerText: {
     fontSize: 20,
@@ -366,5 +442,20 @@ const styles = StyleSheet.create({
   continue: {
     marginBottom: 20,
     marginHorizontal: 20,
+  },
+  icon: {
+    backgroundColor: 'transparent',
+  },
+  addIcon: {
+  },
+  addIconContainer: {
+    height: 45,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerBarSideText: {
+    color: getMainColor(),
+    fontSize: 15,
   },
 })

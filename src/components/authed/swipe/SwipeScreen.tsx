@@ -57,7 +57,7 @@ interface State {
   topCardLoaded: boolean
 }
 
-const NUM_RENDERED_CARDS = 4
+const NUM_RENDERED_CARDS = 10
 
 @connectActionSheet
 class SwipeScreen extends PureComponent<Props, State> {
@@ -69,10 +69,14 @@ class SwipeScreen extends PureComponent<Props, State> {
 
   constructor(props: Props) {
     super(props)
+    let profiles = []
+    for (let i = 0; i < NUM_RENDERED_CARDS; i++) {
+      profiles.push(this.getCard(i))
+    }
     this.state = {
       expansion: new Animated.Value(props.preview ? 1 : 0),
       fullyExpanded: !!this.props.preview,
-      profiles: [],
+      profiles,
       mustShowLoadingScreen: true,
       topCardLoaded: false,
     }
@@ -348,7 +352,7 @@ class SwipeScreen extends PureComponent<Props, State> {
     if (!this.props.swipableUsers.loading) {
       const numUserUntilEnd = this.props.swipableUsers.value.size - this.props.indexOfUserOnTop
       const beenLongEnough = (
-        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 10
+        !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 >= 60
       )
       const beenTooLong = (
         !this.props.swipableUsers.lastFetched || (Date.now() - this.props.swipableUsers.lastFetched) / 1000 / 60 >= 10
@@ -379,7 +383,7 @@ class SwipeScreen extends PureComponent<Props, State> {
   }
 
   private getCard = (cardIndex: number) => {
-    const userInState = this.state.profiles[cardIndex]
+    const userInState = this.state && this.state.profiles[cardIndex]
     if (userInState) {
       return userInState
     } else {
@@ -411,7 +415,7 @@ const mapStateToProps = (state: RootState): StateProps => {
     meId: state.profile.id,
     postRelease2: state.time.postRelease2,
     classYear: state.profile.classYear,
-    showUnderclassmen: state.profile.showUnderclassmen,
+    showUnderclassmen: state.profile.showUnderclassmen.value,
   }
 }
 

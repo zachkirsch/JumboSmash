@@ -1,4 +1,5 @@
 import { GetEndpoint, HttpGetRequest } from './Endpoint'
+import { EventRSVP } from './getEventRSVPs'
 
 interface PathExtensionComponents {
   userId: number
@@ -15,7 +16,7 @@ export interface ProfileReact {
   react_id: number
   react_count: number
   react_text: string
-  type: 'image' | 'emoji'
+  react_type: 'image' | 'emoji'
 }
 
 interface Tag {
@@ -29,6 +30,7 @@ interface Response {
   bio: string
   class_year: number
   email: string
+  events: EventRSVP[]
   firebase_uid: string
   full_name: string
   id: number
@@ -36,6 +38,7 @@ interface Response {
   major: string | null
   preferred_name: string | null
   profile_reacts: ProfileReact[]
+  senior_goal: string | null
   surname: string
   tags: Tag[]
   uuid: string

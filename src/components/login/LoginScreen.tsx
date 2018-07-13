@@ -195,7 +195,7 @@ const mapStateToProps = (state: RootState): StateProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
   return {
-    onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials)),
+    onSubmitCredentials: (credentials: Credentials) => dispatch(requestVerification(credentials, false)),
   }
 }
 
@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   inputContainer: {
+    marginTop: 50,
     justifyContent: 'center',
     flex: 1,
   },

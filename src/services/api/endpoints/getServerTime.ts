@@ -10,5 +10,5 @@ interface Response {
   post_release_2: boolean
 }
 
-export const getServerTime = new GetEndpoint<Request, Response>('/time', true)
+export const getServerTime = new GetEndpoint<Request, Response>('/time', false)
 export type GetServerTimeResponse = Response

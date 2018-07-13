@@ -1,19 +1,29 @@
 import React, { PureComponent } from 'react'
-import { Animated, StyleSheet, TouchableWithoutFeedback, TouchableWithoutFeedbackProps } from 'react-native'
+import {
+  Animated,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  TouchableWithoutFeedbackProps,
+  GestureResponderEvent,
+} from 'react-native'
 import LinearGradient from 'react-native-linear-gradient'
 import JSText from './JSText'
 
 interface Props extends TouchableWithoutFeedbackProps {
-  label: string
   containerStyle?: any /* tslint:disable-line:no-any */
+  colors?: string[] // one or two colors for the gradient
+  active?: boolean // darker color (ignored if colors prop is given)
+
+  // for simple text button, ignored if renderCenter prop is given
+  label?: string
   textStyle?: any /* tslint:disable-line:no-any */
-  colors?: string[] // two colors for the gradient
-  active?: boolean // darker color (ignored if colors prop is defined)
   bold?: boolean
+
+  // for non-text butons
+  renderCenter?: () => JSX.Element | null
 }
 
 interface State {
-  buttonPressedIn: boolean,
   scale: Animated.Value
 }
 
@@ -24,16 +34,17 @@ class JSButton extends PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      buttonPressedIn: false,
       scale: new Animated.Value(1),
     }
   }
 
   public render() {
 
-    const containerStyle = [
+    const { label, bold, colors, style, textStyle, containerStyle, ...otherProps } = this.props
+
+    const containerStyles = [
       styles.container,
-      this.props.containerStyle,
+      containerStyle,
       {
         transform: [
           {
@@ -52,56 +63,47 @@ class JSButton extends PureComponent<Props, State> {
       },
     ]
 
-    if (this.props.colors && this.props.colors.length === 1) {
-      containerStyle.push({
-        backgroundColor: this.props.colors[0],
-      })
-      return (
-        <Animated.View style={[containerStyle, styles.button, this.props.style]}>
-          {this.renderTouchable()}
-        </Animated.View>
-      )
-    }
-
     return (
-      <Animated.View style={containerStyle}>
-        <LinearGradient
-          colors={this.props.colors || this.getColors()}
-          start={{x: 0, y: 1}}
-          end={{x: 1, y: 1}}
-          locations={[0, 1]}
-          style={[styles.button, this.props.style]}
-        >
-          {this.renderTouchable()}
-        </LinearGradient>
-      </Animated.View>
+        <Animated.View style={containerStyles}>
+          <TouchableWithoutFeedback
+            {...otherProps}
+            onPressIn={this.onPressIn}
+            onPressOut={this.onPressOut}
+          >
+            <LinearGradient
+              colors={this.getColors()}
+              start={{x: 0, y: 1}}
+              end={{x: 1, y: 1}}
+              locations={[0, 1]}
+              style={[styles.button, style]}
+            >
+              {this.renderCenter()}
+            </LinearGradient>
+          </TouchableWithoutFeedback>
+        </Animated.View>
     )
   }
 
-  private renderTouchable = () => {
-    const {label, disabled, bold, colors, style, textStyle, ...otherProps} = this.props
-
-    const textStyles = [textStyle]
-    if (disabled) {
-      textStyles.push(styles.disabled)
+  private renderCenter = () => {
+    if (this.props.renderCenter) {
+      return this.props.renderCenter()
     }
-
     return (
-      <TouchableWithoutFeedback
-        onPress={this.props.onPress}
-        onPressIn={this.onPressIn}
-        onPressOut={this.onPressOut}
-        disabled={this.props.disabled}
-        {...otherProps}
-      >
-        <JSText bold={bold} style={[styles.text, textStyle]}>
-          {label}
-        </JSText>
-      </TouchableWithoutFeedback>
+      <JSText bold={this.props.bold} style={[styles.text, this.props.textStyle]}>
+        {this.props.label}
+      </JSText>
     )
   }
 
   private getColors = () => {
+
+    if (this.props.colors && this.props.colors.length > 0) {
+      if (this.props.colors.length >= 2) {
+        return this.props.colors.slice(0, 2)
+      }
+      return [this.props.colors[0], this.props.colors[0]]
+    }
+
     const opacity = this.props.disabled ? 0.75 : 1
     if (this.props.active) {
       return [
@@ -116,14 +118,15 @@ class JSButton extends PureComponent<Props, State> {
     }
   }
 
-  private onPressIn = () => {
-    this.setState({buttonPressedIn: true})
+  private onPressIn = (e: GestureResponderEvent) => {
+    this.state.scale.setValue(0.5)
     this.changeScale(true)
+    this.props.onPressIn && this.props.onPressIn(e)
   }
 
-  private onPressOut = () => {
-    this.setState({buttonPressedIn: false})
+  private onPressOut = (e: GestureResponderEvent) => {
     this.changeScale(false)
+    this.props.onPressOut && this.props.onPressOut(e)
   }
 
   private changeScale = (shrink: boolean) => {
@@ -132,7 +135,7 @@ class JSButton extends PureComponent<Props, State> {
       this.state.scale,
       {
         toValue: shrink ? 0 : 1,
-        duration: 200,
+        duration: 100,
       }
     ).start()
   }

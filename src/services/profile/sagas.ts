@@ -1,4 +1,4 @@
-import { throttle, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
+import { all, call, put, select, takeEvery, takeLatest } from 'redux-saga/effects'
 import uuid from 'uuid'
 import { List } from 'immutable'
 import { RootState } from '../../redux'
@@ -35,14 +35,6 @@ function* isMatched(email: string) {
 
 /* Preferred Name */
 
-function* onChangePreferredNameTextInput(action: ProfileActions.OnChangePreferredNameTextInputAction) {
-  const updateLocallyAction: ProfileActions.UpdatePreferredNameLocallyAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_PREFERRED_NAME_LOCALLY,
-    preferredName: action.preferredName,
-  }
-  yield put(updateLocallyAction)
-}
-
 function* handleUpdatePreferredNameSuccess() {
   const successAction: ProfileActions.UpdatePreferredNameSuccessAction = {
     type: ProfileActions.ProfileActionType.UPDATE_PREFERRED_NAME_SUCCESS,
@@ -69,14 +61,6 @@ function* attemptUpdatePreferredName(payload: ProfileActions.AttemptUpdatePrefer
 
 /* Bio */
 
-function* onChangeBioTextInput(action: ProfileActions.OnChangeBioTextInputAction) {
-  const updateLocallyAction: ProfileActions.UpdateBioLocallyAction = {
-    type: ProfileActions.ProfileActionType.UPDATE_BIO_LOCALLY,
-    bio: action.bio,
-  }
-  yield put(updateLocallyAction)
-}
-
 function* handleUpdateBioSuccess() {
   const successAction: ProfileActions.UpdateBioSuccessAction = {
     type: ProfileActions.ProfileActionType.UPDATE_BIO_SUCCESS,
@@ -98,6 +82,32 @@ function* attemptUpdateBio(payload: ProfileActions.AttemptUpdateBioAction) {
     yield handleUpdateBioSuccess()
   } catch (error) {
     yield handleUpdateBioFailure(error)
+  }
+}
+
+/* Senior Goal */
+
+function* handleUpdateSeniorGoalSuccess() {
+  const successAction: ProfileActions.UpdateSeniorGoalSuccessAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_SENIOR_GOAL_SUCCESS,
+  }
+  yield put(successAction)
+}
+
+function* handleUpdateSeniorGoalFailure(error: Error) {
+  const failureAction: ProfileActions.UpdateSeniorGoalFailureAction = {
+    type: ProfileActions.ProfileActionType.UPDATE_SENIOR_GOAL_FAILURE,
+    errorMessage: error.message,
+  }
+  yield put(failureAction)
+}
+
+function* attemptUpdateSeniorGoal(payload: ProfileActions.AttemptUpdateSeniorGoalAction) {
+  try {
+    yield call(api.api.updateSeniorGoal, payload.seniorGoal)
+    yield handleUpdateSeniorGoalSuccess()
+  } catch (error) {
+    yield handleUpdateSeniorGoalFailure(error)
   }
 }
 
@@ -239,6 +249,65 @@ function* attemptUnblockUser(payload: ProfileActions.AttemptUnblockUserAction) {
   }
 }
 
+function* attemptUpdateEvents(payload: ProfileActions.AttemptUpdateEventsAction) {
+  try {
+    api.api.updateEvents(payload.events.reduce((acc, event) => {
+      if (event.going) {
+        acc.push(event.id)
+      }
+      return acc
+    }, [] as number[]))
+    const successAction: ProfileActions.UpdateEventsSuccessAction = {
+      type: ProfileActions.ProfileActionType.UPDATE_EVENTS_SUCCESS,
+    }
+    yield put(successAction)
+  } catch (error) {
+    const failureAction: ProfileActions.UpdateEventsFailureAction = {
+      type: ProfileActions.ProfileActionType.UPDATE_EVENTS_FAILURE,
+      errorMessage: error.message,
+    }
+    yield put(failureAction)
+  }
+}
+
+function* attemptUpdateBucketList(_: ProfileActions.AttemptUpdateBucketListAction) {
+  try {
+    // This is commented out because we are handling bucket list locally
+    /*
+    const completedItems = flatten(payload.items.map(category => {
+      return category.items.filter(item => item.completed).map(item => item.id)
+    }))
+    api.api.updateBucketList(completedItems)
+    */
+    const successAction: ProfileActions.UpdateBucketListSuccessAction = {
+      type: ProfileActions.ProfileActionType.UPDATE_BUCKET_LIST_SUCCESS,
+    }
+    yield put(successAction)
+  } catch (error) {
+    const failureAction: ProfileActions.UpdateBucketListFailureAction = {
+      type: ProfileActions.ProfileActionType.UPDATE_BUCKET_LIST_FAILURE,
+      errorMessage: error.message,
+    }
+    yield put(failureAction)
+  }
+}
+
+function* attemptToggleUnderclassmen(payload: ProfileActions.AttemptToggleUnderclassmenAction) {
+  try {
+    api.api.updateSeeUnderclassmen(payload.showUnderclassmen)
+    const successAction: ProfileActions.ToggleUnderclassmenSuccessAction = {
+      type: ProfileActions.ProfileActionType.TOGGLE_UNDERCLASSMEN_SUCCESS,
+    }
+    yield put(successAction)
+  } catch (e) {
+    const failureAction: ProfileActions.ToggleUnderclassmenFailureAction = {
+      type: ProfileActions.ProfileActionType.TOGGLE_UNDERCLASSMEN_FAILURE,
+      errorMessage: e.message,
+    }
+    yield put(failureAction)
+  }
+}
+
 function* rehydrateProfileFromServer(_: RehydrateAction) {
 
   const loggedIn: boolean = yield select(getSignedInStatus)
@@ -247,10 +316,19 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
   }
 
   try {
-    const allTags: api.GetTagsResponse = yield call(api.api.getTags)
-    const allReacts: api.GetReactsResponse = yield call(api.api.getReacts)
-    const meInfo: api.MeResponse = yield call(api.api.me)
-    yield put(ProfileActions.initializeProfile(allTags, allReacts, meInfo))
+    const response = yield all([
+      call(api.api.getTags),
+      call(api.api.getReacts),
+      call(api.api.getEvents),
+      call(api.api.getBucketList),
+      call(api.api.me),
+    ])
+    const allTags: api.GetTagsResponse = response[0]
+    const allReacts: api.GetReactsResponse = response[1]
+    const allEvents: api.GetEventsResponse = response[2]
+    const allBucketListItems: api.GetBucketListResponse = response[3]
+    const meInfo: api.MeResponse = response[4]
+    yield put(ProfileActions.initializeProfile(allTags, allReacts, allEvents, allBucketListItems, meInfo))
     yield put(rehydrateMatchesFromServer(meInfo.active_matches
       .filter(match => !match.unmatched)
       .map(match => ({
@@ -268,24 +346,26 @@ function* rehydrateProfileFromServer(_: RehydrateAction) {
   } catch (e) {} /* tslint:disable-line:no-empty */ // TODO: something?
 }
 
+function* rehydrate() {
+  yield put(ProfileActions.rehydrateProfileFromServer())
+}
+
 /* main saga */
 
 export function* profileSaga() {
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_PREFERRED_NAME, attemptUpdatePreferredName)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BIO, attemptUpdateBio)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_SENIOR_GOAL, attemptUpdateSeniorGoal)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_TAGS, attemptUpdateTags)
   yield takeEvery(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_IMAGE, attemptUpdateImage)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_BLOCK_USER, attemptBlockUser)
   yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UNBLOCK_USER, attemptUnblockUser)
-  yield takeLatest(ReduxActionType.REHYDRATE, rehydrateProfileFromServer)
-  yield throttle(
-    500,
-    ProfileActions.ProfileActionType.ON_CHANGE_PREFERRED_NAME_TEXTINPUT,
-    onChangePreferredNameTextInput
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_EVENTS, attemptUpdateEvents)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_UPDATE_BUCKET_LIST, attemptUpdateBucketList)
+  yield takeLatest(ProfileActions.ProfileActionType.ATTEMPT_TOGGLE_UNDERCLASSMEN, attemptToggleUnderclassmen)
+  yield takeLatest(
+    ProfileActions.ProfileActionType.ATTEMPT_REHYDRATE_PROFILE_FROM_SERVER,
+    rehydrateProfileFromServer
   )
-  yield throttle(
-    500,
-    ProfileActions.ProfileActionType.ON_CHANGE_BIO_TEXTINPUT,
-    onChangeBioTextInput
-  )
+  yield takeLatest(ReduxActionType.REHYDRATE, rehydrate)
 }

@@ -25,14 +25,28 @@ export const api = {
   setFirebaseNotificationToken: (token: string) => Endpoints.setFirebaseNotificationToken.hit({firebase_notification_token: token}, {}),
   me: () => Endpoints.me.hit({}, {}),
   updateBio: (bio: string) => Endpoints.updateBio.hit({bio}, {}),
+  updateSeniorGoal: (seniorGoal: string) => Endpoints.updateSeniorGoal.hit({
+    senior_goal: seniorGoal,
+  }, {}),
   updateName: (preferredName: string) => Endpoints.updateName.hit({preferred_name: preferredName}, {}),
   updateImages: (images: string[]) => Endpoints.updateImages.hit({images}, {}),
+  updateSeeUnderclassmen: (seeUnderclassmen: boolean) => Endpoints.updateSeeUnderclassmen.hit({
+    see_underclassmen: seeUnderclassmen,
+  }, {}),
   getTags: () => Endpoints.getTags.hit({}, {}),
   updateTags: (tagIds: number[]) => Endpoints.updateTags.hit({tag_ids: tagIds}, {}),
+  getEvents: () => Endpoints.getEvents.hit({}, {}),
+  updateEvents: (eventIds: number[]) => Endpoints.updateEvents.hit({
+    event_ids: eventIds,
+  }, {}),
   getReacts: () => Endpoints.getReacts.hit({}, {}),
   react: (onUser: number, reacts: number[]) => Endpoints.react.hit({
     react_on_id: onUser,
     react_ids: reacts,
+  }, {}),
+  getBucketList: () => Endpoints.getBucketList.hit({}, {}),
+  updateBucketList: (items: number[]) => Endpoints.updateBucketList.hit({
+    item_ids: items,
   }, {}),
 
   /* OTHERS */

@@ -1,10 +1,11 @@
 import { Map } from 'immutable'
 import React, { PureComponent } from 'react'
-import { FlatList, Keyboard, StyleSheet, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import { NavigationScreenPropsWithRedux } from 'react-navigation'
-import { connect } from 'react-redux'
+import { connect, Dispatch } from 'react-redux'
 import { RootState } from '../../../redux'
 import { Conversation } from '../../../services/matches'
+import { rehydrateProfileFromServer } from '../../../services/profile'
 import MatchesListItem from './MatchesListItem'
 import { JSTextInput } from '../../common'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -12,6 +13,7 @@ import { User } from '../../../services/swipe'
 
 interface State {
   searchBarText: string
+  refreshingList: boolean
 }
 
 interface OwnProps { }
@@ -19,9 +21,14 @@ interface OwnProps { }
 interface StateProps {
   chats: Map<string, Conversation>
   allUsers: Map<number, User>
+  rehydratingProfileFromServer: boolean
 }
 
-type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps>
+interface DispatchProps {
+  rehydrateProfileFromServer: () => void
+}
+
+type Props = NavigationScreenPropsWithRedux<OwnProps, StateProps & DispatchProps>
 
 class MatchesList extends PureComponent<Props, State> {
 
@@ -29,28 +36,37 @@ class MatchesList extends PureComponent<Props, State> {
     super(props)
     this.state = {
       searchBarText: '',
+      refreshingList: false,
     }
   }
 
-  componentDidMount() {
-    this.props.navigation.addListener('didBlur', Keyboard.dismiss)
+  componentWillReceiveProps(nextProps: Props) {
+    this.setState({
+      refreshingList: nextProps.rehydratingProfileFromServer,
+    })
   }
 
   public render() {
+    const matches = this.getMatches()
     return (
       <View style={styles.container}>
-        {this.renderSearchBar()}
+        {this.renderSearchBar(matches.length)}
         <FlatList
-          contentContainerStyle={styles.list}
-          data={this.getMatches()}
+          data={matches}
           renderItem={this.renderItem}
           keyExtractor={this.extractConversationId}
+          refreshing={this.state.refreshingList}
+          onRefresh={this.rehydrateProfileFromServer}
         />
       </View>
     )
   }
 
-  private renderSearchBar = () => {
+  private renderSearchBar = (numMatches: number) => {
+    let placeholder = 'Search'
+    if (numMatches >= 5) {
+      placeholder += ` ${numMatches} Matches`
+    }
     return (
       <View style={styles.searchBarContainer}>
         <Ionicons
@@ -62,12 +78,18 @@ class MatchesList extends PureComponent<Props, State> {
         <JSTextInput
           onChangeText={this.onChangeSearchBarText}
           style={styles.searchBar}
-          placeholder={'Search'}
+          placeholder={placeholder}
           underline={false}
           autoCorrect={false}
         />
       </View>
     )
+  }
+
+  private rehydrateProfileFromServer = () => {
+    this.setState({
+      refreshingList: true,
+    }, this.props.rehydrateProfileFromServer)
   }
 
   private onChangeSearchBarText = (searchBarText: string) => {
@@ -89,11 +111,13 @@ class MatchesList extends PureComponent<Props, State> {
       })
     }
 
-    const sortedChats = chats.sort((a, b) => {
-      const aTime = a.messages.size > 0 ? a.messages.first().createdAt : a.createdAt
-      const bTime = b.messages.size > 0 ? b.messages.first().createdAt : b.createdAt
-      return bTime - aTime
-    })
+    const sortedChats = chats
+      .filter(chat => !chat.otherUsers.find(id => !this.props.allUsers.get(id)))
+      .sort((a, b) => {
+        const aTime = a.messages.size > 0 ? a.messages.first().createdAt : a.createdAt
+        const bTime = b.messages.size > 0 ? b.messages.first().createdAt : b.createdAt
+        return bTime - aTime
+      })
     return sortedChats
   }
 
@@ -114,7 +138,7 @@ class MatchesList extends PureComponent<Props, State> {
         lastMessage={item.mostRecentMessage}
         messagesUnread={item.messagesUnread}
         avatar={otherUser && otherUser.images[0]}
-        newMatch={item.messages.size === 0}
+        newMatch={item.messages.filter(m => !!m && !m.system).size === 0}
       />
     )
   }
@@ -124,17 +148,21 @@ const mapStateToProps = (state: RootState): StateProps => {
   return {
     chats: state.matches.chats,
     allUsers: state.swipe.allUsers.value,
+    rehydratingProfileFromServer: state.profile.rehydratingProfileFromServer,
   }
 }
 
-export default connect(mapStateToProps)(MatchesList)
+const mapDispatchToProps = (dispatch: Dispatch<RootState>): DispatchProps => {
+  return {
+    rehydrateProfileFromServer: () => dispatch(rehydrateProfileFromServer()),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MatchesList)
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  list: {
-    marginTop: 10,
   },
   searchBarContainer: {
     flexDirection: 'row',

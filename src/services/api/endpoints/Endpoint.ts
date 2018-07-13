@@ -1,3 +1,4 @@
+import { Platform } from 'react-native'
 import { ErrorResponse } from '../api'
 import { ApiAuthService } from './utils'
 import { SERVER_URL } from '../../../globals'
@@ -18,7 +19,7 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     return this.constructUri ? this.constructUri(this.endpoint, pathExtensionComponents) : this.endpoint
   }
 
-  protected makeRequest(endpoint: string, method: HttpMethod, body?: Request): Promise<SuccessResponse> {
+  protected makeRequest(endpoint: string, method: HttpMethod, body: Request | undefined): Promise<SuccessResponse> {
     return fetch(SERVER_URL.replace(/\/$/, '') + endpoint, this.buildRequest(method, body))
     .catch((_: TypeError) => {
       throw Error('Could not connect to the server')
@@ -41,16 +42,20 @@ abstract class Endpoint<Request, SuccessResponse, PathExtensionComponents> {
     })
   }
 
-  private buildRequest(method: HttpMethod, body?: Request): RequestInit {
+  protected getPlatformParam = () => ({ platform: Platform.OS })
+
+  private buildRequest(method: HttpMethod, body: Request | undefined): RequestInit {
 
     const request: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
     }
 
     if (method === 'POST') {
+      body = Object.assign(body, this.getPlatformParam())
       if (this.requiresToken) {
         const bodyWithAuth = Object.assign(body, ApiAuthService.getToken())
         request.body = JSON.stringify(bodyWithAuth)
@@ -69,38 +74,33 @@ export class GetEndpoint<Request extends HttpGetRequest, SuccessResponse, PathEx
 
   public hit(params: Request, pathExtensionComponents: PathExtensionComponents) {
     const uri = this.constructUriWithParams(params, pathExtensionComponents)
-    return this.makeRequest(uri, 'GET')
+    return this.makeRequest(uri, 'GET', undefined)
   }
 
   private constructUriWithParams = (params: Request, pathExtensionComponents: PathExtensionComponents) => {
 
     const endpoint = this.getEndpoint(pathExtensionComponents)
 
-    if (params === undefined && !this.requiresToken) {
-      return endpoint
-    }
-
-    let uri = endpoint + '?'
+    params = Object.assign(params, this.getPlatformParam())
 
     if (this.requiresToken) {
-      uri += this.getQueryString({...ApiAuthService.getToken()})
+      params = Object.assign(params, ApiAuthService.getToken())
     }
 
-    if (params) {
-      uri += this.getQueryString(params)
-    }
-
-    return uri
+    return endpoint + this.getQueryString(params)
   }
 
   private getQueryString(params: HttpGetRequest) {
+    if (params.length === 0) {
+      return ''
+    }
     const queryParams: string[] = []
     Object.keys(params).forEach((key) => {
       if (params.hasOwnProperty(key)) {
         queryParams.push(encodeURI(key) + '=' + encodeURI(params[key].toString()))
       }
     })
-    return queryParams.join('&')
+    return '?' + queryParams.join('&')
   }
 }
 
